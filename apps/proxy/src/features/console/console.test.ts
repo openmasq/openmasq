@@ -86,13 +86,16 @@ describe("the console endpoint", () => {
     expect(html).toContain("function sesTag(");
   });
 
-  it("names the flag on every reveal control, instead of offering a dead toggle", async () => {
+  it("shows the real values by default, and names the flag when a run sent none", async () => {
     const html = await (await fetch(`${url}?t=${TOKEN}`)).text();
-    // This console was started WITHOUT --reveal, so the server sends no original. The kit's
-    // own toggle would otherwise flip to a row of dots and leave the reader guessing why.
-    expect(html).toContain("Real values (--reveal)");
+    // The page is the operator's own screen: the toggle starts ON when the run sends values.
+    expect(html).toContain("var rev = true;");
+    expect(html).toContain("if (on) { setRev(true); return; }");
+    // This console was started with --no-console-reveal (bus built with `false`), so the
+    // server sends no original. The kit's own toggle would otherwise flip to a row of dots.
+    expect(html).toContain("Real values (off)");
     expect(html).toContain("armReveal(!!d.reveal)");
-    expect(html).toContain("Run again with --reveal to show the real values");
+    expect(html).toContain("Started with --no-console-reveal");
     // ONE control, at the top. The drawer used to carry a second one — two buttons for one
     // fact, and a "→ --reveal" under every single value on top of that.
     expect(html).not.toContain('id="rev-in"');

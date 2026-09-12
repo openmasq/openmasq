@@ -197,6 +197,16 @@ export const OPTIONS: readonly Option[] = [
     doc: "serve the live view at /console",
   },
   {
+    name: "consoleReveal",
+    key: "consoleReveal",
+    flag: "--no-console-reveal",
+    env: "OPENMASQ_PROXY_CONSOLE_REVEAL",
+    file: true,
+    kind: "boolean",
+    flagSets: false,
+    doc: "the console page carries the real value beside each substitute (its own toggle shows or hides them); off ⇒ substitutes only",
+  },
+  {
     name: "open",
     key: "open",
     flag: "--open",

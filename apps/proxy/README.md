@@ -231,13 +231,16 @@ the context. It is how you watch a WRAPPED run, since the tool owns the terminal
 ```bash
 openmasq-proxy --console --mcp -- claude
 openmasq-proxy --open --mcp -- hermes      # opens the tab for you: hermes clears the screen as it starts
+openmasq-proxy --console --no-console-reveal -- claude   # substitutes and counts only on the page
 #   console: http://127.0.0.1:8787/console?t=J4JYXzkIDj2v-p7mRF5p9g
 ```
 
-Substitutes and counts by default — what the model saw. `--reveal` adds the real value
-beside each substitute, and only then does the page's own "Valeurs réelles" toggle work —
-without it the button is disabled, because the server sent nothing to reveal. **The URL carries
-a token minted for the run**: loopback is not an access control, every process on the machine
+**The real values are on the page by default**, beside each substitute — the page is the
+operator's own screen, on loopback, behind a token minted for the run, and it is how a
+wrapped run is watched. Its « Real values » toggle hides them; `--no-console-reveal` keeps
+them off the page entirely (the button then says so, rather than flipping to a row of dots).
+`--reveal` is the **terminal's** own opt-in and never a default: a scrollback is kept, copied
+and logged, a page is not. **The URL carries a token minted for the run**: loopback is not an access control, every process on the machine
 can reach 127.0.0.1, and without the token the route answers 404. Nothing a redaction touched
 is stored — no disk, no cache — and the page fetches nothing from anywhere: no CDN font, no
 remote asset. The one thing written is the address itself, to `~/.openmasq/console.url`
@@ -270,10 +273,9 @@ what the wrapped tool believes the screen is: measured, a child under a `1..34` 
 rows still reports `40 100`. A tool that repaints a full-screen interface therefore keeps
 writing to the last row, and the two writers shred each other's lines. Reserving space a
 full-screen child respects needs a pty the proxy owns, which it has not. To watch a wrapped
-run with the values shown, add `--reveal` to `--console`: `openmasq-proxy --console --reveal
--- claude`. The values go to the console page and nowhere else — the log file keeps counts.
-(Without `--console`, `--reveal` beside `--` is refused: the only screen left would be the
-file.)
+run with the values shown, `--console` is enough: the page carries them by default, and the
+log file keeps counts. (`--reveal` beside `--` without `--console` is refused: the only screen
+left would be the file.)
 
 **Limits**: text only — an image, a PDF or a file sent as bytes (`inlineData`, `image_url`)
 passes as is; the desktop app does the document OCR and masking, not the proxy.
@@ -590,13 +592,17 @@ possède le terminal.
 ```bash
 openmasq-proxy --console --mcp -- claude
 openmasq-proxy --open --mcp -- hermes      # ouvre l'onglet à ta place : hermes efface l'écran en démarrant
+openmasq-proxy --console --no-console-reveal -- claude   # substituts et compteurs seulement sur la page
 #   console: http://127.0.0.1:8787/console?t=J4JYXzkIDj2v-p7mRF5p9g
 ```
 
-Par défaut, les substituts et les compteurs — ce que le modèle a vu. `--reveal` ajoute la
-valeur réelle à côté de chaque substitut, et c'est seulement alors que le basculeur « Valeurs
-réelles » de la page fonctionne — sans lui le bouton est désactivé, puisque le serveur n'a
-rien envoyé à révéler. **L'adresse porte un jeton tiré pour la session** : la boucle locale n'est pas un
+**Les valeurs réelles sont sur la page par défaut**, à côté de chaque substitut — la page est
+l'écran de l'opérateur, en boucle locale, derrière un jeton tiré pour la session, et c'est
+ainsi qu'on suit une session enveloppée. Son basculeur « Real values » les cache ;
+`--no-console-reveal` les tient entièrement hors de la page (le bouton le dit alors, plutôt
+que de basculer sur une rangée de points). `--reveal` est l'opt-in du **terminal**, jamais un
+défaut : un historique de terminal se garde, se copie et se journalise, une page non.
+**L'adresse porte un jeton tiré pour la session** : la boucle locale n'est pas un
 contrôle d'accès, tout processus de la machine peut joindre 127.0.0.1, et sans le jeton la
 route répond 404. Rien de ce qu'un masquage a touché n'est conservé — ni disque, ni cache — et
 la page ne va rien chercher nulle part : aucune police de CDN, aucun actif distant. La seule
@@ -632,11 +638,9 @@ l'idée que l'outil enveloppé se fait de l'écran : mesuré, un enfant sous une
 de 40 lignes déclare toujours `40 100`. Un outil qui repeint une interface plein écran
 continue donc d'écrire sur la dernière ligne, et les deux écrivains se déchirent. Réserver
 une place qu'un enfant plein écran respecte demande un pseudo-terminal que le proxy ne
-possède pas. Pour suivre une session enveloppée avec les valeurs affichées, ajoutez
-`--reveal` à `--console` : `openmasq-proxy --console --reveal -- claude`. Les valeurs vont
-sur la page de la console et nulle part ailleurs — le fichier journal garde les comptes.
-(Sans `--console`, `--reveal` à côté de `--` reste refusé : le seul écran restant serait le
-fichier.)
+possède pas. Pour suivre une session enveloppée avec les valeurs affichées, `--console`
+suffit : la page les porte par défaut, et le fichier journal garde les comptes. (`--reveal` à
+côté de `--` sans `--console` reste refusé : le seul écran restant serait le fichier.)
 
 **Limites** : du texte seulement — une image, un PDF ou un fichier envoyé en octets
 (`inlineData`, `image_url`) passe tel quel ; l'app de bureau fait l'OCR et le masquage des

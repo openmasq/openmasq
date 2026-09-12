@@ -93,4 +93,36 @@ describe("joining a proxy that is already running", () => {
     }) as unknown as typeof fetch;
     expect(await findRunning("http://x", dead)).toBeUndefined();
   });
+
+  it("prints the running proxy's live view from the link it published, and opens it on --open", async () => {
+    const said: string[] = [];
+    const opened: string[] = [];
+    const running = { version: "1", model: false, console: true };
+    const url = "http://127.0.0.1:8787/console?t=abc";
+    await joinRunning("http://127.0.0.1:8787", ["claude"], {
+      find: async () => running,
+      run: async () => 0,
+      note: (t) => said.push(t),
+      link: () => url,
+      openConsole: true,
+      openUrl: async (u) => {
+        opened.push(u);
+        return true;
+      },
+      startOnly: ["--console"],
+    });
+    expect(said.some((l) => l.includes(`its live view: ${url}`))).toBe(true);
+    expect(opened).toEqual([url]);
+    // `--console` is not "ignored" when the live view is right there; `--reveal` still is.
+    expect(said.some((l) => l.includes("--console ignored"))).toBe(false);
+    // No link (an older proxy, or none served): the command is named instead.
+    const none: string[] = [];
+    await joinRunning("http://x", ["claude"], {
+      find: async () => ({ version: "1", model: false }),
+      run: async () => 0,
+      note: (t) => none.push(t),
+      link: () => undefined,
+    });
+    expect(none.some((l) => l.includes("openmasq-proxy console"))).toBe(true);
+  });
 });

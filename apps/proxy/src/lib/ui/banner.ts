@@ -91,7 +91,13 @@ function upstreams(tty: Tty, config: ProxyConfig, room: number): string {
   const short = (["openai", "anthropic", "gemini"] as const)
     .map((k) => (config[k] === DEFAULTS[k] ? tty.dim(k) : `${tty.dim(k)} ${host(config[k])}`))
     .join(tty.dim(" · "));
-  return pick(tty, room, full, overridden.length ? short : `${short} ${tty.dim("(vendor defaults)")}`, short);
+  return pick(
+    tty,
+    room,
+    full,
+    overridden.length ? short : `${short} ${tty.dim("(vendor defaults)")}`,
+    short,
+  );
 }
 
 const host = (origin: string): string => {
@@ -197,13 +203,15 @@ export function renderBanner(tty: Tty, config: ProxyConfig, d: BannerData): stri
   if (d.console) {
     const caption = d.console.reveal
       ? `${tty.pill(HUE_HEX.amber, INK_HEX, "real values")}${
-          tty.width(d.console.url) <= room ? tty.dim(" on that page only") : ""
+          tty.width(d.console.url) <= room
+            ? tty.dim(" on that page only · --no-console-reveal hides them")
+            : ""
         }`
       : tty.dim(
           pick(
             tty,
             room,
-            "substitutes and counts · --reveal adds the real values",
+            "substitutes and counts · --no-console-reveal is on",
             "substitutes and counts",
           ),
         );
@@ -238,8 +246,10 @@ export function renderBanner(tty: Tty, config: ProxyConfig, d: BannerData): stri
     // go under it, where nothing clips them.
     const envs = envLines(url);
     const inner = blockWidth(tty) - 4;
-    if (envs.every((l) => tty.width(l) <= room)) for (const l of envs) rows.push(`${label("")}${l}`);
-    else if (envs.every((l) => tty.width(l) + 2 <= inner)) for (const l of envs) rows.push(`  ${l}`);
+    if (envs.every((l) => tty.width(l) <= room))
+      for (const l of envs) rows.push(`${label("")}${l}`);
+    else if (envs.every((l) => tty.width(l) + 2 <= inner))
+      for (const l of envs) rows.push(`  ${l}`);
     else tail.push("", ...envs.map((l) => `  ${l}`));
   }
   // The level and what the model sees are the two dials the keys turn: they ride the rule
@@ -256,4 +266,3 @@ export function renderBanner(tty: Tty, config: ProxyConfig, d: BannerData): stri
     ...tail,
   ];
 }
-

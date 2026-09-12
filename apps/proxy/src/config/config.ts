@@ -142,9 +142,9 @@ export function parseConfig(
   if (config.reveal && config.command.length && !config.console)
     throw new Error(
       "--reveal cannot be used with `-- <tool>` alone: the tool owns the terminal, so the lines\n" +
-        "would go to the log file. Add --console to see the values on the console page (the log\n" +
-        "keeps counts only), or run the proxy in its own window with --reveal and start the tool\n" +
-        "in another with the printed base URLs (press c to copy them).",
+        "would go to the log file. The console page shows the real values by default — add\n" +
+        "--console (the log keeps counts only) — or run the proxy in its own window with --reveal\n" +
+        "and start the tool in another with the printed base URLs (press c to copy them).",
     );
   return { config, sources, ...(file ? { file } : {}) };
 }

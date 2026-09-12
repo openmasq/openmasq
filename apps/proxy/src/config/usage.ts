@@ -8,7 +8,7 @@ export const USAGE = `openmasq-proxy — mask personal data before it leaves the
                  (standard is the default: deterministic pattern rules, no model loaded)
                  [--always "Groupe Delorme:company,FR76 3000…:iban"] [--secrets-file <path>]
                  [--rules-only] [--quiet] [--json] [--log <file>] [--reveal] [--console]
-                 [--theme auto|light|dark] [--no-splash] [--open] [--config <file>]
+                 [--theme auto|light|dark] [--no-splash] [--open] [--no-console-reveal] [--config <file>]
                  [--mcp] [--mcp-config <file>] [--mcp-writes confirm|deny|allow] [--mcp-no-adopt]
   openmasq-proxy [flags] -- claude            run a tool through the proxy, stop with it
                  (codex, gemini, opencode, copilot too — --mcp makes us their only MCP)
@@ -41,9 +41,11 @@ both clear the screen as they come up, and the URL on the card goes with it. At 
 moment, openmasq-proxy console opens it again from any terminal — bind it to a key, or type
 !openmasq-proxy console in claude, opencode or hermes (a line starting with ! runs as a shell
 command). The address is kept in ~/.openmasq/console.url (0600) while the proxy runs.
-Substitutes and counts by default; --reveal adds the real value beside each one, on that
-page only — including for a wrapped run (--console --reveal -- <tool>): the page shows
-them, the log file keeps counts. The URL carries a per-run token — without it the route is a 404.
+The page shows the REAL value beside each substitute by default — it is the operator's own
+screen, loopback and a token per run, and it is how a wrapped run is watched (the log file
+keeps counts). Its toggle hides them; --no-console-reveal keeps them off the page entirely.
+--reveal is the TERMINAL's own opt-in (a scrollback is kept and copied) and never a default.
+The URL carries a per-run token — without it the route is a 404.
 
 --mcp also serves an MCP server at /mcp. The proxy connects to the servers declared in
 ~/.openmasq/mcp.json (or --mcp-config, Claude Desktop's "mcpServers" shape) and re-exposes

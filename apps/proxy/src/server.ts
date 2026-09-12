@@ -62,6 +62,7 @@ async function main(): Promise<void> {
       startOnly: [config.console && "--console", config.reveal && "--reveal"].filter(
         Boolean,
       ) as string[],
+      openConsole: config.open,
       // Joining is the run with the LEAST feedback — no card, no footer — so the opening
       // matters most here. It states the proxy we are joining, not our own flags.
       open: (running) =>
@@ -102,7 +103,9 @@ async function main(): Promise<void> {
   // The live console, when asked for. It reads the SAME events the terminal prints, so a
   // wrapped run — where the tool owns the screen — is watchable from a browser tab. The
   // token is minted here because `server.ts` is what prints it.
-  const bus = config.console ? createConsoleBus(reveal.on) : undefined;
+  // The page reveals by default (`schema.ts` says why the terminal does not); `--no-console-
+  // reveal` is the one way to a page of substitutes only.
+  const bus = config.console ? createConsoleBus(config.consoleReveal) : undefined;
   const consoleToken = bus ? randomBytes(16).toString("base64url") : "";
   const feed: typeof reporter = bus
     ? {
@@ -223,7 +226,7 @@ async function main(): Promise<void> {
       compact: wrapping,
       reveal: reveal.on && !wrapping,
       inClear: disabledKindsFor(config.level, config.disabledKinds),
-      ...(bus ? { console: { url: consoleUrl, reveal: reveal.on } } : {}),
+      ...(bus ? { console: { url: consoleUrl, reveal: config.consoleReveal } } : {}),
       ...(config.mcp
         ? {
             mcp: {

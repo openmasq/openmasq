@@ -81,6 +81,11 @@ export interface ProxyConfig {
   /** Serve the live console at /console. A token is minted per run and printed on the card;
    *  loopback alone is not an access control (`features/console/routes.ts` says why). */
   console: boolean;
+  /** The console page carries the real value beside each substitute — ON by default: that
+   *  page is the operator's own screen, loopback and a token per run, and it is what a wrapped
+   *  run is watched on. `--no-console-reveal` sends substitutes only, whatever the page asks.
+   *  The TERMINAL's `reveal` stays opt-in: a scrollback is kept, copied and logged. */
+  consoleReveal: boolean;
 }
 
 export const DEFAULTS: ProxyConfig = {
@@ -109,6 +114,7 @@ export const DEFAULTS: ProxyConfig = {
   mcpWrites: "confirm",
   mcpAdopt: true,
   console: false,
+  consoleReveal: true,
   open: false,
   theme: "auto",
   splash: true,

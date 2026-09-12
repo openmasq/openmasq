@@ -11,6 +11,8 @@
 // hopeful attempt.
 import { randomBytes } from "node:crypto";
 import { basename } from "node:path";
+import { readConsoleLink } from "../features/console/link.js";
+import { openInBrowser } from "./openUrl.js";
 import { createReporter } from "./ui/index.js";
 import { runWrapped } from "./wrap.js";
 
@@ -89,6 +91,12 @@ export async function joinRunning(
      *  they configure a NEW server, and this invocation started none. Warned, not swallowed —
      *  a `--console` that silently does nothing is why "rien n'arrive" in the console. */
     startOnly?: string[];
+    /** The running proxy's live-view address, from the link it published (`console/link.ts`):
+     *  the same user, the same 0600 file — the joiner may read what it may open. */
+    link?: () => string | undefined;
+    /** `--open` on the joiner: open THAT proxy's live view, since there is no other. */
+    openConsole?: boolean;
+    openUrl?: (url: string) => Promise<boolean>;
   } = {},
 ): Promise<number | undefined> {
   const running = await (deps.find ?? findRunning)(url);
@@ -102,16 +110,24 @@ export async function joinRunning(
     `joining the proxy already on ${url} (v${running.version}, ` +
       `${running.model ? "model on" : "pattern rules"}) — this session is ${session}`,
   );
-  // The joiner holds no console token by construction: the live view belongs to the proxy
-  // that started the server. `openmasq-proxy console` opens it from here all the same.
-  if (running.console !== false) say(`its live view, if it serves one: openmasq-proxy console`);
+  // The live view belongs to the proxy that started the server, and it published its
+  // address for exactly this reader (`console/link.ts`): print it, so this terminal is not
+  // the one place the URL cannot be found — and open it when `--open` asked.
+  const link = running.console === false ? undefined : (deps.link ?? readConsoleLink)();
+  if (link) {
+    say(`its live view: ${link}  (openmasq-proxy console reopens it)`);
+    if (deps.openConsole && !(await (deps.openUrl ?? openInBrowser)(link)))
+      warn("could not open a browser here — open the live view URL above by hand");
+  } else if (running.console !== false)
+    say(`its live view, if it serves one: openmasq-proxy console`);
   // The console (and its token) belong to whichever proxy actually STARTED the server; a join
   // holds none, so these flags never took effect. Say so, and where to look instead.
-  if (deps.startOnly?.length)
+  const ignored = (deps.startOnly ?? []).filter((f) => !(f === "--console" && link));
+  if (ignored.length)
     warn(
-      `${deps.startOnly.join(" and ")} ignored: they configure a new server, and this run joined ` +
-        `the proxy already on ${url}. Its console, if it has one, opens with ` +
-        `\`openmasq-proxy console\` — or stop it and re-run to start your own.`,
+      `${ignored.join(" and ")} ignored: they configure a new server, and this run joined ` +
+        `the proxy already on ${url}. ${link ? `Its live view is above` : "Its console, if it has one, opens with `openmasq-proxy console`"} ` +
+        `— or stop it and re-run to start your own.`,
     );
   return await (deps.run ?? runWrapped)(command, sessionUrl(url, session), []);
 }
