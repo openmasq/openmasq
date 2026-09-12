@@ -72,8 +72,15 @@ function* windowed(text: string, probe: RegExp, family: RegExp, before = 80): Ge
   }
 }
 
+// The separator before the legal form is captured (group 2) so it may be a COMMA:
+// `Acme, Inc.` is the standard American rendering, and it shipped in clear while
+// `Acme Inc.` was caught — one company, one signal, two treatments, for a punctuation
+// mark. It cannot simply live inside the name group: the emitted value must be VERBATIM
+// text at `start`, and a value of "Acme," would key a second identity for the same
+// company. `push` drops the trailing punctuation after the affix strip, which only ever
+// removes characters from the END and so leaves `start` valid.
 const RE_LEGAL = new RegExp(
-  `(?<![\\p{L}'’-])((?:${TOKEN}${GAP}){1,3})(${alt(LEGAL_SUFFIXES)})(?![\\p{L}])`,
+  `(?<![\\p{L}'’-])((?:${TOKEN}${GAP}){0,2}${TOKEN})(,?${GAP})(${alt(LEGAL_SUFFIXES)})(?![\\p{L}])`,
   "giu",
 );
 const RE_PROF = new RegExp(
@@ -188,7 +195,9 @@ export function detectOrgContext(text: string): Detection[] {
     // Canonicalise: drop the trailing legal form so every source agrees on the
     // org's identity key. Only TRAILING affixes can occur here (leading articles
     // are rejected by okToken), so `start` stays valid for the kept prefix.
-    const value = stripOrgAffixes(raw.trim());
+    // The trailing comma of `Acme, Inc.` goes with the legal form: keeping it would give
+    // the same company two identity keys depending on how the writer punctuated.
+    const value = stripOrgAffixes(raw.trim()).replace(/[,;]+$/, "").trimEnd();
     if (value.length < 3 || seen.has(value)) return;
     seen.add(value);
     out.push({ value, category: "ORG", start });
@@ -196,7 +205,8 @@ export function detectOrgContext(text: string): Detection[] {
   for (const m of windowed(text, P_LEGAL, RE_LEGAL)) {
     const lead = survivingLead(m[1] ?? "");
     if (!lead) continue;
-    push(`${lead}${m[2]}`, m.index + m[0].length - (lead.length + m[2].length));
+    const raw = `${lead}${m[2]}${m[3]}`;
+    push(raw, m.index + m[0].length - raw.length);
   }
   for (const m of windowed(text, P_PROF, RE_PROF)) {
     const lead = survivingLead(m[1] ?? "");

@@ -12,6 +12,24 @@ describe("detectOrgContext — legal-form suffix", () => {
     expect(values("der vertrag mit acme gmbh läuft")).toEqual(["acme"]);
   });
 
+  it("reads `Acme, Inc.` and `Acme Inc.` as ONE company", () => {
+    // The American rendering puts a comma before the legal form. Without it in the
+    // separator, `CCNG, Inc.` shipped in clear while `CCNG Inc.` was caught — and a value
+    // that kept the comma would have keyed a second identity for the same company.
+    expect(values("I worked at CCNG, Inc. last year")).toEqual(["CCNG"]);
+    expect(values("I worked at CCNG Inc. last year")).toEqual(["CCNG"]);
+    // The invariant is that the two renderings AGREE — whatever the name guards keep of
+    // the lead (here "First" is dropped as an ordinal, comma or no comma).
+    expect(values("the note from First Union Securities, Inc. arrived")).toEqual(
+      values("the note from First Union Securities Inc. arrived"),
+    );
+  });
+
+  it("does not take a comma that separates two sentences' worth of prose", () => {
+    // The comma is only a separator BEFORE a legal form; a list of plain words is not one.
+    expect(values("nous avons vu paul, jean et marc hier")).toEqual([]);
+  });
+
   it("captures up to two name tokens", () => {
     expect(values("facture adressée à batim ouest sarl hier")).toEqual(["batim ouest"]);
   });
