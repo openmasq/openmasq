@@ -72,6 +72,10 @@ describe("config edit", () => {
     expect(editorCommand({}, "linux", only())).toEqual(["vi"]);
     expect(editorCommand({}, "win32", only())).toEqual(["notepad"]);
     expect(editorCommand({}, "win32", only("code"))).toEqual(["code", "--wait"]);
+    // macOS, VS Code installed as an app but without its shell command: the bundle's own CLI.
+    const bundle = "/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code";
+    expect(editorCommand({}, "darwin", only(bundle, "nano"))).toEqual([bundle, "--wait"]);
+    expect(editorCommand({}, "linux", only(bundle, "nano"))).toEqual(["nano"]); // a Mac path means nothing there
   });
 
   it("creates the file when there is none, runs the editor on it, and checks what was saved", () => {

@@ -146,7 +146,8 @@ environment variable: a `"level": "strcit"` that silently ran at standard would 
 `reveal` and `json` stay per-run flags, on purpose. `openmasq-proxy config init` writes the
 empty file with its JSON Schema beside it (the editor completes keys and values from it);
 `config edit` opens it — `$VISUAL`/`$EDITOR`, or else the first editor installed: Cursor,
-VS Code, Zed, Sublime, Windsurf (with `--wait`), then nano, vim, vi — and **checks it when
+VS Code, Zed, Sublime, Windsurf (with `--wait`; on macOS their bundled CLI is found even without
+the shell command installed), then nano, vim, vi — and **checks it when
 the editor returns**, the way the run would; `config show` prints the run that would start and **where each value came
 from**; `config path` the file it reads.
 
@@ -480,7 +481,8 @@ qui tournerait en standard sans rien dire serait une fuite. `reveal` et `json` r
 drapeaux de session, exprès. `openmasq-proxy config init` écrit le fichier vide avec son JSON
 Schema à côté (l'éditeur complète clés et valeurs grâce à lui) ; `config edit` l'ouvre —
 `$VISUAL`/`$EDITOR`, sinon le premier éditeur installé : Cursor, VS Code, Zed, Sublime,
-Windsurf (avec `--wait`), puis nano, vim, vi — et **le vérifie au retour de l'éditeur**, comme
+Windsurf (avec `--wait` ; sur macOS leur CLI embarqué est trouvé même sans la commande shell
+installée), puis nano, vim, vi — et **le vérifie au retour de l'éditeur**, comme
 le ferait la session ;
 `config show` affiche la session qui démarrerait et **d'où vient chaque valeur** ;
 `config path` le fichier lu.

@@ -71,16 +71,35 @@ export function initConfig(path: string, deps: Say & Partial<Files>): number {
 
 /** The editors tried when the user named none, in order. A desktop editor gets `--wait`,
  *  so the command returns when the tab is CLOSED — that return is when the file is checked.
- *  Then the terminal ones, friendliest first; `vi` last, because it is always there. */
-export const EDITORS: readonly string[][] = [
-  ["cursor", "--wait"],
-  ["code", "--wait"],
-  ["zed", "--wait"],
-  ["subl", "--wait"],
-  ["windsurf", "--wait"],
-  ["nano"],
-  ["vim"],
-  ["vi"],
+ *  Then the terminal ones, friendliest first; `vi` last, because it is always there.
+ *  On macOS a desktop editor is often installed WITHOUT its shell command (`code` is a
+ *  separate « Install 'code' command » step), so its bundle's own CLI is tried right after
+ *  the name: the binary the shell command would have pointed at anyway. */
+export const EDITORS: readonly { cmd: string; args: string[]; mac?: string }[] = [
+  {
+    cmd: "cursor",
+    args: ["--wait"],
+    mac: "/Applications/Cursor.app/Contents/Resources/app/bin/cursor",
+  },
+  {
+    cmd: "code",
+    args: ["--wait"],
+    mac: "/Applications/Visual Studio Code.app/Contents/Resources/app/bin/code",
+  },
+  { cmd: "zed", args: ["--wait"], mac: "/Applications/Zed.app/Contents/MacOS/cli" },
+  {
+    cmd: "subl",
+    args: ["--wait"],
+    mac: "/Applications/Sublime Text.app/Contents/SharedSupport/bin/subl",
+  },
+  {
+    cmd: "windsurf",
+    args: ["--wait"],
+    mac: "/Applications/Windsurf.app/Contents/Resources/app/bin/windsurf",
+  },
+  { cmd: "nano", args: [] },
+  { cmd: "vim", args: [] },
+  { cmd: "vi", args: [] },
 ];
 
 /** Which editor: `$VISUAL`, then `$EDITOR` (an editor with its own flags, `code --wait`, is
@@ -93,8 +112,10 @@ export function editorCommand(
 ): string[] {
   const named = (env.VISUAL || env.EDITOR || "").trim();
   if (named) return named.split(/\s+/);
-  const found = EDITORS.find(([cmd]) => has(cmd));
-  if (found) return [...found];
+  for (const e of EDITORS) {
+    if (has(e.cmd)) return [e.cmd, ...e.args];
+    if (platform === "darwin" && e.mac && has(e.mac)) return [e.mac, ...e.args];
+  }
   return [platform === "win32" ? "notepad" : "vi"];
 }
 
@@ -110,7 +131,7 @@ export function editConfig(
   }
   const [cmd, ...args] = editorCommand(deps.env);
   deps.out(
-    `opening ${file} in ${cmd}${args.length ? " (checked when the tab closes)" : ""} — set $VISUAL or $EDITOR to choose another.`,
+    `opening ${file} in ${basename(cmd)}${args.length ? " (checked when the tab closes)" : ""} — set $VISUAL or $EDITOR to choose another.`,
   );
   const status = (deps.spawn ?? run)(cmd, [...args, file]);
   if (status !== 0) {
