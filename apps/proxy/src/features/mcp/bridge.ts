@@ -13,7 +13,7 @@ import { mapStrings, RedactingMcpClient, type McpTool, type McpToolResult } from
 import type { RedactionMatch, Vault } from "@openmasq/redact";
 import type { Masker } from "../../lib/masker.js";
 import type { ConfirmFn } from "./gate.js";
-import { gateTool, type WritePolicy } from "./gate.js";
+import { gateTool, splitToolName, type WritePolicy } from "./gate.js";
 import type { Upstream } from "./upstream.js";
 
 /** The per-request redaction state, the same object `routes/middlewares/session.ts` puts on
@@ -26,9 +26,12 @@ export interface SessionState {
 
 export interface BridgeDeps {
   upstream: Upstream;
+  /** The run's masker and write policy — what a server gets unless `perServer` says otherwise. */
   masker: Masker;
   policy: WritePolicy;
   confirm: ConfirmFn;
+  /** A server's own masker and gate, from its `proxy.json` entry (`lib/maskers.ts`). */
+  perServer?: (serverId: string) => { masker?: Masker; writes?: WritePolicy };
 }
 
 export interface ToolOutcome {
@@ -72,7 +75,17 @@ export function createBridge(deps: BridgeDeps): McpBridge {
         session.vault,
       )) as Record<string, unknown>;
 
-      const stop = await gateTool(name, tools, deps.policy, deps.confirm, realArgs);
+      // The server's own policy, when it has one: its results through ITS masker, its writes
+      // behind ITS gate. Everything else — vault, key, restore — is the session's.
+      const scoped = deps.perServer?.(splitToolName(name).serverId) ?? {};
+      const masker = scoped.masker ?? deps.masker;
+      const stop = await gateTool(
+        name,
+        tools,
+        scoped.writes ?? deps.policy,
+        deps.confirm,
+        realArgs,
+      );
       if (stop) return { result: refusal(stop), matches, refused: true };
 
       const client = new RedactingMcpClient({
@@ -82,7 +95,7 @@ export function createBridge(deps: BridgeDeps): McpBridge {
         // masked in a chat message must land on the same fake, or the reply cannot be
         // restored. Passing the key is what makes the two channels agree.
         redactResult: async (text, vault) => {
-          const out = await deps.masker.mask(text, vault, session.mode, session.key);
+          const out = await masker.mask(text, vault, session.mode, session.key);
           matches.push(...out.matches);
           return out.text;
         },

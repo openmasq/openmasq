@@ -9,7 +9,7 @@ import { mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
 import type { ProxyConfig } from "../../config/config.js";
-import type { Masker } from "../../lib/masker.js";
+import type { MaskerSet } from "../../lib/maskers.js";
 import { createStore, providerFor } from "./auth.js";
 import { createBridge, type McpBridge } from "./bridge.js";
 import {
@@ -22,6 +22,7 @@ import {
 } from "./clients/index.js";
 import { createConfirmer } from "./confirm.js";
 import { notOurs, ownServers, probeRun } from "./own.js";
+import { describePolicy, type McpPolicy } from "./policy.js";
 import { resolveSpecs } from "./resolve.js";
 import type { ServerSpec } from "./servers.js";
 import { connectUpstream, type Upstream } from "./upstream.js";
@@ -29,7 +30,9 @@ import { onPath } from "../../lib/wrap.js";
 
 export interface StartDeps {
   config: ProxyConfig;
-  masker: Masker;
+  maskers: MaskerSet;
+  /** `proxy.json`'s `mcp` section, already validated. */
+  policy: McpPolicy;
   wrapping: boolean;
   note: (text: string, tone?: "info" | "warn" | "ok") => void;
   spinner: (text: string) => () => void;
@@ -39,7 +42,7 @@ export interface StartDeps {
 export interface Integrations {
   upstream?: Upstream;
   bridge?: McpBridge;
-  /** `id (n tools)` per connected server, for the card. */
+  /** `id (n tools) · strict · writes deny` per connected server, for the card. */
   servers: string[];
   /** Appended to the wrapped client's argv — empty when there is nothing to force. */
   exclusiveArgs: string[];
@@ -169,6 +172,8 @@ export async function startIntegrations(deps: StartDeps): Promise<Integrations> 
       configPath: config.mcpConfig,
       ...(own ? { own } : {}),
       adopt: config.mcpAdopt,
+      policy: deps.policy,
+      onPolicy: (id, text, tone) => deps.note(`${id}: ${text}`, tone),
       onAdopt: (id, scope) => deps.note(`taking ${id} over from ${client?.id} (${scope})`),
       onSkip: (id, why) => deps.note(`${id} not taken over: ${why}`, "warn"),
     });
@@ -208,16 +213,25 @@ export async function startIntegrations(deps: StartDeps): Promise<Integrations> 
             spec,
           )
         : undefined,
-    onUp: (id, tools) => servers.push(`${id} (${tools})`),
+    onUp: (id, tools) => {
+      const policy = deps.policy[id] ? describePolicy(deps.policy[id]) : "";
+      servers.push(`${id} (${tools})${policy ? ` · ${policy}` : ""}`);
+    },
     onDown: (id, why) => deps.note(`${id} is not connected: ${why}`, "warn"),
   });
   done();
 
   const bridge = createBridge({
     upstream,
-    masker: deps.masker,
+    masker: deps.maskers.masker,
     policy: config.mcpWrites,
     confirm: createConfirmer({ note: deps.note }),
+    // A server with an entry of its own: its results through its masker, its writes behind
+    // its gate. The others fall through to the run's.
+    perServer: (id) => ({
+      masker: deps.maskers.forServer(id),
+      ...(deps.policy[id]?.writes ? { writes: deps.policy[id].writes } : {}),
+    }),
   });
 
   return {

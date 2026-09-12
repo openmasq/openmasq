@@ -41,7 +41,7 @@ export function decideTool(name: string, tools: McpTool[], policy: WritePolicy):
   if (policy === "deny")
     return {
       verdict: "deny",
-      reason: `${tool.name} writes, and --mcp-writes deny is on (reads still run)`,
+      reason: `${tool.name} writes, and writes are denied here — --mcp-writes deny, or this server's policy (reads still run)`,
     };
 
   // `writeRisk` fails closed on a server it does not ship — which is EVERY server declared

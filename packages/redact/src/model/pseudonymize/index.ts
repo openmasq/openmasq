@@ -26,6 +26,7 @@ import { filterCandidates, deNest, dropUnanchoredProseGeo, disabledValueSpans } 
 import { splitLineCrossing } from "./lineSplit";
 import { allocateEntities } from "./allocate";
 import { allocateTokens } from "./allocateTokens";
+import { applyTokenFragments } from "./tokenFragments";
 import type { PseudonymizeOptions } from "./options";
 
 export type { PseudonymizeOptions };
@@ -247,7 +248,10 @@ export async function pseudonymize(
   // (`…/Compte-rendu-jean-rebour-36db…`) is the user's data wearing a URL's clothes, and
   // sparing it would be a leak. Only the EXACT spelling is spared, which is what the
   // structural parts of a link (host, id, query flag) actually are.
-  const text = applyVaultVariants(applyVault(input, vault, exclude, urlGuard), vault, exclude);
+  const replayed = applyVaultVariants(applyVault(input, vault, exclude, urlGuard), vault, exclude);
+  // Token mode has no per-word aliases in the vault (`tokenFragments.ts` says why), so the
+  // standalone surname of a known person is caught by a forward-only pass of its own.
+  const text = options.mode === "token" ? applyTokenFragments(replayed, vault, exclude) : replayed;
 
   // POSTCONDITION — "reported ⇒ vaulted ⇒ substituted". `matches` is what the UI
   // shows as redacted, what `redactedSpans` persists and what the privacy report

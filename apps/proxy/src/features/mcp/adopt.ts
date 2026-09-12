@@ -25,10 +25,13 @@ export function adoptFrom(
   own: OwnServer[],
   declared: ServerSpec[],
   events: AdoptEvents = {},
+  /** Ids the policy keeps out of adoption (`source: openmasq` or `off`) — already said. */
+  exclude: ReadonlySet<string> = new Set(),
 ): ServerSpec[] {
   const taken = new Set(declared.map((s) => s.id));
   const adopted: ServerSpec[] = [];
   for (const server of own) {
+    if (exclude.has(server.id)) continue;
     if (taken.has(server.id)) {
       events.onSkip?.(server.id, "already declared — yours wins");
       continue;

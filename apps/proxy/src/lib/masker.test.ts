@@ -92,4 +92,38 @@ describe("masker", () => {
     );
     expect(strict.text).not.toContain("Airbus");
   });
+
+  // The rule the per-server policies rest on: every masker writes the SAME session vault, and
+  // a vault is replayed BEFORE anything is detected. So what a stricter source vaulted stays
+  // masked in a chat whose level would never have found it — fragments included, both modes.
+  it("keeps what a stricter pass vaulted masked in a standard-level pass — the vault outranks the level", async () => {
+    for (const mode of ["fake", "token"] as const) {
+      const vault = {};
+      const key = "ab".repeat(32);
+      // A tool result at strict (forced here: the test loads no model).
+      const strict = createMasker({
+        ...base,
+        level: "strict",
+        forced: [{ value: "Jean Dupont", category: "name" }],
+      });
+      const r1 = await strict.mask("Compte-rendu : Jean Dupont valide le devis.", vault, mode, key);
+      expect(r1.text).not.toContain("Dupont");
+      // The chat at standard — names are not even looked for — on the same vault.
+      const standard = createMasker({
+        ...base,
+        level: "standard",
+        disabledKinds: disabledKindsFor("standard", []),
+      });
+      const r2 = await standard.mask(
+        "Jean est parti. DUPONT aussi. Jean Dupont revient demain.",
+        vault,
+        mode,
+        key,
+      );
+      expect(r2.text, mode).not.toContain("Dupont");
+      expect(r2.text, mode).not.toMatch(/\bJean\b/);
+      // …and the reply comes back readable: the same vault reverses it.
+      expect(standard.restoreReply(r2.text, vault)).toContain("Jean Dupont revient demain.");
+    }
+  });
 });

@@ -14,12 +14,9 @@ import { joinRunning, sessionName, sessionUrl } from "./lib/attach.js";
 import { runMcpCommand } from "./features/mcp/cli.js";
 import { startIntegrations } from "./features/mcp/start.js";
 import { createDials } from "./lib/dials.js";
-import {
-  createMasker,
-  disabledKindsFor,
-  levelNeedsModel,
-  type MaskerOptions,
-} from "./lib/masker.js";
+import { disabledKindsFor } from "./lib/masker.js";
+import { createMaskerSet } from "./lib/maskers.js";
+import { parseMcpPolicy } from "./features/mcp/policy.js";
 import { type DetectLocal, loadNer, resolveNerDir } from "./lib/ner.js";
 import {
   attachKeys,
@@ -49,8 +46,11 @@ async function main(): Promise<void> {
   if (process.argv[2] === "config") process.exit(await runConfigCommand(process.argv.slice(3)));
 
   let config: ReturnType<typeof parseConfig>["config"];
+  let policy: ReturnType<typeof parseMcpPolicy> = {};
   try {
-    config = parseConfig(process.argv.slice(2)).config;
+    const parsed = parseConfig(process.argv.slice(2));
+    config = parsed.config;
+    policy = parseMcpPolicy(parsed.file?.mcp ?? {}, `${parsed.file?.path} › mcp`);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     console.error(msg);
@@ -120,19 +120,14 @@ async function main(): Promise<void> {
       }
     : reporter;
 
-  // The masker reads these at request time, so a key can re-point the level — and the model,
-  // which `standard` never loads and a later level may need.
-  const maskerOpts: MaskerOptions = {
-    level: config.level,
-    detectLocal: undefined,
-    keep: config.keep,
-    disabledKinds: disabledKindsFor(config.level, config.disabledKinds),
-    forced: config.always,
-    secrets: config.secrets,
-  };
+  // The chat's masker reads its options at request time, so a key can re-point the level —
+  // and the model, which `standard` never loads and a later level may need. A server with a
+  // policy of its own gets its own masker beside it (`lib/maskers.ts`).
+  const maskers = createMaskerSet(config, policy);
+  const maskerOpts = maskers.global;
   let detectLocal: DetectLocal | undefined;
   const modelState = (): ModelState =>
-    detectLocal ? "on" : levelNeedsModel(config.level, config.disabledKinds) ? "off" : "rules";
+    detectLocal ? "on" : maskers.needsModel() ? "off" : "rules";
 
   /** Load the model once. Returns "" on success, or why it cannot run. */
   async function ensureModel(): Promise<string> {
@@ -144,7 +139,7 @@ async function main(): Promise<void> {
     try {
       detectLocal = await loadNer(dir);
       await detectLocal("bonjour"); // warm: the first request should not pay the load
-      maskerOpts.detectLocal = detectLocal;
+      maskers.setDetect(detectLocal);
       return "";
     } catch (err) {
       return err instanceof Error ? err.message : String(err);
@@ -153,9 +148,10 @@ async function main(): Promise<void> {
     }
   }
 
-  // Fail closed: a level that asks for names, places and organisations does not start
-  // without the detector that finds them. `--rules-only` is the explicit, loud opt-out.
-  if (levelNeedsModel(config.level, config.disabledKinds)) {
+  // Fail closed: a level that asks for names, places and organisations — the chat's, or one
+  // server's — does not start without the detector that finds them. `--rules-only` is the
+  // explicit, loud opt-out.
+  if (maskers.needsModel()) {
     if (config.rulesOnly) {
       screen.note(
         `--rules-only at level ${config.level}: names, organisations and places are NOT detected.`,
@@ -173,10 +169,11 @@ async function main(): Promise<void> {
   }
 
   // The integrations, if asked for.
-  const masker = createMasker(maskerOpts);
+  const masker = maskers.masker;
   const integrations = await startIntegrations({
     config,
-    masker,
+    maskers,
+    policy,
     wrapping,
     note: (text, tone) => screen.note(text, tone),
     spinner: (text) => screen.spinner(text),

@@ -61,7 +61,11 @@ interface Booted {
   close: () => Promise<void>;
 }
 
-async function boot(policy: WritePolicy, confirmAnswer = false): Promise<Booted> {
+async function boot(
+  policy: WritePolicy,
+  confirmAnswer = false,
+  perServer?: Parameters<typeof createBridge>[0]["perServer"],
+): Promise<Booted> {
   const crm = fakeCrm();
   const upstream = await connectUpstream(
     [{ id: "crm", transport: "stdio", command: "unused", args: [], env: {} }],
@@ -95,6 +99,7 @@ async function boot(policy: WritePolicy, confirmAnswer = false): Promise<Booted>
         masker,
         policy,
         confirm: async () => confirmAnswer,
+        ...(perServer ? { perServer } : {}),
       }),
       version: "test",
     },
@@ -186,6 +191,18 @@ describe("/mcp — the integrations, masked", () => {
     expect(result.isError).toBe(true);
     expect(JSON.stringify(result.content)).toMatch(/Refused/);
     expect(booted.calls).toHaveLength(0);
+    await client.close();
+  });
+
+  it("refuses a write for a server whose OWN policy says deny, under a run that allows", async () => {
+    booted = await boot("allow", false, (id) => (id === "crm" ? { writes: "deny" } : {}));
+    const client = await agent(booted.url);
+    const result = await client.callTool({ name: "crm__send_invoice", arguments: {} });
+    expect(result.isError).toBe(true);
+    expect(booted.calls).toHaveLength(0);
+    // …and a read of the same server still runs: the policy is about writes.
+    const read = await client.callTool({ name: "crm__search_clients", arguments: { q: "x" } });
+    expect(read.isError).toBeFalsy();
     await client.close();
   });
 
