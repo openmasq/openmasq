@@ -14,9 +14,14 @@ import type { Reporter } from "../../lib/ui/index.js";
 import type { Locals } from "../../lib/relay.js";
 import type { McpBridge } from "./bridge.js";
 import type { Signal } from "./reload.js";
+import { sameToken } from "./endpointToken.js";
 
 export interface McpRouteDeps {
   bridge: McpBridge;
+  /** The key to this endpoint (`endpointToken.ts`). It runs the user's connected tools with
+   *  the user's credentials, so it is gated like `/console` — and answers 404 without it,
+   *  never 401: an endpoint that admits it exists invites guessing. */
+  token: string;
   reporter: Reporter;
   version: string;
   /** Fires when the tool list moved (`reload.ts`): every agent holding a GET stream open is
@@ -120,6 +125,15 @@ function buildServer(deps: McpRouteDeps, locals: Locals, reportedAt: () => numbe
  * thing kept across requests is the set of GET streams still open: that is the channel a
  * server-initiated notification travels on, and `tools/list_changed` needs it.
  */
+/** The token may travel in the query (every client carries a URL verbatim) or in a header,
+ *  for a caller that would rather not put it in a URL. */
+const authorized = (req: Request, token: string): boolean => {
+  const q = req.query.t;
+  if (typeof q === "string" && sameToken(q, token)) return true;
+  const h = req.headers["x-openmasq-mcp-token"];
+  return typeof h === "string" && sameToken(h, token);
+};
+
 export default function mcpRouter(deps: McpRouteDeps): Router {
   const router = Router();
   const listening = new Set<Server>();
@@ -127,6 +141,10 @@ export default function mcpRouter(deps: McpRouteDeps): Router {
     for (const server of listening) void server.sendToolListChanged().catch(() => {});
   });
   const handle = async (req: Request, res: Response): Promise<void> => {
+    if (!authorized(req, deps.token)) {
+      res.status(404).end();
+      return;
+    }
     const server = buildServer(deps, res.locals as Locals, () => Date.now());
     const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });
     if (req.method === "GET") listening.add(server);

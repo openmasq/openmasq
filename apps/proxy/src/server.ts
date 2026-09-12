@@ -183,6 +183,7 @@ async function main(): Promise<void> {
           mcp: {
             bridge,
             version: packageVersion(),
+            token: integrations.token ?? "",
             ...(integrations.changes ? { changes: integrations.changes } : {}),
           },
         }
@@ -226,7 +227,7 @@ async function main(): Promise<void> {
             mcp: {
               servers: integrations.servers,
               writes: config.mcpWrites,
-              url: `${url}/mcp`,
+              url: integrations.endpoint ?? `${url}/mcp`,
               ...(integrations.clientId ? { client: integrations.clientId } : {}),
             },
           }

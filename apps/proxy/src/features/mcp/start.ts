@@ -22,6 +22,7 @@ import {
 } from "./clients/index.js";
 import { createConfirmer } from "./confirm.js";
 import { notOurs, ownServers, probeRun } from "./own.js";
+import { endpointToken, endpointUrl } from "./endpointToken.js";
 import { describePolicy, type McpPolicy } from "./policy.js";
 import { createSignal, type Signal, watchIntegrations } from "./reload.js";
 import { openmasqDir } from "../../lib/stateDir.js";
@@ -53,6 +54,10 @@ export interface Integrations {
   clientId?: string;
   /** Fires when the tool list moved mid-run (`reload.ts`); `/mcp` tells the agent. */
   changes?: Signal;
+  /** The key `/mcp` requires, and the endpoint carrying it — what the card prints and what a
+   *  client is pointed at (`endpointToken.ts`). */
+  token?: string;
+  endpoint?: string;
   cleanup: () => void;
 }
 
@@ -93,6 +98,10 @@ export async function startIntegrations(deps: StartDeps): Promise<Integrations> 
   if (!config.mcp) return NONE;
 
   const url = `http://${config.host}:${config.port}`;
+  // The key to `/mcp`, read from the state directory or created there on first use. Minted
+  // BEFORE anything is written for a client: the endpoint it is handed carries the token.
+  const token = endpointToken();
+  const endpoint = endpointUrl(url, token);
   // Our own config file, holding nothing but the loopback endpoint, for the length of the
   // run. The client's own files are never written to, so quitting restores it exactly.
   let tempDir = "";
@@ -110,13 +119,12 @@ export async function startIntegrations(deps: StartDeps): Promise<Integrations> 
   if (client) {
     tempDir = mkdtempSync(join(tmpdir(), "openmasq-mcp-"));
     const file = join(tempDir, "mcp.json");
-    writeFileSync(file, soleServerConfig(url), { mode: 0o600 });
+    writeFileSync(file, soleServerConfig(endpoint), { mode: 0o600 });
     const learned = ownServers(client, {
       command: config.command[0],
       cwd: process.cwd(),
       home: homedir(),
     });
-    const endpoint = `${url}/mcp`;
     const outcome =
       "failed" in learned
         ? { blocked: `its own servers could not be listed (${learned.failed})` }
@@ -276,6 +284,8 @@ export async function startIntegrations(deps: StartDeps): Promise<Integrations> 
     exclusiveArgs,
     // The card claims the client speaks to us and nobody else — only when it is true.
     ...(exclusive && client ? { clientId: client.id } : {}),
+    token,
+    endpoint,
     changes,
     cleanup: () => {
       reloader.close();

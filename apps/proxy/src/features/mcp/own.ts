@@ -65,7 +65,11 @@ export function probeRun(command: string, args: string[], env?: Record<string, s
  * find that entry, which is how it learns the name to allow.
  */
 export function notOurs(own: OwnServer[], endpoint: string): OwnServer[] {
-  return own.filter((s) => s.url !== endpoint);
+  // Compared WITHOUT the query string: our endpoint carries its token there, and a client
+  // that declared it once (Gemini) may hold the bare form or an older one. Either is us.
+  const bare = (u: string | undefined) => (u ?? "").split("?")[0];
+  const ours = bare(endpoint);
+  return own.filter((s) => bare(s.url) !== ours);
 }
 
 export function ownServers(client: AgentClient, deps: OwnDeps): Own {

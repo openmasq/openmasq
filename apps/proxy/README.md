@@ -69,6 +69,13 @@ serves an **MCP server** at `http://127.0.0.1:8787/mcp`. Point your agent's MCP 
 instead of at Gmail, Notion or your CRM: the proxy holds the connections, and the agent gets
 the same tools with the values replaced.
 
+That endpoint **runs** those tools with your credentials, so it carries a key of its own:
+`~/.openmasq/mcp.token` (0600, beside the credential store, stable across runs so a client
+that declares the endpoint once keeps working). A wrapped client is handed the endpoint with
+the key already in it; without the key the route answers **404**. Reaching the port is not
+reaching the endpoint — and neither is a page in a browser, which can open a loopback URL but
+cannot read a file.
+
 ```bash
 openmasq-proxy --mcp --level renforce           # servers from ~/.openmasq/mcp.json
 ```
@@ -105,7 +112,7 @@ rewriting anyone's configuration:
 |---|---|---|
 | **Claude Code** | `--mcp-config <temp> --strict-mcp-config` | none — verified in a real session, the model's tool list came back as `mcp__openmasq__crm__*` and nothing else |
 | **Codex** | one `-c mcp_servers.<id>.enabled=false` per server it has, ours, and `features.apps=false` for the built-in apps server no listing reports | none — verified in a real session: the model's tool list was ours alone and the contact it printed was the vault's fake. `codex exec` needs `-c 'mcp_servers.openmasq.default_tools_approval_mode="approve"'` to call a tool non-interactively |
-| **Gemini CLI** | `--allowed-mcp-server-names <ours>` | once: `gemini mcp add -s user -t http openmasq http://127.0.0.1:8787/mcp`. Wrap a session (`-- gemini`), not a subcommand — `gemini mcp list` refuses the flag |
+| **Gemini CLI** | `--allowed-mcp-server-names <ours>` | once: `gemini mcp add -s user -t http openmasq "http://127.0.0.1:8787/mcp?t=$(cat ~/.openmasq/mcp.token)"`. Wrap a session (`-- gemini`), not a subcommand — `gemini mcp list` refuses the flag |
 | **opencode** | a config file of ours in `OPENCODE_CONFIG`: our server added, each of its own disabled | none — but a project `opencode.json` outranks that file, so the proxy re-asks under its own configuration and refuses exclusivity if anything survived |
 | **Copilot CLI** | one `--disable-mcp-server <id>` per server, `--disable-builtin-mcps`, and ours through `--additional-mcp-config` | none — the list comes from `copilot mcp list --json`. Its own flags, read in the binary; a live run needs a GitHub login, so that half is not claimed here |
 

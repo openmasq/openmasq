@@ -50,7 +50,9 @@ The URL carries a per-run token — without it the route is a 404.
 --mcp also serves an MCP server at /mcp. The proxy connects to the servers declared in
 ~/.openmasq/mcp.json (or --mcp-config, Claude Desktop's "mcpServers" shape) and re-exposes
 their tools with the values masked: the agent points its MCP client at http://127.0.0.1:8787/mcp,
-never holds an integration credential, and never sees a real value. Tool results are masked
+never holds an integration credential, and never sees a real value. That endpoint RUNS those
+tools with your credentials, so it carries a key (~/.openmasq/mcp.token, 0600, stable across
+runs): a wrapped client is handed the endpoint with it, and without it the route is a 404. Tool results are masked
 into the SAME vault as the chat messages, so one value keeps one substitute across both.
 A login, an add or a remove made while the proxy runs is picked up by it — the list is
 resolved again, only what moved reconnects, and the agent is told (tools/list_changed).
@@ -67,7 +69,8 @@ vault stays masked for the whole conversation, whatever the chat's level.
 With -- claude, codex, gemini, opencode or copilot, --mcp goes further: the client is started
 with OUR endpoint as its ONLY MCP server, and the servers it declared are taken over so it
 loses nothing — one MCP, exposing every service, all of it masked. --mcp-no-adopt leaves them
-behind. Gemini needs the endpoint declared once (gemini mcp add -s user -t http openmasq
-<url>/mcp), and the run then allows that one alone. A client whose own MCP servers cannot be
+behind. Gemini needs the endpoint declared once, with the key
+(gemini mcp add -s user -t http openmasq "<url>/mcp?t=$(cat ~/.openmasq/mcp.token)"), and the
+run then allows that one alone. A client whose own MCP servers cannot be
 switched off — or one where a project file outranks what we hand it — is SAID SO on start:
 its tool calls do not pass through here.`;

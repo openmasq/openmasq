@@ -41,8 +41,8 @@ describe("the wrapped client", () => {
   });
 
   it("hands it one server: ours", () => {
-    const doc = JSON.parse(soleServerConfig("http://127.0.0.1:8787"));
-    expect(doc).toEqual({ mcpServers: { openmasq: { type: "http", url: URL } } });
+    const doc = JSON.parse(soleServerConfig(`${URL}?t=k`));
+    expect(doc).toEqual({ mcpServers: { openmasq: { type: "http", url: `${URL}?t=k` } } });
   });
 
   it("walks to a nested map, and gives up rather than guessing", () => {

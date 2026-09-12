@@ -63,6 +63,7 @@ interface Booted {
   close: () => Promise<void>;
 }
 
+const MCP_TOKEN = "a-key-nobody-guesses-0123456789abcdef";
 const changes = createSignal();
 
 async function boot(
@@ -106,6 +107,7 @@ async function boot(
         ...(perServer ? { perServer } : {}),
       }),
       version: "test",
+      token: MCP_TOKEN,
       changes,
     },
   });
@@ -129,7 +131,7 @@ async function boot(
 
 async function agent(url: string): Promise<Client> {
   const client = new Client({ name: "test-agent", version: "1" });
-  await client.connect(new StreamableHTTPClientTransport(new URL(`${url}/mcp`)));
+  await client.connect(new StreamableHTTPClientTransport(new URL(`${url}/mcp?t=${MCP_TOKEN}`)));
   return client;
 }
 
@@ -140,6 +142,31 @@ afterEach(async () => {
 });
 
 describe("/mcp — the integrations, masked", () => {
+  it("answers nothing at all without the endpoint's key — and 404, never 401", async () => {
+    booted = await boot("deny");
+    // The endpoint runs the user's connected tools with the user's credentials: reaching the
+    // port is not reaching it. A wrong key and no key are the same answer.
+    for (const suffix of ["", "?t=", "?t=wrong"]) {
+      const res = await fetch(`${booted.url}/mcp${suffix}`, {
+        method: "POST",
+        headers: { "content-type": "application/json", accept: "application/json, text/event-stream" },
+        body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list" }),
+      });
+      expect(res.status, suffix).toBe(404);
+    }
+    // …and the header form is accepted for a caller that would rather not use a URL.
+    const ok = await fetch(`${booted.url}/mcp`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        accept: "application/json, text/event-stream",
+        "x-openmasq-mcp-token": MCP_TOKEN,
+      },
+      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list" }),
+    });
+    expect(ok.status).toBe(200);
+  });
+
   it("advertises the upstream tools, namespaced, with their schema untouched", async () => {
     booted = await boot("confirm");
     const client = await agent(booted.url);

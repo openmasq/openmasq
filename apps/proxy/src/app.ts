@@ -27,7 +27,7 @@ export interface AppDeps {
   version?: string;
   /** Present ⇒ serve `/mcp`. Built by `server.ts` once the upstream servers are connected;
    *  absent ⇒ the route does not exist at all (`routes/index.ts` says why). */
-  mcp?: { bridge: McpBridge; version: string; changes?: Signal };
+  mcp?: { bridge: McpBridge; version: string; token: string; changes?: Signal };
   /** Present ⇒ serve `/console`. Built by `server.ts`, which owns the token. */
   console?: ConsoleRouteDeps;
 }
@@ -70,6 +70,7 @@ export function createApp(deps: AppDeps): express.Application {
       session,
       mcpRouter({
         bridge: deps.mcp.bridge,
+        token: deps.mcp.token,
         ...(deps.mcp.changes ? { changes: deps.mcp.changes } : {}),
         reporter: relayDeps.reporter,
         version: deps.mcp.version,

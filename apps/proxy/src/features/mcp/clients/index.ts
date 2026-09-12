@@ -57,8 +57,8 @@ export const CLIENT_IDS = CLIENTS.map((c) => c.id);
 export const DECLARING_CLIENTS = CLIENTS.filter((c) => c.declarations);
 
 /** The one-server config handed to the client: our endpoint, and nothing else. */
-export function soleServerConfig(url: string): string {
-  return `${JSON.stringify({ mcpServers: { [OUR_ID]: { type: "http", url: `${url}/mcp` } } }, null, 2)}\n`;
+export function soleServerConfig(endpoint: string): string {
+  return `${JSON.stringify({ mcpServers: { [OUR_ID]: { type: "http", url: endpoint } } }, null, 2)}\n`;
 }
 
 /** Read a declaration's map out of a parsed document; undefined when the path is absent. */
