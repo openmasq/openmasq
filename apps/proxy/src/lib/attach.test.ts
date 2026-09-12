@@ -78,6 +78,10 @@ describe("joining a proxy that is already running", () => {
         findRunning("http://x", answer({ app: "openmasq-proxy", version: "1", ner: false })),
       run: async () => 0,
       note: (t: string) => void notes.push(t),
+      // Injected, never the default: the default reads the RUNNING proxy's published link out
+      // of the user's own `~/.openmasq`, which would make this assertion depend on whether a
+      // proxy happens to be up on the machine running the tests.
+      link: () => undefined,
     };
     await joinRunning("http://x", ["codex"], { ...base, startOnly: ["--console", "--reveal"] });
     expect(notes.some((n) => /--console and --reveal ignored/.test(n))).toBe(true);

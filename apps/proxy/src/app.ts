@@ -9,6 +9,7 @@ import type { McpBridge } from "./features/mcp/bridge.js";
 import consoleRouter, { type ConsoleRouteDeps } from "./features/console/routes.js";
 import type { Signal } from "./features/mcp/reload.js";
 import mcpRouter, { mcpBody } from "./features/mcp/routes.js";
+import { loopbackOnly } from "./lib/localOnly.js";
 import { healthRouter } from "./routes/health.js";
 import { apiRouter } from "./routes/index.js";
 import { parseJsonObject, rawBody } from "./routes/middlewares/jsonBody.js";
@@ -40,6 +41,9 @@ export function createApp(deps: AppDeps): express.Application {
   };
   const app = express();
   app.disable("x-powered-by");
+  // FIRST, before any route: a caller that addressed us by another name never reaches one
+  // (`lib/localOnly.ts` says why a loopback BIND is not a loopback promise).
+  app.use(loopbackOnly(deps.config.host));
   // ONE instance, shared by both mounts: it owns the vault map, so building it twice would
   // give the tool calls and the model calls two different vaults under the same session id
   // — the exact thing `/mcp` exists to avoid.
