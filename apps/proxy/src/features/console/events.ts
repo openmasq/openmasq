@@ -9,7 +9,7 @@
 // substitute — what the model saw — and the counts. A page cannot ask for more than the run
 // granted, because the server never sends it.
 import { categoriesForLevel, REDACTION_CATEGORIES, type RedactionLevel } from "@openmasq/catalog";
-import { MCP_CATEGORIES, MCP_CONNECTORS } from "@openmasq/catalog/mcp";
+import { MCP_CATEGORIES, MCP_CONNECTORS, MCP_LOGO_IMAGES, MCP_LOGOS } from "@openmasq/catalog/mcp";
 import { getMessages } from "@openmasq/i18n";
 import {
   CATEGORY_SECTION,
@@ -173,21 +173,40 @@ export const sections = (): { id: string; label: string }[] =>
  * The MCP connector CATALOG — the same list the desktop app shows, so the console's MCP panel
  * lists every service that CAN be connected, not only the ones live on this run. One home for
  * the list (`@openmasq/catalog`), sent on connect so the page carries none of its own. Display
- * metadata only — id, name, category and the design-system hue (`tone`) its tile is painted in;
- * never a credential. The brand GLYPHS live in the React `packages/ui` and are a follow-up
- * (they cannot reach a Node-only proxy without their data leaving that package).
+ * metadata only — id, name, category, the design-system hue (`tone`) its tile is painted in,
+ * and the brand MARK; never a credential.
+ *
+ * The mark travels WITH the list because the page may fetch nothing from anywhere (`../../
+ * CLAUDE.md`: a privacy console that phoned a CDN would be its own counter-example). Two
+ * shapes, both self-contained: `logo` is a 24×24 single path plus its official hex, `img` a
+ * `data:` PNG for the brands that publish no monochrome glyph. A connector with neither —
+ * the local filesystem server, a custom one — keeps the coloured letter tile, which is what
+ * the desktop does too. Both come from `@openmasq/catalog/mcp`, the one home of the list.
  */
 export const connectorCatalog = (): {
   categories: { id: string; label: string }[];
-  connectors: { id: string; name: string; category: string; tone: string }[];
+  connectors: {
+    id: string;
+    name: string;
+    category: string;
+    tone: string;
+    logo?: { path: string; hex: string };
+    img?: string;
+  }[];
 } => ({
   categories: MCP_CATEGORIES.map((c) => ({ id: c.id, label: c.label })),
-  connectors: MCP_CONNECTORS.map((c) => ({
-    id: c.id,
-    name: c.name,
-    category: c.category ?? "autres",
-    tone: c.tone ?? "slate",
-  })),
+  connectors: MCP_CONNECTORS.map((c) => {
+    const logo = MCP_LOGOS[c.id];
+    const img = MCP_LOGO_IMAGES[c.id];
+    return {
+      id: c.id,
+      name: c.name,
+      category: c.category ?? "autres",
+      tone: c.tone ?? "slate",
+      ...(logo ? { logo } : {}),
+      ...(img ? { img } : {}),
+    };
+  }),
 });
 
 /**

@@ -5,8 +5,10 @@ import { REDACTION_SECTIONS } from "@openmasq/redact";
 import { REDACTION_CATEGORIES } from "@openmasq/catalog";
 import { getMessages } from "@openmasq/i18n";
 import { disabledKindsFor } from "../../lib/masker";
+import { MCP_CONNECTORS } from "@openmasq/catalog/mcp";
 import {
   activeCategories,
+  connectorCatalog,
   createConsoleBus,
   rules,
   sectionOf,
@@ -182,5 +184,44 @@ describe("the rules panel's data", () => {
     expect(activeCategories("standard", [])).not.toContain("name");
     expect(activeCategories("renforce", [])).toContain("name");
     expect(activeCategories("strict", []).length).toBe(REDACTION_CATEGORIES.length);
+  });
+});
+
+/* The MCP panel lists the desktop's own catalogue, and it lists it with the BRAND MARKS —
+   the reason the marks moved to `@openmasq/catalog/mcp`, which a Node-only proxy can import.
+   The hard constraint is that a mark travels WITH the list: the console page may fetch
+   nothing from anywhere, so a remote logo URL would be a blank tile at best and a privacy
+   console phoning a CDN at worst. */
+describe("the connector catalogue carries its marks, and nothing to fetch", () => {
+  const cat = connectorCatalog();
+
+  it("is the catalogue itself, never a second list", () => {
+    expect(cat.connectors).toHaveLength(MCP_CONNECTORS.length);
+    expect(cat.connectors.map((c) => c.id).sort()).toEqual(MCP_CONNECTORS.map((c) => c.id).sort());
+  });
+
+  it("gives a real mark to every BRAND, and letters only to what is not one", () => {
+    const lettersOnly = cat.connectors.filter((c) => !c.logo && !c.img).map((c) => c.id).sort();
+    // The local server, the built-in browser and the demo broker are not brands — the
+    // desktop paints those with initials too.
+    expect(lettersOnly).toEqual(["browser", "demo", "filesystem"]);
+  });
+
+  it("embeds every mark — a tile must never cost a request", () => {
+    const wire = JSON.stringify(cat);
+    expect(wire).not.toMatch(/https?:\/\//);
+    for (const c of cat.connectors) {
+      if (c.logo) expect(c.logo.hex, c.id).toMatch(/^#[0-9a-fA-F]{6}$/);
+      if (c.img) expect(c.img, c.id).toMatch(/^data:image\//);
+    }
+  });
+
+  /** ALLOW-listed, not deny-listed (rule 7): a field added upstream reaches this panel only
+   *  by being named here, so a connector entry that one day carries a token cannot ride out
+   *  to a browser tab because nobody thought to exclude it. */
+  it("carries no field beyond what a tile needs", () => {
+    const ALLOWED = new Set(["id", "name", "category", "tone", "logo", "img"]);
+    for (const c of cat.connectors)
+      for (const k of Object.keys(c)) expect(ALLOWED.has(k), `${c.id}.${k}`).toBe(true);
   });
 });

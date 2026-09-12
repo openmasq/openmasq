@@ -59,3 +59,9 @@ export {
   type ConfirmationCondition,
   type ConfirmationRule,
 } from "./confirmationPolicy";
+
+// The connectors' BRAND MARKS. Pure data (a 24x24 path + a hex, or a `data:` PNG), so they
+// live with the list they belong to rather than in a React package: the desktop renders them
+// and so does the proxy's console, which takes no React and cannot import one.
+export { MCP_LOGOS, type BrandLogo } from "./logos";
+export { MCP_LOGO_IMAGES } from "./logoImages";

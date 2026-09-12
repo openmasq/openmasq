@@ -356,7 +356,10 @@ tbody tr.sel td:first-child{box-shadow:inset 2px 0 0 var(--brand)}
 .srv{display:flex;flex-direction:column;gap:7px}
 .srv-r{display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:10px;border:1px solid var(--border-subtle);background:var(--surface-card)}
 .srv-r.up{background:var(--brand-soft);border-color:transparent}
-.srv-r .av{display:grid;place-items:center;width:30px;height:30px;border-radius:8px;background:var(--surface-sunken);font-family:var(--mono);font-size:11px;font-weight:700;color:var(--text-strong);flex-shrink:0}
+.av{display:grid;place-items:center;width:30px;height:30px;border-radius:8px;background:var(--surface-sunken);font-family:var(--mono);font-size:11px;font-weight:700;color:var(--text-strong);flex-shrink:0;overflow:hidden}
+.av.mk{padding:5px}
+.av.mk svg,.av.mk img{width:100%;height:100%;display:block;object-fit:contain}
+.av.mk.ph{background:var(--surface-card);border:1px solid var(--border-subtle);padding:3px}
 .srv-r.up .av{background:var(--surface-card)}
 .srv-r .id{flex:1;min-width:0}
 .srv-r .id b{display:block;font-size:13px;font-weight:600;color:var(--text-strong)}
@@ -383,6 +386,7 @@ tbody tr.sel td:first-child{box-shadow:inset 2px 0 0 var(--brand)}
 .cx{display:flex;align-items:center;gap:8px;min-width:0;padding:7px 9px;border-radius:9px;border:1px solid var(--border-subtle);background:var(--surface-card)}
 .cx.on{border-color:transparent;background:var(--brand-soft)}
 .cx .av{width:22px;height:22px;border-radius:6px;font-size:9.5px}
+.cx .av.mk{padding:4px}.cx .av.mk.ph{padding:2px}
 .cx-n{flex:1;min-width:0;font-size:12px;color:var(--text-strong);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .cx-dot{width:6px;height:6px;border-radius:50%;background:var(--brand);flex-shrink:0}
 .det .lk{width:12px;height:12px;color:var(--text-muted);flex-shrink:0}
@@ -1088,12 +1092,20 @@ var CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-w
    `tone`. `tokens.css` carries every `--hl-*`; an unknown tone falls back to slate. */
 var HL_TONES = { violet:1, sky:1, mint:1, teal:1, amber:1, gold:1, pink:1, slate:1, red:1, lime:1 };
 function toneVar(t){ return "var(--hl-" + (HL_TONES[t] ? t : "slate") + ")"; }
-/* A connector's initials, on its brand hue — the desktop's own tile when a service ships no
-   glyph. Real brand marks live in the React UI and are a follow-up (see `events.ts`). */
-function ctile(name, tone){
+/* A connector's TILE. The brand's own mark when the catalogue carries one — a single 24x24
+   path on the brand's hex, or a `data:` favicon — and the coloured initials otherwise, which
+   is the desktop's own fallback. Everything is inline: the page fetches nothing, ever. */
+function ctile(name, tone, c){
+  if (c && c.logo)
+    return '<span class="av mk" style="background:' + esc(c.logo.hex) + '">' +
+      '<svg viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="' + esc(c.logo.path) + '"/></svg></span>';
+  if (c && c.img)
+    return '<span class="av mk ph"><img src="' + esc(c.img) + '" alt="" loading="lazy"></span>';
   var ini = (name.replace(/[^A-Za-z0-9]/g, "").slice(0, 2) || "??").toUpperCase();
   return '<span class="av" style="background:' + toneVar(tone) + ';color:var(--ink-on-hl)">' + esc(ini) + '</span>';
 }
+/* The catalogue entry for a connected server id, so its live row wears the same mark. */
+function conOf(id){ return (CATALOG && CATALOG.connectors.filter(function(x){ return x.id === id; })[0]) || null; }
 function mcpBody(){
   var h = "";
   /* What is LIVE on this run, if anything. */
@@ -1102,7 +1114,7 @@ function mcpBody(){
     if (!MCP.servers.length) h += '<div class="sh-note">No server answered.</div>';
     MCP.servers.forEach(function(s){
       var id = s.split(" (")[0];
-      h += '<div class="srv-r up">' + ctile(id, toneOf(id)) +
+      h += '<div class="srv-r up">' + ctile(id, toneOf(id), conOf(id)) +
         '<span class="id"><b>' + esc(s) + "</b><em>values masked on the way out, restored on the way back</em></span>" +
         '<span class="st2"><i></i>connected</span></div>';
     });
@@ -1126,7 +1138,7 @@ function mcpBody(){
       list.forEach(function(c){
         var on = connected[c.id];
         h += '<div class="cx' + (on ? " on" : "") + '" title="' + esc(c.name) + (on ? " — connected" : "") + '">' +
-          ctile(c.name, c.tone) + '<span class="cx-n">' + esc(c.name) + '</span>' +
+          ctile(c.name, c.tone, c) + '<span class="cx-n">' + esc(c.name) + '</span>' +
           (on ? '<i class="cx-dot"></i>' : "") + '</div>';
       });
       h += "</div>";
