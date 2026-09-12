@@ -79,3 +79,16 @@ describe("code identifiers are not secrets", () => {
     expect(redact("key sk8live4Key9Prod2xQ").text).not.toContain("sk8live4Key9Prod2xQ");
   });
 });
+
+// Published crypto/encoding algorithm NAMES are the exact shape of a lowercase key, so only a
+// closed allow-list can spare them (`codeTerms.ts`) — an agent reading crypto code had them
+// renamed. They are never a secret value.
+describe("algorithm names are not secrets", () => {
+  for (const name of ["argon2id", "secp256k1", "aes256gcm", "b64encode", "SHA1PRNG"])
+    it(`keeps ${name}`, () => {
+      expect(redact(`algorithm: "${name}"`).text).toContain(name);
+    });
+  it("still masks a real lowercase key of the same rough shape", () => {
+    expect(redact("token x7k9m2p8qw3z").text).not.toContain("x7k9m2p8qw3z");
+  });
+});
