@@ -181,7 +181,15 @@ async function main(): Promise<void> {
     reporter: feed,
     version: packageVersion(),
     modelOn: () => !!detectLocal,
-    ...(bridge ? { mcp: { bridge, version: packageVersion() } } : {}),
+    ...(bridge
+      ? {
+          mcp: {
+            bridge,
+            version: packageVersion(),
+            ...(integrations.changes ? { changes: integrations.changes } : {}),
+          },
+        }
+      : {}),
     ...(bus
       ? {
           console: {

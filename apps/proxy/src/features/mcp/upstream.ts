@@ -35,6 +35,12 @@ export interface Upstream {
   connections(): McpConnection[];
   /** Every advertised tool, cached for `ttlMs` so a per-request client costs no round-trip. */
   tools(): Promise<McpTool[]>;
+  /**
+   * Bring the live set to `specs`, touching ONLY what changed: a new id connects, a gone id
+   * closes, an id in `changed` (its entry or its credentials differ) reconnects; the others
+   * keep their connection and any call in flight. Returns the ids that moved, in order.
+   */
+  apply(specs: ServerSpec[], changed?: ReadonlySet<string>): Promise<string[]>;
   close(): Promise<void>;
 }
 
@@ -114,8 +120,7 @@ export async function connectUpstream(
   const drop = (id: string, why: string) => {
     if (live.delete(id)) opts.onDown?.(id, why);
   };
-
-  for (const spec of specs) {
+  const up = async (spec: ServerSpec) => {
     try {
       const connection = await connect(spec, (id) => drop(id, "the server closed"));
       const wrapped = cached(connection, ttl, now);
@@ -125,10 +130,42 @@ export async function connectUpstream(
       // The message can carry a spawn line; the id and a short reason are what help.
       opts.onDown?.(spec.id, whyDown(err, spec.id));
     }
+  };
+  /** Known ids, connected or not: a server that failed at startup must still count as
+   *  "already tried" so a reload does not report it twice, and as "changed" when it is. */
+  const known = new Set<string>();
+
+  for (const spec of specs) {
+    known.add(spec.id);
+    await up(spec);
   }
 
   return {
     connections: () => [...live.values()],
+    async apply(next, changed = new Set()) {
+      const moved: string[] = [];
+      const wanted = new Set(next.map((s) => s.id));
+      for (const id of [...known]) {
+        if (wanted.has(id) && !changed.has(id)) continue;
+        known.delete(id);
+        const gone = live.get(id);
+        if (gone) {
+          live.delete(id);
+          await gone.close().catch(() => {});
+        }
+        if (!wanted.has(id)) {
+          moved.push(id);
+          opts.onDown?.(id, "no longer declared");
+        }
+      }
+      for (const spec of next) {
+        if (known.has(spec.id)) continue;
+        known.add(spec.id);
+        moved.push(spec.id);
+        await up(spec);
+      }
+      return moved;
+    },
     async tools() {
       const all: McpTool[] = [];
       for (const connection of live.values()) {

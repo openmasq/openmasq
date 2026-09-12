@@ -13,11 +13,15 @@ import { CallToolRequestSchema, ListToolsRequestSchema } from "@modelcontextprot
 import type { Reporter } from "../../lib/ui/index.js";
 import type { Locals } from "../../lib/relay.js";
 import type { McpBridge } from "./bridge.js";
+import type { Signal } from "./reload.js";
 
 export interface McpRouteDeps {
   bridge: McpBridge;
   reporter: Reporter;
   version: string;
+  /** Fires when the tool list moved (`reload.ts`): every agent holding a GET stream open is
+   *  told `notifications/tools/list_changed`, and re-lists. */
+  changes?: Signal;
 }
 
 const INFO = { name: "openmasq-proxy", title: "OpenMasq", version: "0.0.0" };
@@ -112,14 +116,22 @@ function buildServer(deps: McpRouteDeps, locals: Locals, reportedAt: () => numbe
  * is a body it cannot mask). Two parsers, each strict about its own wire.
  *
  * Stateless: one transport per request, torn down on close — the same shape as the broker's
- * endpoint, for the same reason (no cross-request state to confuse two callers).
+ * endpoint, for the same reason (no cross-request state to confuse two callers). The one
+ * thing kept across requests is the set of GET streams still open: that is the channel a
+ * server-initiated notification travels on, and `tools/list_changed` needs it.
  */
 export default function mcpRouter(deps: McpRouteDeps): Router {
   const router = Router();
+  const listening = new Set<Server>();
+  deps.changes?.on(() => {
+    for (const server of listening) void server.sendToolListChanged().catch(() => {});
+  });
   const handle = async (req: Request, res: Response): Promise<void> => {
     const server = buildServer(deps, res.locals as Locals, () => Date.now());
     const transport = new StreamableHTTPServerTransport({ sessionIdGenerator: undefined });
+    if (req.method === "GET") listening.add(server);
     res.on("close", () => {
+      listening.delete(server);
       void transport.close();
       void server.close();
     });

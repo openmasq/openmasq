@@ -4,6 +4,8 @@
 import { removeEntry, runAdd } from "./add.js";
 import { homedir } from "node:os";
 import { readConfigFile } from "../../config/file.js";
+import { DEFAULTS } from "../../config/schema.js";
+import { findRunning } from "../../lib/attach.js";
 import { openmasqDir } from "../../lib/stateDir.js";
 import { createStore, loginTo, type AuthDeps } from "./auth.js";
 import { DECLARING_CLIENTS } from "./clients/index.js";
@@ -54,6 +56,14 @@ export function parseMcpArgs(argv: string[]): Parsed {
 
 const isHttp = (s: ServerSpec): boolean => s.transport === "http";
 
+/** After a change to the servers or their credentials: a proxy already running reloads on
+ *  its own (`reload.ts`), and the operator should know that no restart is needed. */
+async function tellRunning(env = process.env): Promise<void> {
+  const url = `http://127.0.0.1:${env.OPENMASQ_PROXY_PORT || DEFAULTS.port}`;
+  const running = await findRunning(url);
+  if (running) console.log(`  the proxy running on ${url} picks this up now — no restart needed.`);
+}
+
 /** Runs one `mcp` command. Returns the process exit code; prints its own lines. */
 export async function runMcpCommand(
   argv: string[],
@@ -84,6 +94,7 @@ export async function runMcpCommand(
     try {
       const id = await runAdd({ prompt, path, say: (l) => console.log(l) });
       if (id) console.log(`  next:  openmasq-proxy mcp login ${id}`);
+      await tellRunning();
       return 0;
     } catch (err) {
       console.error(`\n  ${err instanceof Error ? err.message : String(err)}`);
@@ -165,6 +176,7 @@ export async function runMcpCommand(
         ? `${parsed.target}: removed${hadTokens ? " (tokens forgotten too)" : ""}.`
         : `${parsed.target}: not declared.`,
     );
+    if (removed || hadTokens) await tellRunning();
     return 0;
   }
   const spec = specs.find((s) => s.id === parsed.target);
@@ -173,11 +185,13 @@ export async function runMcpCommand(
     // Forgetting works even for a server no longer declared: the tokens outlive the
     // declaration, and leaving them behind because the entry was deleted would be the wrong
     // way round.
+    const forgotten = store.forget(parsed.target);
     console.log(
-      store.forget(parsed.target)
+      forgotten
         ? `${parsed.target}: forgotten on this machine.`
         : `${parsed.target}: nothing stored.`,
     );
+    if (forgotten) await tellRunning();
     return 0;
   }
 
@@ -197,6 +211,7 @@ export async function runMcpCommand(
   }
   try {
     await loginTo(spec, { store, note }, version);
+    await tellRunning();
     return 0;
   } catch (err) {
     console.error(`${spec.id}: ${err instanceof Error ? err.message : String(err)}`);

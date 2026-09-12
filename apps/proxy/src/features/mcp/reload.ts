@@ -1,0 +1,124 @@
+// A connection made through openmasq takes effect in the RUNNING proxy, not at the next
+// start. `mcp login notion`, `mcp add`, `mcp remove` and an edit of the servers file all land
+// in `~/.openmasq` (`mcp.json`, the credential store); this watches that directory and, on a
+// change, resolves the server list again exactly as start-up did — the same precedence, the
+// same policy — and hands the upstream what differs. Only what differs: a server whose entry
+// and credentials did not move keeps its connection and any call in flight.
+//
+// The wrapped client's own servers stay switched off for the run (exclusivity is decided
+// once, at start), so a server signed in here replaces the adopted one in place: the agent
+// keeps the tool, and it now runs through openmasq's own credential. The agent learns of the
+// change by `notifications/tools/list_changed` (`routes.ts`), which is how a tool appears
+// or disappears mid-session without a restart.
+import { type FSWatcher, watch } from "node:fs";
+import { basename } from "node:path";
+import type { ServerSpec } from "./servers.js";
+
+/** The files whose change means "the servers or their credentials moved". */
+export const WATCHED = new Set(["mcp.json", "mcp-auth.enc"]);
+
+export interface ReloadDeps {
+  /** The state directory (`lib/stateDir.ts`). */
+  dir: string;
+  /** Start-up's resolution, re-run: the servers this run has NOW. Throws on a bad file. */
+  resolve: () => ServerSpec[];
+  /** A fingerprint of a server's credentials: two equal strings mean "nothing to reconnect
+   *  for". Never the credential itself — a boolean and a length are plenty. */
+  credentials: (id: string) => string;
+  /** Bring the upstream to `specs`, reconnecting `changed` (`upstream.ts`). */
+  apply: (specs: ServerSpec[], changed: ReadonlySet<string>) => Promise<string[]>;
+  /** Something moved: the agent's tool list is stale. */
+  onChanged: (moved: string[]) => void;
+  note: (text: string, tone?: "info" | "warn" | "ok") => void;
+  /** Injected by tests. */
+  watchFn?: typeof watch;
+  debounceMs?: number;
+}
+
+/** What identifies a server's state for the diff: its entry (credentials included — an env
+ *  key or a header lives there) and what the store holds for it. */
+const fingerprint = (spec: ServerSpec, credentials: (id: string) => string): string =>
+  `${JSON.stringify(spec)}|${credentials(spec.id)}`;
+
+/** "The tool list moved": the route sends `notifications/tools/list_changed` on every
+ *  standalone stream an agent holds open. A set of listeners, nothing more. */
+export interface Signal {
+  on(listener: () => void): () => void;
+  emit(): void;
+}
+
+export function createSignal(): Signal {
+  const listeners = new Set<() => void>();
+  return {
+    on: (l) => {
+      listeners.add(l);
+      return () => void listeners.delete(l);
+    },
+    emit: () => {
+      for (const l of listeners) l();
+    },
+  };
+}
+
+export interface Reloader {
+  /** Run one reconciliation now. Exposed for the tests and for a signal. */
+  reload(): Promise<void>;
+  close(): void;
+}
+
+export function watchIntegrations(initial: ServerSpec[], deps: ReloadDeps): Reloader {
+  const seen = new Map(initial.map((s) => [s.id, fingerprint(s, deps.credentials)]));
+  let timer: NodeJS.Timeout | undefined;
+  let running: Promise<void> = Promise.resolve();
+
+  const reload = () =>
+    (running = running.then(async () => {
+      let specs: ServerSpec[];
+      try {
+        specs = deps.resolve();
+      } catch (err) {
+        // A half-written or broken file: the run keeps what it had, and says why.
+        deps.note(
+          `servers file not reloaded: ${err instanceof Error ? err.message : String(err)}`,
+          "warn",
+        );
+        return;
+      }
+      const changed = new Set<string>();
+      for (const s of specs) {
+        const fp = fingerprint(s, deps.credentials);
+        if (seen.has(s.id) && seen.get(s.id) !== fp) changed.add(s.id);
+        seen.set(s.id, fp);
+      }
+      for (const id of [...seen.keys()]) if (!specs.some((s) => s.id === id)) seen.delete(id);
+      const moved = await deps.apply(specs, changed);
+      if (moved.length) deps.onChanged(moved);
+    }));
+
+  let watcher: FSWatcher | undefined;
+  try {
+    watcher = (deps.watchFn ?? watch)(deps.dir, (_event, name) => {
+      if (!name || !WATCHED.has(basename(String(name)))) return;
+      // Editors and the CLI write in several steps (a temp file, a rename): one reload per
+      // burst, once it has settled.
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => void reload(), deps.debounceMs ?? 400);
+      timer.unref?.();
+    });
+    watcher.on("error", (err) => deps.note(`stopped watching ${deps.dir}: ${err.message}`, "warn"));
+  } catch (err) {
+    // No watcher on this filesystem: the run still works, at start-up's list.
+    deps.note(
+      `cannot watch ${deps.dir} (${err instanceof Error ? err.message : String(err)}): a new connection needs a restart`,
+      "warn",
+    );
+  }
+
+  return {
+    reload,
+    close: () => {
+      if (timer) clearTimeout(timer);
+      watcher?.close();
+    },
+  };
+}

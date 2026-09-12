@@ -7,6 +7,7 @@ import type { Masker } from "./lib/masker.js";
 import type { RelayDeps } from "./lib/relay.js";
 import type { McpBridge } from "./features/mcp/bridge.js";
 import consoleRouter, { type ConsoleRouteDeps } from "./features/console/routes.js";
+import type { Signal } from "./features/mcp/reload.js";
 import mcpRouter, { mcpBody } from "./features/mcp/routes.js";
 import { healthRouter } from "./routes/health.js";
 import { apiRouter } from "./routes/index.js";
@@ -25,7 +26,7 @@ export interface AppDeps {
   version?: string;
   /** Present ⇒ serve `/mcp`. Built by `server.ts` once the upstream servers are connected;
    *  absent ⇒ the route does not exist at all (`routes/index.ts` says why). */
-  mcp?: { bridge: McpBridge; version: string };
+  mcp?: { bridge: McpBridge; version: string; changes?: Signal };
   /** Present ⇒ serve `/console`. Built by `server.ts`, which owns the token. */
   console?: ConsoleRouteDeps;
 }
@@ -65,6 +66,7 @@ export function createApp(deps: AppDeps): express.Application {
       session,
       mcpRouter({
         bridge: deps.mcp.bridge,
+        ...(deps.mcp.changes ? { changes: deps.mcp.changes } : {}),
         reporter: relayDeps.reporter,
         version: deps.mcp.version,
       }),

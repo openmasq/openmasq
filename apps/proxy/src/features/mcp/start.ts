@@ -23,6 +23,9 @@ import {
 import { createConfirmer } from "./confirm.js";
 import { notOurs, ownServers, probeRun } from "./own.js";
 import { describePolicy, type McpPolicy } from "./policy.js";
+import { createSignal, type Signal, watchIntegrations } from "./reload.js";
+import { openmasqDir } from "../../lib/stateDir.js";
+import { createHash } from "node:crypto";
 import { resolveSpecs } from "./resolve.js";
 import type { ServerSpec } from "./servers.js";
 import { connectUpstream, type Upstream } from "./upstream.js";
@@ -48,6 +51,8 @@ export interface Integrations {
   exclusiveArgs: string[];
   /** The client we forced, for the card. */
   clientId?: string;
+  /** Fires when the tool list moved mid-run (`reload.ts`); `/mcp` tells the agent. */
+  changes?: Signal;
   cleanup: () => void;
 }
 
@@ -166,17 +171,24 @@ export async function startIntegrations(deps: StartDeps): Promise<Integrations> 
     }
   }
 
-  let specs: ServerSpec[] = [];
-  try {
-    specs = resolveSpecs({
+  // ONE resolution, run at start and again on every change of `~/.openmasq` (`reload.ts`):
+  // the same precedence and the same policy both times, so a login made mid-run lands
+  // exactly where a restart would have put it. `quiet` keeps the reload from re-narrating
+  // the adoption lines the card already carries.
+  const resolve = (quiet = false) =>
+    resolveSpecs({
       configPath: config.mcpConfig,
       ...(own ? { own } : {}),
       adopt: config.mcpAdopt,
       policy: deps.policy,
-      onPolicy: (id, text, tone) => deps.note(`${id}: ${text}`, tone),
-      onAdopt: (id, scope) => deps.note(`taking ${id} over from ${client?.id} (${scope})`),
-      onSkip: (id, why) => deps.note(`${id} not taken over: ${why}`, "warn"),
+      onPolicy: (id, text, tone) => (quiet ? undefined : deps.note(`${id}: ${text}`, tone)),
+      onAdopt: (id, scope) =>
+        quiet ? undefined : deps.note(`taking ${id} over from ${client?.id} (${scope})`),
+      onSkip: (id, why) => (quiet ? undefined : deps.note(`${id} not taken over: ${why}`, "warn")),
     });
+  let specs: ServerSpec[] = [];
+  try {
+    specs = resolve();
   } catch (err) {
     cleanup();
     console.error(
@@ -199,11 +211,13 @@ export async function startIntegrations(deps: StartDeps): Promise<Integrations> 
   const servers: string[] = [];
   const done = deps.spinner(`connecting ${specs.length} MCP server(s)…`);
   // The tokens `mcp login` stored. Silent: a startup reconnect refreshes from the file and
-  // never opens a consent page — nobody asked for one, and it would steal the screen.
-  const store = createStore();
+  // never opens a consent page — nobody asked for one, and it would steal the screen. The
+  // store is opened PER connection: it reads the file once, and a login made in another
+  // process while this one runs must be seen by the reconnect that follows it.
   const upstream = await connectUpstream(specs, {
-    oauth: (spec) =>
-      store.loadOAuth(spec.id)
+    oauth: (spec) => {
+      const store = createStore();
+      return store.loadOAuth(spec.id)
         ? providerFor(
             spec.id,
             `http://127.0.0.1:${store.loadPort(spec.id) ?? 0}/callback`,
@@ -212,7 +226,8 @@ export async function startIntegrations(deps: StartDeps): Promise<Integrations> 
             deps.version,
             spec,
           )
-        : undefined,
+        : undefined;
+    },
     onUp: (id, tools) => {
       const policy = deps.policy[id] ? describePolicy(deps.policy[id]) : "";
       servers.push(`${id} (${tools}${policy ? `, ${policy}` : ""})`);
@@ -234,6 +249,26 @@ export async function startIntegrations(deps: StartDeps): Promise<Integrations> 
     }),
   });
 
+  // A connection made through openmasq while this runs — `mcp login`, `mcp add`, an edited
+  // servers file — reaches the agent now, not at the next start.
+  const changes = createSignal();
+  const reloader = watchIntegrations(specs, {
+    dir: openmasqDir(),
+    resolve: () => resolve(true),
+    // A fingerprint of what the store holds for the id — a hash prefix, never the token —
+    // so a fresh login on an already-declared server counts as a change.
+    credentials: (id) => {
+      const token = createStore().loadOAuth(id)?.tokens?.access_token;
+      return token ? createHash("sha256").update(token).digest("hex").slice(0, 12) : "";
+    },
+    apply: (next, changed) => upstream.apply(next, changed),
+    onChanged: (moved) => {
+      deps.note(`integrations updated: ${moved.join(", ")} — the agent's tool list follows`, "ok");
+      changes.emit();
+    },
+    note: deps.note,
+  });
+
   return {
     upstream,
     bridge,
@@ -241,6 +276,10 @@ export async function startIntegrations(deps: StartDeps): Promise<Integrations> 
     exclusiveArgs,
     // The card claims the client speaks to us and nobody else — only when it is true.
     ...(exclusive && client ? { clientId: client.id } : {}),
-    cleanup,
+    changes,
+    cleanup: () => {
+      reloader.close();
+      cleanup();
+    },
   };
 }

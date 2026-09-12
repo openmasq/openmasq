@@ -163,6 +163,17 @@ results a masking of their own (a server that asks for the on-device model asks 
 startup, like the chat); **`writes`** gates its mutating tools by itself. The card's server
 line and `mcp status` show the policy.
 
+**A connection made through openmasq takes effect now, not at the next start.** The
+running proxy watches `~/.openmasq`: `mcp login notion`, `mcp add`, `mcp remove` or an edit
+of the servers file makes it resolve the list again — same precedence, same policy — and
+reconnect **only what moved**; the other servers keep their connection and any call in
+flight. The agent is told by `notifications/tools/list_changed` on the stream it holds open
+(Claude Code re-lists on it), so a tool appears, changes credential or disappears
+mid-session. The client's own servers stay switched off for the whole run — exclusivity is
+decided once, at start — so signing in to Notion here replaces the adopted one in place: the
+agent keeps the tool, and it now runs through openmasq's own credential. The CLI says so:
+« the proxy running on … picks this up now — no restart needed ».
+
 **What a stricter server masks stays masked.** Every masker writes the same session vault,
 and the vault is replayed before anything is detected — so a name a `strict` Notion vaulted
 stays masked in a `standard` chat that never looks for names, its parts included: `Jean
@@ -499,6 +510,18 @@ pas. **`level`, `disable`, `keep`** donnent aux résultats de ce serveur un masq
 serveur qui demande le modèle local le demande au démarrage, comme le chat) ; **`writes`**
 garde ses outils d'écriture à lui seul. La ligne serveur de la carte et `mcp status` montrent
 la politique.
+
+**Une connexion faite via openmasq prend effet maintenant, pas au prochain démarrage.** Le
+proxy en cours surveille `~/.openmasq` : `mcp login notion`, `mcp add`, `mcp remove` ou une
+édition du fichier des serveurs lui fait résoudre la liste à nouveau — même précédence, même
+politique — et reconnecter **seulement ce qui a bougé** ; les autres serveurs gardent leur
+connexion et tout appel en cours. L'agent en est averti par `notifications/tools/list_changed`
+sur le flux qu'il garde ouvert (Claude Code relit la liste sur ce signal), donc un outil
+apparaît, change d'identifiant ou disparaît en pleine session. Les serveurs propres du client
+restent désactivés pour toute la session — l'exclusivité se décide une fois, au démarrage —
+donc se connecter à Notion ici remplace sur place celui qui avait été repris : l'agent garde
+l'outil, et il passe désormais par l'identifiant d'openmasq. La CLI le dit : « the proxy
+running on … picks this up now — no restart needed ».
 
 **Ce qu'un serveur plus strict masque reste masqué.** Chaque masker écrit le même vault de
 session, et le vault est rejoué avant toute détection — donc un nom qu'un Notion `strict` a

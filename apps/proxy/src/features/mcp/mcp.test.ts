@@ -3,12 +3,14 @@ import { createServer, type Server as HttpServer } from "node:http";
 import type { AddressInfo } from "node:net";
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+import { ToolListChangedNotificationSchema } from "@modelcontextprotocol/sdk/types.js";
 import type { McpConnection, McpToolCall } from "@openmasq/mcp";
 import { createApp } from "../../app";
 import { DEFAULTS, type WritePolicy } from "../../config/config";
 import { silentReporter } from "../../lib/ui";
 import type { Masker } from "../../lib/masker";
 import { createBridge } from "./bridge";
+import { createSignal } from "./reload";
 import { connectUpstream } from "./upstream";
 
 // The same one-name masker `app.test.ts` uses: the engine is tested in `@openmasq/redact`,
@@ -61,6 +63,8 @@ interface Booted {
   close: () => Promise<void>;
 }
 
+const changes = createSignal();
+
 async function boot(
   policy: WritePolicy,
   confirmAnswer = false,
@@ -102,6 +106,7 @@ async function boot(
         ...(perServer ? { perServer } : {}),
       }),
       version: "test",
+      changes,
     },
   });
   const proxy: HttpServer = app.listen(0, "127.0.0.1");
@@ -191,6 +196,24 @@ describe("/mcp — the integrations, masked", () => {
     expect(result.isError).toBe(true);
     expect(JSON.stringify(result.content)).toMatch(/Refused/);
     expect(booted.calls).toHaveLength(0);
+    await client.close();
+  });
+
+  it("tells a connected agent when the tool list moved, on the stream it holds open", async () => {
+    booted = await boot("deny");
+    const client = await agent(booted.url);
+    const told = new Promise<void>((resolve) => {
+      client.setNotificationHandler(ToolListChangedNotificationSchema, async () => resolve());
+    });
+    // The SDK client opens its GET stream right after `initialized`; give it the tick.
+    await new Promise((r) => setTimeout(r, 50));
+    changes.emit();
+    await expect(
+      Promise.race([
+        told,
+        new Promise((_, rej) => setTimeout(() => rej(new Error("no notification")), 2000)),
+      ]),
+    ).resolves.toBeUndefined();
     await client.close();
   });
 

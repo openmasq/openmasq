@@ -50,6 +50,8 @@ them, the log file keeps counts. The URL carries a per-run token — without it 
 their tools with the values masked: the agent points its MCP client at http://127.0.0.1:8787/mcp,
 never holds an integration credential, and never sees a real value. Tool results are masked
 into the SAME vault as the chat messages, so one value keeps one substitute across both.
+A login, an add or a remove made while the proxy runs is picked up by it — the list is
+resolved again, only what moved reconnects, and the agent is told (tools/list_changed).
 A tool that WRITES stops for a "y" on this terminal (--mcp-writes deny refuses them, allow
 passes them); with no terminal to ask, a write is refused. Env: OPENMASQ_PROXY_MCP_CONFIG,
 OPENMASQ_PROXY_MCP_WRITES.
