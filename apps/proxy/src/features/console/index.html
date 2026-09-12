@@ -640,6 +640,9 @@ function renderRows(filter){
     rowsEl.innerHTML = h || '<tr><td colspan="5" style="padding:30px 14px;color:var(--text-muted)">Aucun appel pour cette recherche.</td></tr>';
   } else {
     DATA.forEach(function(d,i){
+      /* The timeline bucket filters Data too, not only Calls: a value belongs to the
+         bucket of the call it was masked in. */
+      if (!inBucket(d.t)) return;
       var hay = (d.it.tok + " " + d.it.type + " " + catLabel(d.it.cat) + " " + d.src + " " + (d.ses || "")).toLowerCase();
       if (filter && hay.indexOf(filter) < 0) return;
       h += '<tr data-i="'+d.call+'" data-item="'+i+'"'+(d.call===selId?' class="sel"':'')+'>'
