@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { pseudonymize } from "../index";
+import { pseudonymize, redact } from "../index";
 
 // A canned model detector: returns the given findings JSON verbatim.
 const model = (json: string) => async () => json;
@@ -59,5 +59,23 @@ describe("a shell command line survives an over-flagging detector", () => {
     const r = await pseudonymize(txt, { complete, vault: {} });
     expect(r.text).not.toContain("Ping Wei");
     expect(r.text).not.toContain("Ruby Martin");
+  });
+});
+
+// A coding agent reading source: the generic token rule read `Uint8Array` (letters with an
+// enclaved digit) as a key and RENAMED the type — the file no longer compiled. A camelCase /
+// PascalCase identifier is code, not a credential (`validators.ts` `isCodeIdentifier`).
+describe("code identifiers are not secrets", () => {
+  const idents = ["Uint8Array", "Int32Array", "Float64Array", "utf8Decoder", "SHA256Digest"];
+  for (const id of idents)
+    it(`keeps ${id}`, () => {
+      const { text } = redact(`const x = new ${id}(32); return ${id}.from(x);`);
+      expect(text).toContain(id);
+    });
+
+  // …while a real key of the same rough shape is still masked, and glued prose stays masked
+  // (the pinned trade in gluedProse.test.ts).
+  it("still masks a real key and does not spare all-lowercase glued prose", () => {
+    expect(redact("key sk8live4Key9Prod2xQ").text).not.toContain("sk8live4Key9Prod2xQ");
   });
 });
