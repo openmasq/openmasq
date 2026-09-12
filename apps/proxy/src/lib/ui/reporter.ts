@@ -12,13 +12,23 @@ import { categoryPills } from "./pills.js";
 import { outcomeHex, type RequestEvent, requestLines, revealLines } from "./rows.js";
 import { histogram } from "./spark.js";
 import { createStatusBar } from "./status.js";
-import { colorsWanted, createTty, formatDuration, SCREEN, type TtyOptions } from "./tty.js";
+import {
+  colorsWanted,
+  createTty,
+  formatDuration,
+  SCREEN,
+  type Tty,
+  type TtyOptions,
+} from "./tty.js";
 
 export interface Reporter {
   note(text: string, tone?: "info" | "warn" | "ok"): void;
   /** Resolves once the card is fully on screen. It is written line by line on a terminal
    *  (`pace`), so a caller with something to print AFTER it has to wait for it. */
   banner(config: ProxyConfig, data: BannerData): Promise<void>;
+  /** Any other card, drawn with this reporter's own terminal and paced like the banner —
+   *  the join card (`joinCard.ts`) is one. */
+  card(render: (tty: Tty) => string[]): Promise<void>;
   keys(hints: KeyHint[]): void;
   request(e: RequestEvent): void;
   /** The vault's KEYS — what the model saw. A diagnostic, never a real value. */
@@ -59,6 +69,8 @@ const FLASH_MS = 900;
 const REVEAL_MS = 520;
 
 export function createReporter(o: ReporterOptions = {}): Reporter {
+  /** Line by line on a terminal, in one go elsewhere — set up below, once `write` exists. */
+  let reveal: (lines: string[]) => Promise<void> = async () => {};
   const colors = o.colors ?? colorsWanted();
   const tty = createTty(colors, undefined, o);
   const now = o.now ?? Date.now;
@@ -85,6 +97,14 @@ export function createReporter(o: ReporterOptions = {}): Reporter {
   // Only an operator's own terminal gets the reveal: a log file, a pipe and a machine stream
   // are read after the fact, where a delay buys nothing and an interleaved write costs.
   const paced = !o.json && !o.write && colors && !!process.stderr.isTTY;
+  reveal = async (lines) => {
+    const step = o.pace ?? (paced ? Math.max(12, Math.round(REVEAL_MS / lines.length)) : 0);
+    for (const l of lines) {
+      write(l);
+      if (step) await wait(step);
+    }
+    bar.render();
+  };
   const clock = () => {
     const d = new Date(now());
     return [d.getHours(), d.getMinutes(), d.getSeconds()]
@@ -105,12 +125,12 @@ export function createReporter(o: ReporterOptions = {}): Reporter {
       upstreams = hostsOf(config);
       const lines = ["", ...renderBanner(tty, config, data), ""];
       if (data.keys?.length && !bar.live) lines.push(keyHintLine(tty, data.keys));
-      const step = o.pace ?? (paced ? Math.max(12, Math.round(REVEAL_MS / lines.length)) : 0);
-      for (const l of lines) {
-        write(l);
-        if (step) await wait(step);
-      }
-      bar.render();
+      await reveal(lines);
+    },
+
+    async card(render) {
+      if (o.json) return;
+      await reveal(["", ...render(tty), ""]);
     },
 
     keys(hints) {
@@ -230,6 +250,7 @@ const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 export const silentReporter: Reporter = {
   note() {},
+  async card() {},
   banner: async () => {},
   keys() {},
   request() {},

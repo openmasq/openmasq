@@ -63,6 +63,7 @@ async function main(): Promise<void> {
         Boolean,
       ) as string[],
       openConsole: config.open,
+      theme: config.theme,
       // Joining is the run with the LEAST feedback — no card, no footer — so the opening
       // matters most here. It states the proxy we are joining, not our own flags.
       open: (running) =>

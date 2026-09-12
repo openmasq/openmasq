@@ -13,6 +13,7 @@ export {
   silentReporter,
 } from "./reporter.js";
 export { type RequestEvent, revealLines } from "./rows.js";
+export { type JoinData, renderJoinCard } from "./joinCard.js";
 export { mastheadRows, printMasthead } from "./masthead.js";
 export { openIfWanted } from "./splash.js";
 export { createStatusBar, type StatusBar } from "./status.js";

@@ -13,7 +13,8 @@ import { randomBytes } from "node:crypto";
 import { basename } from "node:path";
 import { readConsoleLink } from "../features/console/link.js";
 import { openInBrowser } from "./openUrl.js";
-import { createReporter } from "./ui/index.js";
+import { createReporter, renderJoinCard } from "./ui/index.js";
+import type { ThemeChoice } from "./ui/theme.js";
 import { runWrapped } from "./wrap.js";
 
 export interface Running {
@@ -97,37 +98,51 @@ export async function joinRunning(
     /** `--open` on the joiner: open THAT proxy's live view, since there is no other. */
     openConsole?: boolean;
     openUrl?: (url: string) => Promise<boolean>;
+    /** The run's theme, for the card. */
+    theme?: ThemeChoice;
   } = {},
 ): Promise<number | undefined> {
   const running = await (deps.find ?? findRunning)(url);
   if (!running) return undefined;
   if (deps.open && running.level && running.disabled) await deps.open(running);
   const session = sessionName(command[0]);
-  const reporter = createReporter({ reveal: { on: false } });
-  const say = deps.note ?? ((text: string) => reporter.note(text, "ok"));
-  const warn = (text: string) => (deps.note ? deps.note(text) : reporter.note(text, "warn"));
-  say(
-    `joining the proxy already on ${url} (v${running.version}, ` +
-      `${running.model ? "model on" : "pattern rules"}) — this session is ${session}`,
-  );
+  const reporter = createReporter({
+    reveal: { on: false },
+    ...(deps.theme ? { theme: deps.theme } : {}),
+  });
   // The live view belongs to the proxy that started the server, and it published its
-  // address for exactly this reader (`console/link.ts`): print it, so this terminal is not
-  // the one place the URL cannot be found — and open it when `--open` asked.
+  // address for exactly this reader (`console/link.ts`): the card carries it, so this
+  // terminal is not the one place the URL cannot be found — and `--open` opens it.
   const link = running.console === false ? undefined : (deps.link ?? readConsoleLink)();
-  if (link) {
-    say(`its live view: ${link}  (openmasq-proxy console reopens it)`);
-    if (deps.openConsole && !(await (deps.openUrl ?? openInBrowser)(link)))
-      warn("could not open a browser here — open the live view URL above by hand");
-  } else if (running.console !== false)
-    say(`its live view, if it serves one: openmasq-proxy console`);
   // The console (and its token) belong to whichever proxy actually STARTED the server; a join
-  // holds none, so these flags never took effect. Say so, and where to look instead.
+  // holds none, so these flags never took effect. Said on the card, not swallowed.
   const ignored = (deps.startOnly ?? []).filter((f) => !(f === "--console" && link));
-  if (ignored.length)
-    warn(
-      `${ignored.join(" and ")} ignored: they configure a new server, and this run joined ` +
-        `the proxy already on ${url}. ${link ? `Its live view is above` : "Its console, if it has one, opens with `openmasq-proxy console`"} ` +
-        `— or stop it and re-run to start your own.`,
+  const card = {
+    url,
+    running,
+    session,
+    tool: command[0],
+    ...(link ? { link } : {}),
+    ...(ignored.length ? { ignored } : {}),
+  };
+  // A caller that hands a `note` wants lines, not a drawing: the same facts, one per line.
+  if (deps.note) {
+    deps.note(
+      `joining the proxy already on ${url} (v${running.version}, ` +
+        `${running.model ? "model on" : "pattern rules"}) — this session is ${session}`,
+    );
+    if (link) deps.note(`its live view: ${link}  (openmasq-proxy console reopens it)`);
+    else if (running.console !== false)
+      deps.note("its live view, if it serves one: openmasq-proxy console");
+    if (ignored.length)
+      deps.note(
+        `${ignored.join(" and ")} ignored: a join starts no server — stop it and re-run to start your own`,
+      );
+  } else await reporter.card((tty) => renderJoinCard(tty, card));
+  if (link && deps.openConsole && !(await (deps.openUrl ?? openInBrowser)(link)))
+    reporter.note(
+      "could not open a browser here — open the live view URL on the card by hand",
+      "warn",
     );
   return await (deps.run ?? runWrapped)(command, sessionUrl(url, session), []);
 }
