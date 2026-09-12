@@ -3,8 +3,11 @@ import { findRunning, freePort, joinRunning, sessionName, sessionUrl } from "./a
 
 describe("joining a proxy that is already running", () => {
   it("names a session after the tool, so the console column reads like something", () => {
-    expect(sessionName("/opt/homebrew/bin/claude")).toMatch(/^claude-[0-9a-f]{4}$/);
-    expect(sessionName("claude.cmd")).toMatch(/^claude-[0-9a-f]{4}$/);
+    expect(sessionName("/opt/homebrew/bin/claude")).toMatch(/^claude-[A-Za-z0-9_-]{12}$/);
+    expect(sessionName("claude.cmd")).toMatch(/^claude-[A-Za-z0-9_-]{12}$/);
+    // The suffix ADDRESSES the session's vault (`/s/<name>`), so it has to be a capability,
+    // not a label: four hex characters were enumerable from anything that reaches the port.
+    expect(sessionName("claude").length).toBeGreaterThan("claude-".length + 11);
     // Two clients never collide on one name — that is the whole point of the suffix.
     expect(sessionName("claude")).not.toBe(sessionName("claude"));
   });

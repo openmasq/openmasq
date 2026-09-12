@@ -41,7 +41,13 @@ export function sessionName(command: string): string {
   const tool = basename(command)
     .replace(/\.(cmd|exe|bat)$/i, "")
     .replace(/[^a-z0-9-]/gi, "");
-  return `${(tool || "tool").toLowerCase()}-${randomBytes(2).toString("hex")}`;
+  // ⚠️ The suffix is not decoration. This name is also the ADDRESS of the session's vault —
+  // `/s/<name>` is the whole base URL a wrapped tool is given, and `x-openmasq-session` names
+  // the same thing — so whoever can say it can have the vault that maps fakes back to real
+  // values. Two random bytes were four hex characters: enumerable in a moment by anything
+  // that can reach the port. Nine bytes make the readable prefix a label and the suffix a
+  // capability, which is what it always was.
+  return `${(tool || "tool").toLowerCase()}-${randomBytes(9).toString("base64url")}`;
 }
 
 /** The base URL a joined client is pointed at. */
