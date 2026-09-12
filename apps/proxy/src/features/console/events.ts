@@ -9,6 +9,7 @@
 // substitute — what the model saw — and the counts. A page cannot ask for more than the run
 // granted, because the server never sends it.
 import { categoriesForLevel, REDACTION_CATEGORIES, type RedactionLevel } from "@openmasq/catalog";
+import { MCP_CATEGORIES, MCP_CONNECTORS } from "@openmasq/catalog/mcp";
 import { getMessages } from "@openmasq/i18n";
 import {
   CATEGORY_SECTION,
@@ -167,6 +168,27 @@ export function createConsoleBus(reveal: boolean, now: () => number = Date.now):
  *  `Système` unlabelled the moment a file path was masked. */
 export const sections = (): { id: string; label: string }[] =>
   REDACTION_SECTIONS.map((fr) => ({ id: sectionSlug(fr), label: enSection(fr) }));
+
+/**
+ * The MCP connector CATALOG — the same list the desktop app shows, so the console's MCP panel
+ * lists every service that CAN be connected, not only the ones live on this run. One home for
+ * the list (`@openmasq/catalog`), sent on connect so the page carries none of its own. Display
+ * metadata only — id, name, category and the design-system hue (`tone`) its tile is painted in;
+ * never a credential. The brand GLYPHS live in the React `packages/ui` and are a follow-up
+ * (they cannot reach a Node-only proxy without their data leaving that package).
+ */
+export const connectorCatalog = (): {
+  categories: { id: string; label: string }[];
+  connectors: { id: string; name: string; category: string; tone: string }[];
+} => ({
+  categories: MCP_CATEGORIES.map((c) => ({ id: c.id, label: c.label })),
+  connectors: MCP_CONNECTORS.map((c) => ({
+    id: c.id,
+    name: c.name,
+    category: c.category ?? "autres",
+    tone: c.tone ?? "slate",
+  })),
+});
 
 /**
  * The masking RULES the page may show: the product's own sections, each with the categories

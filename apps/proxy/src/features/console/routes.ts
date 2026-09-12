@@ -10,7 +10,7 @@ import { getMessages } from "@openmasq/i18n";
 import { Router, type Request, type Response } from "express";
 import type { ProxyConfig } from "../../config/config.js";
 import { timingSafeEqual } from "node:crypto";
-import { activeCategories, rules, sections, type ConsoleBus } from "./events.js";
+import { activeCategories, rules, sections, connectorCatalog, type ConsoleBus } from "./events.js";
 import { renderPage, tokensCss } from "./page.js";
 
 export interface ConsoleRouteDeps {
@@ -79,6 +79,9 @@ export default function consoleRouter(deps: ConsoleRouteDeps): Router {
       // ids all come from the product (`events.ts` `sections()`), so a tenth would appear
       // without an edit here or a stale label there.
       sections: sections(),
+      // The MCP connector catalog (the desktop app's own list) so the MCP panel shows every
+      // service that CAN be connected, not just what is live on this run.
+      catalog: connectorCatalog(),
       // The masking panel: the catalogue's own tree, what is on right now, and where the
       // tools go. A page that cannot show the rules cannot be read against them.
       rules: rules(),
