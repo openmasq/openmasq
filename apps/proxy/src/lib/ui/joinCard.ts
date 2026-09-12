@@ -52,16 +52,27 @@ export function renderJoinCard(tty: Tty, d: JoinData): string[] {
       rows.push(`${label("live view")}${tty.dim("below · openmasq-proxy console reopens it")}`);
       tail.push("", `  ${d.link}`);
     }
-  } else if (r.console !== false) {
+  } else if (r.console === false || r.pid === undefined) {
+    // It serves none, or it is an older build that published no link: either way there is
+    // nothing this session can open.
+    rows.push(
+      `${label("live view")}${tty.fg(HUE_HEX.amber, r.console === false ? "none — that proxy runs without --console" : "none published — that proxy is an older build")}`,
+    );
+  } else {
     rows.push(
       `${label("live view")}${tty.dim("if that proxy serves one: openmasq-proxy console")}`,
     );
   }
   if (d.ignored?.length) {
-    // Never cut mid-sentence: the long form when it fits, the short one otherwise.
+    // Never cut mid-sentence: the long form when it fits, the short one otherwise. And HOW
+    // to stop the running proxy, when it said its pid — the operator who typed `--open`
+    // wants a live view, and the way to one is a proxy of their own.
+    const stop = r.pid ? `kill ${r.pid}` : "stop it";
     const short = `${d.ignored.join(", ")} ignored — a join starts no server`;
-    const long = `${short} · stop it and re-run to start your own`;
+    const long = `${short} · ${stop}, then re-run to start your own`;
     rows.push(`${label("")}${tty.fg(HUE_HEX.amber, tty.width(long) <= room ? long : short)}`);
+    if (tty.width(long) > room)
+      rows.push(`${label("")}${tty.fg(HUE_HEX.amber, `${stop}, then re-run to start your own`)}`);
   }
 
   return [

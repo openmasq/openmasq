@@ -223,6 +223,7 @@ describe("proxy app", () => {
       ok: true,
       ner: false,
       console: false,
+      pid: process.pid,
     });
   });
 

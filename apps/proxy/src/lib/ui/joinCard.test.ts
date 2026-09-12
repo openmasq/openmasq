@@ -58,8 +58,20 @@ describe("the join card", () => {
       tool: "hermes",
       ignored: ["--reveal"],
     }).join("\n");
-    expect(plain).toContain("if that proxy serves one: openmasq-proxy console");
+    // An older build (no `pid`, no `console` on its /healthz) published no link: say so.
+    expect(plain).toContain("none published — that proxy is an older build");
     expect(plain).toContain("--reveal ignored");
+    // …and a current build says how to stop it, by pid.
+    const current = renderJoinCard(tty, {
+      url: "http://127.0.0.1:8787",
+      running: { version: "0.1.0", model: false, console: false, pid: 4242 },
+      session: "claude-1a2b",
+      tool: "claude",
+      ignored: ["--open"],
+    }).join("\n");
+    expect(current).toContain("none — that proxy runs without --console");
+    expect(current).toContain("--open ignored");
+    expect(current).toContain("kill 4242, then re-run");
     expect(plain).not.toContain("left in clear"); // an older proxy claims nothing it did not say
   });
 });

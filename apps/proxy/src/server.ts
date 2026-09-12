@@ -8,7 +8,7 @@ import { createApp } from "./app.js";
 import { parseConfig, USAGE } from "./config/config.js";
 import { createConsoleBus } from "./features/console/events.js";
 import { publishConsoleLink } from "./features/console/link.js";
-import { joinRunning, sessionName, sessionUrl } from "./lib/attach.js";
+import { joinOptions, joinRunning, sessionName, sessionUrl } from "./lib/attach.js";
 import { startIntegrations } from "./features/mcp/start.js";
 import { createDials } from "./lib/dials.js";
 import { disabledKindsFor } from "./lib/masker.js";
@@ -56,23 +56,7 @@ async function main(): Promise<void> {
 
   // Already one running? Join it rather than dying on EADDRINUSE (`lib/attach.ts`).
   if (wrapping) {
-    const code = await joinRunning(url0, config.command, {
-      // Flags that start a NEW server cannot cross into a joined one — warn instead of
-      // letting `--console`/`--reveal` quietly do nothing (the "rien n'arrive" report).
-      startOnly: [config.console && "--console", config.reveal && "--reveal"].filter(
-        Boolean,
-      ) as string[],
-      openConsole: config.open,
-      theme: config.theme,
-      // Joining is the run with the LEAST feedback — no card, no footer — so the opening
-      // matters most here. It states the proxy we are joining, not our own flags.
-      open: (running) =>
-        openIfWanted({
-          ...config,
-          level: (running.level ?? config.level) as typeof config.level,
-          disabledKinds: running.disabled ?? config.disabledKinds,
-        }),
-    });
+    const code = await joinRunning(url0, config.command, joinOptions(config, openIfWanted));
     if (code !== undefined) process.exit(code);
   }
 

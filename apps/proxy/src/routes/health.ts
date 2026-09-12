@@ -35,6 +35,8 @@ export function healthRouter(
       mode: config.mode,
       // Whether a live view is served: `openmasq-proxy console` asks before it opens a link.
       console: consoleOn,
+      // So a joiner can say HOW to stop this proxy when it needs its own: `kill <pid>`.
+      pid: process.pid,
     });
   });
   return router;

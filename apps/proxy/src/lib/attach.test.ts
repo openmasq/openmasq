@@ -26,9 +26,9 @@ describe("joining a proxy that is already running", () => {
     expect(
       await findRunning(
         "http://x",
-        answer({ app: "openmasq-proxy", version: "1", ner: false, console: true }),
+        answer({ app: "openmasq-proxy", version: "1", ner: false, console: true, pid: 77 }),
       ),
-    ).toEqual({ version: "1", model: false, console: true });
+    ).toEqual({ version: "1", model: false, console: true, pid: 77 });
     // A 200 from something else on 8787 is not an invitation to hand it an API key.
     expect(await findRunning("http://x", answer({ ok: true, status: "fine" }))).toBeUndefined();
     expect(await findRunning("http://x", answer({ app: "openmasq-proxy" }))).toBeUndefined();

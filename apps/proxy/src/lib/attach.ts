@@ -15,6 +15,7 @@ import { readConsoleLink } from "../features/console/link.js";
 import { openInBrowser } from "./openUrl.js";
 import { createReporter, renderJoinCard } from "./ui/index.js";
 import type { ThemeChoice } from "./ui/theme.js";
+import type { ProxyConfig } from "../config/config.js";
 import { runWrapped } from "./wrap.js";
 
 export interface Running {
@@ -29,6 +30,8 @@ export interface Running {
   /** Does it serve a live view? Absent from an older build; `openmasq-proxy console` then
    *  trusts the link it finds. */
   console?: boolean;
+  /** Its process id, so "stop it and re-run" can name the command. */
+  pid?: number;
 }
 
 /** A short, readable name for one client: `claude-a3f9`. Readable because it is what the
@@ -63,6 +66,7 @@ export async function findRunning(
       ...(typeof body.level === "string" ? { level: body.level } : {}),
       ...(Array.isArray(body.disabled) ? { disabled: body.disabled.map(String) } : {}),
       ...(typeof body.console === "boolean" ? { console: body.console } : {}),
+      ...(typeof body.pid === "number" ? { pid: body.pid } : {}),
     };
   } catch {
     return undefined;
@@ -77,30 +81,32 @@ export async function findRunning(
  * line the operator reads and the child are one story, and splitting them across two files
  * is how the "did we actually join?" question stops having one answer.
  */
+export interface JoinDeps {
+  find?: typeof findRunning;
+  run?: (command: string[], url: string, extra: string[]) => Promise<number>;
+  note?: (text: string) => void;
+  /** The opening sequence, played for THIS proxy's masking rather than our own flags.
+   *  Skipped when the running build does not report them: an opening that guessed would
+   *  claim something nobody checked. */
+  open?: (running: Running) => Promise<void>;
+  /** Start-only flags the user passed that a JOIN cannot honour (`--console`, `--reveal`):
+   *  they configure a NEW server, and this invocation started none. Warned, not swallowed —
+   *  a `--console` that silently does nothing is why "rien n'arrive" in the console. */
+  startOnly?: string[];
+  /** The running proxy's live-view address, from the link it published (`console/link.ts`):
+   *  the same user, the same 0600 file — the joiner may read what it may open. */
+  link?: () => string | undefined;
+  /** `--open` on the joiner: open THAT proxy's live view, since there is no other. */
+  openConsole?: boolean;
+  openUrl?: (url: string) => Promise<boolean>;
+  /** The run's theme, for the card. */
+  theme?: ThemeChoice;
+}
+
 export async function joinRunning(
   url: string,
   command: string[],
-  deps: {
-    find?: typeof findRunning;
-    run?: (command: string[], url: string, extra: string[]) => Promise<number>;
-    note?: (text: string) => void;
-    /** The opening sequence, played for THIS proxy's masking rather than our own flags.
-     *  Skipped when the running build does not report them: an opening that guessed would
-     *  claim something nobody checked. */
-    open?: (running: Running) => Promise<void>;
-    /** Start-only flags the user passed that a JOIN cannot honour (`--console`, `--reveal`):
-     *  they configure a NEW server, and this invocation started none. Warned, not swallowed —
-     *  a `--console` that silently does nothing is why "rien n'arrive" in the console. */
-    startOnly?: string[];
-    /** The running proxy's live-view address, from the link it published (`console/link.ts`):
-     *  the same user, the same 0600 file — the joiner may read what it may open. */
-    link?: () => string | undefined;
-    /** `--open` on the joiner: open THAT proxy's live view, since there is no other. */
-    openConsole?: boolean;
-    openUrl?: (url: string) => Promise<boolean>;
-    /** The run's theme, for the card. */
-    theme?: ThemeChoice;
-  } = {},
+  deps: JoinDeps = {},
 ): Promise<number | undefined> {
   const running = await (deps.find ?? findRunning)(url);
   if (!running) return undefined;
@@ -116,7 +122,11 @@ export async function joinRunning(
   const link = running.console === false ? undefined : (deps.link ?? readConsoleLink)();
   // The console (and its token) belong to whichever proxy actually STARTED the server; a join
   // holds none, so these flags never took effect. Said on the card, not swallowed.
-  const ignored = (deps.startOnly ?? []).filter((f) => !(f === "--console" && link));
+  // `--console` and `--open` are honoured by the link when there is one; with none, they are
+  // what the joiner cannot do, and the card says how to get a proxy that can.
+  const ignored = (deps.startOnly ?? []).filter(
+    (f) => !((f === "--console" || f === "--open") && link),
+  );
   const card = {
     url,
     running,
@@ -145,4 +155,28 @@ export async function joinRunning(
       "warn",
     );
   return await (deps.run ?? runWrapped)(command, sessionUrl(url, session), []);
+}
+
+/** What a JOIN is told about this run: the flags it cannot honour (they start a server —
+ *  said rather than swallowed, the "rien n'arrive" report), and the opening sequence played
+ *  for the proxy being joined rather than for our own flags. */
+export function joinOptions(
+  config: ProxyConfig,
+  openIfWanted: (c: ProxyConfig) => Promise<void>,
+): JoinDeps {
+  return {
+    startOnly: [
+      config.open && "--open",
+      config.console && !config.open && "--console",
+      config.reveal && "--reveal",
+    ].filter(Boolean) as string[],
+    openConsole: config.open,
+    theme: config.theme,
+    open: (running) =>
+      openIfWanted({
+        ...config,
+        level: (running.level ?? config.level) as typeof config.level,
+        disabledKinds: running.disabled ?? config.disabledKinds,
+      }),
+  };
 }
