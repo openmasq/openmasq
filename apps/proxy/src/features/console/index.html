@@ -47,7 +47,9 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .pill .k{font-family:var(--mono);font-size:11px;color:var(--text-muted)}
 .pill.on{border-color:var(--brand);color:var(--brand)}
 .seg{display:flex;gap:2px;padding:2px;border-radius:9px;background:var(--surface-sunken);border:1px solid var(--border-subtle)}
-.seg button{height:26px;padding:0 11px;border-radius:7px;font-size:12.5px;color:var(--text-muted);white-space:nowrap}
+.seg button{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 11px;border-radius:7px;font-size:12.5px;color:var(--text-muted);white-space:nowrap}
+.seg button svg{width:14px;height:14px;opacity:.75;flex-shrink:0}
+.seg button.on svg{opacity:1}
 .seg button:hover{color:var(--text-strong)}
 .seg button.on{background:var(--surface-card);color:var(--text-strong);font-weight:600;box-shadow:0 1px 2px rgba(10,12,30,.10)}
 .c-ses{width:150px}
@@ -392,8 +394,8 @@ tbody tr.sel td:first-child{box-shadow:inset 2px 0 0 var(--brand)}
   <div class="top">
     <span class="mark"><!--MARK--><!--MARK-DARK--><b>OpenMasq</b><span>CLI</span></span>
     <div class="seg" role="tablist" aria-label="View">
-      <button id="m-calls" class="on" role="tab" aria-selected="true">Calls</button>
-      <button id="m-items" role="tab" aria-selected="false">Data</button>
+      <button id="m-calls" class="on" role="tab" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3L4 7l4 4"/><path d="M4 7h16"/><path d="M16 21l4-4-4-4"/><path d="M20 17H4"/></svg>Calls</button>
+      <button id="m-items" role="tab" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.66 3.58 3 8 3s8-1.34 8-3V5"/><path d="M4 11v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6"/></svg>Data</button>
     </div>
     <label class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="q" placeholder="Search a call, a substitute, a category" spellcheck="false"></label>
     <button class="tail live" id="tail" title="Follows new calls"><i></i>Direct</button>
