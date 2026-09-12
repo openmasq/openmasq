@@ -172,8 +172,14 @@ async function main(): Promise<void> {
   });
   const { upstream, bridge } = integrations;
 
+  // Named BEFORE the app: it is the session the wrapped client's model calls arrive under,
+  // and the one an UNNAMED request (its tool calls, at `/mcp`) falls back to — one vault for
+  // the two channels (`routes/middlewares/session.ts`).
+  const ownSession = wrapping ? sessionName(config.command[0]) : "";
+
   const app = createApp({
     config,
+    ...(ownSession ? { session: ownSession } : {}),
     masker,
     reporter: feed,
     version: packageVersion(),
@@ -206,7 +212,6 @@ async function main(): Promise<void> {
   });
   const url = url0;
   const consoleUrl = bus ? `${url}/console?t=${consoleToken}` : "";
-  const ownSession = wrapping ? sessionName(config.command[0]) : "";
   let detach = () => {};
   // The address on disk while we run, so `openmasq-proxy console` can open it at any moment.
   let withdrawLink = () => {};

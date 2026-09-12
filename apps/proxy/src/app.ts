@@ -16,6 +16,10 @@ import { parseJsonObject, rawBody } from "./routes/middlewares/jsonBody.js";
 import { sessionMiddleware } from "./routes/middlewares/session.js";
 
 export interface AppDeps {
+  /** The wrapped client's own session, when this run wraps one. An UNNAMED request falls back
+   *  to it, so the tool channel (`/mcp`, which names nothing) shares the vault of the model
+   *  channel (`/s/<session>`) — one agent, one vault. */
+  session?: string;
   config: ProxyConfig;
   masker: Masker;
   /** Injected by tests; `globalThis.fetch` otherwise. */
@@ -47,7 +51,7 @@ export function createApp(deps: AppDeps): express.Application {
   // ONE instance, shared by both mounts: it owns the vault map, so building it twice would
   // give the tool calls and the model calls two different vaults under the same session id
   // — the exact thing `/mcp` exists to avoid.
-  const session = sessionMiddleware(deps.config);
+  const session = sessionMiddleware(deps.config, deps.session);
   app.use(
     "/healthz",
     healthRouter(
