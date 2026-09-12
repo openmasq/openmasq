@@ -9,6 +9,7 @@ import { basename, dirname, join } from "node:path";
 import { parseMcpPolicy } from "../features/mcp/policy.js";
 import { parseConfig } from "./config.js";
 import { DEFAULT_CONFIG_FILE } from "./file.js";
+import { onPath } from "../lib/wrap.js";
 import { jsonSchema } from "./jsonSchema.js";
 
 export const SCHEMA_FILE = "proxy.schema.json";
@@ -68,11 +69,32 @@ export function initConfig(path: string, deps: Say & Partial<Files>): number {
   return 0;
 }
 
-/** Which editor: `$VISUAL`, then `$EDITOR`, then the platform's plain one. An editor with
- *  its own flags (`code --wait`) is split on whitespace. */
-export function editorCommand(env: NodeJS.ProcessEnv, platform = process.platform): string[] {
+/** The editors tried when the user named none, in order. A desktop editor gets `--wait`,
+ *  so the command returns when the tab is CLOSED — that return is when the file is checked.
+ *  Then the terminal ones, friendliest first; `vi` last, because it is always there. */
+export const EDITORS: readonly string[][] = [
+  ["cursor", "--wait"],
+  ["code", "--wait"],
+  ["zed", "--wait"],
+  ["subl", "--wait"],
+  ["windsurf", "--wait"],
+  ["nano"],
+  ["vim"],
+  ["vi"],
+];
+
+/** Which editor: `$VISUAL`, then `$EDITOR` (an editor with its own flags, `code --wait`, is
+ *  split on whitespace), then the first of `EDITORS` on the PATH, then the platform's plain
+ *  one — `notepad` on Windows, `vi` elsewhere. */
+export function editorCommand(
+  env: NodeJS.ProcessEnv,
+  platform = process.platform,
+  has: (command: string) => boolean = (c) => onPath(c, env),
+): string[] {
   const named = (env.VISUAL || env.EDITOR || "").trim();
   if (named) return named.split(/\s+/);
+  const found = EDITORS.find(([cmd]) => has(cmd));
+  if (found) return [...found];
   return [platform === "win32" ? "notepad" : "vi"];
 }
 
@@ -87,6 +109,9 @@ export function editConfig(
     if (code !== 0) return code;
   }
   const [cmd, ...args] = editorCommand(deps.env);
+  deps.out(
+    `opening ${file} in ${cmd}${args.length ? " (checked when the tab closes)" : ""} — set $VISUAL or $EDITOR to choose another.`,
+  );
   const status = (deps.spawn ?? run)(cmd, [...args, file]);
   if (status !== 0) {
     deps.err(

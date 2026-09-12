@@ -145,8 +145,9 @@ key (named, with the nearest one), a value that is none of the choices — and s
 environment variable: a `"level": "strcit"` that silently ran at standard would be a leak.
 `reveal` and `json` stay per-run flags, on purpose. `openmasq-proxy config init` writes the
 empty file with its JSON Schema beside it (the editor completes keys and values from it);
-`config edit` opens it in `$VISUAL`/`$EDITOR` and **checks it when the editor returns**, the
-way the run would; `config show` prints the run that would start and **where each value came
+`config edit` opens it — `$VISUAL`/`$EDITOR`, or else the first editor installed: Cursor,
+VS Code, Zed, Sublime, Windsurf (with `--wait`), then nano, vim, vi — and **checks it when
+the editor returns**, the way the run would; `config show` prints the run that would start and **where each value came
 from**; `config path` the file it reads.
 
 The `mcp` section names each server once. **`source`** says whose it is: `openmasq` — yours,
@@ -477,8 +478,10 @@ une section inconnue, une clé inconnue ou mal orthographiée (nommée, avec la 
 valeur hors des choix — et une variable d'environnement fautive aussi : un `"level": "strcit"`
 qui tournerait en standard sans rien dire serait une fuite. `reveal` et `json` restent des
 drapeaux de session, exprès. `openmasq-proxy config init` écrit le fichier vide avec son JSON
-Schema à côté (l'éditeur complète clés et valeurs grâce à lui) ; `config edit` l'ouvre dans
-`$VISUAL`/`$EDITOR` et **le vérifie au retour de l'éditeur**, comme le ferait la session ;
+Schema à côté (l'éditeur complète clés et valeurs grâce à lui) ; `config edit` l'ouvre —
+`$VISUAL`/`$EDITOR`, sinon le premier éditeur installé : Cursor, VS Code, Zed, Sublime,
+Windsurf (avec `--wait`), puis nano, vim, vi — et **le vérifie au retour de l'éditeur**, comme
+le ferait la session ;
 `config show` affiche la session qui démarrerait et **d'où vient chaque valeur** ;
 `config path` le fichier lu.
 

@@ -52,11 +52,26 @@ describe("config init", () => {
 });
 
 describe("config edit", () => {
-  it("opens $VISUAL over $EDITOR over the platform's editor, splitting an editor's own flags", () => {
-    expect(editorCommand({ VISUAL: "code --wait", EDITOR: "vim" })).toEqual(["code", "--wait"]);
-    expect(editorCommand({ EDITOR: "nano" })).toEqual(["nano"]);
-    expect(editorCommand({}, "linux")).toEqual(["vi"]);
-    expect(editorCommand({}, "win32")).toEqual(["notepad"]);
+  it("opens $VISUAL over $EDITOR, splitting an editor's own flags, whatever is installed", () => {
+    const all = () => true;
+    expect(editorCommand({ VISUAL: "code --wait", EDITOR: "vim" }, "darwin", all)).toEqual([
+      "code",
+      "--wait",
+    ]);
+    expect(editorCommand({ EDITOR: "nano" }, "darwin", all)).toEqual(["nano"]);
+  });
+
+  it("with none named, takes the first real editor installed — a desktop one with --wait — and vi as the last resort", () => {
+    const only =
+      (...names: string[]) =>
+      (c: string) =>
+        names.includes(c);
+    expect(editorCommand({}, "darwin", only("code", "vim"))).toEqual(["code", "--wait"]);
+    expect(editorCommand({}, "darwin", only("cursor", "code"))).toEqual(["cursor", "--wait"]);
+    expect(editorCommand({}, "linux", only("nano", "vi"))).toEqual(["nano"]);
+    expect(editorCommand({}, "linux", only())).toEqual(["vi"]);
+    expect(editorCommand({}, "win32", only())).toEqual(["notepad"]);
+    expect(editorCommand({}, "win32", only("code"))).toEqual(["code", "--wait"]);
   });
 
   it("creates the file when there is none, runs the editor on it, and checks what was saved", () => {
@@ -74,6 +89,7 @@ describe("config edit", () => {
     });
     expect(ran).toEqual([["nano", FILE]]);
     expect(d.files.has(SCHEMA)).toBe(true); // init ran first
+    expect(d.out.some((l) => l.startsWith(`opening ${FILE} in nano`))).toBe(true);
     expect(code).toBe(0);
     expect(d.out.at(-1)).toMatch(/valid/);
   });
