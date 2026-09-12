@@ -6,12 +6,9 @@
 import { randomBytes } from "node:crypto";
 import { createApp } from "./app.js";
 import { parseConfig, USAGE } from "./config/config.js";
-import { runConfigCommand } from "./config/show.js";
 import { createConsoleBus } from "./features/console/events.js";
 import { publishConsoleLink } from "./features/console/link.js";
-import { runConsoleCommand } from "./features/console/open.js";
 import { joinRunning, sessionName, sessionUrl } from "./lib/attach.js";
-import { runMcpCommand } from "./features/mcp/cli.js";
 import { startIntegrations } from "./features/mcp/start.js";
 import { createDials } from "./lib/dials.js";
 import { disabledKindsFor } from "./lib/masker.js";
@@ -27,23 +24,19 @@ import {
   revealFor,
 } from "./lib/ui/index.js";
 import { openInBrowser } from "./lib/openUrl.js";
+import { printMasthead } from "./lib/ui/masthead.js";
 import { packageVersion } from "./lib/version.js";
+import { runSubcommand } from "./commands.js";
 import { defaultLogFile, fileWriter, runWrapped } from "./lib/wrap.js";
 
 const NO_MODEL =
   "No model bundle: point --ner (or OPENMASQ_NER_DIR) at the desktop's `pnpm bake:ner` output.";
 
 async function main(): Promise<void> {
-  // `openmasq-proxy mcp …` is the credential half: it signs in, forgets, and reports. It
-  // runs no server, so it is handled before the flags are parsed.
-  if (process.argv[2] === "mcp") {
-    process.exit(await runMcpCommand(process.argv.slice(3), packageVersion()));
-  }
-  // `openmasq-proxy console` opens the live view of the proxy already running — from any
-  // terminal, whatever tool owns the screen (`features/console/open.ts`).
-  if (process.argv[2] === "console") process.exit(await runConsoleCommand(process.argv.slice(3)));
-  // `openmasq-proxy config show` prints the run that WOULD start, and where each value came from.
-  if (process.argv[2] === "config") process.exit(await runConfigCommand(process.argv.slice(3)));
+  // `mcp`, `console`, `config` run no server: they are answered before the flags are parsed
+  // (`commands.ts`), each under the same masthead.
+  const sub = await runSubcommand(process.argv.slice(2), packageVersion());
+  if (sub !== undefined) process.exit(sub);
 
   let config: ReturnType<typeof parseConfig>["config"];
   let policy: ReturnType<typeof parseMcpPolicy> = {};
@@ -53,6 +46,7 @@ async function main(): Promise<void> {
     policy = parseMcpPolicy(parsed.file?.mcp ?? {}, `${parsed.file?.path} › mcp`);
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
+    if (msg === USAGE) printMasthead("help", packageVersion());
     console.error(msg);
     process.exit(msg === USAGE ? 0 : 2);
   }
