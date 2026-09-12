@@ -21,7 +21,14 @@ export function schemeLength(value: string): number {
   return SCHEME.exec(value)?.[0].length ?? 0;
 }
 
+/** A URI SCHEME and its `://` (`postgres://`, `mongodb+srv://`, `jdbc:postgresql://`). It
+ *  names the KIND of endpoint — what an agent routes on — and it is public: the secret in a
+ *  connection string is the credential and the host that follow it. */
+const URI_SCHEME = /^[A-Za-z][A-Za-z0-9+.-]*(?::[A-Za-z0-9+.-]+)?:\/\//;
+
 export function wordPrefix(value: string): number {
+  const uri = URI_SCHEME.exec(value);
+  if (uri) return uri[0].length;
   const bare = BARE.exec(value);
   if (bare) return bare[0].length;
   let at = 0;
@@ -40,4 +47,27 @@ export function wordPrefix(value: string): number {
 export function keepBase64Header(value: string): number | undefined {
   const m = /^eyJ[A-Za-z0-9_-]+\./.exec(value);
   return m && value.split(".").length >= 3 ? m[0].length : undefined;
+}
+
+/** One unbroken run, long, with letters AND digits: a credential, not prose. The test the
+ *  scheme word does not already answer — `Saint-Germain-en-Laye` segments exactly like a
+ *  vendor prefix and is a PLACE, so the prefix shape alone may never decide this. */
+const CREDENTIAL_LIKE = /^(?=.*[A-Za-z])(?=.*\d)\S{16,}$/;
+
+/**
+ * How much of `value` is FORMAT rather than secret — `0` for anything that is prose.
+ *
+ * The faker keeps this head verbatim (`credentials.ts`), which makes it identical for every
+ * credential a vendor issues: one `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.` per issuer, one
+ * `sk_live_` per Stripe account, one `Bearer ` per scheme. So it carries NO identity, and
+ * whoever reasons about a fake word by word (`pseudonymize/fakeWordIndex.ts`) must not read
+ * it as one. Asked HERE because this file is the one home of that question.
+ */
+export function formatHead(value: string): number {
+  const scheme = schemeLength(value);
+  const rest = value.slice(scheme);
+  const header = keepBase64Header(rest);
+  if (header !== undefined) return scheme + header; // a JWT, whatever its tail looks like
+  if (scheme > 0) return scheme; // `Bearer …`, `ssh-rsa …`: the scheme word IS the signal
+  return CREDENTIAL_LIKE.test(rest) ? wordPrefix(rest) : 0;
 }

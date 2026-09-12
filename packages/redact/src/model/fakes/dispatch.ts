@@ -68,9 +68,15 @@ export function fakeFor(
     case "BEARER_TOKEN":
     case "JWT":
     case "COOKIE":
-      // Format-preserving (fakes/credentials.ts): the vendor prefix, a JWT's header and a
-      // cookie's names are FORMAT and stay; every character of the secret is redrawn in its
-      // own class. What a coding agent derives from a key — its vendor, its kind — survives.
+    case "CONNECTION_STRING":
+      // Format-preserving (fakes/credentials.ts): the vendor prefix, a JWT's header, a
+      // cookie's names and a connection string's URI SCHEME are FORMAT and stay; every
+      // other character is redrawn in its own class. What a coding agent derives from a
+      // credential — its vendor, its kind, the endpoint it speaks to — survives.
+      // ⚠️ CONNECTION_STRING belongs HERE, with the rest of its family. The default arm is
+      // the DIGIT swapper, which redraws `5432` and leaves every letter alone: the user,
+      // the host and the alphabetic half of the password would travel verbatim inside
+      // their own "fake". Same reason the URL case above exists. `credentials.test.ts`.
       return fakeCredential(value, h, category);
     case "PRIVATE_KEY":
     case "BIC":

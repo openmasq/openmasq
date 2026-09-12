@@ -85,3 +85,32 @@ describe("a fake credential keeps the format, none of the secret", () => {
     expect(gh.startsWith("ghp_")).toBe(true);
   });
 });
+
+/* A CONNECTION STRING is a credential and belongs to this faker. Routed to the DEFAULT arm
+   it met the DIGIT swapper, which redraws `5432` and leaves every letter untouched: the
+   user, the host and the alphabetic half of the password travelled verbatim inside their
+   own "fake" — and a digitless URI came back through the allocator's pool as an unrelated
+   person's name. What is kept is the URI SCHEME, for the same reason a vendor prefix is:
+   it names the KIND of endpoint an agent routes on, and it is public. */
+describe("a connection string keeps its scheme and nothing else", () => {
+  it("redraws the user, the host and the password — not just the digits", () => {
+    const real = "postgres://alicewonder:swordfish42@db.corporate.example:5432/proddb";
+    const fake = fakeFor("CONNECTION_STRING", real, 0);
+    expect(fake.startsWith("postgres://")).toBe(true);
+    for (const secret of ["alicewonder", "swordfish", "corporate", "proddb", "5432"])
+      expect(fake, `kept ${secret}`).not.toContain(secret);
+    // The shape a tool parses survives: user:pass@host:port/db, same lengths.
+    expect(fake).toMatch(/^postgres:\/\/\w{11}:\w{11}@\w{2}\.\w{9}\.\w{7}:\d{4}\/\w{6}$/);
+    expect(fake).toHaveLength(real.length);
+  });
+
+  it("gives a digitless URI a URI — never a name from the fallback pool", () => {
+    const fake = fakeFor("CONNECTION_STRING", "https://user:pass@exemple.fr/secret", 0);
+    expect(fake).toMatch(/^https:\/\/\w+:\w+@\w+\.\w+\/\w+$/);
+  });
+
+  it("keeps a compound scheme whole", () => {
+    expect(fakeFor("CONNECTION_STRING", "mongodb+srv://u:p@cluster0.abcd.mongodb.net/db", 0))
+      .toMatch(/^mongodb\+srv:\/\//);
+  });
+});
