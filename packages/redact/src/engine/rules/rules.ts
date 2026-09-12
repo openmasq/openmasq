@@ -1,5 +1,19 @@
 import type { RedactionRule } from "../../types";
-import { luhn, ibanValid, siret, latLong, isStructuredId, isRealIp, isReservedIp, isIsin, isBenignConfigValue, deconfuseOcrDigits, isEpochMs, isDateTimeRun, luhnDigits } from "../validators";
+import {
+  luhn,
+  ibanValid,
+  siret,
+  latLong,
+  isStructuredId,
+  isRealIp,
+  isReservedIp,
+  isIsin,
+  isBenignConfigValue,
+  deconfuseOcrDigits,
+  isEpochMs,
+  isDateTimeRun,
+  luhnDigits,
+} from "../validators";
 import { ssnValid } from "../validators/validators.identifiers";
 import { isValidIntlPhone } from "../phones";
 import { ADDRESSED_URL } from "../urls";
@@ -8,6 +22,7 @@ import { FRANCE_RULES } from "./rules.france";
 import { UK_RULES } from "./rules.uk";
 import { GLOBAL_RULES } from "./rules.global";
 import { FULLWIDTH_RULES } from "./rules.fullwidth";
+import { DB_URI_RULE, URL_CREDS_RULE } from "./rules.connection";
 import { EMAIL_RULES } from "./rules.email";
 import { CRYPTO_RULES } from "./rules.crypto";
 import { TOKEN_RULES } from "./rules.tokens";
@@ -83,7 +98,8 @@ const FILE_RE = new RegExp(
 // `21:21:09`, a C++ `std::vector` can't even form hextets). A valid uncompressed
 // IPv6 is exactly 8 groups, so no loose 3-7-group alternative is needed.
 const H4 = "[A-Fa-f0-9]{1,4}";
-const IPV4_RE = "\\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\b";
+const IPV4_RE =
+  "\\b(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\b";
 const IPV6_RE =
   `(?<![:.\\w])(?:(?:${H4}:){7}${H4}` +
   `|(?:${H4}:){1,2}(?::${H4}){1,5}` +
@@ -119,20 +135,15 @@ export const RULES: RedactionRule[] = [
   { type: "path", pattern: FILE_RE },
   {
     type: "private_key",
-    pattern:
-      /-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z0-9 ]*PRIVATE KEY-----/g,
+    pattern: /-----BEGIN [A-Z0-9 ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z0-9 ]*PRIVATE KEY-----/g,
   },
   {
     type: "jwt",
     pattern: /\beyJ[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\.[A-Za-z0-9_-]{8,}\b/g,
   },
-  // DB / broker connection URIs — redacted WHOLE because they embed credentials.
-  // Must run BEFORE `email`, else the `user:pass@host.com` part is eaten first.
-  {
-    type: "connection_string",
-    pattern:
-      /\b(?:postgres(?:ql)?|mysql|mongodb(?:\+srv)?|rediss?|amqps?|mssql|jdbc:[a-z0-9]+):\/\/[^\s"'<>`]+/gi,
-  },
+  // DB / broker connection URIs — before `email`, else `user:pass@host.com` is eaten first.
+  // A placeholder (`postgres://user:pass@host`) is skipped (`rules.connection.ts`).
+  DB_URI_RULE,
   // Vendor-prefixed API keys / tokens + SSH public keys — ONE family: rules.tokens.ts.
   ...TOKEN_RULES,
   // Crypto wallet addresses (category "secret").
@@ -140,13 +151,13 @@ export const RULES: RedactionRule[] = [
   // Bitcoin + the other chains — ONE family, ONE home: `rules.crypto.ts`.
   ...CRYPTO_RULES,
   // MAC (→ "ip"). Adjacency guards reject a 6-pair run inside a LONGER hex sequence — a byte DUMP, not an address (`rules.mac.test.ts`).
-  { type: "mac", pattern: /(?<![0-9A-Fa-f]{2}[:-])(?:[0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}(?![:-][0-9A-Fa-f]{2})/g },
-  // Credentials embedded in ANY URL — generalises connection_string to
-  // `scheme://user:pass@host…`. Runs before `email` so `pass@host` isn't eaten.
   {
-    type: "connection_string",
-    pattern: /\b[a-z][a-z0-9+.-]*:\/\/[^/\s:@]+:[^/\s@]+@[^\s"'<>`]+/gi,
+    type: "mac",
+    pattern:
+      /(?<![0-9A-Fa-f]{2}[:-])(?:[0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}(?![:-][0-9A-Fa-f]{2})/g,
   },
+  // Credentials embedded in ANY URL — `scheme://user:pass@host…`, before `email`.
+  URL_CREDS_RULE,
   // The VALUE of a secret-named assignment (.env / config / JSON): redact only the
   // value, not the key name, via a look-behind on the key. Covers `KEY=val`,
   // `KEY: val`, `"key": "val"`; the key may be a suffix of a longer name
@@ -169,7 +180,8 @@ export const RULES: RedactionRule[] = [
     // (line start, or after whitespace/brace/comma) so an ordinary word ending in
     // "pass" ("surpass: …", "compass") can never open a secret.
     type: "secret",
-    pattern: /(?<=(?:^|[\s{,])(?:pass|mdp|passe)["']?[ \t]*[:=][ \t]*["']?)(?!\[REDACTED_)[^\s"'`#,;]{6,}/gim,
+    pattern:
+      /(?<=(?:^|[\s{,])(?:pass|mdp|passe)["']?[ \t]*[:=][ \t]*["']?)(?!\[REDACTED_)[^\s"'`#,;]{6,}/gim,
   },
   {
     type: "secret",
@@ -247,11 +259,15 @@ export const RULES: RedactionRule[] = [
     // REAL digits, or the pattern becomes STARTABLE on the trailing o of an ordinary
     // word (« cartão 5005-… » matched from the o, failed Luhn, and its rejection
     // CONSUMED the real card behind it — the DOB_RULE lesson yet again).
-    pattern: new RegExp(String.raw`\b\d(?:(?:${SP}{1,2}|[-–—](?:${WRAP})?|${WRAP})?[0-9Oo]){11,17}(?:${SP}{1,2}|[-–—](?:${WRAP})?|${WRAP})?\d\b`, "g"),
+    pattern: new RegExp(
+      String.raw`\b\d(?:(?:${SP}{1,2}|[-–—](?:${WRAP})?|${WRAP})?[0-9Oo]){11,17}(?:${SP}{1,2}|[-–—](?:${WRAP})?|${WRAP})?\d\b`,
+      "g",
+    ),
     // ⚠️ `!isEpochMs` (13 CONTIGUOUS digits) before Luhn: an epoch-ms timestamp passes it
     // ~1 time in 10 — file revisions were going out as « card » (`validators.ts`).
     validate: (m) =>
-      maxOneWrap(m) && !isEpochMs(m) &&
+      maxOneWrap(m) &&
+      !isEpochMs(m) &&
       (luhn(m) || ((m.match(/\d/g)?.length ?? 0) >= 10 && luhn(deconfuseOcrDigits(m)))),
   },
   {
@@ -262,10 +278,16 @@ export const RULES: RedactionRule[] = [
     // 13-19 rule: a longer run keeps priority. Found by the external bench
     // (the presidio-research generator emits these forms; 10 leaks measured).
     type: "card",
-    pattern: new RegExp(String.raw`\b(?:5018|5020|5038|5893|6304|6759|676[123])(?:(?:${SP}{1,2}|[-–—](?:${WRAP})?|${WRAP})?\d){8}\b`, "g"),
+    pattern: new RegExp(
+      String.raw`\b(?:5018|5020|5038|5893|6304|6759|676[123])(?:(?:${SP}{1,2}|[-–—](?:${WRAP})?|${WRAP})?\d){8}\b`,
+      "g",
+    ),
     // `luhn()` carries the classic PAN's 13-19 floor — here the length is fixed
     // to 12 by the regex itself, only the pure checksum (`luhnDigits`) needs verifying.
-    validate: (m) => { const d = m.replace(/\D/g, ""); return maxOneWrap(m) && d.length === 12 && luhnDigits(d); },
+    validate: (m) => {
+      const d = m.replace(/\D/g, "");
+      return maxOneWrap(m) && d.length === 12 && luhnDigits(d);
+    },
   },
   {
     // 12 digits WITHOUT a Maestro IIN: only under an EXPLICIT card label
@@ -278,7 +300,10 @@ export const RULES: RedactionRule[] = [
       String.raw`(?:credit|debit)\s+card|card|carte(?:\s+(?:bancaire|bleue|de\s+cr[ée]dit))?|kreditkarte|tarjeta|carta`,
       String.raw`\d(?:(?:${SP}{1,2})?\d){11}\b`,
     ),
-    validate: (m) => { const d = m.replace(/\D/g, ""); return d.length === 12 && luhnDigits(d); },
+    validate: (m) => {
+      const d = m.replace(/\D/g, "");
+      return d.length === 12 && luhnDigits(d);
+    },
   },
   {
     // Country(2) + check(2) + 10–30 alnum, confirmed by ISO 7064 mod-97 — in ANY
@@ -287,7 +312,10 @@ export const RULES: RedactionRule[] = [
     // adversarial battery showed each locked arm leaking the next casing, and the
     // 1/97 checksum is the precision gate a case class never was.
     type: "iban",
-    pattern: new RegExp(String.raw`\b[A-Za-z]{2}\d{2}(?:(?:${SP}|\.|${WRAP})?[A-Za-z0-9]){10,30}\b`, "g"),
+    pattern: new RegExp(
+      String.raw`\b[A-Za-z]{2}\d{2}(?:(?:${SP}|\.|${WRAP})?[A-Za-z0-9]){10,30}\b`,
+      "g",
+    ),
     // The second reading (`deconfuseOcrDigits`) rescues the SCANNED form « FR76
     // 3OO0 … » whose broken mod-97 used to ship it in CLEAR — the checksum on the
     // repaired reading stays the verifier (1/97), so the bare-shape door stays shut.
