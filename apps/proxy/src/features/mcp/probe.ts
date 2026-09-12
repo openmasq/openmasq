@@ -21,10 +21,41 @@ export interface Probe {
 
 const TIMEOUT_MS = 8000;
 
+/**
+ * A metadata hop we are willing to make. The chain below follows a URL the QUERIED SERVER
+ * chose (`authorization_servers` is its answer, not our input), so an unfriendly endpoint can
+ * name any address it likes and have this process fetch it — a request from inside the
+ * machine, to wherever it points. Two bounds, both refusals rather than repairs:
+ *
+ *   • HTTPS only — an authorization server is https by definition, and http invites a
+ *     downgrade to something on the local network;
+ *   • never a LITERAL address, and never a name that resolves to nothing but this machine.
+ *     A public authorization server is a NAME; a bare IP (`169.254.169.254`, `10.0.0.5`,
+ *     `[::1]`) is the shape of an internal target and has no business in this chain.
+ *
+ * A resolved-name rebinding is beyond what a metadata probe can defend (it would need the
+ * resolution pinned through the fetch); what is closed here is the direct pivot.
+ */
+export function probeUrlAllowed(url: string): boolean {
+  let u: URL;
+  try {
+    u = new URL(url);
+  } catch {
+    return false;
+  }
+  if (u.protocol !== "https:") return false;
+  const host = u.hostname.replace(/^\[|\]$/g, "");
+  // An IPv4 or IPv6 LITERAL — no public authorization server is addressed by one.
+  if (/^\d{1,3}(?:\.\d{1,3}){3}$/.test(host) || host.includes(":")) return false;
+  if (host === "localhost" || host.endsWith(".localhost") || host.endsWith(".local")) return false;
+  return host.includes(".");
+}
+
 async function json(
   url: string,
   fetchFn: typeof fetch,
 ): Promise<Record<string, unknown> | undefined> {
+  if (!probeUrlAllowed(url)) return undefined;
   try {
     const res = await fetchFn(url, {
       signal: AbortSignal.timeout(TIMEOUT_MS),
