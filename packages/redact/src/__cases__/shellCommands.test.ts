@@ -92,3 +92,17 @@ describe("algorithm names are not secrets", () => {
     expect(redact("token x7k9m2p8qw3z").text).not.toContain("x7k9m2p8qw3z");
   });
 });
+
+// A C/JS/Rust numeric literal is a number, not a key: the token rule renamed `0xFF00AA` and a
+// bitmask/colour/flag constant broke. Hex is bounded to 64-bit; a longer `0x…` is a hash or a
+// wallet and stays masked (`codeTerms.ts` `isNumericLiteral`).
+describe("numeric literals are not secrets", () => {
+  for (const lit of ["0xFF00AA", "0x7fffffff", "0xdeadbeefcafebabe", "0o755", "0b101010"])
+    it(`keeps ${lit}`, () => {
+      expect(redact(`const mask = ${lit};`).text).toContain(lit);
+    });
+  it("still masks a long 0x hex run (a hash or wallet)", () => {
+    const long = "0xabcdef0123456789abcdef0123456789abcdef01";
+    expect(redact(`addr ${long}`).text).not.toContain(long);
+  });
+});

@@ -26,3 +26,13 @@ const CODE_TERMS = new Set<string>([
 
 /** Is `value` a published algorithm/encoding name (never a secret)? Whole-value, case-blind. */
 export const isCodeTerm = (value: string): boolean => CODE_TERMS.has(value.toLowerCase());
+
+/**
+ * A C/JS/Rust/Go NUMERIC LITERAL — hex `0xFF00AA`, octal `0o755`, binary `0b1010` — which the
+ * generic token rule reads as a key (the `x`/`o`/`b` is its only "non-hex letter") and RENAMES,
+ * breaking a bitmask, a colour or a flag constant. A literal is a NUMBER, never a secret. Hex is
+ * bounded to 16 digits (a 64-bit value): a longer `0x…` run is a hash or a wallet, kept masked
+ * (a 40-hex address also has its own crypto rule). Octal/binary have no such collision.
+ */
+export const isNumericLiteral = (value: string): boolean =>
+  /^0[xX][0-9a-fA-F]{1,16}$/.test(value) || /^0[oO][0-7]+$/.test(value) || /^0[bB][01]+$/.test(value);
