@@ -122,6 +122,50 @@ declaring it in `~/.openmasq/mcp.json` with a credential of its own. And a clien
 know how to switch off is said so on start: **its own MCP servers stay on, and those tool
 calls do not pass through the mask.** Claude Code is the one we can do this for today.
 
+**Configuring it once — `~/.openmasq/proxy.json`.** Every flag can be written in a file
+instead of typed on every run, under the same name minus the dashes. No secret lives in it
+(the servers file keeps those), so it can be shared or versioned in a team:
+
+```json
+{
+  "run":     { "level": "renforce", "console": true, "disable": ["username"] },
+  "clients": { "hermes": { "open": true } },
+  "mcp": {
+    "notion":     { "source": "openmasq", "level": "strict", "writes": "deny" },
+    "github":     { "source": "client",   "level": "standard" },
+    "filesystem": { "source": "off" }
+  }
+}
+```
+
+`run` is every run; `clients.<tool>` overrides it for one wrapped tool. Precedence: **flag >
+env > `clients.<tool>` > `run` > default**. `--config <file>` or `OPENMASQ_PROXY_CONFIG` names
+another file. **A malformed file refuses the start** — a bad section, an unknown or misspelt
+key (named, with the nearest one), a value that is none of the choices — and so does a bad
+environment variable: a `"level": "strcit"` that silently ran at standard would be a leak.
+`reveal` and `json` stay per-run flags, on purpose. `openmasq-proxy config show` prints the
+run that would start and **where each value came from**; `config path` the file it reads;
+`config schema` a JSON Schema for the editor.
+
+The `mcp` section names each server once. **`source`** says whose it is: `openmasq` — yours,
+from the servers file, and the client's same-named one is set aside; `client` — theirs, taken
+over *through the proxy* even when you declare one; `off` — neither, the tool is absent from
+the run. Left out, the rule is the one adoption already had: yours when declared, theirs
+otherwise. `source: "openmasq"` on a server your file does not declare leaves the run
+**without** it, said in amber — never a fallback to the client's, which is exactly what the
+line rules out. And `client` never means the client speaks to it directly: that path bypasses
+the mask, and a file cannot reopen it. **`level`, `disable`, `keep`** give that server's
+results a masking of their own (a server that asks for the on-device model asks for it at
+startup, like the chat); **`writes`** gates its mutating tools by itself. The card's server
+line and `mcp status` show the policy.
+
+**What a stricter server masks stays masked.** Every masker writes the same session vault,
+and the vault is replayed before anything is detected — so a name a `strict` Notion vaulted
+stays masked in a `standard` chat that never looks for names, its parts included: `Jean
+Dupont` from Notion means `Jean` and `DUPONT` alone are substituted in your next message, in
+`fake` mode (per-word aliases) as in `token` mode (a forward-only replay of the fragments,
+Title-case and CAPS). The vault outranks the level, in one direction only.
+
 **Where the credentials live, and how to connect a service.** In `~/.openmasq`, and nowhere
 else: a stdio server's API key stays in the servers file you wrote, and a remote server's
 OAuth tokens are obtained by the CLI and written to `mcp-auth.enc` — AES-256-GCM, beside a
@@ -407,6 +451,53 @@ connexion ici, et reste joignable en le déclarant dans `~/.openmasq/mcp.json` a
 identifiant à lui. Et un client qu'on ne sait pas désactiver est annoncé au démarrage :
 **ses propres serveurs MCP restent actifs, et ces appels d'outils ne passent pas par le
 masque.** Claude Code est le seul pour lequel on sait le faire aujourd'hui.
+
+**Le configurer une fois — `~/.openmasq/proxy.json`.** Chaque drapeau peut s'écrire dans un
+fichier plutôt que se taper à chaque session, sous le même nom sans les tirets. Aucun secret
+n'y vit (le fichier des serveurs les garde), donc il se partage ou se versionne en équipe :
+
+```json
+{
+  "run":     { "level": "renforce", "console": true, "disable": ["username"] },
+  "clients": { "hermes": { "open": true } },
+  "mcp": {
+    "notion":     { "source": "openmasq", "level": "strict", "writes": "deny" },
+    "github":     { "source": "client",   "level": "standard" },
+    "filesystem": { "source": "off" }
+  }
+}
+```
+
+`run` vaut pour chaque session ; `clients.<outil>` le surcharge pour un outil enveloppé.
+Précédence : **drapeau > env > `clients.<outil>` > `run` > défaut**. `--config <fichier>` ou
+`OPENMASQ_PROXY_CONFIG` désigne un autre fichier. **Un fichier malformé refuse le démarrage** —
+une section inconnue, une clé inconnue ou mal orthographiée (nommée, avec la plus proche), une
+valeur hors des choix — et une variable d'environnement fautive aussi : un `"level": "strcit"`
+qui tournerait en standard sans rien dire serait une fuite. `reveal` et `json` restent des
+drapeaux de session, exprès. `openmasq-proxy config show` affiche la session qui démarrerait
+et **d'où vient chaque valeur** ; `config path` le fichier lu ; `config schema` un JSON Schema
+pour l'éditeur.
+
+La section `mcp` nomme chaque serveur une fois. **`source`** dit à qui il est : `openmasq` —
+le vôtre, depuis le fichier des serveurs, et celui du client portant le même nom est écarté ;
+`client` — le sien, repris *à travers le proxy* même si vous en déclarez un ; `off` — ni l'un
+ni l'autre, l'outil est absent de la session. Omis, la règle est celle que la reprise avait
+déjà : le vôtre s'il est déclaré, le sien sinon. `source: "openmasq"` sur un serveur que votre
+fichier ne déclare pas laisse la session **sans** lui, dit en ambre — jamais un repli sur
+celui du client, c'est précisément ce que la ligne interdit. Et `client` ne veut jamais dire
+que le client lui parle en direct : ce chemin contourne le masque, et un fichier ne le rouvre
+pas. **`level`, `disable`, `keep`** donnent aux résultats de ce serveur un masquage à eux (un
+serveur qui demande le modèle local le demande au démarrage, comme le chat) ; **`writes`**
+garde ses outils d'écriture à lui seul. La ligne serveur de la carte et `mcp status` montrent
+la politique.
+
+**Ce qu'un serveur plus strict masque reste masqué.** Chaque masker écrit le même vault de
+session, et le vault est rejoué avant toute détection — donc un nom qu'un Notion `strict` a
+vaulté reste masqué dans un chat `standard` qui ne cherche aucun nom, ses fragments compris :
+`Jean Dupont` venu de Notion fait que `Jean` et `DUPONT` seuls sont substitués dans votre
+message suivant, en mode `fake` (alias par mot) comme en mode `token` (rejeu aller seulement
+des fragments, en capitale initiale et en capitales). Le vault l'emporte sur le niveau, dans
+un seul sens.
 
 **Où vivent les identifiants, et comment connecter un service.** Dans `~/.openmasq`, et nulle
 part ailleurs : la clé d'API d'un serveur stdio reste dans le fichier de serveurs que vous

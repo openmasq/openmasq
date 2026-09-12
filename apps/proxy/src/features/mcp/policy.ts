@@ -90,7 +90,8 @@ function oneOf(v: unknown, values: readonly string[], who: string): string {
 export const overridesMasking = (p: ServerPolicy): boolean =>
   p.level !== undefined || !!p.disable?.length || !!p.keep?.length;
 
-/** One line per server for the card and `mcp status`: `strict · writes deny · ours`. */
+/** One line per server for the card and `mcp status`: `strict, writes deny, ours` — commas,
+ *  because the card already separates servers with `·`. */
 export function describePolicy(p: ServerPolicy): string {
   const parts: string[] = [];
   if (p.level) parts.push(p.level);
@@ -99,5 +100,5 @@ export function describePolicy(p: ServerPolicy): string {
   if (p.writes) parts.push(`writes ${p.writes}`);
   if (p.source)
     parts.push(p.source === "openmasq" ? "ours" : p.source === "client" ? "the client's" : "off");
-  return parts.join(" · ");
+  return parts.join(", ");
 }

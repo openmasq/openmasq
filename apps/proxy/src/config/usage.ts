@@ -54,6 +54,12 @@ A tool that WRITES stops for a "y" on this terminal (--mcp-writes deny refuses t
 passes them); with no terminal to ask, a write is refused. Env: OPENMASQ_PROXY_MCP_CONFIG,
 OPENMASQ_PROXY_MCP_WRITES.
 
+The "mcp" section of proxy.json names each server once: "source" says whose it is —
+openmasq (yours, the client's same-named one is set aside), client (theirs, taken over
+through the proxy), off (neither) — and "level", "disable", "keep", "writes" give that
+server its own masking and its own write gate. What a stricter server puts in the session's
+vault stays masked for the whole conversation, whatever the chat's level.
+
 With -- claude, codex, gemini, opencode or copilot, --mcp goes further: the client is started
 with OUR endpoint as its ONLY MCP server, and the servers it declared are taken over so it
 loses nothing — one MCP, exposing every service, all of it masked. --mcp-no-adopt leaves them

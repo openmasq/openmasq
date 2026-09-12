@@ -42,7 +42,7 @@ export interface StartDeps {
 export interface Integrations {
   upstream?: Upstream;
   bridge?: McpBridge;
-  /** `id (n tools) · strict · writes deny` per connected server, for the card. */
+  /** `id (n)` per connected server, for the card — `id (n, strict, writes deny)` with a policy. */
   servers: string[];
   /** Appended to the wrapped client's argv — empty when there is nothing to force. */
   exclusiveArgs: string[];
@@ -215,7 +215,7 @@ export async function startIntegrations(deps: StartDeps): Promise<Integrations> 
         : undefined,
     onUp: (id, tools) => {
       const policy = deps.policy[id] ? describePolicy(deps.policy[id]) : "";
-      servers.push(`${id} (${tools})${policy ? ` · ${policy}` : ""}`);
+      servers.push(`${id} (${tools}${policy ? `, ${policy}` : ""})`);
     },
     onDown: (id, why) => deps.note(`${id} is not connected: ${why}`, "warn"),
   });

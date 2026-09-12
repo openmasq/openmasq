@@ -3,10 +3,12 @@
 // connect to: one list of servers, one store, one command that fills it.
 import { removeEntry, runAdd } from "./add.js";
 import { homedir } from "node:os";
+import { readConfigFile } from "../../config/file.js";
 import { openmasqDir } from "../../lib/stateDir.js";
 import { createStore, loginTo, type AuthDeps } from "./auth.js";
 import { DECLARING_CLIENTS } from "./clients/index.js";
 import { ownServers } from "./own.js";
+import { describePolicy, type McpPolicy, parseMcpPolicy } from "./policy.js";
 import { createPrompt } from "./prompt.js";
 import { resolveSpecs } from "./resolve.js";
 import { DEFAULT_MCP_CONFIG, type ServerSpec } from "./servers.js";
@@ -93,6 +95,15 @@ export async function runMcpCommand(
 
   const store = createStore();
   let specs: ServerSpec[];
+  // The per-server policy of proxy.json, so `status` shows the run the proxy would start.
+  let policy: McpPolicy = {};
+  try {
+    const file = readConfigFile("");
+    if (file) policy = parseMcpPolicy(file.mcp, `${file.path} › mcp`);
+  } catch (err) {
+    console.error(err instanceof Error ? err.message : String(err));
+    return 2;
+  }
   try {
     // Every client whose servers can be read from a FILE. `status` must not run anybody's
     // binary, so a probe-only client (Codex) is not asked here — the running proxy asks it,
@@ -108,6 +119,8 @@ export async function runMcpCommand(
         return "own" in learned ? learned.own : [];
       }),
       adopt: parsed.adopt,
+      policy,
+      onPolicy: (id, text) => console.log(`  ${id}: ${text}`),
     });
   } catch (err) {
     console.error(err instanceof Error ? err.message : String(err));
@@ -128,7 +141,10 @@ export async function runMcpCommand(
           : s.transport === "http" && Object.keys(s.headers).length
             ? "static header — no login needed"
             : "NOT signed in — openmasq-proxy mcp login " + s.id;
-      console.log(`  ${s.id.padEnd(16)} ${s.transport.padEnd(6)} ${state}`);
+      const rule = policy[s.id] ? describePolicy(policy[s.id]) : "";
+      console.log(
+        `  ${s.id.padEnd(16)} ${s.transport.padEnd(6)} ${state}${rule ? `  [${rule}]` : ""}`,
+      );
     }
     return 0;
   }

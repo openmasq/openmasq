@@ -35,7 +35,7 @@ describe("the per-server policy of proxy.json", () => {
     expect(overridesMasking({ level: "strict" })).toBe(true);
     expect(overridesMasking({ disable: ["email"] })).toBe(true);
     expect(describePolicy({ source: "openmasq", level: "strict", writes: "deny" })).toBe(
-      "strict · writes deny · ours",
+      "strict, writes deny, ours",
     );
     expect(describePolicy({ source: "client" })).toBe("the client's");
     expect(describePolicy({})).toBe("");
