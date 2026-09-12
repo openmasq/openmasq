@@ -3,6 +3,9 @@
 // a guess: flag, env, the file's `clients.<tool>` block, its `run` block, or the default.
 // It takes the same flags and `-- <tool>` as a run, so it shows the run that WOULD start.
 import { DEFAULT_CONFIG_FILE } from "./file.js";
+import { parseMcpPolicy, describePolicy } from "../features/mcp/policy.js";
+import { editConfig, initConfig } from "./edit.js";
+import { jsonSchema } from "./jsonSchema.js";
 import { OPTIONS, type Option } from "./options.js";
 import { type Io, parseConfig, type Parsed } from "./config.js";
 
@@ -10,7 +13,9 @@ export const CONFIG_USAGE = `openmasq-proxy config <command> [the run's own flag
 
   show                   every setting, its value, and where it came from
   path                   the file that is (or would be) read
-  schema                 a JSON Schema for ~/.openmasq/proxy.json, for the editor
+  init                   write an empty ~/.openmasq/proxy.json and its schema beside it
+  edit                   open it in $VISUAL / $EDITOR, then check it
+  schema                 print the JSON Schema of the file
 
   --json                 machine-readable output for show`;
 
@@ -25,70 +30,13 @@ export function display(o: Option, config: Parsed["config"]): string {
   return v === "" ? "—" : String(v);
 }
 
-/** JSON Schema (draft 2020-12) for the file, from the table — never written by hand. */
-export function jsonSchema(): Record<string, unknown> {
-  const prop = (o: Option): Record<string, unknown> => {
-    const base = { description: o.doc };
-    switch (o.kind) {
-      case "string":
-        return { ...base, type: "string" };
-      case "number":
-        return { ...base, type: "integer", minimum: 1, maximum: 65535 };
-      case "boolean":
-        return { ...base, type: "boolean" };
-      case "list":
-        return { ...base, type: "array", items: { type: "string" } };
-      case "enum":
-        return { ...base, enum: [...o.values] };
-      case "always":
-        return {
-          ...base,
-          type: "array",
-          items: {
-            anyOf: [
-              { type: "string", pattern: "^.+(:[a-z_]+)?$" },
-              {
-                type: "object",
-                required: ["value"],
-                properties: { value: { type: "string" }, category: { type: "string" } },
-                additionalProperties: false,
-              },
-            ],
-          },
-        };
-    }
-  };
-  const settings = {
-    type: "object",
-    additionalProperties: false,
-    properties: Object.fromEntries(OPTIONS.filter((o) => o.file).map((o) => [o.name, prop(o)])),
-  };
-  return {
-    $schema: "https://json-schema.org/draft/2020-12/schema",
-    title: "openmasq-proxy configuration",
-    type: "object",
-    additionalProperties: false,
-    properties: {
-      $schema: { type: "string" },
-      run: { ...settings, description: "the settings of every run — the flags, by name" },
-      clients: {
-        type: "object",
-        description: "overrides by wrapped tool (claude, hermes, opencode…)",
-        additionalProperties: settings,
-      },
-      mcp: {
-        type: "object",
-        description: "per-server policy: which side provides it, and how its results are masked",
-        additionalProperties: { type: "object" },
-      },
-    },
-  };
-}
-
 export interface ShowDeps extends Io {
   out?: (text: string) => void;
   err?: (text: string) => void;
   env?: NodeJS.ProcessEnv;
+  /** `init`/`edit`'s file system and editor, injected by the tests (`edit.ts`). */
+  files?: Partial<import("./edit.js").Files>;
+  spawn?: import("./edit.js").Spawn;
 }
 
 export async function runConfigCommand(argv: string[], deps: ShowDeps = {}): Promise<number> {
@@ -103,11 +51,21 @@ export async function runConfigCommand(argv: string[], deps: ShowDeps = {}): Pro
     out(JSON.stringify(jsonSchema(), null, 2));
     return 0;
   }
+  const env = deps.env ?? process.env;
+  const named = rest[rest.indexOf("--config") + 1] ?? "";
+  const target = rest.includes("--config") ? named : (env.OPENMASQ_PROXY_CONFIG ?? "");
+  if (command === "init") return initConfig(target, { out, err, ...deps.files });
+  if (command === "edit")
+    return editConfig(target, { out, err, env, ...deps.files, spawn: deps.spawn });
   const json = rest.includes("--json");
   const runArgs = rest.filter((a) => a !== "--json");
   let parsed: Parsed;
+  let policy: ReturnType<typeof parseMcpPolicy> = {};
   try {
-    parsed = parseConfig(runArgs, deps.env ?? process.env, deps);
+    parsed = parseConfig(runArgs, env, deps);
+    // The run refuses a bad `mcp` section too, so `show` has to — a check that passes here
+    // and fails on start would be no check.
+    policy = parseMcpPolicy(parsed.file?.mcp ?? {}, `${parsed.file?.path} › mcp`);
   } catch (e) {
     err(e instanceof Error ? e.message : String(e));
     return 2;
@@ -129,7 +87,12 @@ export async function runConfigCommand(argv: string[], deps: ShowDeps = {}): Pro
   if (json) {
     out(
       JSON.stringify(
-        { file: parsed.file?.path ?? null, tool: parsed.config.command[0] ?? null, settings: rows },
+        {
+          file: parsed.file?.path ?? null,
+          tool: parsed.config.command[0] ?? null,
+          settings: rows,
+          mcp: policy,
+        },
         null,
         2,
       ),
@@ -144,5 +107,7 @@ export async function runConfigCommand(argv: string[], deps: ShowDeps = {}): Pro
   const w = Math.max(...rows.map((r) => r.value.length), 5);
   for (const r of rows)
     out(`  ${r.name.padEnd(12)} ${r.value.padEnd(Math.min(w, 40))}  ${where(r.source)}`);
+  for (const [id, p] of Object.entries(policy))
+    out(`  mcp.${id.padEnd(8)} ${describePolicy(p).padEnd(Math.min(w, 40))}  file › mcp`);
   return 0;
 }

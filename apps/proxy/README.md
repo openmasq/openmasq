@@ -143,9 +143,11 @@ env > `clients.<tool>` > `run` > default**. `--config <file>` or `OPENMASQ_PROXY
 another file. **A malformed file refuses the start** — a bad section, an unknown or misspelt
 key (named, with the nearest one), a value that is none of the choices — and so does a bad
 environment variable: a `"level": "strcit"` that silently ran at standard would be a leak.
-`reveal` and `json` stay per-run flags, on purpose. `openmasq-proxy config show` prints the
-run that would start and **where each value came from**; `config path` the file it reads;
-`config schema` a JSON Schema for the editor.
+`reveal` and `json` stay per-run flags, on purpose. `openmasq-proxy config init` writes the
+empty file with its JSON Schema beside it (the editor completes keys and values from it);
+`config edit` opens it in `$VISUAL`/`$EDITOR` and **checks it when the editor returns**, the
+way the run would; `config show` prints the run that would start and **where each value came
+from**; `config path` the file it reads.
 
 The `mcp` section names each server once. **`source`** says whose it is: `openmasq` — yours,
 from the servers file, and the client's same-named one is set aside; `client` — theirs, taken
@@ -474,9 +476,11 @@ Précédence : **drapeau > env > `clients.<outil>` > `run` > défaut**. `--confi
 une section inconnue, une clé inconnue ou mal orthographiée (nommée, avec la plus proche), une
 valeur hors des choix — et une variable d'environnement fautive aussi : un `"level": "strcit"`
 qui tournerait en standard sans rien dire serait une fuite. `reveal` et `json` restent des
-drapeaux de session, exprès. `openmasq-proxy config show` affiche la session qui démarrerait
-et **d'où vient chaque valeur** ; `config path` le fichier lu ; `config schema` un JSON Schema
-pour l'éditeur.
+drapeaux de session, exprès. `openmasq-proxy config init` écrit le fichier vide avec son JSON
+Schema à côté (l'éditeur complète clés et valeurs grâce à lui) ; `config edit` l'ouvre dans
+`$VISUAL`/`$EDITOR` et **le vérifie au retour de l'éditeur**, comme le ferait la session ;
+`config show` affiche la session qui démarrerait et **d'où vient chaque valeur** ;
+`config path` le fichier lu.
 
 La section `mcp` nomme chaque serveur une fois. **`source`** dit à qui il est : `openmasq` —
 le vôtre, depuis le fichier des serveurs, et celui du client portant le même nom est écarté ;

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { jsonSchema, runConfigCommand } from "./show";
+import { jsonSchema } from "./jsonSchema";
+import { runConfigCommand } from "./show";
 
 const FILE = JSON.stringify({
   run: { level: "renforce", console: true, always: ["Acme:company", "Rebour"] },

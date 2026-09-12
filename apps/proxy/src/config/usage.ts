@@ -13,7 +13,7 @@ export const USAGE = `openmasq-proxy — mask personal data before it leaves the
   openmasq-proxy [flags] -- claude            run a tool through the proxy, stop with it
                  (codex, gemini, opencode, copilot too — --mcp makes us their only MCP)
   openmasq-proxy console [--url]              open the live view of the running proxy
-  openmasq-proxy config show|path|schema      the effective settings and where each came from
+  openmasq-proxy config show|path|init|edit|schema   the settings, where each came from, the file
 
 Point any OpenAI- or Anthropic-compatible client at http://127.0.0.1:8787 and keep your
 own API key: the proxy forwards it untouched, masks the messages on the way out and
