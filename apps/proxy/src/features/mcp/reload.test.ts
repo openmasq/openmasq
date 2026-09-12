@@ -8,6 +8,13 @@ const spec = (id: string, url = `https://${id}.example/mcp`): ServerSpec => ({
   url,
   headers: {},
 });
+const stdio = (id: string, command = id): ServerSpec => ({
+  id,
+  transport: "stdio",
+  command,
+  args: [],
+  env: {},
+});
 
 type Listener = (event: string, name: string | null) => void;
 
@@ -105,5 +112,23 @@ describe("reloading the integrations while the proxy runs", () => {
     off();
     s.emit();
     expect(hits).toEqual(["a", "b", "b"]);
+  });
+
+  it("declares a NEW local server but never launches it — a file is not a human", () => {
+    // A stdio entry is a COMMAND: connecting to it spawns it. A write into the state
+    // directory must not become a process in the running proxy; it waits for a start.
+    const h = harness([spec("notion")]);
+    h.state.specs = [spec("notion"), stdio("scraper", "node evil.js")];
+    h.touch("mcp.json");
+    return h.settle().then(() => {
+      expect(h.applied[0].specs).toEqual(["notion"]); // the command was NOT handed to connect
+      expect(h.notes.join("\n")).toMatch(/scraper: declared, not started/);
+      // …and a REMOTE server appearing beside it still reloads live, which is the point.
+      h.state.specs = [spec("notion"), stdio("scraper", "node evil.js"), spec("github")];
+      h.touch("mcp.json");
+      return h.settle().then(() => {
+        expect(h.applied[1].specs).toEqual(["notion", "github"]);
+      });
+    });
   });
 });

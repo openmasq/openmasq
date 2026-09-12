@@ -174,7 +174,11 @@ line and `mcp status` show the policy.
 running proxy watches `~/.openmasq`: `mcp login notion`, `mcp add`, `mcp remove` or an edit
 of the servers file makes it resolve the list again — same precedence, same policy — and
 reconnect **only what moved**; the other servers keep their connection and any call in
-flight. The agent is told by `notifications/tools/list_changed` on the stream it holds open
+flight. A **local** (`command`) server is the exception: connecting to one *spawns* it, and a
+file in the state directory is not a human — so one that appears, or whose command changes, is
+declared and waits for the next start rather than being launched by the watcher. What reloads
+live is everything that runs no process: a remote server, and the credentials of one (`mcp
+login`, the case the watcher exists for). The agent is told by `notifications/tools/list_changed` on the stream it holds open
 (Claude Code re-lists on it), so a tool appears, changes credential or disappears
 mid-session. The client's own servers stay switched off for the whole run — exclusivity is
 decided once, at start — so signing in to Notion here replaces the adopted one in place: the
@@ -529,7 +533,11 @@ la politique.
 proxy en cours surveille `~/.openmasq` : `mcp login notion`, `mcp add`, `mcp remove` ou une
 édition du fichier des serveurs lui fait résoudre la liste à nouveau — même précédence, même
 politique — et reconnecter **seulement ce qui a bougé** ; les autres serveurs gardent leur
-connexion et tout appel en cours. L'agent en est averti par `notifications/tools/list_changed`
+connexion et tout appel en cours. Un serveur **local** (`command`) fait exception : s'y
+connecter le *lance*, et un fichier n'est pas un humain — donc celui qui apparaît, ou dont la
+commande change, est déclaré et attend le prochain démarrage plutôt que d'être lancé par le
+veilleur. Ce qui se recharge à chaud est tout ce qui n'exécute aucun processus : un serveur
+distant, et les identifiants d'un serveur (`mcp login`, la raison d'être du veilleur). L'agent en est averti par `notifications/tools/list_changed`
 sur le flux qu'il garde ouvert (Claude Code relit la liste sur ce signal), donc un outil
 apparaît, change d'identifiant ou disparaît en pleine session. Les serveurs propres du client
 restent désactivés pour toute la session — l'exclusivité se décide une fois, au démarrage —

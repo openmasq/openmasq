@@ -68,6 +68,8 @@ export interface Reloader {
 
 export function watchIntegrations(initial: ServerSpec[], deps: ReloadDeps): Reloader {
   const seen = new Map(initial.map((s) => [s.id, fingerprint(s, deps.credentials)]));
+  /** The ids this PROCESS started — the only stdio commands the watcher may keep running. */
+  const started = new Set(initial.map((s) => s.id));
   let timer: NodeJS.Timeout | undefined;
   let running: Promise<void> = Promise.resolve();
 
@@ -91,7 +93,26 @@ export function watchIntegrations(initial: ServerSpec[], deps: ReloadDeps): Relo
         seen.set(s.id, fp);
       }
       for (const id of [...seen.keys()]) if (!specs.some((s) => s.id === id)) seen.delete(id);
-      const moved = await deps.apply(specs, changed);
+      // ⚠️ A STDIO server is a COMMAND, and connecting to it means SPAWNING that command. A
+      // file in the state directory is not a human, so a stdio entry that appeared — or whose
+      // command changed — is declared here and started at the next START, never launched by
+      // the watcher on its own. What reloads live is everything that runs no process: a remote
+      // server, and the credentials of one (`mcp login`, the case this watcher exists for).
+      const held = specs.filter(
+        (s) => s.transport === "stdio" && (!started.has(s.id) || changed.has(s.id)),
+      );
+      for (const s of held) {
+        changed.delete(s.id);
+        deps.note(
+          `${s.id}: declared, not started — a local server is a command, and one is only ` +
+            `launched when you start the proxy. Restart to run it.`,
+          "warn",
+        );
+      }
+      const runnable = specs.filter((s) => !held.some((h) => h.id === s.id));
+      const moved = await deps.apply(runnable, changed);
+      for (const s of runnable) started.add(s.id);
+      for (const id of [...started]) if (!specs.some((s) => s.id === id)) started.delete(id);
       if (moved.length) deps.onChanged(moved);
     }));
 

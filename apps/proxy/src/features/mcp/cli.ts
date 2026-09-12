@@ -61,7 +61,11 @@ const isHttp = (s: ServerSpec): boolean => s.transport === "http";
 async function tellRunning(env = process.env): Promise<void> {
   const url = `http://127.0.0.1:${env.OPENMASQ_PROXY_PORT || DEFAULTS.port}`;
   const running = await findRunning(url);
-  if (running) console.log(`  the proxy running on ${url} picks this up now — no restart needed.`);
+  if (!running) return;
+  console.log(`  the proxy running on ${url} picks this up now — no restart needed.`);
+  // …except a LOCAL server, which is a command: the watcher declares it and waits for a start
+  // rather than spawning a process because a file changed (`reload.ts`).
+  console.log(`  (a local "command" server is declared now and started when you restart it.)`);
 }
 
 /** Runs one `mcp` command. Returns the process exit code; prints its own lines. */
