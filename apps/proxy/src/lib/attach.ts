@@ -23,6 +23,9 @@ export interface Running {
    *  actually do. Absent from an older build, and then nothing is claimed on its behalf. */
   level?: string;
   disabled?: string[];
+  /** Does it serve a live view? Absent from an older build; `openmasq-proxy console` then
+   *  trusts the link it finds. */
+  console?: boolean;
 }
 
 /** A short, readable name for one client: `claude-a3f9`. Readable because it is what the
@@ -56,6 +59,7 @@ export async function findRunning(
       model: body.ner === true,
       ...(typeof body.level === "string" ? { level: body.level } : {}),
       ...(Array.isArray(body.disabled) ? { disabled: body.disabled.map(String) } : {}),
+      ...(typeof body.console === "boolean" ? { console: body.console } : {}),
     };
   } catch {
     return undefined;
@@ -98,16 +102,16 @@ export async function joinRunning(
     `joining the proxy already on ${url} (v${running.version}, ` +
       `${running.model ? "model on" : "pattern rules"}) — this session is ${session}`,
   );
-  // The joiner holds no console token by construction: the live view, if that proxy serves
-  // one, is on ITS terminal, and its card is where the URL was printed.
-  say(`the live view, if any, belongs to that proxy's terminal — its URL was printed there`);
+  // The joiner holds no console token by construction: the live view belongs to the proxy
+  // that started the server. `openmasq-proxy console` opens it from here all the same.
+  if (running.console !== false) say(`its live view, if it serves one: openmasq-proxy console`);
   // The console (and its token) belong to whichever proxy actually STARTED the server; a join
   // holds none, so these flags never took effect. Say so, and where to look instead.
   if (deps.startOnly?.length)
     warn(
       `${deps.startOnly.join(" and ")} ignored: they configure a new server, and this run joined ` +
-        `the proxy already on ${url}. Its console, if it has one, was printed when THAT proxy ` +
-        `started — or stop it and re-run to start your own.`,
+        `the proxy already on ${url}. Its console, if it has one, opens with ` +
+        `\`openmasq-proxy console\` — or stop it and re-run to start your own.`,
     );
   return await (deps.run ?? runWrapped)(command, sessionUrl(url, session), []);
 }

@@ -46,6 +46,13 @@ afterAll(() => {
 });
 
 describe("the console endpoint", () => {
+  it("is announced on /healthz, so `openmasq-proxy console` knows a link points at a live view", async () => {
+    const health = (await (await fetch(url.replace(/\/console$/, "/healthz"))).json()) as {
+      console: boolean;
+    };
+    expect(health.console).toBe(true);
+  });
+
   it("is a 404 without the token — not a 401, which would confirm it exists", async () => {
     expect((await fetch(url)).status).toBe(404);
     expect((await fetch(`${url}?t=wrong`)).status).toBe(404);

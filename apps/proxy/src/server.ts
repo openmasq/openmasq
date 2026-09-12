@@ -4,14 +4,15 @@
 // load, nothing to warm. On a terminal the keys of `lib/ui/keys.ts` turn the runtime dials;
 // after `--`, a tool runs through the proxy and stops it when it exits.
 import { randomBytes } from "node:crypto";
-import type { RedactionLevel } from "@openmasq/catalog";
 import { createApp } from "./app.js";
-import { LEVELS, parseArgs, USAGE } from "./config/config.js";
+import { parseArgs, USAGE } from "./config/config.js";
 import { createConsoleBus } from "./features/console/events.js";
+import { publishConsoleLink } from "./features/console/link.js";
+import { runConsoleCommand } from "./features/console/open.js";
 import { joinRunning, sessionName, sessionUrl } from "./lib/attach.js";
 import { runMcpCommand } from "./features/mcp/cli.js";
 import { startIntegrations } from "./features/mcp/start.js";
-import { envLines } from "./lib/baseUrls.js";
+import { createDials } from "./lib/dials.js";
 import {
   createMasker,
   disabledKindsFor,
@@ -19,7 +20,14 @@ import {
   type MaskerOptions,
 } from "./lib/masker.js";
 import { type DetectLocal, loadNer, resolveNerDir } from "./lib/ner.js";
-import { attachKeys, createReporter, KEY_HINTS, type ModelState, openIfWanted, revealFor } from "./lib/ui/index.js";
+import {
+  attachKeys,
+  createReporter,
+  KEY_HINTS,
+  type ModelState,
+  openIfWanted,
+  revealFor,
+} from "./lib/ui/index.js";
 import { openInBrowser } from "./lib/openUrl.js";
 import { packageVersion } from "./lib/version.js";
 import { defaultLogFile, fileWriter, runWrapped } from "./lib/wrap.js";
@@ -33,6 +41,9 @@ async function main(): Promise<void> {
   if (process.argv[2] === "mcp") {
     process.exit(await runMcpCommand(process.argv.slice(3), packageVersion()));
   }
+  // `openmasq-proxy console` opens the live view of the proxy already running — from any
+  // terminal, whatever tool owns the screen (`features/console/open.ts`).
+  if (process.argv[2] === "console") process.exit(await runConsoleCommand(process.argv.slice(3)));
 
   let config: ReturnType<typeof parseArgs>;
   try {
@@ -194,9 +205,13 @@ async function main(): Promise<void> {
       : {}),
   });
   const url = url0;
+  const consoleUrl = bus ? `${url}/console?t=${consoleToken}` : "";
   const ownSession = wrapping ? sessionName(config.command[0]) : "";
   let detach = () => {};
+  // The address on disk while we run, so `openmasq-proxy console` can open it at any moment.
+  let withdrawLink = () => {};
   const server = app.listen(config.port, config.host, async () => {
+    if (bus) withdrawLink = publishConsoleLink(consoleUrl);
     // Awaited: the card is revealed line by line, and the notes below it must not land in the
     // middle of it.
     await screen.banner(config, {
@@ -206,7 +221,7 @@ async function main(): Promise<void> {
       compact: wrapping,
       reveal: reveal.on && !wrapping,
       inClear: disabledKindsFor(config.level, config.disabledKinds),
-      ...(bus ? { console: { url: `${url}/console?t=${consoleToken}`, reveal: reveal.on } } : {}),
+      ...(bus ? { console: { url: consoleUrl, reveal: reveal.on } } : {}),
       ...(config.mcp
         ? {
             mcp: {
@@ -220,34 +235,12 @@ async function main(): Promise<void> {
     });
     // Before the tool takes the screen: the one moment the console URL is both known and
     // readable. Best-effort — no opener is a note, and the URL is still on the card.
-    if (bus && config.open && !(await openInBrowser(`${url}/console?t=${consoleToken}`)))
+    if (bus && config.open && !(await openInBrowser(consoleUrl)))
       screen.note("could not open a browser here — open the live view URL above by hand", "warn");
     if (config.json) console.error(`[openmasq-proxy] ${url}`);
     if (interactive) {
-      detach = attachKeys(reporter, {
-        cycleLevel: async () => {
-          const next = LEVELS[(LEVELS.indexOf(config.level) + 1) % LEVELS.length] as RedactionLevel;
-          if (levelNeedsModel(next, config.disabledKinds) && !detectLocal) {
-            const why = await ensureModel();
-            if (why)
-              return { level: config.level, refused: `${next} needs the on-device model: ${why}` };
-          }
-          config.level = next;
-          maskerOpts.level = next;
-          maskerOpts.disabledKinds = disabledKindsFor(next, config.disabledKinds);
-          return { level: next };
-        },
-        toggleMode: () => {
-          config.mode = config.mode === "fake" ? "token" : "fake";
-          return config.mode;
-        },
-        toggleReveal: () => {
-          reveal.on = !reveal.on;
-          return reveal.on;
-        },
-        envLines: () => envLines(url),
-        quit: stop,
-      });
+      const dials = { config, maskerOpts, reveal, url, hasModel: () => !!detectLocal, ensureModel };
+      detach = attachKeys(reporter, createDials({ ...dials, quit: stop }));
     }
     if (wrapping) {
       screen.note(
@@ -274,6 +267,7 @@ async function main(): Promise<void> {
   });
   function leave(code: number): void {
     detach();
+    withdrawLink();
     reporter.stop();
     // The stdio children are ours: leaving them behind would keep a process holding an API
     // key alive with nothing masking on top of it.

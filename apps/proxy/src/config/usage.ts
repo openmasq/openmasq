@@ -12,6 +12,7 @@ export const USAGE = `openmasq-proxy — mask personal data before it leaves the
                  [--mcp] [--mcp-config <file>] [--mcp-writes confirm|deny|allow] [--mcp-no-adopt]
   openmasq-proxy [flags] -- claude            run a tool through the proxy, stop with it
                  (codex, gemini, opencode, copilot too — --mcp makes us their only MCP)
+  openmasq-proxy console [--url]              open the live view of the running proxy
 
 Point any OpenAI- or Anthropic-compatible client at http://127.0.0.1:8787 and keep your
 own API key: the proxy forwards it untouched, masks the messages on the way out and
@@ -27,7 +28,10 @@ Types for --always: name, username, email, phone, company, address, city, id, ca
 --console serves a live view of what is being masked, at a URL printed on start-up. It is
 the way to watch a WRAPPED run: the tool owns the terminal, the console is a browser tab.
 --open opens that tab for you before the tool starts (implies --console): claude and hermes
-both clear the screen as they come up, and the URL on the card goes with it.
+both clear the screen as they come up, and the URL on the card goes with it. At any later
+moment, openmasq-proxy console opens it again from any terminal — bind it to a key, or type
+!openmasq-proxy console in claude, opencode or hermes (a line starting with ! runs as a shell
+command). The address is kept in ~/.openmasq/console.url (0600) while the proxy runs.
 Substitutes and counts by default; --reveal adds the real value beside each one, on that
 page only — including for a wrapped run (--console --reveal -- <tool>): the page shows
 them, the log file keeps counts. The URL carries a per-run token — without it the route is a 404.

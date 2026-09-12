@@ -1,9 +1,10 @@
 // `openmasq-proxy mcp <login|logout|status>` — the credential half of the CLI. It is here,
 // and not in a separate tool, because the thing being authorised is the thing the proxy will
 // connect to: one list of servers, one store, one command that fills it.
-import { homedir } from "node:os";
 import { removeEntry, runAdd } from "./add.js";
-import { createStore, loginTo, openmasqDir, type AuthDeps } from "./auth.js";
+import { homedir } from "node:os";
+import { openmasqDir } from "../../lib/stateDir.js";
+import { createStore, loginTo, type AuthDeps } from "./auth.js";
 import { DECLARING_CLIENTS } from "./clients/index.js";
 import { ownServers } from "./own.js";
 import { createPrompt } from "./prompt.js";

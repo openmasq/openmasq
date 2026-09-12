@@ -4,8 +4,8 @@
 // Shaped like Claude Desktop's `mcpServers` map, so an existing config can be pointed at
 // as-is (`--mcp-config ~/Library/.../claude_desktop_config.json`).
 import { readFileSync, statSync } from "node:fs";
-import { homedir } from "node:os";
 import { join } from "node:path";
+import { openmasqDir } from "../../lib/stateDir.js";
 
 export interface StdioSpec {
   id: string;
@@ -38,7 +38,7 @@ export interface HttpSpec {
 
 export type ServerSpec = StdioSpec | HttpSpec;
 
-export const DEFAULT_MCP_CONFIG = join(homedir(), ".openmasq", "mcp.json");
+export const DEFAULT_MCP_CONFIG = join(openmasqDir(), "mcp.json");
 
 /** A server id prefixes every tool name as `${id}__${tool}`, and the routing splits on the
  *  FIRST `__`. So an id containing one would silently route `a__b__send` to a server called

@@ -10,16 +10,12 @@
 //     └─ the tokens come back and are written encrypted; the proxy reconnects on its own
 //        from then on, and the agent never learns any of it.
 import { spawn } from "node:child_process";
-import { homedir } from "node:os";
-import { join } from "node:path";
 import { BRAND } from "@openmasq/branding";
 import { McpOAuthStore, startLoopback } from "@openmasq/mcp/node";
 import { HttpMcpServer, makeOAuthProvider } from "@openmasq/mcp/transport";
 import type { OAuthClientProvider } from "@openmasq/mcp/transport";
+import { openmasqDir } from "../../lib/stateDir.js";
 import type { HttpSpec } from "./servers.js";
-
-/** Everything the proxy persists lives here: the key (0600), the store, the servers file. */
-export const openmasqDir = (): string => join(homedir(), ".openmasq");
 
 export const OAUTH_TIMEOUT_MS = 5 * 60_000;
 

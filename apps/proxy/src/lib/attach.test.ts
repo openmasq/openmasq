@@ -21,6 +21,14 @@ describe("joining a proxy that is already running", () => {
     expect(
       await findRunning("http://x", answer({ app: "openmasq-proxy", version: "1", ner: true })),
     ).toEqual({ version: "1", model: true });
+    // The live-view flag rides along when the build reports it — `openmasq-proxy console`
+    // reads it before opening a link — and is simply absent from an older one.
+    expect(
+      await findRunning(
+        "http://x",
+        answer({ app: "openmasq-proxy", version: "1", ner: false, console: true }),
+      ),
+    ).toEqual({ version: "1", model: false, console: true });
     // A 200 from something else on 8787 is not an invitation to hand it an API key.
     expect(await findRunning("http://x", answer({ ok: true, status: "fine" }))).toBeUndefined();
     expect(await findRunning("http://x", answer({ app: "openmasq-proxy" }))).toBeUndefined();
@@ -53,7 +61,11 @@ describe("joining a proxy that is already running", () => {
     await joinRunning("http://x", ["claude"], deps(full));
     expect(opened).toEqual(["strict"]);
     // An older proxy says neither: nothing is claimed on its behalf.
-    await joinRunning("http://x", ["claude"], deps({ app: "openmasq-proxy", version: "0", ner: false }));
+    await joinRunning(
+      "http://x",
+      ["claude"],
+      deps({ app: "openmasq-proxy", version: "0", ner: false }),
+    );
     expect(opened).toEqual(["strict"]);
   });
 
@@ -62,7 +74,8 @@ describe("joining a proxy that is already running", () => {
       (async () => new Response(JSON.stringify(body), { status: 200 })) as unknown as typeof fetch;
     const notes: string[] = [];
     const base = {
-      find: () => findRunning("http://x", answer({ app: "openmasq-proxy", version: "1", ner: false })),
+      find: () =>
+        findRunning("http://x", answer({ app: "openmasq-proxy", version: "1", ner: false })),
       run: async () => 0,
       note: (t: string) => void notes.push(t),
     };

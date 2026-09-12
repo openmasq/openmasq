@@ -11,12 +11,12 @@ import {
   statSync,
   writeFileSync,
 } from "node:fs";
-import { homedir } from "node:os";
 import { delimiter, dirname, join } from "node:path";
 import { envLines } from "./baseUrls.js";
+import { openmasqDir } from "./stateDir.js";
 
 export function defaultLogFile(): string {
-  return join(homedir(), ".openmasq", "proxy.log");
+  return join(openmasqDir(), "proxy.log");
 }
 
 /**

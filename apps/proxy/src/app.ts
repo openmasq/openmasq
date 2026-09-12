@@ -45,7 +45,12 @@ export function createApp(deps: AppDeps): express.Application {
   const session = sessionMiddleware(deps.config);
   app.use(
     "/healthz",
-    healthRouter(deps.config, deps.modelOn ?? (() => !deps.config.rulesOnly), deps.version),
+    healthRouter(
+      deps.config,
+      deps.modelOn ?? (() => !deps.config.rulesOnly),
+      deps.version,
+      !!deps.console,
+    ),
   );
   // Before the body chain and the family routers: these are plain GETs with no request body
   // to mask, and `/` would otherwise fall through to the passthrough relay.

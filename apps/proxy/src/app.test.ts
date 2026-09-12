@@ -217,7 +217,13 @@ describe("proxy app", () => {
       400,
     );
     expect((await call("/v1/models")).status).toBe(200);
-    expect(await (await call("/healthz")).json()).toMatchObject({ ok: true, ner: false });
+    // `console: false` is what `openmasq-proxy console` reads before it opens a link: an app
+    // built without a console says so.
+    expect(await (await call("/healthz")).json()).toMatchObject({
+      ok: true,
+      ner: false,
+      console: false,
+    });
   });
 
   /** Claude Code asks `HEAD /api/hello` of its base URL before the first call — a question

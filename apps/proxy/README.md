@@ -179,8 +179,24 @@ Substitutes and counts by default — what the model saw. `--reveal` adds the re
 beside each substitute, and only then does the page's own "Valeurs réelles" toggle work —
 without it the button is disabled, because the server sent nothing to reveal. **The URL carries
 a token minted for the run**: loopback is not an access control, every process on the machine
-can reach 127.0.0.1, and without the token the route answers 404. Nothing is stored: no disk,
-no cache, and the page fetches nothing from anywhere — no CDN font, no remote asset.
+can reach 127.0.0.1, and without the token the route answers 404. Nothing a redaction touched
+is stored — no disk, no cache — and the page fetches nothing from anywhere: no CDN font, no
+remote asset. The one thing written is the address itself, to `~/.openmasq/console.url`
+(0600, beside the key file, removed when the proxy exits), so that the shortcut below finds it.
+
+**Opening it at any moment — the shortcut.** The tool owns the screen, and hermes and claude
+both clear it as they start, card and URL included. `openmasq-proxy console` opens the live
+view of the proxy that is running, from any terminal, whichever tool is wrapped:
+
+```bash
+openmasq-proxy console            # opens the tab; --url prints the address instead
+!openmasq-proxy console           # typed in claude, opencode or hermes: a line that starts with ! runs as a shell command
+```
+
+Bind it to a key and it is one keystroke away for the whole run — tmux `bind-key o run-shell
+"openmasq-proxy console"`, kitty `map f9 launch --type=background openmasq-proxy console`,
+iTerm2 a key mapped to « Run coprocess ». It opens only what answers for itself: the origin
+is asked `/healthz` first, and a link nothing answers for is forgotten, never opened.
 
 **Watching a wrapped run.** The tool's own interface owns the terminal, so the request lines
 go to a file instead: `~/.openmasq/proxy.log` by default, or `--log <file>`.
@@ -459,8 +475,25 @@ valeur réelle à côté de chaque substitut, et c'est seulement alors que le ba
 réelles » de la page fonctionne — sans lui le bouton est désactivé, puisque le serveur n'a
 rien envoyé à révéler. **L'adresse porte un jeton tiré pour la session** : la boucle locale n'est pas un
 contrôle d'accès, tout processus de la machine peut joindre 127.0.0.1, et sans le jeton la
-route répond 404. Rien n'est conservé : ni disque, ni cache, et la page ne va rien chercher
-nulle part — aucune police de CDN, aucun actif distant.
+route répond 404. Rien de ce qu'un masquage a touché n'est conservé — ni disque, ni cache — et
+la page ne va rien chercher nulle part : aucune police de CDN, aucun actif distant. La seule
+chose écrite est l'adresse elle-même, dans `~/.openmasq/console.url` (0600, à côté du fichier
+de clé, supprimé quand le proxy s'arrête), pour que le raccourci ci-dessous la retrouve.
+
+**L'ouvrir à tout moment — le raccourci.** L'outil possède l'écran, et hermes comme claude
+l'effacent en démarrant, carte et adresse comprises. `openmasq-proxy console` ouvre la vue en
+direct du proxy en cours, depuis n'importe quel terminal, quel que soit l'outil enveloppé :
+
+```bash
+openmasq-proxy console            # ouvre l'onglet ; --url affiche l'adresse à la place
+!openmasq-proxy console           # tapé dans claude, opencode ou hermes : une ligne qui commence par ! s'exécute comme commande shell
+```
+
+Associé à une touche, il reste à un geste pendant toute la session — tmux `bind-key o
+run-shell "openmasq-proxy console"`, kitty `map f9 launch --type=background openmasq-proxy
+console`, iTerm2 une touche sur « Run coprocess ». Il n'ouvre que ce qui répond de lui-même :
+l'origine est d'abord interrogée sur `/healthz`, et un lien auquel rien ne répond est oublié,
+jamais ouvert.
 
 **Suivre une session enveloppée.** L'interface de l'outil possède le terminal, donc les
 lignes de requête partent dans un fichier : `~/.openmasq/proxy.log` par défaut, ou
