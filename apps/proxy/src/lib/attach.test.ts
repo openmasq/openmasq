@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { findRunning, joinRunning, sessionName, sessionUrl } from "./attach";
+import { findRunning, freePort, joinRunning, sessionName, sessionUrl } from "./attach";
 
 describe("joining a proxy that is already running", () => {
   it("names a session after the tool, so the console column reads like something", () => {
@@ -124,5 +124,47 @@ describe("joining a proxy that is already running", () => {
       link: () => undefined,
     });
     expect(none.some((l) => l.includes("openmasq-proxy console"))).toBe(true);
+  });
+
+  it("declines the join when a live view was asked for and the running proxy has none — the caller starts its own", async () => {
+    const said: string[] = [];
+    // An older build: no `console`, no link published.
+    expect(
+      await joinRunning("http://x", ["claude"], {
+        find: async () => ({ version: "0.0.9", model: false }),
+        run: async () => 0,
+        note: (t) => said.push(t),
+        link: () => undefined,
+        wantsConsole: true,
+      }),
+    ).toBe("own");
+    // A current build that serves none: the same.
+    expect(
+      await joinRunning("http://x", ["claude"], {
+        find: async () => ({ version: "1", model: false, console: false, pid: 1 }),
+        run: async () => 0,
+        link: () => "http://127.0.0.1:8787/console?t=x", // a stale link is not that proxy's
+        wantsConsole: true,
+      }),
+    ).toBe("own");
+    expect(said).toEqual([]); // nothing announced: the caller's own card will say it
+    // Without the wish, the join goes ahead as before.
+    expect(
+      await joinRunning("http://x", ["claude"], {
+        find: async () => ({ version: "0.0.9", model: false }),
+        run: async () => 7,
+        note: () => {},
+        link: () => undefined,
+      }),
+    ).toBe(7);
+  });
+
+  it("finds the next free loopback port", async () => {
+    const { createServer } = await import("node:net");
+    const held = createServer();
+    await new Promise<void>((r) => held.listen(0, "127.0.0.1", r));
+    const port = (held.address() as { port: number }).port;
+    expect(await freePort(port)).toBe(port + 1);
+    await new Promise<void>((r) => held.close(() => r()));
   });
 });

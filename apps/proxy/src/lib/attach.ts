@@ -10,6 +10,7 @@
 // is not a thing to hand an API key to, so an unrecognised answer is a refusal, not a
 // hopeful attempt.
 import { randomBytes } from "node:crypto";
+import { createServer } from "node:net";
 import { basename } from "node:path";
 import { readConsoleLink } from "../features/console/link.js";
 import { openInBrowser } from "./openUrl.js";
@@ -101,15 +102,23 @@ export interface JoinDeps {
   openUrl?: (url: string) => Promise<boolean>;
   /** The run's theme, for the card. */
   theme?: ThemeChoice;
+  /** `--console`/`--open`: the operator wants a live view. A running proxy that serves none
+   *  cannot give one, so the join is DECLINED and the caller starts its own, on another port
+   *  (`"own"`). Joining silently would be the "nothing opens" report. */
+  wantsConsole?: boolean;
 }
 
 export async function joinRunning(
   url: string,
   command: string[],
   deps: JoinDeps = {},
-): Promise<number | undefined> {
+): Promise<number | "own" | undefined> {
   const running = await (deps.find ?? findRunning)(url);
   if (!running) return undefined;
+  // Asked for a live view, and this proxy has none to give (it runs without one, or it is an
+  // older build that published no link): not a join. The caller starts a proxy that has one.
+  const early = running.console === false ? undefined : (deps.link ?? readConsoleLink)();
+  if (deps.wantsConsole && !early) return "own";
   if (deps.open && running.level && running.disabled) await deps.open(running);
   const session = sessionName(command[0]);
   const reporter = createReporter({
@@ -172,6 +181,7 @@ export function joinOptions(
     ].filter(Boolean) as string[],
     openConsole: config.open,
     theme: config.theme,
+    wantsConsole: config.console || config.open,
     open: (running) =>
       openIfWanted({
         ...config,
@@ -179,4 +189,19 @@ export function joinOptions(
         disabledKinds: running.disabled ?? config.disabledKinds,
       }),
   };
+}
+
+/** The first port at or after `from` that nothing holds on loopback — for a run that could
+ *  not join the proxy on its port and has to be its own (`"own"` above). */
+export function freePort(from: number, tries = 20): Promise<number> {
+  const probe = (port: number) =>
+    new Promise<boolean>((resolve) => {
+      const s = createServer();
+      s.once("error", () => resolve(false));
+      s.listen(port, "127.0.0.1", () => s.close(() => resolve(true)));
+    });
+  return (async () => {
+    for (let p = from; p < from + tries; p++) if (await probe(p)) return p;
+    throw new Error(`no free port between ${from} and ${from + tries - 1}`);
+  })();
 }

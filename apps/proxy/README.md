@@ -246,6 +246,11 @@ is stored — no disk, no cache — and the page fetches nothing from anywhere: 
 remote asset. The one thing written is the address itself, to `~/.openmasq/console.url`
 (0600, beside the key file, removed when the proxy exits), so that the shortcut below finds it.
 
+A second `-- <tool>` joins the proxy already running and opens *its* live view. If that proxy
+has none — started without `--console`, or an older build — and you asked for one (`--console`,
+`--open`), the run does not join: it starts its own on the next free port, says so under the
+card, and points the tool at that one.
+
 **Opening it at any moment — the shortcut.** The tool owns the screen, and hermes and claude
 both clear it as they start, card and URL included. `openmasq-proxy console` opens the live
 view of the proxy that is running, from any terminal, whichever tool is wrapped:
@@ -608,6 +613,11 @@ route répond 404. Rien de ce qu'un masquage a touché n'est conservé — ni di
 la page ne va rien chercher nulle part : aucune police de CDN, aucun actif distant. La seule
 chose écrite est l'adresse elle-même, dans `~/.openmasq/console.url` (0600, à côté du fichier
 de clé, supprimé quand le proxy s'arrête), pour que le raccourci ci-dessous la retrouve.
+
+Un second `-- <outil>` rejoint le proxy déjà en cours et ouvre *sa* vue en direct. Si ce
+proxy n'en a pas — lancé sans `--console`, ou une version plus ancienne — et que vous en
+demandez une (`--console`, `--open`), la session ne le rejoint pas : elle démarre son propre
+proxy sur le port libre suivant, le dit sous la carte, et y pointe l'outil.
 
 **L'ouvrir à tout moment — le raccourci.** L'outil possède l'écran, et hermes comme claude
 l'effacent en démarrant, carte et adresse comprises. `openmasq-proxy console` ouvre la vue en

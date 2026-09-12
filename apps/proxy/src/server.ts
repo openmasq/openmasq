@@ -8,7 +8,7 @@ import { createApp } from "./app.js";
 import { parseConfig, USAGE } from "./config/config.js";
 import { createConsoleBus } from "./features/console/events.js";
 import { publishConsoleLink } from "./features/console/link.js";
-import { joinOptions, joinRunning, sessionName, sessionUrl } from "./lib/attach.js";
+import { freePort, joinOptions, joinRunning, sessionName, sessionUrl } from "./lib/attach.js";
 import { startIntegrations } from "./features/mcp/start.js";
 import { createDials } from "./lib/dials.js";
 import { disabledKindsFor } from "./lib/masker.js";
@@ -52,12 +52,21 @@ async function main(): Promise<void> {
   }
 
   const wrapping = config.command.length > 0;
-  const url0 = `http://${config.host}:${config.port}`;
+  let url0 = `http://${config.host}:${config.port}`;
+  /** Said under the card when this run took another port than the one asked for. */
+  let portNote = "";
 
-  // Already one running? Join it rather than dying on EADDRINUSE (`lib/attach.ts`).
+  // Already one running? Join it rather than dying on EADDRINUSE (`lib/attach.ts`) — unless
+  // the operator asked for a live view that proxy cannot give: then this run is its own, on
+  // the next free port, and the tool is pointed at THAT one.
   if (wrapping) {
     const code = await joinRunning(url0, config.command, joinOptions(config, openIfWanted));
-    if (code !== undefined) process.exit(code);
+    if (code === "own") {
+      const taken = config.port;
+      config.port = await freePort(taken + 1);
+      url0 = `http://${config.host}:${config.port}`;
+      portNote = `port ${taken} is held by a proxy without a live view — this one listens on ${config.port}, and ${config.command[0]} is pointed at it`;
+    } else if (code !== undefined) process.exit(code);
   }
 
   // The opening sequence, before anything is loaded: when a tool is being wrapped this is the
@@ -227,6 +236,7 @@ async function main(): Promise<void> {
     // readable. Best-effort — no opener is a note, and the URL is still on the card.
     if (bus && config.open && !(await openInBrowser(consoleUrl)))
       screen.note("could not open a browser here — open the live view URL above by hand", "warn");
+    if (portNote) screen.note(portNote, "warn");
     if (config.json) console.error(`[openmasq-proxy] ${url}`);
     if (interactive) {
       const dials = { config, maskerOpts, reveal, url, hasModel: () => !!detectLocal, ensureModel };
