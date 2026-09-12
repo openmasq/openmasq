@@ -40,9 +40,16 @@ export const isCodeTerm = (value: string): boolean => CODE_TERMS.has(value.toLow
  * name is literally its prefix, which no key carries. The generic token rule reads the base64
  * body as a key and RENAMES it, corrupting the lockfile/manifest the agent reads. Prefix-gated,
  * so it can never spare an actual key.
+ *
+ * ⚠️ No LENGTH floor, because this is handed the HEAD of a hash as often as a whole one: `+`
+ * and `/` are base64 but not token characters, so the rule cuts an SRI at the first of them
+ * and only this first piece still carries the prefix (its lookbehind excludes the pieces
+ * after). Where that cut falls is the base64's business — `sha512-c7jFQRklXua0mTz+…` leaves
+ * fifteen characters, and a floor of sixteen renamed it, i.e. half the hash. The PREFIX is
+ * the whole evidence here, literal-distinctive exactly like a vendor's key prefix.
  */
 export const isIntegrityHash = (value: string): boolean =>
-  /^sha(?:1|224|256|384|512)-[A-Za-z0-9+/_-]{16,}={0,2}$/i.test(value);
+  /^sha(?:1|224|256|384|512)-[A-Za-z0-9+/_-]*={0,2}$/i.test(value);
 
 /**
  * A C/JS/Rust/Go NUMERIC LITERAL — hex `0xFF00AA`, octal `0o755`, binary `0b1010` — which the

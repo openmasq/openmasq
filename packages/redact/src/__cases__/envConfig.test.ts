@@ -104,6 +104,20 @@ describe("an integrity hash survives whole", () => {
     "integrity": "sha256-Ab3+xY/zQ1mNHl0w5N+XgL0n3I9PlFUP0THsR8U=",
     "token": "ghp_A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5"`;
 
+  /** Where the base64 first uses a `+` or a `/` decides where the rule cuts, so the piece
+   *  carrying the `sha512-` prefix can be any length — fifteen characters here. A floor on
+   *  it renamed exactly that piece, which is half a hash. */
+  it.each([
+    'sha512-c7jFQRklXua0mTz+GW9QVyxFjUgwci/C4bXEtujIo2ouWCe1Ajt==',
+    'sha512-Ab+cdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUV==',
+    'sha384-x/yQ1mNHl0w5N+XgL0n3I9PlFUP0THsR8UabcdefghijklmnopqrstuvwxyzAB',
+    'sha1-2jmj7l5rSw0yVb/vlWAYkK/YBwk=',
+  ])("keeps %s whole, wherever the base64 breaks it", async (hash) => {
+    const line = `  "integrity": "${hash}",`;
+    expect(redact(line).text).toBe(line);
+    expect((await pseudonymize(line, { vault: {} })).text).toBe(line);
+  });
+
   it("keeps every hash verbatim while the real token beside them is masked", async () => {
     const { text } = await pseudonymize(LOCK, { vault: {} });
     expect(text).toContain("sha512-c7jFQRklXua0mTzneGW9QVyxFjUgwcihC4bXEtujIo2ouWCe1Ajt/amn2PCxYnhYfd5k09JX3SB7OYWFKYqj8Q==");
