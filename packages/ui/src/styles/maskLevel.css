@@ -70,3 +70,38 @@
 .mask-level:disabled:not(.on) {
   opacity: 0.5;
 }
+
+/* The Confidentialité summary: the connectors that do NOT follow the level above
+   (`pages/Settings/privacy/ConnectorLevelsSection.tsx`). Rows, not cards — the section
+   lists EXCEPTIONS, usually one or two, and a card each would give them the weight of a
+   catalogue. It renders nothing at all when there are none, so there is no empty state
+   to style. */
+.connector-levels {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px;
+}
+
+.connector-level-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 8px 8px 6px;
+  border-radius: var(--radius-sm);
+}
+
+.connector-level-row:hover {
+  background: var(--surface-sunken);
+}
+
+/* Takes the room, so the picker stays flush right whatever a connector is called. */
+.connector-level-name {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--text-sm);
+  color: var(--text-strong);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

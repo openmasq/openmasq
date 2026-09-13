@@ -21,7 +21,8 @@ export const accountTab = {
   importCta: "Importer",
   billingEyebrow: "Facturation des messages",
   subscriptionToggle: (brand) => `Utiliser mon abonnement ${brand}`,
-  subscriptionToggleHint: "Désactivé, vos messages passent par vos propres comptes (OpenAI, Gemini…).",
+  subscriptionToggleHint:
+    "Désactivé, vos messages passent par vos propres comptes (OpenAI, Gemini…).",
   notifEyebrow: "Notifications",
   notifTitle: "Prévenir quand une réponse arrive",
   notifHint:
@@ -38,6 +39,11 @@ export const accountTab = {
 
 export const privacyTab = {
   protectedEyebrow: "Ce qui est protégé",
+  perConnectorEyebrow: "Connecteurs qui dérogent",
+  perConnectorNote: (n) =>
+    n === 1
+      ? "Un connecteur masque à son propre niveau. Les autres suivent celui du dessus."
+      : `${n} connecteurs masquent à leur propre niveau. Les autres suivent celui du dessus.`,
   perCategory: "Régler catégorie par catégorie",
   activeCount: (active, total) => `${active}/${total} actives`,
   managedByOrg: (n) => ` · ${n} gérée(s) par votre organisation`,
@@ -69,11 +75,13 @@ export const privacyTab = {
   reportByTypeTip: "Voir la répartition par type",
   reportMessagesTitle: "Vos messages · par type",
   reportAllTitle: "Tout ce qui a été masqué · par type",
-  protectedValues: (n) => `${n.toLocaleString("fr-FR")} valeur${n === 1 ? "" : "s"} protégée${n === 1 ? "" : "s"}`,
+  protectedValues: (n) =>
+    `${n.toLocaleString("fr-FR")} valeur${n === 1 ? "" : "s"} protégée${n === 1 ? "" : "s"}`,
   auditAria: "Journal",
   auditRedaction: "Masquage",
   auditNetwork: "Réseau",
-  auditCount: (n) => `${n.toLocaleString("fr-FR")} élément${n === 1 ? "" : "s"} masqué${n === 1 ? "" : "s"}`,
+  auditCount: (n) =>
+    `${n.toLocaleString("fr-FR")} élément${n === 1 ? "" : "s"} masqué${n === 1 ? "" : "s"}`,
   auditSub: "Avant d'atteindre un modèle · restaurés uniquement dans votre copie, jamais transmis.",
   auditExportTip: "Exporter la sélection en CSV",
   auditExport: "Exporter",
@@ -97,7 +105,8 @@ export const privacyTab = {
   revealReplacedBy: "Remplacée par",
   revealConversation: "Conversation",
   revealWhen: "Quand",
-  revealNote: "Cette valeur n'a jamais quitté votre machine — le modèle n'a vu que le remplacement.",
+  revealNote:
+    "Cette valeur n'a jamais quitté votre machine — le modèle n'a vu que le remplacement.",
   timelineTitle: (days) => `Masquages · ${days} derniers jours`,
   timelineMeta: "valeurs masquées / jour, par catégorie",
   timelineEmpty: "Aucun masquage sur la période.",
@@ -138,11 +147,13 @@ export const modelsTab = {
   recommended: "conseillé",
   agentTip: (a) => `${a} — votre abonnement existant, aucune clé à coller.`,
   agentOn: (a) => `${a} : activé. Chaque envoi consomme votre abonnement personnel.`,
-  agentMissing: (a) => `${a} : introuvable sur cette machine. Cliquez pour savoir comment l'installer.`,
+  agentMissing: (a) =>
+    `${a} : introuvable sur cette machine. Cliquez pour savoir comment l'installer.`,
   availableEyebrow: (n) => `Modèles disponibles (${n})`,
   noMatch: (q) => `Aucun modèle ne correspond${q ? ` à « ${q} »` : ""}.`,
   advancedTitle: "Avancé",
-  advancedSub: "Un modèle sur votre ordinateur (Ollama, LM Studio…) et les identifiants qu'il ne liste pas.",
+  advancedSub:
+    "Un modèle sur votre ordinateur (Ollama, LM Studio…) et les identifiants qu'il ne liste pas.",
   orgProvidesModels: (org) => `${org} fournit les modèles.`,
   yourOrg: "Votre organisation",
   orgKeysBlocked:
@@ -156,7 +167,8 @@ export const modelsTab = {
   defaultLead: "Vos nouvelles conversations démarrent sur",
   defaultTip: "Voir la fiche de ce modèle",
   freeBadge: "gratuit",
-  freeBadgeTip: "Modèle gratuit — inclus avec votre compte, usage limité. Cliquez pour en savoir plus.",
+  freeBadgeTip:
+    "Modèle gratuit — inclus avec votre compte, usage limité. Cliquez pour en savoir plus.",
   addFavorite: "Ajouter aux favoris",
   removeFavorite: "Retirer des favoris",
   searchPlaceholder: "Rechercher un modèle (nom, gpt, claude…)",
