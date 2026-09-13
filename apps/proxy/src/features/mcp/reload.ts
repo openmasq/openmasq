@@ -14,8 +14,11 @@ import { type FSWatcher, watch } from "node:fs";
 import { basename } from "node:path";
 import type { ServerSpec } from "./servers.js";
 
-/** The files whose change means "the servers or their credentials moved". */
-export const WATCHED = new Set(["mcp.json", "mcp-auth.enc"]);
+/** The files whose change means "the servers, their credentials, or how they are masked
+ *  moved". `proxy.json` is here for its `mcp` section ALONE — see `policyReload.ts`: nothing
+ *  else in that file is re-read while the proxy runs, because a port or a host cannot move
+ *  under a listening server and a masking level can. */
+export const WATCHED = new Set(["mcp.json", "mcp-auth.enc", "proxy.json"]);
 
 export interface ReloadDeps {
   /** The state directory (`lib/stateDir.ts`). */
@@ -29,6 +32,10 @@ export interface ReloadDeps {
   apply: (specs: ServerSpec[], changed: ReadonlySet<string>) => Promise<string[]>;
   /** Something moved: the agent's tool list is stale. */
   onChanged: (moved: string[]) => void;
+  /** Re-read how the servers are MASKED and apply it, returning the ids that moved. Absent
+   *  ⇒ the run keeps the masking it started with. Kept apart from `resolve`/`apply` because
+   *  it touches no connection: a level change reconnects nothing. */
+  remask?: () => string[];
   note: (text: string, tone?: "info" | "warn" | "ok") => void;
   /** Injected by tests. */
   watchFn?: typeof watch;
@@ -110,6 +117,13 @@ export function watchIntegrations(initial: ServerSpec[], deps: ReloadDeps): Relo
         );
       }
       const runnable = specs.filter((s) => !held.some((h) => h.id === s.id));
+      // Masking first, and on its OWN: it reconnects nothing, so it must still apply when
+      // the servers themselves did not move — which is the common case, since the file that
+      // carries a level is not the file that carries a server.
+      if (deps.remask) {
+        const remasked = deps.remask();
+        if (remasked.length) deps.note(`masking updated: ${remasked.join(", ")}`, "ok");
+      }
       const moved = await deps.apply(runnable, changed);
       for (const s of runnable) started.add(s.id);
       for (const id of [...started]) if (!specs.some((s) => s.id === id)) started.delete(id);

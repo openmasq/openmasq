@@ -149,7 +149,10 @@ describe("/mcp — the integrations, masked", () => {
     for (const suffix of ["", "?t=", "?t=wrong"]) {
       const res = await fetch(`${booted.url}/mcp${suffix}`, {
         method: "POST",
-        headers: { "content-type": "application/json", accept: "application/json, text/event-stream" },
+        headers: {
+          "content-type": "application/json",
+          accept: "application/json, text/event-stream",
+        },
         body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/list" }),
       });
       expect(res.status, suffix).toBe(404);

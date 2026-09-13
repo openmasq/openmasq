@@ -24,6 +24,7 @@ import { createConfirmer } from "./confirm.js";
 import { notOurs, ownServers, probeRun } from "./own.js";
 import { endpointToken, endpointUrl } from "./endpointToken.js";
 import { describePolicy, type McpPolicy } from "./policy.js";
+import { createPolicyReload } from "./policyReload.js";
 import { createSignal, type Signal, watchIntegrations } from "./reload.js";
 import { openmasqDir } from "../../lib/stateDir.js";
 import { createHash } from "node:crypto";
@@ -270,6 +271,8 @@ export async function startIntegrations(deps: StartDeps): Promise<Integrations> 
       return token ? createHash("sha256").update(token).digest("hex").slice(0, 12) : "";
     },
     apply: (next, changed) => upstream.apply(next, changed),
+    // `proxy.json`'s `mcp` section, and only that section (`policyReload.ts` says why).
+    remask: createPolicyReload({ maskers: deps.maskers, policy: deps.policy, note: deps.note }),
     onChanged: (moved) => {
       deps.note(`integrations updated: ${moved.join(", ")} — the agent's tool list follows`, "ok");
       changes.emit();
