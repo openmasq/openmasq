@@ -18,19 +18,26 @@
 // (`lib/maskers.ts`); `writes` is its own gate. What a stricter server puts in the session's
 // vault stays masked for the whole conversation, the chat's own level notwithstanding —
 // the vault is replayed before anything is detected (`lib/masker.test.ts` pins it).
-import type { RedactionLevel } from "@openmasq/catalog";
+import {
+  overridesMasking as masksDifferently,
+  type ConnectorMasking,
+  type RedactionLevel,
+} from "@openmasq/catalog";
 import { choices, closest } from "../../config/options.js";
 import { LEVELS, WRITE_POLICIES, type WritePolicy } from "../../config/schema.js";
 
 export type Side = "openmasq" | "client" | "off";
 export const SIDES: readonly Side[] = ["openmasq", "client", "off"];
 
-export interface ServerPolicy {
+/**
+ * ⚠️ The MASKING half is `@openmasq/catalog`'s `ConnectorMasking`, not a shape of our own:
+ * the desktop's panes edit the same three fields, and a per-connector level that means one
+ * thing here and another there is the bug rule 9 exists to prevent. What this file adds is
+ * the two keys that are the PROXY's alone — which side provides a server, and how its writes
+ * are gated. Neither is masking, so neither is shared.
+ */
+export interface ServerPolicy extends ConnectorMasking {
   source?: Side;
-  level?: RedactionLevel;
-  /** Kinds left in clear for this server's results, on top of what its level leaves. */
-  disable?: string[];
-  keep?: string[];
   writes?: WritePolicy;
 }
 
@@ -86,9 +93,11 @@ function oneOf(v: unknown, values: readonly string[], who: string): string {
   return v;
 }
 
-/** Does any server ask for a masker of its own (a level, kinds or keeps that differ)? */
-export const overridesMasking = (p: ServerPolicy): boolean =>
-  p.level !== undefined || !!p.disable?.length || !!p.keep?.length;
+/** Does any server ask for a masker of its own (a level, kinds or keeps that differ)? The
+ *  catalogue answers it: `source` and `writes` change nothing about how a result is masked,
+ *  so a server that carries only those must keep sharing the global masker — two identical
+ *  maskers would mint two identities for one value. */
+export const overridesMasking = (p: ServerPolicy): boolean => masksDifferently(p);
 
 /** One line per server for the card and `mcp status`: `strict, writes deny, ours` — commas,
  *  because the card already separates servers with `·`. */

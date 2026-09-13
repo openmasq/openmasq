@@ -1,6 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { REDACTION_CATEGORIES } from "./index";
-import { ALWAYS_ON, categoriesForLevel, disabledKindsOf, FROM_RENFORCE, usesLocalModel } from "./levels";
+import {
+  ALWAYS_ON,
+  categoriesForLevel,
+  disabledKindsOf,
+  FROM_RENFORCE,
+  usesLocalModel,
+} from "./levels";
 
 describe("the three levels as category sets", () => {
   /**
@@ -33,7 +39,8 @@ describe("the three levels as category sets", () => {
     const strict = categoriesForLevel("strict");
     for (const c of REDACTION_CATEGORIES) expect(strict[c.key], c.key).toBe(true);
     for (const level of ["standard", "renforce", "strict"] as const)
-      for (const key of ALWAYS_ON) expect(categoriesForLevel(level)[key], `${level} ${key}`).toBe(true);
+      for (const key of ALWAYS_ON)
+        expect(categoriesForLevel(level)[key], `${level} ${key}`).toBe(true);
   });
 
   /** The anchored PII stays on at every level: an e-mail or an IBAN in clear at `standard`
