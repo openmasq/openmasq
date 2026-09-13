@@ -283,7 +283,12 @@ jobs:
     # is populated only on the Windows leg, just as the Apple credentials are populated only on
     # the mac leg.
     env:
-      WIN_CSC_LINK: ${{ matrix.platform == 'win' && secrets.WIN_CSC_LINK || '' }}
+      # Windows signing is Azure Trusted Signing — there is no certificate FILE to point at,
+      # so the flag is the presence of the client secret. ⚠️ A FLAG, never the value: a
+      # job-level env is visible to every step, `pnpm install`'s ~2,000 packages included
+      # (the rule stated just below). The three AZURE_* values are read by the ONE step that
+      # packages, in that step's own `env:`.
+      HAS_AZURE_SIGN: ${{ matrix.platform == 'win' && secrets.AZURE_CLIENT_SECRET != '' && '1' || '' }}
       # Same mechanism for the sourcemaps upload: `if:` cannot read `secrets`
       # (the workflow does not LOAD), the job's env can. Empty ⇒ the step is skipped.
       # ⚠️ The FLAG travels here, never the token: a job-level value is visible to every
@@ -304,7 +309,7 @@ jobs:
       # no updates token, no R2: the build is kept on the run instead (see the two steps at
       # the end of the job). Never publish on one condition and upload-to-run on another —
       # the two steps must be exact complements, and this flag is the one home of that.
-      PUBLISH: ${{ secrets.UPDATES_ADMIN_TOKEN != '' && secrets.R2_ACCESS_KEY_ID != '' && ((matrix.platform == 'mac' && secrets.MAC_CSC_LINK != '' && secrets.APPLE_ID != '') || (matrix.platform == 'win' && secrets.WIN_CSC_LINK != '')) && '1' || '' }}
+      PUBLISH: ${{ secrets.UPDATES_ADMIN_TOKEN != '' && secrets.R2_ACCESS_KEY_ID != '' && ((matrix.platform == 'mac' && secrets.MAC_CSC_LINK != '' && secrets.APPLE_ID != '') || (matrix.platform == 'win' && secrets.AZURE_CLIENT_SECRET != '' && secrets.AZURE_CLIENT_ID != '' && secrets.AZURE_TENANT_ID != '')) && '1' || '' }}
       # The Cloudflare account behind the R2 bucket — ONE home in this file (rule 9), a
       # fork points it at its own account through the repository variable.
       # ⚠️ NO committed default. A hardcoded account id silently routes a fork's — or a
@@ -669,6 +674,11 @@ jobs:
               CSC_IDENTITY_AUTO_DISCOVERY=false pnpm run eb --publish never -c.mac.notarize=false -c.extraMetadata.version="$APP_VERSION"
             fi
           else
+            # Symmetric to the mac branch above: say WHY a build is unsigned, rather than
+            # leaving an operator to discover it from the absence of a publish step.
+            if [ "$HAS_AZURE_SIGN" != "1" ]; then
+              echo "::warning::AZURE_CLIENT_SECRET is not configured — packaging an UNSIGNED Windows build (it installs, behind a SmartScreen screen, and will not be published)."
+            fi
             pnpm run eb --publish never -c.extraMetadata.version="$APP_VERSION"
           fi
         env:
@@ -686,10 +696,24 @@ jobs:
           APPLE_ID: ${{ matrix.platform == 'mac' && secrets.APPLE_ID || '' }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ matrix.platform == 'mac' && secrets.APPLE_APP_SPECIFIC_PASSWORD || '' }}
           APPLE_TEAM_ID: ${{ matrix.platform == 'mac' && secrets.APPLE_TEAM_ID || '' }}
-          # Windows: nothing here for now. Authenticode signing (Azure Artifact
-          # Signing) will plug in via `win.sign` in electron-builder.yml + the three
-          # AZURE_* variables, the day the certificate profile exists. As long as they
-          # are absent, the .exe ships UNSIGNED — it installs, with a SmartScreen screen.
+          # Windows: Azure Trusted Signing. electron-builder authenticates through the Azure
+          # SDK's EnvironmentCredential, which reads exactly these three names — hence env
+          # variables rather than CLI arguments. Passed ONLY on the Windows leg, like the
+          # Apple ones on mac. All three absent ⇒ `electron-builder.cjs` omits
+          # `azureSignOptions` entirely and the .exe ships UNSIGNED (it installs, behind a
+          # SmartScreen screen) instead of dying at the signing step — which is what a fork,
+          # and any local build, actually gets.
+          AZURE_TENANT_ID: ${{ matrix.platform == 'win' && secrets.AZURE_TENANT_ID || '' }}
+          AZURE_CLIENT_ID: ${{ matrix.platform == 'win' && secrets.AZURE_CLIENT_ID || '' }}
+          AZURE_CLIENT_SECRET: ${{ matrix.platform == 'win' && secrets.AZURE_CLIENT_SECRET || '' }}
+          # Which signing resources to use — repository VARIABLES, not secrets: they are
+          # identifiers, not credentials. Out of the tree for the same two reasons as
+          # `R2_ACCOUNT_ID`: no committed default for a fork to inherit silently, and a
+          # public repository names none of our infrastructure. Absent ⇒ `electron-builder.cjs`
+          # omits `azureSignOptions` and the build is unsigned rather than broken.
+          AZURE_CODESIGN_ENDPOINT: ${{ vars.AZURE_CODESIGN_ENDPOINT }}
+          AZURE_CODESIGN_ACCOUNT: ${{ vars.AZURE_CODESIGN_ACCOUNT }}
+          AZURE_CODESIGN_PROFILE: ${{ vars.AZURE_CODESIGN_PROFILE }}
 
       # The LAST gate that can still see this class of bug, and the only one: the
       # node_modules electron-builder just wrote is a FLATTENED copy of the workspace root
@@ -716,9 +740,9 @@ jobs:
       #
       # Publishing anyway would amount to shipping, to users, executable code
       # whose only guarantee is "the bucket hasn't been compromised". So: the
-      # Windows leg publishes ONLY if the certificate is configured. The day `WIN_CSC_LINK`
-      # exists, publishing turns itself on — without this guard, it's the opposite that
-      # would have happened silently.
+      # Windows leg publishes ONLY if the AZURE_* credentials are configured. They now are,
+      # so it turns itself on — the guard was written the other way round on purpose, so that
+      # the day signing arrived nobody had to remember to enable anything.
       - name: Publish desktop release (R2 + register with updates Worker)
         if: ${{ env.PUBLISH == '1' }}
         run: bash apps/desktop/scripts/publish-desktop.sh --release-dir apps/desktop/release --channel ${{ needs.meta.outputs.storage_channel }}
