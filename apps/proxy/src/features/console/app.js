@@ -34,9 +34,12 @@ var openmasqConsole = (() => {
   // src/features/console/page/poll.ts
   function maskingSignature(h) {
     if (!h) return "";
-    return [h.level ?? "", h.mode ?? "", h.ner === false ? "0" : "1", (h.masking ?? []).join(",")].join(
-      "|"
-    );
+    return [
+      h.level ?? "",
+      h.mode ?? "",
+      h.ner === false ? "0" : "1",
+      (h.masking ?? []).join(",")
+    ].join("|");
   }
   function createMaskingWatch() {
     let last;

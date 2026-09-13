@@ -29,9 +29,12 @@ export interface MaskingState {
  */
 export function maskingSignature(h: MaskingState | null | undefined): string {
   if (!h) return "";
-  return [h.level ?? "", h.mode ?? "", h.ner === false ? "0" : "1", (h.masking ?? []).join(",")].join(
-    "|",
-  );
+  return [
+    h.level ?? "",
+    h.mode ?? "",
+    h.ner === false ? "0" : "1",
+    (h.masking ?? []).join(","),
+  ].join("|");
 }
 
 /**
