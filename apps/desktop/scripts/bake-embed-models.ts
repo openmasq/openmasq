@@ -24,6 +24,7 @@ import { createHash } from "node:crypto";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { EMBED_WEIGHTS_SHA256, EMBED_MODEL_ID } from "../src/main/embed/model";
+import { fetchBytes } from "./fetchRetry";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const OUT = join(HERE, "..", "build", "embed-models", ...EMBED_MODEL_ID.split("/"));
@@ -43,9 +44,7 @@ async function hashOf(path: string): Promise<string | null> {
 async function readSource(rel: string): Promise<Uint8Array> {
   if (/^https?:\/\//i.test(SRC)) {
     const url = `${SRC.replace(/\/$/, "")}/${rel}`;
-    const res = await fetch(url, { redirect: "follow" });
-    if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
-    return new Uint8Array(await res.arrayBuffer());
+    return fetchBytes(url, { log });
   }
   return new Uint8Array(await readFile(join(SRC, ...rel.split("/"))));
 }
