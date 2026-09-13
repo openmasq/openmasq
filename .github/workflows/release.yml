@@ -635,6 +635,20 @@ jobs:
       # extraMetadata.version stamps the exact version (a manual trial gets the unique
       # -beta.<run> prerelease without mutating package.json in git); it flows
       # into the .dmg/.zip filenames + each latest*.yml the publish step registers.
+      # ⛔ electron-builder 26.15.3 CANNOT build this keychain correctly: it creates one with
+      # a random password and then unlocks it with the CERTIFICATE's
+      # ("SecKeychainUnlock: The user name or passphrase you entered is not correct"). The mac
+      # leg had not signed since 08/09/2026 because of it. `macPackager` falls back to
+      # `CSC_KEYCHAIN` and creates nothing when no certificate is handed to it, so we build
+      # the keychain and the step below unsets `CSC_LINK` to take that path. Details, with
+      # the two offending lines quoted: `scripts/mac-keychain.sh`.
+      - name: A signing keychain electron-builder can actually unlock (macOS)
+        if: ${{ matrix.platform == 'mac' && env.HAS_APPLE == '1' }}
+        env:
+          CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+        run: bash apps/desktop/scripts/mac-keychain.sh
+
       - name: Build desktop app
         working-directory: apps/desktop
         # electron-builder copies + signs the bundled python-runtime (tens of
@@ -670,6 +684,10 @@ jobs:
             # for each packaging step, so `eb.mjs`'s guards are intact, and it prints
             # the time actually spent at Apple's (that measurement will tell what it's worth).
             if [ "$HAS_APPLE" = "1" ]; then
+              # UNSET, so `macPackager` takes the `CSC_KEYCHAIN` branch and does not try to
+              # build a keychain of its own — the step above already built one it can open.
+              # `mac-release.ts` needs only the notarisation credentials, never these two.
+              unset CSC_LINK CSC_KEY_PASSWORD
               pnpm exec tsx scripts/mac-release.ts "$APP_VERSION"
             else
               echo "::warning::MAC_CSC_LINK / APPLE_ID are not configured — packaging an UNSIGNED, non-notarized mac build."

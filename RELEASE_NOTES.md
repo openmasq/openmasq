@@ -50,7 +50,7 @@ kept in the French they were sent in, for the reason given above.
 
 ---
 
-## 0.10.1 — 2026-09-13
+## 0.10.2 — 2026-09-13
 > OpenMasq comes to Windows.
 
 ### What's new

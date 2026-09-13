@@ -9,6 +9,31 @@
 // arches has only this one home.
 const brand = require("../../packages/branding/branding.json");
 
+/**
+ * The integrity anchor of every Windows update: the name `NsisUpdater.verifySignature`
+ * compares against the certificate that signed the installer. A PUBLIC fact — the string
+ * Windows shows the user — so it is committed where a reviewer sees it.
+ *
+ * ⚠️ ONE STRING, and a PARTIAL DN. Both halves were paid for on 13/09/2026.
+ *
+ * An ARRAY is refused: the schema types `azureSignOptions.publisherName` as `string` and
+ * the validator DOES check that subtree — "publisherName should be a string", build
+ * stopped, nothing packaged. The note that used to sit here claimed the opposite; it had
+ * only ever been exercised by the preflight, which passes no Azure credential and so never
+ * builds that object at all.
+ *
+ * A partial DN is stronger than either alternative. `verifySignature` parses the configured
+ * name and compares ONLY the keys it contains, so `CN=…, O=…` pins the organisation
+ * strictly while surviving a reissue that changes L or C. Measured against the real subject
+ * `CN=Numa Studio, O=Numa Studio, L=Paris, C=FR`: the full DN matches today but REJECTS
+ * every update the day the city changes; the bare CN matches with a warning and pins
+ * nothing but the name; this matches strictly, before and after.
+ *
+ * The subject comes from the IDENTITY VALIDATION (the validated organisation), never from
+ * the Azure account name — that one reaches no certificate and no user-facing dialog.
+ */
+const WIN_PUBLISHER = "CN=Numa Studio, O=Numa Studio";
+
 module.exports = {
   appId: brand.desktopBundleId,
   productName: brand.name,
@@ -349,20 +374,12 @@ module.exports = {
     // naming our resources. `scripts/checks/check-brand.mjs` enforces the second half.
     //
     // ⚠️ A `publisherName` mismatch does not fail a build — it makes every installed client
-    // REJECT every future update. Two entries on purpose: `verifySignature` returns on the
-    // first match, so the full DN gives the strict comparison electron-updater asks for,
-    // and the bare CN stays as a fallback should Azure ever reissue with a different L or C
-    // (it then matches with a warning instead of bricking the update path). The array form
-    // is typed `string` in the schema but supported end to end: `asArray` on the way out of
-    // `windowsSignAzureManager`, `Array.isArray` on the way into `NsisUpdater`.
-    //
-    // The subject comes from the IDENTITY VALIDATION (the validated organisation), never
-    // from the Azure account name — that one reaches no certificate and no user-facing
-    // dialog.
+    // REJECT every future update. The value, and why it has the shape it has: `WIN_PUBLISHER`
+    // at the top of this file.
     ...(process.env.AZURE_CLIENT_SECRET && process.env.AZURE_CODESIGN_ACCOUNT
       ? {
           azureSignOptions: {
-            publisherName: ["CN=Numa Studio, O=Numa Studio, L=Paris, C=FR", "Numa Studio"],
+            publisherName: WIN_PUBLISHER,
             endpoint: process.env.AZURE_CODESIGN_ENDPOINT,
             codeSigningAccountName: process.env.AZURE_CODESIGN_ACCOUNT,
             certificateProfileName: process.env.AZURE_CODESIGN_PROFILE,

@@ -85,7 +85,15 @@ exports.default = async function afterPack(context) {
         updateYml,
         appUpdateYmlContent(packager.config.publish, name, {
           platform: packager.platform?.nodeName,
-          publisherName: packager.config.win?.publisherName,
+          // ⚠️ `win.publisherName` does NOT exist in electron-builder 26's schema — `win`
+          // declares `additionalProperties: false` and rejects it outright. The name lives
+          // in the signing block, which is where the packager itself reads it from when it
+          // writes this file for a real target. Reading the old key returned `undefined`
+          // for ever, and `appUpdateYml.cjs` would have refused a win32 `--dir` build with
+          // "exige `win.publisherName`" — a message naming a key that cannot be set.
+          publisherName:
+            packager.config.win?.azureSignOptions?.publisherName ??
+            packager.config.win?.signtoolOptions?.publisherName,
         }),
       );
       console.log(`[update-yml] app-update.yml écrit (absent de l'empaquetage --dir)`);
