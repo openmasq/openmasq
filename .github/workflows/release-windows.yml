@@ -230,6 +230,25 @@ jobs:
           done
           [ "$missing" = "0" ]
 
+      # THE question this whole workflow exists to answer, asked of the tree a user
+      # actually gets. `e2e:boot` above launches the `out/` build; this launches what
+      # electron-builder produced — asar + what `asarUnpack` pulled back out, the native
+      # modules the packer FLATTENS, the DLLs beside the exe. Both Windows failures this
+      # project has paid for lived in that tree and were invisible in `out/`: the flattened
+      # dependency tree of 0.3.2, and the missing redistributable that left a user with an
+      # install that did not start. The two checks above test those two causes by name;
+      # this one tests the EFFECT, and so also catches the causes nobody has met yet.
+      - name: Boot smoke on the PACKAGED app
+        working-directory: apps/desktop
+        run: |
+          set -euo pipefail
+          # Resolved by NODE, not by the shell: these steps run under Git Bash, whose
+          # `$PWD` is `/d/a/openmasq/…` — a path Node cannot open on Windows.
+          OPENMASQ_PACKAGED_EXE=$(node -p "const c=require('./electron-builder.cjs'); const o=typeof c==='function'?c():c; require('node:path').resolve('release/win-unpacked', o.productName + '.exe')")
+          export OPENMASQ_PACKAGED_EXE
+          echo "launching $OPENMASQ_PACKAGED_EXE"
+          pnpm run e2e:packaged
+
       # The number that will settle the "embed the Python runtime or not" tradeoff: it
       # weighs ~500 MB for a feature `sandbox.ts` refuses to run here.
       - name: Report artifact sizes

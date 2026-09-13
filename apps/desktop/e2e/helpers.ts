@@ -15,7 +15,7 @@ export const PROFILE_DIR =
  *  The DB is disabled either way so tests seed settings via localStorage without
  *  the DB hydrating over them (and without writing to the real DB). */
 export async function launchApp(
-  opts: { useDefaultProfile?: boolean } = {},
+  opts: { useDefaultProfile?: boolean; executablePath?: string } = {},
 ): Promise<{ app: ElectronApplication; page: Page }> {
   const env: Record<string, string> = {
     ...process.env,
@@ -24,7 +24,13 @@ export async function launchApp(
     OPENMASQ_E2E: "1",
   };
   if (!opts.useDefaultProfile) env.OPENMASQ_USER_DATA_DIR = PROFILE_DIR;
-  const app = await electron.launch({ args: [DESKTOP_DIR], cwd: DESKTOP_DIR, env });
+  // `executablePath` launches the PACKAGED binary — a different tree entirely (asar, what
+  // is unpacked from it, extraResources, the native modules electron-builder flattens,
+  // the C++ runtime DLLs next to the exe). It takes no app directory argument: the app
+  // is inside the executable. Without it, the built `out/` tree under `DESKTOP_DIR`.
+  const app = opts.executablePath
+    ? await electron.launch({ executablePath: opts.executablePath, args: [], env })
+    : await electron.launch({ args: [DESKTOP_DIR], cwd: DESKTOP_DIR, env });
   // The main process writes its own diagnosis (a failed renderer load, an IPC handler
   // throwing at registration) to stderr, and a spec that does not forward it debugs blind:
   // the Windows boot failure of 13/09 was a 120 s timeout on a selector until this existed.
