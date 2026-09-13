@@ -699,7 +699,11 @@ jobs:
           # Windows: Azure Trusted Signing. electron-builder authenticates through the Azure
           # SDK's EnvironmentCredential, which reads exactly these three names — hence env
           # variables rather than CLI arguments. Passed ONLY on the Windows leg, like the
-          # Apple ones on mac. All three absent ⇒ `electron-builder.cjs` omits
+          # Apple ones on mac, and they live in the `release` ENVIRONMENT (tag-restricted to
+          # `beta-v*`/`v*`) rather than at repository level — the same boundary the Apple
+          # certificate moved behind on 02/09. A repository secret would be readable by every
+          # workflow on every branch, which for a signing key means anyone able to push a
+          # branch could sign code as us. All three absent ⇒ `electron-builder.cjs` omits
           # `azureSignOptions` entirely and the .exe ships UNSIGNED (it installs, behind a
           # SmartScreen screen) instead of dying at the signing step — which is what a fork,
           # and any local build, actually gets.
