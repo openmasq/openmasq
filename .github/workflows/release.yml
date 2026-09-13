@@ -288,7 +288,7 @@ jobs:
       # job-level env is visible to every step, `pnpm install`'s ~2,000 packages included
       # (the rule stated just below). The three AZURE_* values are read by the ONE step that
       # packages, in that step's own `env:`.
-      HAS_AZURE_SIGN: ${{ matrix.platform == 'win' && secrets.AZURE_CLIENT_SECRET != '' && '1' || '' }}
+      HAS_AZURE_SIGN: ${{ matrix.platform == 'win' && secrets.AZURE_CLIENT_SECRET != '' && secrets.AZURE_CODESIGN_ACCOUNT != '' && '1' || '' }}
       # Same mechanism for the sourcemaps upload: `if:` cannot read `secrets`
       # (the workflow does not LOAD), the job's env can. Empty ⇒ the step is skipped.
       # ⚠️ The FLAG travels here, never the token: a job-level value is visible to every
@@ -309,7 +309,7 @@ jobs:
       # no updates token, no R2: the build is kept on the run instead (see the two steps at
       # the end of the job). Never publish on one condition and upload-to-run on another —
       # the two steps must be exact complements, and this flag is the one home of that.
-      PUBLISH: ${{ secrets.UPDATES_ADMIN_TOKEN != '' && secrets.R2_ACCESS_KEY_ID != '' && ((matrix.platform == 'mac' && secrets.MAC_CSC_LINK != '' && secrets.APPLE_ID != '') || (matrix.platform == 'win' && secrets.AZURE_CLIENT_SECRET != '' && secrets.AZURE_CLIENT_ID != '' && secrets.AZURE_TENANT_ID != '')) && '1' || '' }}
+      PUBLISH: ${{ secrets.UPDATES_ADMIN_TOKEN != '' && secrets.R2_ACCESS_KEY_ID != '' && ((matrix.platform == 'mac' && secrets.MAC_CSC_LINK != '' && secrets.APPLE_ID != '') || (matrix.platform == 'win' && secrets.AZURE_CLIENT_SECRET != '' && secrets.AZURE_CLIENT_ID != '' && secrets.AZURE_TENANT_ID != '' && secrets.AZURE_CODESIGN_ACCOUNT != '')) && '1' || '' }}
       # The Cloudflare account behind the R2 bucket — ONE home in this file (rule 9), a
       # fork points it at its own account through the repository variable.
       # ⚠️ NO committed default. A hardcoded account id silently routes a fork's — or a
@@ -706,13 +706,21 @@ jobs:
           AZURE_TENANT_ID: ${{ matrix.platform == 'win' && secrets.AZURE_TENANT_ID || '' }}
           AZURE_CLIENT_ID: ${{ matrix.platform == 'win' && secrets.AZURE_CLIENT_ID || '' }}
           AZURE_CLIENT_SECRET: ${{ matrix.platform == 'win' && secrets.AZURE_CLIENT_SECRET || '' }}
-          # Which signing resources to use — repository VARIABLES, not secrets: they are
-          # identifiers, not credentials. Out of the tree for the same two reasons as
+          # Which signing resources to use. Out of the tree for the same two reasons as
           # `R2_ACCOUNT_ID`: no committed default for a fork to inherit silently, and a
-          # public repository names none of our infrastructure. Absent ⇒ `electron-builder.cjs`
-          # omits `azureSignOptions` and the build is unsigned rather than broken.
+          # public repository names none of our infrastructure. Absent ⇒
+          # `electron-builder.cjs` omits `azureSignOptions` and the build is unsigned
+          # rather than broken.
+          #
+          # ⚠️ The ACCOUNT is a secret and the other two are variables — not because it is a
+          # credential (it is an identifier, like them), but because GitHub MASKS a secret
+          # everywhere in a public log and does not mask a variable. electron-builder passes
+          # it to `Invoke-TrustedSigning` and logs the arguments at DEBUG level: nothing
+          # enables that here, but this repository's Actions logs are public, and one
+          # re-run with `DEBUG=electron-builder` would be enough. A secret turns "do not
+          # switch that on" into something nobody can switch on by accident.
           AZURE_CODESIGN_ENDPOINT: ${{ vars.AZURE_CODESIGN_ENDPOINT }}
-          AZURE_CODESIGN_ACCOUNT: ${{ vars.AZURE_CODESIGN_ACCOUNT }}
+          AZURE_CODESIGN_ACCOUNT: ${{ secrets.AZURE_CODESIGN_ACCOUNT }}
           AZURE_CODESIGN_PROFILE: ${{ vars.AZURE_CODESIGN_PROFILE }}
 
       # The LAST gate that can still see this class of bug, and the only one: the
