@@ -263,9 +263,6 @@ function closeBroker(): void {
 // on any failure so `spawnChild` can fall back to the TCP-port transport.
 function spawnChildPipe(): Promise<string> {
   return new Promise((resolve, reject) => {
-    // stdOUT: this traces an ACTION, it is not a failure — the failure path rejects below.
-    // On stderr it read as an error to everything that watches that stream, and it failed
-    // the Windows boot smoke on 13/09 with the app in perfect health.
     console.log(`[agent] spawning (pipe): ${process.execPath} ${spawnArgs().join(" ")}`);
     const proc = spawn(process.execPath, spawnArgs(), {
       env: { ...baseEnv(), OPENMASQ_AGENT_CDP_PIPE: "1" },
