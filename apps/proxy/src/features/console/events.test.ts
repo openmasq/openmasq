@@ -10,6 +10,7 @@ import {
   activeCategories,
   connectorCatalog,
   createConsoleBus,
+  sideShown,
   rules,
   sectionOf,
   sections,
@@ -223,5 +224,24 @@ describe("the connector catalogue carries its marks, and nothing to fetch", () =
     const ALLOWED = new Set(["id", "name", "category", "tone", "logo", "img"]);
     for (const c of cat.connectors)
       for (const k of Object.keys(c)) expect(ALLOWED.has(k), `${c.id}.${k}`).toBe(true);
+  });
+});
+
+/* A mark colours the redacted SPAN of whatever is on screen -- one rule, but it lands on
+   opposite values depending on which side you are looking at. This page is a log of what
+   left, so its marks sit on substitutes; the app's composer shows what you wrote, so its
+   marks sit on the real values. Read one after the other that looks inverted, and the fix is
+   to NAME the side rather than to flip either. Both names are the app's own. */
+describe("the page says which side of the crossing it shows", () => {
+  it("names this side and the other one with the app's own words", () => {
+    const t = getMessages("en").modals.transparency;
+    expect(sideShown()).toEqual({ here: t.modelReceived, there: t.youWrote });
+  });
+
+  it("never invents them -- a rewording upstream reaches the page", () => {
+    const { here, there } = sideShown();
+    const en = getMessages("en").modals.transparency;
+    expect([here, there]).toEqual([en.modelReceived, en.youWrote]);
+    expect(here).not.toBe(there);
   });
 });

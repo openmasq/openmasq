@@ -87,6 +87,10 @@ const fineOf = (match: RedactionMatch): ReturnType<typeof redactionCategory> =>
  *  language. Never a table of its own: a category added upstream arrives translated or,
  *  failing that, under the catalogue's source label, but never invented here. */
 const EN = getMessages("en").redactionCatalog;
+/** The app's OWN names for the two sides of the crossing. Read, never retyped: the
+ *  console shows one of them permanently, and a reader who also uses the app must meet
+ *  the same words for the same thing (rule 9). */
+const SIDES = getMessages("en").modals.transparency;
 const enCategory = (key: string) =>
   (EN.categories as Record<string, { label: string; detail?: string } | undefined>)[key];
 const enSection = (fr: string) => (EN.sections as Record<string, string | undefined>)[fr] ?? fr;
@@ -168,6 +172,21 @@ export function createConsoleBus(reveal: boolean, now: () => number = Date.now):
  *  `Système` unlabelled the moment a file path was masked. */
 export const sections = (): { id: string; label: string }[] =>
   REDACTION_SECTIONS.map((fr) => ({ id: sectionSlug(fr), label: enSection(fr) }));
+
+/**
+ * WHICH SIDE of the crossing this page shows — and it only ever shows one.
+ *
+ * A mark colours the redacted SPAN of whatever is being displayed, which is the same rule on
+ * both sides and therefore looks opposite: the app's composer and chat show what you wrote,
+ * so the mark sits on the REAL value about to be replaced, while this page is a log of what
+ * left, so the mark sits on the SUBSTITUTE. The app's transparency panel puts the two columns
+ * side by side and is where those names come from; here there is one column and it has to say
+ * which. Sent rather than typed, so a rewording upstream reaches this page.
+ */
+export const sideShown = (): { here: string; there: string } => ({
+  here: SIDES.modelReceived,
+  there: SIDES.youWrote,
+});
 
 /**
  * The MCP connector CATALOG — the same list the desktop app shows, so the console's MCP panel

@@ -67,6 +67,12 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
    would say "protected" about a value that is showing in clear. */
 .clr{font-family:var(--mono);border-bottom:1px dashed var(--border-strong);color:var(--text-strong)}
 .hid{font-family:var(--mono);color:var(--text-muted);letter-spacing:.12em}
+.key{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:7px 16px;border-bottom:1px solid var(--border-subtle);background:var(--surface-sunken);font-size:11.5px;color:var(--text-muted)}
+.key b{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--text-strong)}
+.key .k-i{display:inline-flex;align-items:center;gap:7px;min-width:0}
+.key .k-i .rd{font-size:11px}
+.key .k-n{margin-left:auto;text-align:right}
+@media (max-width:780px){.key .k-n{margin-left:0;text-align:left}}
 .pair{display:flex;flex-direction:column;gap:3px;min-width:0}
 .pair .v2{font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #reveal.on{border-color:var(--brand);color:var(--ink-on-blue)}
@@ -460,6 +466,9 @@ tbody tr.sel td:first-child{box-shadow:inset 2px 0 0 var(--brand)}
     </div>
   </div>
 
+  <!-- KEY: which side of the crossing this page shows, and what a mark means on it -->
+  <div class="key" id="key"></div>
+
   <!-- TABLE + DRAWER -->
   <div class="body has-detail" id="body">
     <div class="tablewrap">
@@ -596,6 +605,21 @@ function shown(tok){
   /* Nothing to say per value: the top button already names the flag, once. */
   if (!o) return "";
   return rev ? '<span class="clr">'+o+'</span>' : '<span class="hid">••••••••</span>';
+}
+/* The KEY. This page only ever shows ONE side of the crossing -- what left -- so a mark here
+   sits on the SUBSTITUTE. The app shows the other side, where the very same rule puts the
+   mark on the real value instead; reading one after the other, that looks inverted, and it is
+   not. Both names come from the app itself (`events.ts` `sideShown`), so the two surfaces
+   call the two sides by the same words. Taught by SHOWING: the sample wears the real pill and
+   the real dashed rule, not a description of them. */
+var SIDE = null;
+function renderKey(){
+  var k = document.getElementById("key");
+  if (!k || !SIDE) return;
+  k.innerHTML = '<b>' + esc(SIDE.here) + '</b>'
+    + '<span class="k-i">' + swipe("identite", "Mattéo Pons") + 'the substitute that left</span>'
+    + '<span class="k-i"><span class="clr">Jean Dupont</span>the real value — it stayed here</span>'
+    + '<span class="k-n">' + esc(SIDE.there) + ' is the other side: there a mark sits on the real value, before it is replaced.</span>';
 }
 function swipe(cat, txt){
   return '<span class="rd" style="background:'+cav(cat)+';color:'+cavOn(cat)+'">'+txt+'</span>';
@@ -1292,6 +1316,7 @@ stream.addEventListener("hello", function(m){
   CATS = (d.sections || []).map(function(x){ return { id: x.id, label: x.label, n: 0 }; });
   RULES = d.rules || []; MASKING = d.masking || []; LEVELS = d.levels || [];
   LEVEL = d.level || ""; MODE = d.mode || ""; MCP = d.mcp || null; CATALOG = d.catalog || null;
+  SIDE = d.side || null; renderKey();
   set("tier-lb", LEVEL || "Masking");
   set("mcp-lb", MCP && MCP.servers.length ? ("MCP · " + MCP.servers.length) : "MCP");
   if (shOpen) renderSheet();
