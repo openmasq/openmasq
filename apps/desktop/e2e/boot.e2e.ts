@@ -40,9 +40,35 @@ test("l'app construite démarre : une fenêtre, du DOM, zéro erreur de chargeme
     // path that resolved wrong, which is the classic way this fails on Windows only.
     const url = page.url();
     const html = (await page.content().catch(() => "<unavailable>")).slice(0, 600);
+    // `chrome-error://chromewebdata/` means Chromium REFUSED the navigation, and the
+    // reason is an error code only the main process ever sees. Replay the same load with
+    // `did-fail-load` attached: ERR_FILE_NOT_FOUND and ERR_BLOCKED_BY_CLIENT are the same
+    // blank page here and completely different bugs.
+    const why = await app
+      .evaluate(async ({ app: electronApp, BrowserWindow }) => {
+        const { join } = require("node:path") as typeof import("node:path");
+        const { existsSync } = require("node:fs") as typeof import("node:fs");
+        // Resolved the way the app itself resolves it, from the app root rather than from
+        // a cwd the test runner happens to have.
+        const target = join(electronApp.getAppPath(), "out", "renderer", "index.html");
+        const win = BrowserWindow.getAllWindows()[0];
+        if (!win) return `no window (target ${target}, exists: ${existsSync(target)})`;
+        const seen = await new Promise<string>((done) => {
+          const t = setTimeout(() => done("no did-fail-load within 15 s"), 15_000);
+          win.webContents.once("did-fail-load", (_e, code, desc, validatedURL) => {
+            clearTimeout(t);
+            done(`code ${code} · ${desc} · ${validatedURL}`);
+          });
+          win.webContents.once("did-finish-load", () => { clearTimeout(t); done("loaded on retry"); });
+          void win.loadFile(target).catch((e: Error) => { clearTimeout(t); done(`loadFile threw: ${e.message}`); });
+        });
+        return `${seen}  [target ${target}, exists: ${existsSync(target)}]`;
+      })
+      .catch((e: Error) => `could not ask main: ${e.message}`);
     throw new Error(
       `${(failure as Error).message}\n\n` +
         `url: ${url}\n` +
+        `why the navigation failed: ${why}\n` +
         `errors captured (${errors.length}):\n` +
         (errors.length ? errors.map((e) => `  · ${e}`).join("\n") : "  (none — the page loaded and simply never mounted)") +
         `\n\nfirst 600 chars of the document:\n${html}`,
