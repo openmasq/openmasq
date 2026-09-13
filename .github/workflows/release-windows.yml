@@ -20,8 +20,10 @@ name: Windows (essai à blanc)
 # bake now knows how to build a runtime for a machine other than its own, so this
 # risk is also visible from a mac or linux runner (`crossInstall.ts`).
 #
-# 💸 Cost: `windows-latest` is billed ×2 (versus ×10 for `macos-latest`), so a run
-# costs about a tenth of a mac build. It's still REQUESTED — see the gate.
+# 💸 Cost: none. `windows-latest` is a STANDARD runner and this repo is public since
+# 01/09/2026, so GitHub bills no minutes for it (the ×2 / ×10 multipliers this note used
+# to quote applied to the private repo on a personal account). It stays REQUESTED anyway
+# — see the gate — because a run per push is noise, not because it is expensive.
 #
 # ⚠️ NO SECRET is passed to this workflow, and it must never receive one: it
 # triggers from any commit on a simple tag pushed by hand. The

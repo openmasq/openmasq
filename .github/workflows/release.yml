@@ -40,7 +40,16 @@ name: Release
 # A privileged device (allow_self_pin, ops console) sees both channels via the Worker's
 # /desktop/all-releases; the ENVIRONMENT itself is toggled inside the app (env:switch).
 #
-# 💸 THIS WORKFLOW IS THE REPO'S BIGGEST EXPENSE. `macos-latest` is billed ×10 and the
+# 💸 ⚠️ READ THIS FIRST (13/09/2026): the arithmetic below described a PRIVATE repo on a
+# personal account, and it says so. `openmasq/openmasq` has been PUBLIC since 01/09, and
+# GitHub bills no minutes for standard runners on a public repo — `ubuntu-latest`,
+# `windows-latest` and `macos-latest` are all standard, and this repo uses nothing else.
+# So the multipliers and the 2,000-minute quota no longer apply, and "it costs too much"
+# is not a reason to drop a leg or a trigger any more. The history is kept because the
+# OTHER reasons it records are still good ones: a build triggered by a touched path is
+# noise, a cancelled run is wasted work, and a release should be REQUESTED.
+#
+# THIS WORKFLOW USED TO BE THE REPO'S BIGGEST EXPENSE. `macos-latest` was billed ×10 and the
 # job runs 22–24 min, i.e. ~230 minute-equivalents per build — on a free quota of
 # 2,000/month (PRIVATE repo, personal account). The trigger used to be `packages/**`, i.e.
 # almost every push: the morning of 30/07 burned ~730 min-eq in successive builds, of which
@@ -248,9 +257,11 @@ jobs:
           # build time: it would show up on the machine left without its interpreter.
           - os: macos-latest
             platform: mac
-          # ✅ WINDOWS BACK ON (13/09/2026). It was paused on 14/08 because the app was not
-          # ready and a `windows-latest` runner is billed ×2 for ~25 min — ~50 min-eq per
-          # release for a binary nobody installed. It is ready now: the
+          # ✅ WINDOWS BACK ON (13/09/2026). It was paused on 14/08 for a reason that has
+          # since expired twice over: the app was not ready, AND a `windows-latest` run was
+          # billed against a personal account's quota. This repo has been public since
+          # 01/09 and every runner it uses is a standard one, so those minutes are free —
+          # cost is no longer an argument for or against a leg here. It is ready now: the
           # `release-windows.yml` preflight is green end to end, including the questions no
           # mac can settle (MAX_PATH, the AppContainer jail, the binary starting up, and the
           # PACKAGED binary starting up), and Authenticode signing is wired through Azure
