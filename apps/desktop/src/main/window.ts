@@ -1,7 +1,12 @@
 // The main BrowserWindow: its security posture (sandboxed preload, top-frame navigation
 // pinned to the app origin, external opens scheme-gated), its menus, and the dev wiring.
 import { BrowserWindow, clipboard, Menu } from "electron";
-import { join } from "path/posix";
+// `node:path`, never `path/posix`: these join a WINDOWS `__dirname`. `posix.join`
+// does not know the backslash is a separator, so it reads the whole absolute path as
+// ONE segment and `..` deletes it — `out/main` + `../renderer` came out as the
+// relative `renderer/index.html`, and the app opened an empty window on Windows
+// (only there: on macOS the two implementations agree). `check-bundle.mjs` guards it.
+import { join } from "node:path";
 import { DEVTOOLS_PREF } from "./devtools";
 import { setMainWindow } from "./mainWindowRef";
 import { stopAgentBrowser, setAppMainFocused } from "./mcp/browser";
