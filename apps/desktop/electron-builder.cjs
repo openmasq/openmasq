@@ -321,18 +321,54 @@ module.exports = {
   //     mode — pip resolves by tag, and the resulting bytes are re-read). What still requires
   //     Windows is the REST of packaging: the NSIS installer, and the jail launcher
   //     (`<slug>-jail.exe`) which compiles under MSVC. `release.yml`'s matrix handles that.
-  //  2. ⛔ Publishing to a channel requires Authenticode signing, and NOTHING else now.
-  //     The mac manifest being overwritten by `latest.yml` is FIXED (migration 0007: the
-  //     unique key carries the platform). What remains is that without a certificate,
-  //     `NsisUpdater.verifySignature` verifies nothing at all (no `publisherName` in
-  //     `app-update.yml`): the Windows update would have no integrity anchor besides TLS,
-  //     whereas mac relies on Developer ID + notarization. `release.yml` therefore REFUSES
-  //     to publish the Windows leg as long as `WIN_CSC_LINK` is empty — the installer stays retrievable on the run.
+  //  2. Authenticode signing is WIRED (Azure Trusted Signing, below). Without a
+  //     certificate `NsisUpdater.verifySignature` verifies nothing at all — no
+  //     `publisherName` in `app-update.yml`, so a Windows update would have no integrity
+  //     anchor besides TLS, where mac relies on Developer ID + notarization. `release.yml`
+  //     therefore publishes the Windows leg ONLY when the AZURE_* credentials are present;
+  //     otherwise the installer stays retrievable on the run, unsigned.
   //
   // Running Python code, on the other hand, is NO LONGER unavailable here: `winJail.ts` confines the
   // run inside an AppContainer (positive + negative proof run in CI, `scripts/prove-jail.sh`),
   // so the runtime bundled below actually serves a purpose.
   win: {
+    // ── Authenticode via Azure Trusted Signing ────────────────────────────────────────
+    // CONDITIONAL on the credentials being present, and that is not a convenience: with
+    // `azureSignOptions` set, electron-builder installs a PowerShell module and calls
+    // `Invoke-TrustedSigning` on EVERY build. A fork, or a local `pnpm run eb`, has no
+    // Azure credential and would die at the signing step after packaging succeeded. Absent
+    // ⇒ the app packages unsigned, exactly as before, and `release.yml` refuses to publish
+    // it (one home for that decision: its `PUBLISH` flag).
+    //
+    // WHAT LIVES WHERE, and why the split. `publisherName` is committed: it is a PUBLIC
+    // fact — the string Windows shows the user — and it is the integrity anchor
+    // `NsisUpdater.verifySignature` compares against the certificate, so it belongs in code
+    // where a reviewer sees it. The three OTHERS identify our signing infrastructure and
+    // come from the environment, like `R2_ACCOUNT_ID` and for the same reasons: no
+    // committed default that a fork would silently inherit, and nothing in a public tree
+    // naming our resources. `scripts/checks/check-brand.mjs` enforces the second half.
+    //
+    // ⚠️ A `publisherName` mismatch does not fail a build — it makes every installed client
+    // REJECT every future update. Two entries on purpose: `verifySignature` returns on the
+    // first match, so the full DN gives the strict comparison electron-updater asks for,
+    // and the bare CN stays as a fallback should Azure ever reissue with a different L or C
+    // (it then matches with a warning instead of bricking the update path). The array form
+    // is typed `string` in the schema but supported end to end: `asArray` on the way out of
+    // `windowsSignAzureManager`, `Array.isArray` on the way into `NsisUpdater`.
+    //
+    // The subject comes from the IDENTITY VALIDATION (the validated organisation), never
+    // from the Azure account name — that one reaches no certificate and no user-facing
+    // dialog.
+    ...(process.env.AZURE_CLIENT_SECRET && process.env.AZURE_CODESIGN_ACCOUNT
+      ? {
+          azureSignOptions: {
+            publisherName: ["CN=Numa Studio, O=Numa Studio, L=Paris, C=FR", "Numa Studio"],
+            endpoint: process.env.AZURE_CODESIGN_ENDPOINT,
+            codeSigningAccountName: process.env.AZURE_CODESIGN_ACCOUNT,
+            certificateProfileName: process.env.AZURE_CODESIGN_PROFILE,
+          },
+        }
+      : {}),
     // ⚠️ `extraFiles`, NOT `extraResources`: these DLLs must land right beside the app's
     // executable. Windows looks for a native module's dependencies in the
     // EXECUTABLE's folder — putting them there therefore covers, in one shot, `@libsql` (database, loaded at startup)
