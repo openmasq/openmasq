@@ -46,13 +46,12 @@ test("l'app construite démarre : une fenêtre, du DOM, zéro erreur de chargeme
     // blank page here and completely different bugs.
     const why = await app
       .evaluate(async ({ app: electronApp, BrowserWindow }) => {
-        const { join } = require("node:path") as typeof import("node:path");
-        const { existsSync } = require("node:fs") as typeof import("node:fs");
-        // Resolved the way the app itself resolves it, from the app root rather than from
-        // a cwd the test runner happens to have.
-        const target = join(electronApp.getAppPath(), "out", "renderer", "index.html");
+        // No node builtins here: the main bundle is ESM, so `require` is not defined in
+        // this scope (measured — it cost a CI round trip). Forward slashes are fine,
+        // Electron normalises them on Windows.
+        const target = `${electronApp.getAppPath()}/out/renderer/index.html`;
         const win = BrowserWindow.getAllWindows()[0];
-        if (!win) return `no window (target ${target}, exists: ${existsSync(target)})`;
+        if (!win) return `no window · target ${target}`;
         const seen = await new Promise<string>((done) => {
           const t = setTimeout(() => done("no did-fail-load within 15 s"), 15_000);
           win.webContents.once("did-fail-load", (_e, code, desc, validatedURL) => {
@@ -62,7 +61,7 @@ test("l'app construite démarre : une fenêtre, du DOM, zéro erreur de chargeme
           win.webContents.once("did-finish-load", () => { clearTimeout(t); done("loaded on retry"); });
           void win.loadFile(target).catch((e: Error) => { clearTimeout(t); done(`loadFile threw: ${e.message}`); });
         });
-        return `${seen}  [target ${target}, exists: ${existsSync(target)}]`;
+        return `${seen} · target ${target}`;
       })
       .catch((e: Error) => `could not ask main: ${e.message}`);
     throw new Error(
