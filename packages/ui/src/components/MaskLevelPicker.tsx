@@ -1,5 +1,6 @@
 import { CheckIcon, EyeIcon, ShieldIcon } from "./brand";
 import { privacyLevelMeta, type PrivacyLevel } from "../privacy/privacyLevel";
+import type { ConnectorLevel } from "../privacy/connectorMasking";
 import { useT } from "../i18n";
 
 /**
@@ -22,8 +23,8 @@ export function MaskLevelPicker({
   disabled,
 }: {
   /** The connector's own level, or `null` when it follows the global one. */
-  value: Exclude<PrivacyLevel, "custom"> | null;
-  onPick: (level: Exclude<PrivacyLevel, "custom"> | null) => void;
+  value: ConnectorLevel;
+  onPick: (level: ConnectorLevel) => void;
   /** What "Default" resolves to right now — named, so the choice is not a guess. */
   globalLevel: PrivacyLevel;
   disabled?: boolean;
@@ -34,7 +35,7 @@ export function MaskLevelPicker({
     levels.find((m) => m.id === globalLevel)?.label ?? t.leaves.privacyLevels.custom;
 
   const option = (
-    id: Exclude<PrivacyLevel, "custom"> | null,
+    id: ConnectorLevel,
     label: string,
     title: string,
     icon: React.ReactNode,
