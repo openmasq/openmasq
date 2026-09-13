@@ -772,6 +772,59 @@ jobs:
       - name: Verify packaged dependency tree
         run: pnpm check:pkgtree --require-tree
 
+      # ⛔ THE SIGNATURE BARRIER HAD NO SENSOR. The `PUBLISH` flag below tests that the
+      # CREDENTIALS exist, never that the artifact came out signed — a signing step that
+      # silently no-opped would publish an unsigned installer onto a channel, and
+      # `verifySignature` would then reject every update for lack of a match. Nothing
+      # between packaging and publishing looked at the bytes.
+      #
+      # Two facts, on the artifact, on the platform that can read them:
+      #   • the installer carries a VALID Authenticode signature, and
+      #   • `app-update.yml` carries the `publisherName` that will be compared against it —
+      #     the anchor `NsisUpdater.verifySignature` needs, absent for ever until 13/09/2026
+      #     because it was read from a key electron-builder 26 does not accept.
+      # The second is checked against the FIRST, so a name that does not match the
+      # certificate stops the release instead of bricking every future update.
+      - name: The Windows build is really signed, and says who signed it
+        if: ${{ matrix.platform == 'win' && env.HAS_AZURE_SIGN == '1' }}
+        shell: pwsh
+        working-directory: apps/desktop
+        run: |
+          $ErrorActionPreference = "Stop"
+          $exe = Get-ChildItem release -Filter '*.exe' -File |
+            Where-Object { $_.Name -notlike '*uninstaller*' } |
+            Sort-Object Length -Descending | Select-Object -First 1
+          if (-not $exe) { throw "no installer under release/" }
+          $sig = Get-AuthenticodeSignature -LiteralPath $exe.FullName
+          Write-Host "installer : $($exe.Name)"
+          Write-Host "status    : $($sig.Status)"
+          Write-Host "subject   : $($sig.SignerCertificate.Subject)"
+          if ($sig.Status -ne 'Valid') { throw "the installer is not validly signed: $($sig.Status) $($sig.StatusMessage)" }
+
+          $yml = 'release/win-unpacked/resources/app-update.yml'
+          if (-not (Test-Path $yml)) { throw "$yml is missing — nothing would verify an update" }
+          $line = Select-String -Path $yml -Pattern '^publisherName:' | Select-Object -First 1
+          if (-not $line) { throw "app-update.yml carries no publisherName — updates would verify NOTHING" }
+          $name = ($line.Line -replace '^publisherName:\s*', '').Trim().Trim('"')
+          Write-Host "publisherName : $name"
+
+          # Same comparison electron-updater makes: only the keys the configured name
+          # contains, so a partial DN is honoured exactly as it will be at update time.
+          $subject = @{}
+          foreach ($p in $sig.SignerCertificate.Subject -split ',') {
+            $kv = $p.Trim() -split '=', 2
+            if ($kv.Count -eq 2) { $subject[$kv[0].Trim()] = $kv[1].Trim() }
+          }
+          foreach ($p in $name -split ',') {
+            $kv = $p.Trim() -split '=', 2
+            if ($kv.Count -ne 2) { continue }
+            $k = $kv[0].Trim(); $v = $kv[1].Trim()
+            if ($subject[$k] -ne $v) {
+              throw "publisherName says $k=$v but the certificate says $k=$($subject[$k]) — every update would be rejected"
+            }
+          }
+          Write-Host "OK - the update anchor matches the certificate that signed the installer"
+
       # ⛔ THE SIGNATURE BARRIER — an UNSIGNED artifact does not go out on a channel.
       #
       # On mac, Developer ID signing + notarization are the integrity anchor that
