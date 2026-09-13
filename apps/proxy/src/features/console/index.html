@@ -1159,8 +1159,10 @@ function tierBody(){
   LEVELS.forEach(function(l){
     var inForce = l.id === LEVEL;
     h += '<div class="tier ro' + (inForce ? " on" : "") + '" role="radio" aria-checked="' + inForce + '" aria-disabled="true"'
-      + ' title="' + esc(inForce ? "In force on this run. Press l on the terminal, or restart with --level <level>, to change it."
-                                 : "Not in force. Press l on the terminal, or restart with --level " + l.id + ".") + '">'
+      + ' data-cmd="openmasq-proxy --level ' + esc(l.id) + '"'
+      + ' title="' + esc(inForce ? "In force on this run. Click to copy the command that sets it; "
+                                 + "press l on the terminal to cycle."
+                                 : "Not in force. Click to copy: openmasq-proxy --level " + l.id) + '">'
       + '<span class="hd">' + SHIELD + '<b>' + esc(l.label || l.id) + '</b><em>' + esc(l.id) + ' · ' + l.n + ' categories</em>'
       + '<span class="ck">' + CHECK + '</span></span>'
       + '<span class="ds">' + esc(l.desc || "") + (l.short ? " " + esc(l.short) : "") + '</span>'
@@ -1183,7 +1185,9 @@ function tierBody(){
       var tip = (it.detail ? it.detail + "\n\n" : "")
         + (isOn ? "Masked on this run." : "NOT masked at this level: it goes to the model in clear.")
         + " Read-only here \u2014 change the level on the terminal, or pass --disable " + it.key + ".";
-      h += '<div class="det ro" aria-pressed="' + isOn + '" aria-disabled="true" title="' + esc(tip) + '">' +
+      h += '<div class="det ro" aria-pressed="' + isOn + '" aria-disabled="true"' +
+        ' data-cmd="openmasq-proxy --disable ' + esc(it.key) + '"' +
+        ' title="' + esc(tip + " Click to copy: openmasq-proxy --disable " + it.key) + '">' +
         '<span class="n">' + esc(it.label) + "</span>" +
         (it.ai ? '<span class="bt">BETA</span>' : "") + '<span class="sw"></span></div>';
     });
@@ -1297,7 +1301,9 @@ function mcpBody(){
       h += '<div class="cat-h">' + esc(cat.label) + '</div><div class="cat-grid">';
       list.forEach(function(c){
         var on = connected[c.id];
-        h += '<div class="cx' + (on ? " on" : "") + '" title="' + esc(on
+        h += '<div class="cx' + (on ? " on" : "") + '"'
+          + (on ? "" : ' data-cmd="openmasq-proxy mcp add ' + esc(c.id) + '"')
+          + ' title="' + esc(on
               ? c.name + " is connected on this run — its tool calls pass through openmasq and are masked."
               : c.name + " is in the catalogue but not connected here. Connect it with: openmasq-proxy mcp add") + '">' +
           ctile(c.name, c.tone, c) + '<span class="cx-n">' + esc(c.name) + '</span>' +
@@ -1342,10 +1348,28 @@ document.getElementById("t-tier").addEventListener("click", function(){ setShTab
 document.getElementById("t-mcp").addEventListener("click", function(){ setShTab("mcp"); });
 document.getElementById("sh-b").addEventListener("click", function(e){
   var b = e.target.closest("[data-lv]");
-  if (!b || b.disabled) return;
-  var p = b.getAttribute("data-lv").split(":");
-  setLevel(p[0], p[1]);
+  if (b && !b.disabled) {
+    var p = b.getAttribute("data-lv").split(":");
+    setLevel(p[0], p[1]);
+    return;
+  }
+  /* Everything else in this panel is READ-ONLY, and a read-only control that swallows a click
+     teaches nothing — which is what "clicking does nothing" was. What it CAN do without
+     touching the run is hand over the command that would: the terminal is where the change is
+     made, so the clipboard is the shortest path between the two. */
+  var c = e.target.closest("[data-cmd]");
+  if (c) copyCmd(c.getAttribute("data-cmd"));
 });
+/* A localhost page IS a secure context, so `writeText` is available — but a browser that
+   refuses anyway must not leave the reader with nothing, so the command is SHOWN either way
+   and can be selected by hand. */
+function copyCmd(cmd){
+  var ok = function(){ toast("copied:  " + cmd); };
+  var no = function(){ toast(cmd, true); };
+  if (navigator.clipboard && navigator.clipboard.writeText)
+    navigator.clipboard.writeText(cmd).then(ok, no);
+  else no();
+}
 document.addEventListener("keydown", function(e){ if (e.key === "Escape" && shOpen) closeSheet(); });
 
 /* ---------- timeline (design-system `cli-logs` kit) ----------
