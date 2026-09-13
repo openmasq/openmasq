@@ -132,6 +132,23 @@ jobs:
       # which is enough to see the class of bugs that kills the app at launch: an optional peer
       # turned throw, a missing native module, an IPC handler that throws at registration.
       # This is the first time this code starts up on Windows.
+      # What `out/` actually contains, before anything tries to load it. The first Windows
+      # run reported `chrome-error://chromewebdata/` — a NAVIGATION failure, so the question
+      # is whether `out/renderer/index.html` is where main looks for it
+      # (`join(__dirname, "../renderer/index.html")`). A mac build cannot answer that: it is
+      # the same vite config, and it works there.
+      - name: What the build produced
+        run: |
+          set -euo pipefail
+          cd apps/desktop
+          echo "— out/ —"; ls -la out/ || echo "  (out/ absent)"
+          for d in out/main out/preload out/renderer; do
+            echo "— $d —"; ls -la "$d" 2>/dev/null | head -12 || echo "  (absent)"
+          done
+          echo "— the file main will loadFile —"
+          test -f out/renderer/index.html && echo "  out/renderer/index.html EXISTS ($(wc -c < out/renderer/index.html) bytes)" \
+            || echo "  out/renderer/index.html IS MISSING"
+
       - name: Boot smoke (launch the built app once)
         working-directory: apps/desktop
         run: pnpm run e2e:boot
