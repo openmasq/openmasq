@@ -238,16 +238,16 @@ jobs:
       # dependency tree of 0.3.2, and the missing redistributable that left a user with an
       # install that did not start. The two checks above test those two causes by name;
       # this one tests the EFFECT, and so also catches the causes nobody has met yet.
+      # Not a Playwright spec: `--inspect` is fused OFF on a packaged binary, so nothing can
+      # attach to it. The app prints `[window] renderer loaded` and the script waits for it.
       - name: Boot smoke on the PACKAGED app
         working-directory: apps/desktop
         run: |
           set -euo pipefail
           # Resolved by NODE, not by the shell: these steps run under Git Bash, whose
           # `$PWD` is `/d/a/openmasq/…` — a path Node cannot open on Windows.
-          OPENMASQ_PACKAGED_EXE=$(node -p "const c=require('./electron-builder.cjs'); const o=typeof c==='function'?c():c; require('node:path').resolve('release/win-unpacked', o.productName + '.exe')")
-          export OPENMASQ_PACKAGED_EXE
-          echo "launching $OPENMASQ_PACKAGED_EXE"
-          pnpm run e2e:packaged
+          EXE=$(node -p "const c=require('./electron-builder.cjs'); const o=typeof c==='function'?c():c; require('node:path').resolve('release/win-unpacked', o.productName + '.exe')")
+          pnpm run smoke:packaged "$EXE"
 
       # The number that will settle the "embed the Python runtime or not" tradeoff: it
       # weighs ~500 MB for a feature `sandbox.ts` refuses to run here.

@@ -147,6 +147,13 @@ export function createWindow(): void {
       if (!isMainFrame || code === -3) return; // -3 = ERR_ABORTED: a superseded navigation
       console.error(`[window] the renderer failed to load: ${code} ${desc} — ${url}`);
     });
+    // …and say it, once, when it WORKS. A packaged build has `--inspect` fused off
+    // (afterPack.cjs), so nothing can attach to it: a launch check in CI has stdout and
+    // nothing else. "The process is still alive" answers nothing — the empty-window bug
+    // of 13/09 kept the process alive for as long as you cared to wait.
+    mainWindow.webContents.once("did-finish-load", () => {
+      console.log(`[window] renderer loaded — ${indexHtml}`);
+    });
     mainWindow.loadFile(indexHtml);
   }
 

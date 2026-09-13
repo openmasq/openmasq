@@ -38,7 +38,7 @@
     "bake:vcruntime": "tsx scripts/bake-vcruntime.ts",
     "bake:runtimes": "tsx scripts/bake-runtimes.ts",
     "print:triples": "tsx scripts/print-shipped-triples.ts",
-    "e2e:packaged": "node ../../node_modules/@playwright/test/cli.js test packaged.e2e.ts"
+    "smoke:packaged": "tsx scripts/smoke-packaged.ts"
   },
   "dependencies": {
     "@huggingface/transformers": "^4.2.0",
