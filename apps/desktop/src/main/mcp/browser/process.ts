@@ -263,7 +263,10 @@ function closeBroker(): void {
 // on any failure so `spawnChild` can fall back to the TCP-port transport.
 function spawnChildPipe(): Promise<string> {
   return new Promise((resolve, reject) => {
-    console.error(`[agent] spawning (pipe): ${process.execPath} ${spawnArgs().join(" ")}`);
+    // stdOUT: this traces an ACTION, it is not a failure — the failure path rejects below.
+    // On stderr it read as an error to everything that watches that stream, and it failed
+    // the Windows boot smoke on 13/09 with the app in perfect health.
+    console.log(`[agent] spawning (pipe): ${process.execPath} ${spawnArgs().join(" ")}`);
     const proc = spawn(process.execPath, spawnArgs(), {
       env: { ...baseEnv(), OPENMASQ_AGENT_CDP_PIPE: "1" },
       // 0/1/2 = stdin(control)/stdout(ready line)/stderr; 3/4 = the CDP pipe Chromium
@@ -323,7 +326,7 @@ function spawnChildPipe(): Promise<string> {
 // Unauthenticated (CDP has none) — mitigated only by 127.0.0.1 + the random port.
 function spawnChildPort(): Promise<string> {
   return new Promise((resolve, reject) => {
-    console.error(`[agent] spawning (port): ${process.execPath} ${spawnArgs().join(" ")}`);
+    console.log(`[agent] spawning (port): ${process.execPath} ${spawnArgs().join(" ")}`);
     const proc = spawn(process.execPath, spawnArgs(), {
       env: baseEnv(),
       // Surface the child's stderr in the parent terminal so boot failures are

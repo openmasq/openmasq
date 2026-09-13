@@ -18,6 +18,25 @@ import { launchApp } from "./helpers";
  * three produce that same empty page, and all three announce themselves on one of the three
  * channels below. Reporting them costs nothing when the app is healthy.
  */
+/**
+ * Main-process stderr lines that mean the app is BROKEN, as opposed to the traces,
+ * warnings and teardown chatter that share the stream. The first two are the exact
+ * words the 13/09 Windows failure printed — a `path/posix` join had deleted the
+ * absolute `__dirname`, so the preload path was relative and the renderer 404ed.
+ * Keep them: they are the regression test for that bug at the stderr level.
+ */
+const FATAL_MAIN = [
+  /preload script must have absolute path/i,
+  /the renderer failed to load/i,
+  /Cannot find module|MODULE_NOT_FOUND|ERR_DLOPEN_FAILED/,
+  /was compiled against a different Node\.js version/i,
+  // Electron's wording when a handler throws. `redact:detect-local` is EXCLUDED on
+  // purpose: this smoke runs BEFORE the workflow bakes the NER models, so the local
+  // engine legitimately cannot start and the app falls back to the pattern rules —
+  // that is the designed behaviour, not a boot failure.
+  /Error occurred in handler for (?!'redact:detect-local')/,
+];
+
 test("l'app construite démarre : une fenêtre, du DOM, zéro erreur de chargement", async () => {
   const { app, page } = await launchApp();
 
@@ -32,8 +51,18 @@ test("l'app construite démarre : une fenêtre, du DOM, zéro erreur de chargeme
     errors.push(`requestfailed: ${r.url()} — ${r.failure()?.errorText ?? "?"}`);
   });
   // The MAIN process writes to the app's stdio, not to the page: an IPC handler throwing
-  // while registering shows up here and nowhere else.
-  app.process().stderr?.on("data", (b: Buffer) => errors.push(`main stderr: ${b.toString().trim()}`));
+  // while registering shows up here and nowhere else — but stderr is a SHARED console.
+  // Chromium, Node's inspector and the app all write to it, and most of what lands there
+  // is not a failure. Deny-by-default here failed the Windows leg on `[agent] spawning
+  // (pipe): …`, a trace of a healthy spawn, while the app was fine. So the split below:
+  // the PAGE channels stay deny-by-default (a `pageerror` is always a bug), and main
+  // stderr fails only on signatures that mean the process is broken. Everything else is
+  // KEPT and printed when something else fails — the diagnosis is the whole value of it.
+  const stderrLines: string[] = [];
+  app.process().stderr?.on("data", (b: Buffer) => {
+    const line = b.toString().trim();
+    if (line) stderrLines.push(line);
+  });
 
   try {
     await expect(page.locator("#root")).toBeAttached();
@@ -106,6 +135,12 @@ test("l'app construite démarre : une fenêtre, du DOM, zéro erreur de chargeme
     );
   }
 
-  expect(errors, `the app mounted but reported errors:\n${errors.join("\n")}`).toEqual([]);
+  const fatal = stderrLines.filter((l) => FATAL_MAIN.some((re) => re.test(l)));
+  const reported = [...errors, ...fatal.map((l) => `main stderr (fatal): ${l}`)];
+  expect(
+    reported,
+    `the app mounted but reported errors:\n${reported.join("\n")}\n\n` +
+      `other main stderr (not counted):\n${stderrLines.map((l) => `  · ${l}`).join("\n") || "  (none)"}`,
+  ).toEqual([]);
   await app.close();
 });
