@@ -91,9 +91,9 @@ export function createSink(options: SinkOptions): Sink {
     }
   };
 
-  /** L'en-tête d'authentification du RELAIS : la session Supabase de l'utilisateur.
-   *  Hors session (ou si le fournisseur échoue) → aucun en-tête, et le relais refuse :
-   *  l'analytique est authentifiée, et un envoi refusé ne casse jamais l'appelant. */
+  /** La session Supabase de l'utilisateur, quand il y en a une : le relais estampille
+   *  l'événement `verified`. Hors session (ou si le fournisseur échoue) → aucun en-tête, et
+   *  l'événement part quand même, anonyme (`types.ts`, `getAuthToken`). */
   const relayAuthHeaders = async (): Promise<Record<string, string>> => {
     try {
       const token = await config?.getAuthToken?.();

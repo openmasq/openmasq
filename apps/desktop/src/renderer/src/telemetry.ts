@@ -55,8 +55,8 @@ export function initRendererTelemetry(): void {
   configureAnalytics({
     relayUrl: ANALYTICS_RELAY_URL,
     source: "desktop",
-    // La session Supabase authentifie la requête vers le relais — PARESSEUSE, et ce qu'elle
-    // coûte hors session : `@openmasq/analytics` types.ts, `getAuthToken`.
+    // La session Supabase, quand il y en a une, fait estampiller l'événement `verified` par
+    // le relais — PARESSEUSE, et jamais une identité : `@openmasq/analytics` types.ts.
     getAuthToken: () => authHost.getAccessToken?.() ?? Promise.resolve(null),
     // Stamps env + version on every event (`./appEnv` explains the derivation, and why
     // "empty" does NOT mean production). ⚠️ `runtimeEnv` is the SECOND axis, stamped nowhere

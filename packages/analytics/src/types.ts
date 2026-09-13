@@ -55,18 +55,17 @@ export interface ConfigureOptions {
    * Le sink pose alors `Authorization: Bearer <jwt>`, et le relais le vérifie contre le
    * JWKS du projet (`apps/analytics-fn`).
    *
-   * Il remplace (01/09/2026) l'attestation HMAC maison, dont la clé était bakée dans un
-   * bundle expédié — donc extractible, et le dépôt le disait : « un filtre à robots, pas
-   * un mur ». Une session est une vraie authentification : révocable, expirante, propre
-   * à une personne.
+   * OPTIONNEL, et ce n'est pas une porte : un jeton valide fait estampiller l'événement
+   * `verified: true` par le relais ; sans jeton, l'événement est admis anonyme. Ce que le
+   * relais VÉRIFIE est ailleurs — la surface, l'événement et ses clés (`vocabulary/admit.ts`),
+   * une limite de débit — parce qu'un jeton ne prouve pas quel logiciel envoie, seulement
+   * qu'une personne a un compte ; en faire une obligation avait fait taire chaque événement
+   * d'avant connexion, dont les plantages de démarrage, et n'avait aucune réponse pour un CLI
+   * sans compte.
    *
    * ⚠️ Paresseux, et pas une valeur, parce que la configuration se fait AVANT le premier
-   * rendu, quand aucune session n'existe encore. `null` ⇒ aucun en-tête : la requête part
-   * quand même et le relais la refuse (401) — l'envoi est « tire et oublie », un événement
-   * refusé ne casse jamais l'appelant.
-   *
-   * ⚠️ CE QUE ÇA COÛTE : hors session, plus rien n'est mesuré — y compris les plantages
-   * de démarrage. C'est le prix assumé d'une analytique authentifiée. */
+   * rendu, quand aucune session n'existe encore. `null` ⇒ aucun en-tête. Il n'est JAMAIS
+   * une identité : le `distinct_id` reste l'id d'installation aléatoire. */
   getAuthToken?: () => Promise<string | null>;
   /**
    * Let through events from a page served LOCALLY (`localhost`, `127.0.0.1`,
