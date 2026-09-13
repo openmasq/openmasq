@@ -36,7 +36,10 @@ export function argsPreview(args: unknown, max = 220): string {
 
 /** One keypress from a raw-mode TTY, or "" on timeout. Takes stdin over for the wait: the
  *  runtime keys (`l`, `m`, …) must not eat the answer, and the answer must not turn a dial. */
-function readKeyFrom(stdin: NodeJS.ReadStream, timeoutMs: number): Promise<string> {
+/** Exported because the masking gate asks the SAME question on the same terminal
+ *  (`../console/maskingGate.ts`): one keystroke, and a timeout that refuses. Two readers
+ *  fighting over stdin is exactly what this function's listener juggling exists to avoid. */
+export function readKeyFrom(stdin: NodeJS.ReadStream, timeoutMs: number): Promise<string> {
   return new Promise((resolve) => {
     const others = stdin.listeners("data") as ((chunk: string) => void)[];
     for (const l of others) stdin.off("data", l);
