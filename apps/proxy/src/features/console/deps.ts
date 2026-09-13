@@ -32,6 +32,17 @@ export interface BuildConsoleDeps {
   servers?: string[];
 }
 
+/** Each connected server's level, keyed by id. `servers` carries display strings
+ *  (`notion (strict, ours)`), so the id is the part before the parenthesis. */
+function levelsOf(d: BuildConsoleDeps): Record<string, { level: string; own: boolean }> {
+  const out: Record<string, { level: string; own: boolean }> = {};
+  for (const entry of d.servers ?? []) {
+    const id = entry.split(" (")[0] ?? entry;
+    out[id] = { level: d.maskers.levelOf(id), own: d.policy[id]?.level !== undefined };
+  }
+  return out;
+}
+
 export function buildConsoleDeps(d: BuildConsoleDeps): ConsoleRouteDeps {
   return {
     bus: d.bus,
@@ -43,7 +54,12 @@ export function buildConsoleDeps(d: BuildConsoleDeps): ConsoleRouteDeps {
     startedAt: d.startedAt,
     config: d.config,
     ...(d.config.mcp && d.servers
-      ? { mcp: { servers: d.servers, writes: d.config.mcpWrites } }
+      ? {
+          mcp: { servers: d.servers, writes: d.config.mcpWrites },
+          // A FUNCTION, not a snapshot: the `l` key and the page itself both move a level
+          // while a page is open, and a value captured at start would age.
+          mcpLevels: () => levelsOf(d),
+        }
       : {}),
     ...(d.interactive
       ? {

@@ -95,6 +95,19 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
    is the right thing to say to a screen reader and says nothing at all to a mouse: the cards
    read as radios and the rows as switches, so a click that did nothing read as a broken page
    rather than the deliberate boundary it is. Cursor + muted switch + one banner, once. */
+/* The per-connector level selector — the kit's shape. `ro` is the read-only run: the state
+   is still shown, because knowing what a connector masks matters whether or not you can
+   change it here, but nothing reads as pressable. */
+.lvsel{display:flex;gap:2px;padding:2px;border-radius:8px;background:var(--surface-sunken);flex-shrink:0}
+.srv-r.up .lvsel{background:color-mix(in oklab,var(--text-strong) 6%,transparent)}
+.lvsel button{height:21px;padding:0 7px;border-radius:6px;font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);cursor:pointer}
+.lvsel button:hover:not(:disabled){color:var(--text-strong)}
+.lvsel button.on{background:var(--surface-card);color:var(--ink-on-blue)}
+.lvsel.ro button{cursor:default}
+.lvsel.ro button:not(.on){opacity:.5}
+.sh-toast{min-height:0;padding:0 16px;font-size:11.5px;line-height:1.5;color:var(--ink-on-blue);transition:min-height .15s}
+.sh-toast:not(:empty){min-height:28px;padding:7px 16px}
+.sh-toast.bad{color:var(--hl-red)}
 .ro-b{display:flex;align-items:flex-start;gap:9px;padding:9px 11px;margin-bottom:14px;
   border:1px solid var(--border-subtle);border-radius:10px;background:var(--surface-sunken);
   font-size:11.5px;line-height:1.45;color:var(--text-muted)}
@@ -527,6 +540,7 @@ tbody tr.sel td:first-child{box-shadow:inset 2px 0 0 var(--brand)}
     </div>
     <button class="iconbtn" id="sh-x" title="Close this panel (Esc)" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
   </div>
+  <div class="sh-toast" id="sh-toast"></div>
   <div class="sh-b" id="sh-b"></div>
 </aside>
 
@@ -1112,6 +1126,8 @@ function armReveal(on){
    where the operator is — a token in an URL is not an authorisation to lower it. So each
    panel carries the command that does it, and the switches are inert. */
 var RULES = [], MASKING = [], LEVEL = "", MODE = "", MCP = null, LEVELS = [], shTab = "tier", shOpen = false;
+/* Each connected server's level, and whether this run can change one at all. */
+var SRV_LVL = {}, CAN_SET = false;
 
 
 function tierBody(){
@@ -1183,6 +1199,53 @@ function ctile(name, tone, c){
 }
 /* The catalogue entry for a connected server id, so its live row wears the same mark. */
 function conOf(id){ return (CATALOG && CATALOG.connectors.filter(function(x){ return x.id === id; })[0]) || null; }
+/* A level PER connector. A single level is the wrong grain for a machine that serves a
+   filesystem read AND a web search, so the row that carries the server carries its level.
+   « Default » is the absence of an override, not a fourth level — it follows the run.
+
+   ⚠️ The buttons are live only when the run can act (`canSetMasking`: there has to be a
+   terminal to confirm a loosening on). Otherwise they render as the read-only state the rest
+   of this panel is in, and say where the change is made. */
+function lvSel(id){
+  var cur = SRV_LVL[id] || { level: LEVEL, own: false };
+  function b(lv, label, tip){
+    var on = lv === null ? !cur.own : (cur.own && cur.level === lv);
+    return '<button data-lv="' + esc(id) + ':' + (lv || "") + '"' + (CAN_SET ? "" : " disabled")
+      + ' class="' + (on ? "on" : "") + '" title="' + esc(tip) + '">' + label + '</button>';
+  }
+  var tail = CAN_SET
+    ? " Lowering it asks for a y on the terminal; raising it applies at once."
+    : " Read-only on this run: there is no terminal to confirm a change on.";
+  return '<span class="lvsel' + (CAN_SET ? "" : " ro") + '" role="group" aria-label="Masking level for ' + esc(id) + '">'
+    + b(null, "Default", "Follow the run's own level (" + LEVEL + ")." + tail)
+    + LEVELS.map(function(l){ return b(l.id, esc(l.label || l.id), (l.desc || l.id) + tail); }).join("")
+    + '</span>';
+}
+/* One request, one answer. The page does not guess the outcome: a loosening may sit waiting
+   for a keystroke on a terminal nobody is watching, and a picker that had already moved would
+   be claiming a protection level the proxy is not applying. */
+function setLevel(id, lv){
+  fetch("/console/masking/" + encodeURIComponent(id || "-") + location.search,
+        { method: "POST", headers: { "content-type": "application/json" },
+          body: JSON.stringify({ level: lv || null }) })
+    .then(function(r){ return r.json().then(function(j){ return { ok: r.ok, j: j }; }); })
+    .then(function(res){
+      if (res.ok) { SRV_LVL[id] = { level: lv || LEVEL, own: !!lv }; toast(id + " → " + (lv || "default")); }
+      else toast(res.j && res.j.why ? res.j.why : "refused", true);
+      if (shOpen) renderSheet();
+    })
+    .catch(function(){ toast("the proxy did not answer", true); });
+}
+/* A one-line answer under the panel header. Not an alert: the operator may be mid-keystroke
+   on the terminal, and a modal would steal the very focus the gate is waiting on. */
+function toast(text, bad){
+  var el = document.getElementById("sh-toast");
+  if (!el) return;
+  el.textContent = text;
+  el.className = "sh-toast" + (bad ? " bad" : "");
+  clearTimeout(toast._t);
+  toast._t = setTimeout(function(){ el.className = "sh-toast"; el.textContent = ""; }, 6000);
+}
 function mcpBody(){
   var h = RO_BANNER("This panel SHOWS the connectors. Connecting or removing one happens on the terminal \u2014 credentials never pass through this page.");
   /* What is LIVE on this run, if anything. */
@@ -1193,6 +1256,7 @@ function mcpBody(){
       var id = s.split(" (")[0];
       h += '<div class="srv-r up" title="' + esc(id + " is connected through openmasq on this run. Its tool results are masked on the way to the model and restored on the way back, and its credential stays on this machine.") + '">' + ctile(id, toneOf(id), conOf(id)) +
         '<span class="id"><b>' + esc(s) + "</b><em>values masked on the way out, restored on the way back</em></span>" +
+        lvSel(id) +
         '<span class="st2"><i></i>connected</span></div>';
     });
     h += "</div>";
@@ -1257,6 +1321,12 @@ document.getElementById("sh-x").addEventListener("click", closeSheet);
 document.getElementById("scrim").addEventListener("click", closeSheet);
 document.getElementById("t-tier").addEventListener("click", function(){ setShTab("tier"); });
 document.getElementById("t-mcp").addEventListener("click", function(){ setShTab("mcp"); });
+document.getElementById("sh-b").addEventListener("click", function(e){
+  var b = e.target.closest("[data-lv]");
+  if (!b || b.disabled) return;
+  var p = b.getAttribute("data-lv").split(":");
+  setLevel(p[0], p[1]);
+});
 document.addEventListener("keydown", function(e){ if (e.key === "Escape" && shOpen) closeSheet(); });
 
 /* ---------- timeline (design-system `cli-logs` kit) ----------
@@ -1372,6 +1442,7 @@ stream.addEventListener("hello", function(m){
   RULES = d.rules || []; MASKING = d.masking || []; LEVELS = d.levels || [];
   LEVEL = d.level || ""; MODE = d.mode || ""; MCP = d.mcp || null; CATALOG = d.catalog || null;
   SIDE = d.side || null; renderKey();
+  SRV_LVL = d.levelsByServer || {}; CAN_SET = !!d.canSetMasking;
   set("tier-lb", LEVEL || "Masking");
   set("mcp-lb", MCP && MCP.servers.length ? ("MCP · " + MCP.servers.length) : "MCP");
   if (shOpen) renderSheet();

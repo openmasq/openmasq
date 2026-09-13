@@ -32,6 +32,9 @@ export interface ConsoleRouteDeps {
   config: Pick<ProxyConfig, "level" | "mode" | "disabledKinds">;
   /** `--mcp`: what the agent's tools go through. Absent ⇒ the panel says so. */
   mcp?: { servers: string[]; writes: string };
+  /** Each server's level RIGHT NOW, read at connect time — a level moves while a page is
+   *  open, and `own` is what tells an override apart from the run's default. */
+  mcpLevels?: () => Record<string, { level: string; own: boolean }>;
   /**
    * Apply a masking change the page asked for. ABSENT ⇒ the panel stays read-only and the
    * route answers 404 like any other unknown path — which is the honest default: a run
@@ -181,6 +184,10 @@ export default function consoleRouter(deps: ConsoleRouteDeps): Router {
         };
       }),
       ...(deps.mcp ? { mcp: deps.mcp } : {}),
+      ...(deps.mcpLevels ? { levelsByServer: deps.mcpLevels() } : {}),
+      // The page renders a LIVE picker only when this run can act on it — there has to be a
+      // terminal to confirm a loosening on. Otherwise the state still shows, read-only.
+      canSetMasking: !!deps.applyMasking,
       reveal: deps.bus.reveal,
       version: deps.version,
       pid: process.pid,
