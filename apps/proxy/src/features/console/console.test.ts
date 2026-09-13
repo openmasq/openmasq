@@ -83,7 +83,9 @@ describe("the console endpoint", () => {
     const html = await (await fetch(`${url}?t=${TOKEN}`)).text();
     // Several wrapped clients share one proxy (`lib/attach.ts`), each on its own `/s/<id>`
     // prefix and its own vault — telling them apart is what the column is for.
-    expect(html).toContain('<th class="c-ses">Session</th>');
+    // Matched on the class and the label rather than the whole tag: every header carries a
+    // `title` now, and pinning the exact markup made a tooltip look like a lost column.
+    expect(html).toMatch(/<th class="c-ses"[^>]*>Session<\/th>/);
     expect(html).toContain("function sesTag(");
   });
 

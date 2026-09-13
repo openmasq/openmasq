@@ -13,7 +13,12 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./styles.css": "./src/styles.css"
+    "./styles.css": "./src/styles.css",
+    "./tooltip": {
+      "source": "./src/components/brand/tooltipPlacement.ts",
+      "types": "./dist/tooltip.d.ts",
+      "import": "./dist/tooltip.js"
+    }
   },
   "scripts": {
     "build": "tsup",

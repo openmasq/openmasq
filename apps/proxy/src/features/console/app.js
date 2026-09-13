@@ -24,11 +24,31 @@ var openmasqConsole = (() => {
   // src/features/console/page/main.ts
   var main_exports = {};
   __export(main_exports, {
+    createMaskingWatch: () => createMaskingWatch,
     exportDocument: () => exportDocument,
     exportFilename: () => exportFilename,
     exportableEvent: () => exportableEvent,
     mayReveal: () => mayReveal
   });
+
+  // src/features/console/page/poll.ts
+  function maskingSignature(h) {
+    if (!h) return "";
+    return [h.level ?? "", h.mode ?? "", h.ner === false ? "0" : "1", (h.masking ?? []).join(",")].join(
+      "|"
+    );
+  }
+  function createMaskingWatch() {
+    let last;
+    return {
+      changed(h) {
+        const next = maskingSignature(h);
+        if (last === next) return false;
+        last = next;
+        return true;
+      }
+    };
+  }
 
   // src/features/console/page/reveal.ts
   var mayReveal = (sent, shown) => sent === true && shown === true;
@@ -48,5 +68,117 @@ var openmasqConsole = (() => {
     };
   }
   var exportFilename = (now = /* @__PURE__ */ new Date()) => `openmasq-journal-${now.toISOString().slice(0, 19).replace(/[:T]/g, "-")}.json`;
+
+  // ../../packages/ui/src/components/brand/tooltipPlacement.ts
+  var GAP = 8;
+  var MARGIN = 8;
+  function placeTooltip(trigger, bubble, viewport, obstacle) {
+    const below = viewport.height - (trigger.top + trigger.height) - GAP - MARGIN;
+    const above = trigger.top - GAP - MARGIN;
+    let flip = below < bubble.height && above > below;
+    const centred = trigger.left + trigger.width / 2 - bubble.width / 2;
+    const left = Math.max(MARGIN, Math.min(centred, viewport.width - bubble.width - MARGIN));
+    const belowTop = trigger.top + trigger.height + GAP;
+    const aboveTop = trigger.top - GAP - bubble.height;
+    const hidden = (top) => !!obstacle && left < obstacle.left + obstacle.width && left + bubble.width > obstacle.left && top < obstacle.top + obstacle.height && top + bubble.height > obstacle.top;
+    if (flip && hidden(aboveTop) && !hidden(belowTop)) flip = false;
+    else if (!flip && hidden(belowTop) && !hidden(aboveTop)) flip = true;
+    return { left, top: flip ? aboveTop : belowTop, above: flip };
+  }
+  function tooltipLabelOf(el) {
+    if (el.getAttribute("data-tip") === "off") return null;
+    const label = el.getAttribute("title")?.trim();
+    return label ? label : null;
+  }
+
+  // src/features/console/page/tooltip.ts
+  var OPEN_DELAY_MS = 400;
+  function mountTooltips(doc = document) {
+    const bubble = doc.createElement("div");
+    bubble.className = "tip";
+    bubble.setAttribute("role", "tooltip");
+    bubble.hidden = true;
+    doc.body.appendChild(bubble);
+    let timer;
+    let stripped = null;
+    const restore = () => {
+      if (stripped) stripped.el.setAttribute("title", stripped.title);
+      stripped = null;
+    };
+    const hide = () => {
+      if (timer) clearTimeout(timer);
+      timer = void 0;
+      bubble.hidden = true;
+      restore();
+    };
+    const show = (el, label) => {
+      stripped = { el, title: label };
+      el.removeAttribute("title");
+      bubble.textContent = label;
+      bubble.hidden = false;
+      const r = el.getBoundingClientRect();
+      const b = bubble.getBoundingClientRect();
+      const at = placeTooltip(
+        { top: r.top, left: r.left, width: r.width, height: r.height },
+        { width: b.width, height: b.height },
+        { width: doc.documentElement.clientWidth, height: doc.documentElement.clientHeight }
+      );
+      bubble.style.top = `${at.top}px`;
+      bubble.style.left = `${at.left}px`;
+      bubble.classList.toggle("above", at.above);
+    };
+    const labelled = (target) => {
+      let el = target instanceof Element ? target : null;
+      while (el) {
+        const label = tooltipLabelOf(el);
+        if (label) return { el, label };
+        el = el.parentElement;
+      }
+      return null;
+    };
+    const arm = (target) => {
+      const found = labelled(target);
+      if (!found) {
+        hide();
+        return;
+      }
+      if (stripped?.el === found.el) return;
+      hide();
+      timer = setTimeout(() => show(found.el, found.label), OPEN_DELAY_MS);
+    };
+    const onOver = (e) => arm(e.target);
+    const onFocus = (e) => {
+      const found = labelled(e.target);
+      if (found) {
+        hide();
+        show(found.el, found.label);
+      }
+    };
+    const onOut = () => hide();
+    const onGone = () => hide();
+    doc.addEventListener("mouseover", onOver, true);
+    doc.addEventListener("mouseout", onOut, true);
+    doc.addEventListener("focusin", onFocus, true);
+    doc.addEventListener("focusout", onOut, true);
+    doc.addEventListener("keydown", onGone, true);
+    doc.addEventListener("click", onGone, true);
+    doc.addEventListener("scroll", onGone, true);
+    return {
+      stop() {
+        hide();
+        doc.removeEventListener("mouseover", onOver, true);
+        doc.removeEventListener("mouseout", onOut, true);
+        doc.removeEventListener("focusin", onFocus, true);
+        doc.removeEventListener("focusout", onOut, true);
+        doc.removeEventListener("keydown", onGone, true);
+        doc.removeEventListener("click", onGone, true);
+        doc.removeEventListener("scroll", onGone, true);
+        bubble.remove();
+      }
+    };
+  }
+
+  // src/features/console/page/main.ts
+  if (typeof document !== "undefined") mountTooltips();
   return __toCommonJS(main_exports);
 })();

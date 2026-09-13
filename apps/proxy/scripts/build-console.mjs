@@ -53,6 +53,9 @@ async function bundle() {
     globalName: "openmasqConsole",
     target: "es2020",
     platform: "browser",
+    // `source` first: `@openmasq/ui/tooltip` then resolves to that package's TypeScript
+    // rather than its `dist`, so this bundle depends on sources alone and no build order.
+    conditions: ["source", "import", "default"],
     write: false,
     legalComments: "none",
   });
