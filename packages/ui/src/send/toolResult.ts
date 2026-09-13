@@ -9,7 +9,6 @@ import {
 } from "@openmasq/redact";
 import { remoteRedact, remoteContractDowngrade, DEFAULT_REDACT_FN_URL } from "@openmasq/redact/remote";
 import { redactNumbersOn } from "./redactNumbers";
-import { findConnector } from "@openmasq/catalog/mcp";
 import { isBrowserTool, isWebBrowseTool } from "../state/browserPolicy";
 import { disabledKindsForTool } from "./toolMasking";
 import { toolResultKeep } from "./toolResultKeep";
