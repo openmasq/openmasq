@@ -170,7 +170,17 @@ export interface LeavesMessages {
     statsOn: string;
     statsOff: string;
   };
-  privacyLevels: { custom: string; customNote: string };
+  privacyLevels: {
+    custom: string;
+    customNote: string;
+    /** A connector masked at its own level (`components/MaskLevelPicker.tsx`). */
+    perConnector: {
+      label: string;
+      /** The first option: not a fourth level, the ABSENCE of an override. */
+      followsDefault: string;
+      followsDefaultHint: (globalLevel: string) => string;
+    };
+  };
   demo: { youWrite: string; modelReceives: string };
   toolTrace: string;
   conversations: string;
@@ -184,8 +194,18 @@ export interface LeavesMessages {
   resize: string;
   loading: string;
   errorBoundary: { title: string; body: string; reload: string; retry: string };
-  code: { csvTable: string; rowsCols: (rows: number, cols: number) => string; lines: (count: number) => string };
-  document: { saveFailed: string; shortcuts: string; seeAll: string; editorAria: string; seePrompt: string };
+  code: {
+    csvTable: string;
+    rowsCols: (rows: number, cols: number) => string;
+    lines: (count: number) => string;
+  };
+  document: {
+    saveFailed: string;
+    shortcuts: string;
+    seeAll: string;
+    editorAria: string;
+    seePrompt: string;
+  };
   openInPanel: (name: string) => string;
   loadingImage: (name: string) => string;
   openImage: (name: string) => string;

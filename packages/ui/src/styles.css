@@ -40,6 +40,7 @@
 @import "./styles/emptyState.css";
 @import "./styles/statusChip.css";
 @import "./styles/redactLevel.css";
+@import "./styles/maskLevel.css";
 @import "./styles/guide.css";
 @import "./styles/hueSelect.css";
 @import "./styles/tooltip.css";
