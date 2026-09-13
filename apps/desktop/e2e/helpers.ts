@@ -24,6 +24,9 @@ export async function launchApp(
     OPENMASQ_E2E: "1",
   };
   if (!opts.useDefaultProfile) env.OPENMASQ_USER_DATA_DIR = PROFILE_DIR;
+  // The BUILT tree only. The packaged binary cannot be driven from here at all: its
+  // `--inspect` fuse is off (afterPack.cjs) and Playwright needs it. `scripts/smoke-packaged.ts`
+  // checks that one by reading its stdout instead.
   const app = await electron.launch({ args: [DESKTOP_DIR], cwd: DESKTOP_DIR, env });
   // The main process writes its own diagnosis (a failed renderer load, an IPC handler
   // throwing at registration) to stderr, and a spec that does not forward it debugs blind:

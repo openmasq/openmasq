@@ -30,6 +30,7 @@ import { createHash } from "node:crypto";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { NER_MODEL_ID, NER_UPSTREAM, NER_WEIGHTS_SHA256 } from "../src/main/ner/model";
+import { fetchBytes } from "./fetchRetry";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const OUT = join(HERE, "..", "build", "ner-models", ...NER_MODEL_ID.split("/"));
@@ -54,12 +55,6 @@ function sourceOf(rel: string): { kind: "file" | "url"; at: string } {
   return { kind: "url", at: `https://huggingface.co/${repo}/resolve/${revision}/${rel}` };
 }
 
-async function fetchBytes(url: string): Promise<Uint8Array> {
-  const res = await fetch(url, { redirect: "follow" });
-  if (!res.ok) throw new Error(`HTTP ${res.status} for ${url}`);
-  return new Uint8Array(await res.arrayBuffer());
-}
-
 async function main(): Promise<void> {
   for (const [rel, want] of Object.entries(NER_WEIGHTS_SHA256)) {
     const dest = join(OUT, ...rel.split("/"));
@@ -70,7 +65,7 @@ async function main(): Promise<void> {
     const src = sourceOf(rel);
     const bytes =
       src.kind === "url"
-        ? await fetchBytes(src.at).catch((e: Error) => {
+        ? await fetchBytes(src.at, { log }).catch((e: Error) => {
             throw new Error(`${rel}: cannot fetch from ${src.at} — ${e.message}`);
           })
         : new Uint8Array(

@@ -63,3 +63,37 @@ if (hits.length) {
   process.exit(1);
 }
 console.log("✓ bundle main/preload sans mine de pair optionnel");
+
+// ── Seconde porte : `path/posix` dans le processus principal ────────────────────
+// La classe de bug : `posix.join` ignore que « \\ » sépare, donc sous Windows il lit
+// un `__dirname` absolu comme UN seul segment et « .. » l'efface entièrement.
+// `join(__dirname, "../renderer/index.html")` a rendu le relatif
+// `renderer/index.html` : préchargement refusé (« must have absolute path »),
+// ERR_FILE_NOT_FOUND, fenêtre vide. Sur macOS les deux implémentations coïncident,
+// donc RIEN ne se voit avant le premier lancement Windows — comme les mines ci-dessus.
+// Le require survit à la minification (un minifieur ne réécrit pas une chaîne).
+const posixHits = [];
+for (const dir of SCAN) {
+  for (const file of jsFiles(dir)) {
+    const text = readFileSync(file, "utf8");
+    for (const sig of ['require("path/posix")', 'require("node:path/posix")', '"path/posix"']) {
+      if (text.includes(sig)) {
+        posixHits.push({ file: file.slice(root.length + 1), sig });
+        break;
+      }
+    }
+  }
+}
+
+if (posixHits.length) {
+  console.error("\n✗ `path/posix` dans le bundle du processus principal :");
+  for (const h of posixHits) console.error(`    ${h.file}  (${h.sig})`);
+  console.error(
+    "\n  Un chemin de FICHIER se joint avec `node:path`. `path/posix` ne convient qu'aux" +
+      "\n  chemins déjà en « / » et jamais absolus sous Windows (URL, clé d'archive, ASAR)." +
+      "\n  Cette porte existe parce que le cas s'est produit : `src/main/window.ts`," +
+      "\n  13/09/2026, fenêtre vide sous Windows uniquement.\n",
+  );
+  process.exit(1);
+}
+console.log("✓ bundle main/preload sans `path/posix`");

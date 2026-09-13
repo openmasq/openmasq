@@ -37,7 +37,8 @@
     "drive": "tsx e2e/journey/driver/client.ts",
     "bake:vcruntime": "tsx scripts/bake-vcruntime.ts",
     "bake:runtimes": "tsx scripts/bake-runtimes.ts",
-    "print:triples": "tsx scripts/print-shipped-triples.ts"
+    "print:triples": "tsx scripts/print-shipped-triples.ts",
+    "smoke:packaged": "tsx scripts/smoke-packaged.ts"
   },
   "dependencies": {
     "@huggingface/transformers": "^4.2.0",

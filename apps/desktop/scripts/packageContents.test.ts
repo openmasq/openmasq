@@ -55,6 +55,22 @@ describe("findPackagingViolations", () => {
   });
 });
 
+describe("les séparateurs Windows", () => {
+  // ⚠️ La régression du 13/09/2026 : sous Windows le listeur rend `\\out\\renderer\\index.html`.
+  // `rootOf` ne découpait que sur « / », donc le chemin ENTIER devenait la première
+  // composante, aucune racine ne correspondait, et l'empaquetage refusait les ~900 entrées
+  // d'une app parfaitement saine. La porte échoue fermée : elle a bloqué, pas laissé passer.
+  it("accepte un arbre sain listé avec des antislashs", () => {
+    const sain = SAIN.map((e) => e.replace(/\//g, "\\"));
+    expect(findPackagingViolations(sain)).toEqual([]);
+  });
+
+  it("refuse toujours ce qui est interdit, antislashs compris", () => {
+    expect(findPackagingViolations(["\\src\\main\\index.ts"])).toHaveLength(1);
+    expect(findPackagingViolations(["\\out\\main\\index.js.map"])).toHaveLength(1);
+  });
+});
+
 describe("assertPackagedContents", () => {
   it("ne dit rien sur une app saine", () => {
     expect(() => assertPackagedContents(SAIN)).not.toThrow();

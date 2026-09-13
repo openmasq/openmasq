@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test";
 import { launchApp } from "./helpers";
+import { watchMainStderr } from "./mainStderr";
 
 /**
  * The startup SMOKE test — the only check that catches EVERYTHING that kills the app on
@@ -32,8 +33,14 @@ test("l'app construite démarre : une fenêtre, du DOM, zéro erreur de chargeme
     errors.push(`requestfailed: ${r.url()} — ${r.failure()?.errorText ?? "?"}`);
   });
   // The MAIN process writes to the app's stdio, not to the page: an IPC handler throwing
-  // while registering shows up here and nowhere else.
-  app.process().stderr?.on("data", (b: Buffer) => errors.push(`main stderr: ${b.toString().trim()}`));
+  // while registering shows up here and nowhere else — but stderr is a SHARED console.
+  // Chromium, Node's inspector and the app all write to it, and most of what lands there
+  // is not a failure. Deny-by-default here failed the Windows leg on `[agent] spawning
+  // (pipe): …`, a trace of a healthy spawn, while the app was fine. So the split below:
+  // the PAGE channels stay deny-by-default (a `pageerror` is always a bug), and main
+  // stderr fails only on signatures that mean the process is broken. Everything else is
+  // KEPT and printed when something else fails — the diagnosis is the whole value of it.
+  const main = watchMainStderr(app);
 
   try {
     await expect(page.locator("#root")).toBeAttached();
@@ -102,10 +109,15 @@ test("l'app construite démarre : une fenêtre, du DOM, zéro erreur de chargeme
         `preload: ${preload}\n` +
         `errors captured (${errors.length}):\n` +
         (errors.length ? errors.map((e) => `  · ${e}`).join("\n") : "  (none — the page loaded and simply never mounted)") +
+        `\n${main.report()}` +
         `\n\nfirst 600 chars of the document:\n${html}`,
     );
   }
 
-  expect(errors, `the app mounted but reported errors:\n${errors.join("\n")}`).toEqual([]);
+  const reported = [...errors, ...main.fatal().map((l) => `main stderr (fatal): ${l}`)];
+  expect(
+    reported,
+    `the app mounted but reported errors:\n${reported.join("\n")}\n\n${main.report()}`,
+  ).toEqual([]);
   await app.close();
 });

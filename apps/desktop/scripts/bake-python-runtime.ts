@@ -42,6 +42,7 @@ import {
 } from "../src/main/python/runtimeSpec";
 import { archOfTriple } from "../src/main/python/binaryArch";
 import { assertArch, installWheels } from "./crossInstall";
+import { fetchWithRetry } from "./fetchRetry";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const DESKTOP = join(HERE, "..");
@@ -67,8 +68,8 @@ function run(cmd: string, args: string[], cwd?: string): void {
 
 /** Stream-download `url` to `dest`, returning the sha256 of the bytes written. */
 async function download(url: string, dest: string): Promise<string> {
-  const res = await fetch(url);
-  if (!res.ok || !res.body) throw new Error(`download failed (${res.status}): ${url}`);
+  const res = await fetchWithRetry(url, undefined, { log });
+  if (!res.body) throw new Error(`download failed (no body): ${url}`);
   const out = createWriteStream(dest);
   const hash = createHash("sha256");
   for await (const chunk of Readable.fromWeb(res.body as Parameters<typeof Readable.fromWeb>[0])) {

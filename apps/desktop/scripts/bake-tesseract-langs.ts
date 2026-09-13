@@ -17,6 +17,7 @@ import { createHash } from "node:crypto";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { OCR_LANGS, OCR_TRAINEDDATA_SHA256 } from "@openmasq/redact/documents";
+import { fetchBytes } from "./fetchRetry";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const OUT = join(HERE, "..", "build", "tesseract-langs");
@@ -51,9 +52,9 @@ async function main(): Promise<void> {
     }
     const url = `${BASE}/${lang}.traineddata`;
     log(`downloading ${lang} ← ${url}`);
-    const res = await fetch(url, { redirect: "follow" });
-    if (!res.ok) throw new Error(`${lang}: HTTP ${res.status} fetching ${url}`);
-    const bytes = new Uint8Array(await res.arrayBuffer());
+    const bytes = await fetchBytes(url, { log }).catch((e: Error) => {
+      throw new Error(`${lang}: ${e.message}`);
+    });
     const got = sha256(bytes);
     if (got !== want) {
       throw new Error(`${lang}: integrity check FAILED (expected ${want}, got ${got}). Refusing to bake.`);

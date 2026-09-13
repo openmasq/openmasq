@@ -248,22 +248,24 @@ jobs:
           # build time: it would show up on the machine left without its interpreter.
           - os: macos-latest
             platform: mac
-          # ⛔ WINDOWS PAUSED (14/08/2026) — as long as the Windows app isn't ready, we don't
-          # pay for its build. A `windows-latest` runner is billed ×2 and the leg runs
-          # ~25 min, i.e. ~50 min-eq per release, for a binary nobody installs
-          # yet. The CODE stays intact (electron-builder `win:`, the sandbox, the
-          # runtime triples): only the matrix line is dropped.
+          # ✅ WINDOWS BACK ON (13/09/2026). It was paused on 14/08 because the app was not
+          # ready and a `windows-latest` runner is billed ×2 for ~25 min — ~50 min-eq per
+          # release for a binary nobody installed. It is ready now: the
+          # `release-windows.yml` preflight is green end to end, including the questions no
+          # mac can settle (MAX_PATH, the AppContainer jail, the binary starting up, and the
+          # PACKAGED binary starting up), and Authenticode signing is wired through Azure
+          # Trusted Signing.
           #
-          # TO TURN IT BACK ON: uncomment the two lines below, and nothing else.
-          #   - os: windows-latest
-          #     platform: win
+          # ⚠️ What that preflight had to fix first, so nobody re-learns it: `path/posix`
+          # deleted the absolute `__dirname` and the app opened an EMPTY window (guarded now
+          # by `check-bundle.mjs`); the asar contents gate read every `\`-separated entry as
+          # an illegal root; the bake died on a bare HTTP 429. All three were invisible from
+          # a mac. Rerun the preflight before trusting a change to any of them.
           #
-          # ⚠️ What awaits it upon waking, already fixed so it doesn't fall again: the
-          # Windows git-bash does NOT have `shasum` (the Python runtime upload step
-          # died there on 0.7.0) — the checksum is now computed with whichever of the two
-          # tools exists. And the `release-windows.yml` preflight answers the questions
-          # no mac can settle (MAX_PATH, the sandbox, the binary starting up):
-          # rerun it BEFORE putting this line back.
+          # ⚠️ Also already fixed: the Windows git-bash has no `shasum` (the Python runtime
+          # upload died there on 0.7.0) — the checksum now uses whichever tool exists.
+          - os: windows-latest
+            platform: win
     runs-on: ${{ matrix.os }}
     # Backstop: a hung build (a stuck notarization / frozen electron-builder) is KILLED at
     # 120 min instead of burning to GitHub's 6 h default - so a wedged run always stops.
