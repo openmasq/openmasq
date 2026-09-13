@@ -75,6 +75,15 @@ pas bloquée). Gardez la section la plus récente **en haut**.
 
 ---
 
+## 0.10.1 — 2026-09-13
+> OpenMasq arrive sur Windows.
+
+### Nouveautés
+- **Windows** — l'application s'installe, démarre et se met à jour sur Windows, signée avec un certificat de l'éditeur.
+
+### Améliorations & corrections
+- Une fenêtre qui ne parvient pas à charger dit désormais pourquoi, au lieu de rester vide.
+
 ## 0.10.0 — 2026-09-08
 > Le masquage voit plus de choses : les dates, les tableaux collés, et les identifiants qui n'ont l'air de rien.
 
