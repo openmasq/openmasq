@@ -1,6 +1,6 @@
 # Release notes
 
-<sub>**English** · [Français](#notes-de-version) · [openmasq.com](https://openmasq.com)</sub>
+<sub>[How to write one](#release-notes) · [Notes](#notes) · [openmasq.com](https://openmasq.com)</sub>
 
 This file feeds the **release announcement e-mail**. On every **production** release (a
 `v*` tag), the CI of the private `infra` repository reads the published version's section,
@@ -8,10 +8,11 @@ renders it as an e-mail and creates a **draft Resend broadcast** — re-read the
 from the Resend dashboard (Resend handles the audience + unsubscribes). The renderer, the
 parser and that workflow all live there; this repository only holds the source text.
 
-⚠️ **The notes themselves are written in FRENCH, on purpose**: they are the copy users
-receive, and the product speaks French. Everything else in this repository is English (see
-`CONTRIBUTING.md`) — this file and `evals-reports/README.md` are the exceptions, the first
-because its content is not documentation but a message to customers.
+**The notes are written in ENGLISH** (since 13/09/2026 — the product leads in English, and
+so does this repository; see `CONTRIBUTING.md`). Sections published BEFORE that date stay in
+the French they were sent in: they are not documentation to be kept current, they are copy
+customers already received, and Contentful serves each one back as it was. Translating them
+now would make the repository disagree with the mail in someone's inbox.
 
 **Per-version format — the parser (in the `infra` repository) depends on it:**
 
@@ -19,10 +20,16 @@ because its content is not documentation but a message to customers.
   the string CI looks up (an absent section is the no-op stated below, never a broken
   release);
 - a quoted lead line `> …` (the teaser under the title);
-- a `### Nouveautés` list of `- **Title** — description` bullets (the highlighted features,
+- a `### What's new` list of `- **Title** — description` bullets (the highlighted features,
   rendered with a tick) — **3 at most, one line each**;
-- an `### Améliorations & corrections` list of `- …` bullets (rendered with a purple bullet)
+- an `### Improvements & fixes` list of `- …` bullets (rendered with a purple bullet)
   — **6 at most, one line each**.
+
+⚠️ Those two headings are a CONTRACT with the parser in the private `infra` repository
+(`packages/emails/scripts/parseReleaseNotes.ts`), which matches `/nouveaut|what'?s new/i` and
+`/am[ée]lior|improvement|fixes/i`. It accepts both languages so the older sections keep
+rendering. A heading it does not recognise raises nothing: it sends a note with no features
+and no fixes, with no error anywhere. Rename one of them here and there, or not at all.
 
 ⚠️ Both sections are read AS BULLETS. Prose stays accepted for already-published notes —
 Contentful serves a past note as a single markdown block — but a section that carries bullets
@@ -36,53 +43,21 @@ A version with no section here ⇒ CI sends nothing (a no-op; the release is not
 the most recent section **at the top**.
 
 
-# Notes de version
+# Notes
 
-**Les notes elles-mêmes restent en FRANÇAIS et ne sont pas traduites** : ce ne sont pas de la
-documentation, c'est la copie que les clients reçoivent, et l'analyseur du dépôt `infra` lit
-les intitulés `## <version> — <AAAA-MM-JJ>`, `### Nouveautés` et
-`### Améliorations & corrections` tels quels. Ce qui suit traduit donc le mode d'emploi
-ci-dessus, à l'intention de qui écrit une note.
-
-Ce fichier alimente l'**e-mail d'annonce de version**. À chaque version de **production** (un
-tag `v*`), la CI du dépôt privé `infra` lit la section de la version publiée, la rend en
-e-mail et crée un **brouillon de broadcast Resend** — relu puis envoyé à la main depuis le
-tableau de bord Resend (Resend tient l'audience et les désabonnements). Le rendu, l'analyseur
-et ce workflow vivent là-bas ; ce dépôt-ci ne détient que le texte source.
-
-**Le format par version — l'analyseur (dans le dépôt `infra`) en dépend :**
-
-- un intitulé `## <version> — <AAAA-MM-JJ>`, portant la version publiée — c'est la chaîne que
-  la CI cherche (une section absente est le non-événement énoncé plus bas, jamais une
-  publication cassée) ;
-- une ligne d'accroche citée `> …` (le teaser sous le titre) ;
-- une liste `### Nouveautés` de puces `- **Titre** — description` (les fonctionnalités mises
-  en avant, rendues avec une coche) — **3 au maximum, une ligne chacune** ;
-- une liste `### Améliorations & corrections` de puces `- …` (rendues avec une puce violette)
-  — **6 au maximum, une ligne chacune**.
-
-⚠️ Les deux sections sont lues COMME DES PUCES. La prose reste acceptée pour les notes déjà
-publiées — Contentful sert une note passée comme un seul bloc markdown — mais une section qui
-porte des puces rend ses puces et rien d'autre.
-
-Le budget n'est pas une préférence de style : une note se lit en trente secondes ou elle ne se
-lit pas. Il est tenu des deux côtés — le schéma du générateur le plafonne (dans `infra`) et
-l'étape 3 de la compétence `release-version` dit la même chose, avec un test qui vérifie que
-les deux s'accordent.
-
-Une version sans section ici ⇒ la CI n'envoie rien (un non-événement ; la publication n'est
-pas bloquée). Gardez la section la plus récente **en haut**.
+Newest at the top. Everything from 0.10.1 onwards is in English; the sections below it are
+kept in the French they were sent in, for the reason given above.
 
 ---
 
 ## 0.10.1 — 2026-09-13
-> OpenMasq arrive sur Windows.
+> OpenMasq comes to Windows.
 
-### Nouveautés
-- **Windows** — l'application s'installe, démarre et se met à jour sur Windows, signée avec un certificat de l'éditeur.
+### What's new
+- **Windows** — the app installs, starts and updates on Windows, signed with a publisher certificate.
 
-### Améliorations & corrections
-- Une fenêtre qui ne parvient pas à charger dit désormais pourquoi, au lieu de rester vide.
+### Improvements & fixes
+- A window that fails to load now says why, instead of staying blank.
 
 ## 0.10.0 — 2026-09-08
 > Le masquage voit plus de choses : les dates, les tableaux collés, et les identifiants qui n'ont l'air de rien.
