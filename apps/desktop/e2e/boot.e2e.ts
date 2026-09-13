@@ -46,6 +46,34 @@ test("l'app construite démarre : une fenêtre, du DOM, zéro erreur de chargeme
     // reason is an error code only the main process ever sees. Replay the same load with
     // `did-fail-load` attached: ERR_FILE_NOT_FOUND and ERR_BLOCKED_BY_CLIENT are the same
     // blank page here and completely different bugs.
+    // Is the BRIDGE there? `window.openmasq.env` is read seven times in the renderer
+    // bundle, and `Cannot read properties of undefined (reading 'env')` is exactly what a
+    // missing `window.openmasq` produces — i.e. a preload that never ran. Electron reports
+    // that on `preload-error`, which nothing was listening to.
+    const bridge = await page
+      .evaluate(() => ({
+        openmasq: typeof (globalThis as Record<string, unknown>).openmasq,
+        keys: Object.keys(globalThis).filter((k) => k.toLowerCase().includes("openmasq")),
+      }))
+      .then((r) => `window.openmasq is ${r.openmasq} · matching globals: ${JSON.stringify(r.keys)}`)
+      .catch((e: Error) => `could not evaluate in the page: ${e.message}`);
+    const preload = await app
+      .evaluate(async ({ BrowserWindow }) => {
+        const win = BrowserWindow.getAllWindows()[0];
+        if (!win) return "no window";
+        const path = win.webContents.getLastWebPreferences()?.preload ?? "(none declared)";
+        const caught = await new Promise<string>((done) => {
+          const t = setTimeout(() => done("no preload-error on reload"), 12_000);
+          win.webContents.once("preload-error", (_e, p, err) => {
+            clearTimeout(t);
+            done(`preload-error on ${p}: ${err?.message ?? err}`);
+          });
+          win.webContents.reload();
+        });
+        return `declared preload: ${path} · ${caught}`;
+      })
+      .catch((e: Error) => `could not ask main about the preload: ${e.message}`);
+
     const why = await app
       .evaluate(async ({ app: electronApp, BrowserWindow }) => {
         // No node builtins here: the main bundle is ESM, so `require` is not defined in
@@ -70,6 +98,8 @@ test("l'app construite démarre : une fenêtre, du DOM, zéro erreur de chargeme
       `${(failure as Error).message}\n\n` +
         `url: ${url}\n` +
         `why the navigation failed: ${why}\n` +
+        `bridge: ${bridge}\n` +
+        `preload: ${preload}\n` +
         `errors captured (${errors.length}):\n` +
         (errors.length ? errors.map((e) => `  · ${e}`).join("\n") : "  (none — the page loaded and simply never mounted)") +
         `\n\nfirst 600 chars of the document:\n${html}`,
