@@ -25,6 +25,13 @@ export async function launchApp(
   };
   if (!opts.useDefaultProfile) env.OPENMASQ_USER_DATA_DIR = PROFILE_DIR;
   const app = await electron.launch({ args: [DESKTOP_DIR], cwd: DESKTOP_DIR, env });
+  // The main process writes its own diagnosis (a failed renderer load, an IPC handler
+  // throwing at registration) to stderr, and a spec that does not forward it debugs blind:
+  // the Windows boot failure of 13/09 was a 120 s timeout on a selector until this existed.
+  app.process().stderr?.on("data", (b: Buffer) => {
+    const line = b.toString().trim();
+    if (line) console.error(`[main] ${line}`);
+  });
   const page = await app.firstWindow();
   await page.waitForLoadState("domcontentloaded");
   return { app, page };

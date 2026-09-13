@@ -132,7 +132,17 @@ export function createWindow(): void {
     mainWindow.webContents.openDevTools({ mode: "detach" });
     mainWindow.loadURL(devUrl);
   } else {
-    mainWindow.loadFile(join(__dirname, "../renderer/index.html"));
+    const indexHtml = join(__dirname, "../renderer/index.html");
+    // A navigation that fails leaves Chromium's own error page — a blank window with no
+    // message anywhere. The app then looks hung, and the only evidence (an error code) is
+    // held by a process nobody is listening to. Say it, once, on the one channel a packaged
+    // app still has. Found on Windows (13/09): the first load failed, an identical later
+    // load succeeded, and the whole diagnosis had to be rebuilt from the outside.
+    mainWindow.webContents.on("did-fail-load", (_e, code, desc, url, isMainFrame) => {
+      if (!isMainFrame || code === -3) return; // -3 = ERR_ABORTED: a superseded navigation
+      console.error(`[window] the renderer failed to load: ${code} ${desc} — ${url}`);
+    });
+    mainWindow.loadFile(indexHtml);
   }
 
   // Publish the window so the magic-link deep-link handlers can reach it.
