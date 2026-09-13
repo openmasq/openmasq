@@ -22,7 +22,9 @@ test("l'app construite démarre : une fenêtre, du DOM, zéro erreur de chargeme
   const { app, page } = await launchApp();
 
   const errors: string[] = [];
-  page.on("pageerror", (e) => errors.push(`pageerror: ${e.message}`));
+  // The STACK, not just the message: "Cannot read properties of undefined" names no file,
+  // and in a bundled renderer the file is the whole question.
+  page.on("pageerror", (e) => errors.push(`pageerror: ${e.message}\n      ${(e.stack ?? "(no stack)").split("\n").slice(0, 6).join("\n      ")}`));
   page.on("console", (m) => {
     if (m.type() === "error") errors.push(`console.error: ${m.text()}`);
   });
