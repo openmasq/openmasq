@@ -125,6 +125,21 @@ describe("the console bundle", () => {
     ).not.toThrow();
   });
 
+  /**
+   * ⚠️ The page must survive its own script not loading. A tab left open on a token the proxy
+   * no longer accepts asks for `app.js` and gets a 404, and one call at parse time used to
+   * throw before a single handler was attached — every control on the page went inert at
+   * once, for a reason nothing on screen explained. So nothing may reach into the bundle
+   * without going through the one guarded accessor.
+   */
+  it("touches the bundle only through the guard that tolerates its absence", () => {
+    const page = renderPage("tok3n");
+    const script = /<script>([\s\S]*?)<\/script>/.exec(page)?.[1] ?? "";
+    expect(script).toContain("var API = window.openmasqConsole || null;");
+    // …and nowhere else: every other use is `API.`, which is null-checked at its call sites.
+    expect(script.match(/window\.openmasqConsole/g)).toHaveLength(1);
+  });
+
   it("is what the page actually asks for, behind the token", () => {
     const page = renderPage("tok3n");
     expect(page).toContain('src="./app.js?t=tok3n"');

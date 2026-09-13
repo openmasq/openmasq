@@ -666,8 +666,10 @@ function renderKey(){
 /* The page's two other JSON views answer to the SAME rule as the download — the JSON tab and
    the copy button. They ask `page/reveal.ts` for it rather than re-testing the pair here. */
 function exportable(raw){
-  var api = window.openmasqConsole;
-  return api.exportableEvent(raw, api.mayReveal(canReveal, rev));
+  /* No API means the rule deciding who may see a real value is not here. It is NOT re-stated
+     inline as a fallback — one home (rule 9) — so the answer is the closed one: nothing. */
+  if (!API) return {};
+  return API.exportableEvent(raw, API.mayReveal(canReveal, rev));
 }
 function swipe(cat, txt){
   return '<span class="rd" style="background:'+cav(cat)+';color:'+cavOn(cat)+'">'+txt+'</span>';
@@ -965,18 +967,27 @@ document.getElementById("pass").addEventListener("click", function(){
    file — lives in `page/reveal.ts` now, typed and tested; what stays here is the DOM around
    it. `exportable()` is gone from this script on purpose: one home (rule 9). */
 document.getElementById("export").addEventListener("click", function(){
-  var api = window.openmasqConsole;
-  var doc = api.exportDocument(LOGS.slice().reverse().map(function(l){ return l._raw; }),
+  if (!API) return degraded();
+  var doc = API.exportDocument(LOGS.slice().reverse().map(function(l){ return l._raw; }),
                                { sent: canReveal, shown: rev });
   var a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([JSON.stringify(doc, null, 2)], { type: "application/json" }));
-  a.download = api.exportFilename();
+  a.download = API.exportFilename();
   a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
 });
 /* The level in force, read from the proxy itself every few seconds: the `l` key changes it
    while it runs, and this is the one fact a reader needs before trusting a row — at
    `standard` no name or company is ever looked for. */
-var SHEET_WATCH = window.openmasqConsole.createMaskingWatch();
+/* The page's decisions live in `app.js` (`page/`). If it did NOT load — a tab left open on a
+   token the proxy no longer accepts, a blocked request, a half-deployed pair — the page must
+   DEGRADE, never die. It used to die: one call at parse time threw before a single handler
+   was attached, so every control on the page went inert at once and the log looked frozen
+   for a reason nothing on screen explained. A missing asset may cost a feature; it may not
+   cost the page. */
+var API = window.openmasqConsole || null;
+/* Without it, redraw on every poll — what the page did before the watch existed. Worse, and
+   correct. */
+var SHEET_WATCH = API ? API.createMaskingWatch() : { changed: function(){ return true; } };
 function levelTile(h){
   var lvl = h.level || "—", note;
   if (lvl === "standard") note = "Patterns only: emails, phones, IBANs, keys. Names, companies, places and handles go through in clear.";
@@ -999,6 +1010,14 @@ function pollLevel(){
   fetch("/healthz", { cache: "no-store" }).then(function(r){ return r.json(); }).then(levelTile).catch(function(){});
 }
 pollLevel(); setInterval(pollLevel, 5000);
+/* Said out loud, in the page. A console whose own script did not load is still a console —
+   it just cannot do a few things — and the reader has to be told which state they are in
+   rather than left wondering why a button is quiet. */
+function degraded(){
+  var f = document.getElementById("f-ver");
+  if (f) f.textContent = "reload this page — its script did not load";
+}
+if (!API) degraded();
 /* Theme: light by default, remembered. Never touch keys this page did not write. */
 (function(){
   var K="openmasq-cli-theme", btn=document.getElementById("theme");
