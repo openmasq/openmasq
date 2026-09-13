@@ -20,7 +20,7 @@
  *
  *   pnpm exec tsx scripts/smoke-packaged.ts <exe> [args…]
  */
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { existsSync, mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -59,18 +59,22 @@ function finish(code: number, why: string): void {
   if (done) return;
   done = true;
   clearTimeout(timer);
-  // Windows leaves the renderer/GPU/utility children behind when only the parent is
-  // signalled, and a run that leaks them never ends.
+  // SYNCHRONOUSLY, and before anything touches the profile: Windows leaves the
+  // renderer/GPU/utility children behind when only the parent is signalled, and those
+  // children keep the profile's files open.
   try {
     if (process.platform === "win32" && child.pid) {
-      spawn("taskkill", ["/pid", String(child.pid), "/T", "/F"], { stdio: "ignore" });
+      spawnSync("taskkill", ["/pid", String(child.pid), "/T", "/F"], { stdio: "ignore" });
     } else {
       child.kill("SIGKILL");
     }
   } catch {
     /* already gone */
   }
-  rmSync(profile, { recursive: true, force: true });
+
+  // The VERDICT first. Cleanup must never be able to change it — the Windows preflight
+  // of 13/09/2026 reported failure on a run where the app had loaded its renderer
+  // perfectly, because removing the profile threw EPERM a few ms after the kill.
   if (code === 0) {
     console.log(`✓ ${why}`);
   } else {
@@ -79,6 +83,14 @@ function finish(code: number, why: string): void {
       `\n  main stderr (${stderrLines.length} line(s)):\n` +
         (stderrLines.map((l) => `    · ${l}`).join("\n") || "    (none)"),
     );
+  }
+
+  // Best effort, and genuinely optional: a leftover temp folder on a CI runner costs
+  // nothing, while a throw here costs the whole answer.
+  try {
+    rmSync(profile, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
+  } catch (e) {
+    console.warn(`  (the temporary profile could not be removed: ${(e as Error).message})`);
   }
   process.exit(code);
 }
