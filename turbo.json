@@ -59,7 +59,20 @@
       // `^build` is required: only `apps/desktop` aliases the packages to `src` through
       // its `paths` (parity held by `pnpm check:alias`); everywhere else `tsc`
       // resolves through node_modules, hence through the `dist/*.d.ts`.
-      "dependsOn": ["^build"],
+      //
+      // ⚠️ And `build` — its OWN — for the same reason, which is not the same race.
+      // `packages/redact`'s typecheck compiles `packages/catalog` sources, and those
+      // import `@openmasq/redact`, i.e. redact's own `dist/*.d.ts`. With only `^build`,
+      // turbo starts redact#typecheck as soon as redact's DEPENDENCIES are built and
+      // happily runs it WHILE redact#build is writing that same `dist/`. A warm cache
+      // hides it: the build returns instantly and the files are already there. Invalidate
+      // the cache — a lockfile change is enough — and tsc reads a half-written dist:
+      //   "Could not find a declaration file for module '@openmasq/redact'.
+      //    '…/packages/redact/dist/index.js' implicitly has an 'any' type."
+      // Seen on dev 13/09/2026, green again on a plain re-run, which is exactly how a
+      // race reports itself. Costs nothing in CI, where `pnpm build` has already run and
+      // every build task is a cache hit.
+      "dependsOn": ["^build", "build"],
       "inputs": ["$TURBO_DEFAULT$", "!**/*.md"]
     },
     "lint": {},
