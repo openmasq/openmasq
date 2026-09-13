@@ -18,7 +18,7 @@ import {
   sideShown,
   type ConsoleBus,
 } from "./events.js";
-import { renderPage, tokensCss } from "./page.js";
+import { appJs, renderPage, tokensCss } from "./page.js";
 
 export interface ConsoleRouteDeps {
   bus: ConsoleBus;
@@ -65,6 +65,14 @@ export default function consoleRouter(deps: ConsoleRouteDeps): Router {
       return;
     }
     res.set("cache-control", "no-store").type("css").send(tokensCss());
+  });
+
+  router.get("/app.js", (req: Request, res: Response) => {
+    if (!authorized(req, deps.token)) {
+      res.status(404).end();
+      return;
+    }
+    res.set("cache-control", "no-store").type("js").send(appJs());
   });
 
   router.get("/events", (req: Request, res: Response) => {

@@ -277,6 +277,9 @@ importers:
       '@types/node':
         specifier: ^26.4.0
         version: 26.4.0
+      esbuild:
+        specifier: ^0.21.5
+        version: 0.21.5
       tsx:
         specifier: ^4.23.13
         version: 4.23.13
@@ -320,6 +323,9 @@ importers:
       '@openmasq/redact':
         specifier: workspace:*
         version: link:../redact
+      simple-icons:
+        specifier: ^16.24.1
+        version: 16.24.1
     devDependencies:
       '@openmasq/connectors':
         specifier: workspace:*
@@ -581,9 +587,6 @@ importers:
       rxjs:
         specifier: ^7.8.2
         version: 7.8.2
-      simple-icons:
-        specifier: ^16.24.1
-        version: 16.24.1
       xlsx:
         specifier: workspace:*
         version: link:../../vendor/xlsx

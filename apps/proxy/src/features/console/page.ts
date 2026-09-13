@@ -21,6 +21,7 @@ function mark(name: string, cls: string): string {
 }
 
 let css: string | undefined;
+let app: string | undefined;
 
 /**
  * The mount path, injected as a `<base>`. Without it the page's relative URLs resolve against
@@ -40,7 +41,16 @@ export function renderPage(token: string): string {
     .replace("<!--MARK-->", mark("mark.svg", "m-light"))
     .replace("<!--MARK-DARK-->", mark("mark-dark.svg", "m-dark"))
     .replace("<head>", `<head>\n${BASE}`)
-    .replace('href="./tokens.css"', `href="./tokens.css?t=${encodeURIComponent(token)}"`);
+    .replace('href="./tokens.css"', `href="./tokens.css?t=${encodeURIComponent(token)}"`)
+    .replace('src="./app.js"', `src="./app.js?t=${encodeURIComponent(token)}"`);
+}
+
+/** The page's own logic, bundled from `page/` (`scripts/build-console.mjs`). Served like the
+ *  stylesheet — behind the same token, from beside this module — so the page still fetches
+ *  nothing it did not come with. */
+export function appJs(): string {
+  app ??= read("app.js");
+  return app;
 }
 
 export function tokensCss(): string {

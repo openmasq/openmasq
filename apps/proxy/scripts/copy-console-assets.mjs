@@ -11,7 +11,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const from = join(here, "../src/features/console");
 const to = join(here, "../dist/features/console");
 mkdirSync(to, { recursive: true });
-for (const name of ["index.html", "tokens.css", "mark.svg", "mark-dark.svg"]) {
+for (const name of ["index.html", "tokens.css", "app.js", "mark.svg", "mark-dark.svg"]) {
   copyFileSync(join(from, name), join(to, name));
 }
 console.log("console assets copied to dist/features/console");

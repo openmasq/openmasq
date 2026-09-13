@@ -6,6 +6,9 @@
 <!-- No remote font, no CDN: a console that shows what never left the machine must not
      itself call one. The families below fall back to the system stack. -->
 <link rel="stylesheet" href="./tokens.css">
+<!-- The page's own decisions, bundled from `page/` so they can be typed and tested
+     (`scripts/build-console.mjs`). Loaded before the inline script, which calls into it. -->
+<script src="./app.js"></script>
 <link rel="icon" href="data:,"><!-- no favicon request: it would be relayed and logged -->
 <title>OpenMasq CLI — personal data log</title>
 <style>
@@ -621,6 +624,12 @@ function renderKey(){
     + '<span class="k-i"><span class="clr">Jean Dupont</span>the real value — it stayed here</span>'
     + '<span class="k-n">' + esc(SIDE.there) + ' is the other side: there a mark sits on the real value, before it is replaced.</span>';
 }
+/* The page's two other JSON views answer to the SAME rule as the download — the JSON tab and
+   the copy button. They ask `page/reveal.ts` for it rather than re-testing the pair here. */
+function exportable(raw){
+  var api = window.openmasqConsole;
+  return api.exportableEvent(raw, api.mayReveal(canReveal, rev));
+}
 function swipe(cat, txt){
   return '<span class="rd" style="background:'+cav(cat)+';color:'+cavOn(cat)+'">'+txt+'</span>';
 }
@@ -913,20 +922,16 @@ document.getElementById("pass").addEventListener("click", function(){
   this.setAttribute("aria-pressed", String(showPass));
   renderRows(document.getElementById("q").value.trim().toLowerCase());
 });
-/* What leaves this page as a file: the events as the proxy sent them, real values stripped
-   unless the run revealed them AND the toggle is on. Same rule as the JSON tab. */
-function exportable(raw){
-  if (!raw) return {};
-  var out = JSON.parse(JSON.stringify(raw));
-  (out.items || []).forEach(function(it){ if (!(canReveal && rev)) delete it.real; });
-  return out;
-}
+/* What leaves this page as a file. The RULE — who may see a real value, here and in the
+   file — lives in `page/reveal.ts` now, typed and tested; what stays here is the DOM around
+   it. `exportable()` is gone from this script on purpose: one home (rule 9). */
 document.getElementById("export").addEventListener("click", function(){
-  var doc = { app: "openmasq-proxy", exported: new Date().toISOString(), reveal: !!(canReveal && rev),
-              events: LOGS.slice().reverse().map(function(l){ return exportable(l._raw); }) };
+  var api = window.openmasqConsole;
+  var doc = api.exportDocument(LOGS.slice().reverse().map(function(l){ return l._raw; }),
+                               { sent: canReveal, shown: rev });
   var a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([JSON.stringify(doc, null, 2)], { type: "application/json" }));
-  a.download = "openmasq-journal-" + new Date().toISOString().slice(0, 19).replace(/[:T]/g, "-") + ".json";
+  a.download = api.exportFilename();
   a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
 });
 /* The level in force, read from the proxy itself every few seconds: the `l` key changes it

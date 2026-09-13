@@ -11,13 +11,14 @@
   },
   "scripts": {
     "dev": "tsx src/server.ts",
-    "build": "tsc -p tsconfig.json && node scripts/copy-console-assets.mjs",
+    "build": "node scripts/build-console.mjs && tsc -p tsconfig.json && node scripts/copy-console-assets.mjs",
     "start": "node dist/server.js",
     "bench": "tsx bench/run.ts",
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist .turbo",
     "tokens": "node scripts/gen-console-tokens.mjs",
-    "preview:ui": "tsx scripts/preview-ui.mts"
+    "preview:ui": "tsx scripts/preview-ui.mts",
+    "console:build": "node scripts/build-console.mjs"
   },
   "dependencies": {
     "@huggingface/transformers": "^4.2.0",
@@ -38,6 +39,7 @@
   "devDependencies": {
     "@types/express": "^5.0.0",
     "@types/node": "^26.4.0",
+    "esbuild": "^0.21.5",
     "tsx": "^4.23.13",
     "typescript": "^5.6.3"
   },

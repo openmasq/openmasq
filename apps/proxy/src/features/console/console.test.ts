@@ -9,6 +9,7 @@ import { DEFAULTS } from "../../config/config";
 import { silentReporter } from "../../lib/ui";
 import type { Masker } from "../../lib/masker";
 import { createConsoleBus } from "./events";
+import { renderPage } from "./page";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const masker: Masker = {
@@ -105,6 +106,28 @@ describe("the console endpoint", () => {
     const css = await (await fetch(`${url}/tokens.css?t=${TOKEN}`)).text();
     expect(css).toContain("--cav-identite");
     expect(css).toContain("GENERATED");
+  });
+});
+
+/* The page's logic is bundled into `app.js` from `page/`, and the bundle is COMMITTED --
+   `dev` runs straight off `src` with no build, so the artefact has to be there. That is the
+   same trade the tokens sheet makes, and it earns the same guard: re-run the generator and
+   fail when what is committed no longer matches its source. Without this, an edit to
+   `page/*.ts` would pass every test while the page kept serving the old bundle. */
+describe("the console bundle", () => {
+  it("matches page/ — run `pnpm --filter @openmasq/proxy console:build` if this fails", () => {
+    expect(() =>
+      execFileSync("node", [join(here, "../../../scripts/build-console.mjs"), "--check"], {
+        stdio: "pipe",
+      }),
+    ).not.toThrow();
+  });
+
+  it("is what the page actually asks for, behind the token", () => {
+    const page = renderPage("tok3n");
+    expect(page).toContain('src="./app.js?t=tok3n"');
+    // …and it loads BEFORE the inline script that calls into it.
+    expect(page.indexOf("./app.js")).toBeLessThan(page.indexOf("window.openmasqConsole"));
   });
 });
 
