@@ -11,6 +11,7 @@
       "!.claude/**",
       "!pnpm-lock.yaml",
       "!evals-reports/**",
+  "!apps/proxy/src/features/console/app.js",
       "!**/*.md",
       "!**/*.html",
       "!**/*.css",

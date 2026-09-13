@@ -152,14 +152,16 @@ describe("a credential store others can read is refused, not shrugged at", () =>
   it.each(["key", "auth.enc"])("refuses to read once %s is group/world-readable", (name) => {
     const { dir } = store();
     chmodSync(join(dir, name), 0o644);
-    expect(() => new SecretJsonFile<{ tok: string }>(join(dir, "auth.enc"), dir, "").read())
-      .toThrow(/readable by other users \(mode 644\)/);
+    expect(() =>
+      new SecretJsonFile<{ tok: string }>(join(dir, "auth.enc"), dir, "").read(),
+    ).toThrow(/readable by other users \(mode 644\)/);
   });
 
   it("still reads what it wrote while the modes are right", () => {
     const { dir } = store();
-    expect(new SecretJsonFile<{ tok: string }>(join(dir, "auth.enc"), dir, "").read())
-      .toEqual({ tok: "a-refresh-token" });
+    expect(new SecretJsonFile<{ tok: string }>(join(dir, "auth.enc"), dir, "").read()).toEqual({
+      tok: "a-refresh-token",
+    });
   });
 
   /** `OPENMASQ_PROXY_KEY` means no key file exists at all -- the documented escape for

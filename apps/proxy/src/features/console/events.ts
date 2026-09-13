@@ -96,7 +96,9 @@ const enCategory = (key: string) =>
 const enSection = (fr: string) => (EN.sections as Record<string, string | undefined>)[fr] ?? fr;
 
 /** `email` → `E-mail`. The catalogue owns these labels; the console only reads them. */
-const LABELS = new Map(REDACTION_CATEGORIES.map((c) => [c.key, enCategory(c.key)?.label ?? c.label]));
+const LABELS = new Map(
+  REDACTION_CATEGORIES.map((c) => [c.key, enCategory(c.key)?.label ?? c.label]),
+);
 export const typeOf = (match: RedactionMatch): string => {
   const fine = fineOf(match);
   return LABELS.get(fine) ?? fine;

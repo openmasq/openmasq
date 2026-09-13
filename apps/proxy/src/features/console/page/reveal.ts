@@ -27,7 +27,8 @@ export interface WireEvent {
 
 /** The run sent originals AND the reader asked for them. Fails toward HIDING: an unknown
  *  state is not a licence to print someone's name. */
-export const mayReveal = (sent: boolean, shown: boolean): boolean => sent === true && shown === true;
+export const mayReveal = (sent: boolean, shown: boolean): boolean =>
+  sent === true && shown === true;
 
 /**
  * One event, prepared to leave the page. A deep copy, so stripping never reaches back into

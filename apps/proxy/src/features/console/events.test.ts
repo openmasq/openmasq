@@ -176,7 +176,10 @@ describe("the rules panel's data", () => {
       for (const extra of [[], ["email"], ["name", "iban"]]) {
         const on = activeCategories(level, extra);
         const off = disabledKindsFor(level, extra);
-        expect(on.filter((k) => off.includes(k)), `${level} ${extra.join()}`).toEqual([]);
+        expect(
+          on.filter((k) => off.includes(k)),
+          `${level} ${extra.join()}`,
+        ).toEqual([]);
         for (const k of extra) expect(on).not.toContain(k);
       }
     }
@@ -202,7 +205,10 @@ describe("the connector catalogue carries its marks, and nothing to fetch", () =
   });
 
   it("gives a real mark to every BRAND, and letters only to what is not one", () => {
-    const lettersOnly = cat.connectors.filter((c) => !c.logo && !c.img).map((c) => c.id).sort();
+    const lettersOnly = cat.connectors
+      .filter((c) => !c.logo && !c.img)
+      .map((c) => c.id)
+      .sort();
     // The local server, the built-in browser and the demo broker are not brands — the
     // desktop paints those with initials too.
     expect(lettersOnly).toEqual(["browser", "demo", "filesystem"]);
