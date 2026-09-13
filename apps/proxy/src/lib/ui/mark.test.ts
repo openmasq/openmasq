@@ -3,10 +3,13 @@ import { renderLockup } from "./mark";
 import { createTty } from "./tty";
 
 const lockup = (columns: number, colors = false) =>
-  renderLockup(createTty(colors, () => columns, { depth: 24, theme: "dark" }), {
-    version: "0.1.0",
-    url: "http://127.0.0.1:8787",
-  });
+  renderLockup(
+    createTty(colors, () => columns, { depth: 24, theme: "dark" }),
+    {
+      version: "0.1.0",
+      url: "http://127.0.0.1:8787",
+    },
+  );
 
 describe("the lockup", () => {
   /** A promise cut mid-word ("before it leaves t…") says something WEAKER about where the

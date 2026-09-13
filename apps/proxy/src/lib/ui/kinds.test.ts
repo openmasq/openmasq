@@ -13,7 +13,9 @@ describe("what a level leaves in clear, in words", () => {
   /** Never silently cut: what does not fit is counted. */
   it("counts what it cannot fit, and says nothing when nothing is left", () => {
     const long = ["name", "company", "address", "location", "dob", "date", "path", "url"];
-    expect(inClearPhrase(long, 80)).toBe("names, companies, addresses, places, birth dates +3 more");
+    expect(inClearPhrase(long, 80)).toBe(
+      "names, companies, addresses, places, birth dates +3 more",
+    );
     expect(inClearPhrase(long, 24)).toMatch(/^names, companies \+6 more$/);
     expect(inClearPhrase([], 80)).toBe("");
   });

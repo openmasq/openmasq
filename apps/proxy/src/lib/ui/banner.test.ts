@@ -6,12 +6,16 @@ import { createTty } from "./tty";
 
 const URL = "http://127.0.0.1:8787/console?t=qhvApVk1QcXbL0aLKxkRIA";
 const card = (columns: number, reveal = false) =>
-  renderBanner(createTty(false, () => columns), DEFAULTS, {
-    model: "rules",
-    version: "1",
-    console: { url: URL, reveal },
-    inClear: ["name", "company", "date"],
-  }).join("\n");
+  renderBanner(
+    createTty(false, () => columns),
+    DEFAULTS,
+    {
+      model: "rules",
+      version: "1",
+      console: { url: URL, reveal },
+      inClear: ["name", "company", "date"],
+    },
+  ).join("\n");
 
 describe("the start-up card", () => {
   /**

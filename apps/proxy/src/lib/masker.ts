@@ -45,11 +45,26 @@ export interface Masker {
  * still a person; only the bare word passes, which is the residual this accepts.
  */
 export const VENDOR_TERMS: readonly string[] = [
-  "Anthropic", "Claude", "Claude Code", "OpenAI", "ChatGPT", "Codex", "GPT",
-  "Google", "Gemini", "Gemini CLI", "GitHub", "Copilot", "GitHub Copilot",
+  "Anthropic",
+  "Claude",
+  "Claude Code",
+  "OpenAI",
+  "ChatGPT",
+  "Codex",
+  "GPT",
+  "Google",
+  "Gemini",
+  "Gemini CLI",
+  "GitHub",
+  "Copilot",
+  "GitHub Copilot",
   // …and their handle forms, which the username detector reads as somebody's (`@anthropic`
   // in a package name or a trailer).
-  "@anthropic", "@anthropic-ai", "@openai", "@google", "@github",
+  "@anthropic",
+  "@anthropic-ai",
+  "@openai",
+  "@google",
+  "@github",
 ];
 
 export interface MaskerOptions {
@@ -96,7 +111,10 @@ export function createMasker(opts: MaskerOptions): Masker {
         detectLocal: opts.detectLocal,
         keep: [...opts.keep, ...VENDOR_TERMS],
         ...(opts.level
-          ? { commercialNotoriety: opts.level !== "strict", peopleNotoriety: opts.level !== "strict" }
+          ? {
+              commercialNotoriety: opts.level !== "strict",
+              peopleNotoriety: opts.level !== "strict",
+            }
           : {}),
         disabledKinds: opts.disabledKinds,
         forced: opts.forced,

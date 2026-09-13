@@ -13,6 +13,11 @@ describe("opening the console in the browser", () => {
   /** Best-effort, like the clipboard: no opener is a note on the card, never a crash. */
   it("reports a missing opener instead of throwing", async () => {
     const platform = "linux" as const; // xdg-open is absent on this machine, which is the point
-    expect(await openInBrowser("http://127.0.0.1:8787/console?t=abc", process.platform === "linux" ? "win32" : platform)).toBe(false);
+    expect(
+      await openInBrowser(
+        "http://127.0.0.1:8787/console?t=abc",
+        process.platform === "linux" ? "win32" : platform,
+      ),
+    ).toBe(false);
   });
 });

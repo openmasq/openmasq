@@ -6,7 +6,8 @@
 import { randomBytes } from "node:crypto";
 import { createApp } from "./app.js";
 import { parseConfig, USAGE } from "./config/config.js";
-import { createConsoleBus } from "./features/console/events.js";
+import { buildConsoleDeps } from "./features/console/deps.js";
+import { createConsoleBus, teeToConsole } from "./features/console/events.js";
 import { publishConsoleLink } from "./features/console/link.js";
 import { freePort, joinOptions, joinRunning, sessionName, sessionUrl } from "./lib/attach.js";
 import { startIntegrations } from "./features/mcp/start.js";
@@ -101,15 +102,7 @@ async function main(): Promise<void> {
   // reveal` is the one way to a page of substitutes only.
   const bus = config.console ? createConsoleBus(config.consoleReveal) : undefined;
   const consoleToken = bus ? randomBytes(16).toString("base64url") : "";
-  const feed: typeof reporter = bus
-    ? {
-        ...reporter,
-        request(e) {
-          reporter.request(e);
-          bus.publish(e);
-        },
-      }
-    : reporter;
+  const feed = teeToConsole(reporter, bus);
 
   // The chat's masker reads its options at request time, so a key can re-point the level —
   // and the model, which `standard` never loads and a later level may need. A server with a
@@ -196,17 +189,17 @@ async function main(): Promise<void> {
       : {}),
     ...(bus
       ? {
-          console: {
+          console: buildConsoleDeps({
             bus,
             token: consoleToken,
-            version: packageVersion(),
-            command: config.command[0] ?? "openmasq-proxy",
             startedAt: Date.now(),
             config,
-            ...(config.mcp
-              ? { mcp: { servers: integrations.servers, writes: config.mcpWrites } }
-              : {}),
-          },
+            maskers,
+            policy,
+            interactive,
+            note: (t, tone) => screen.note(t, tone),
+            ...(config.mcp ? { servers: integrations.servers } : {}),
+          }),
         }
       : {}),
   });

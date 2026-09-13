@@ -7,7 +7,7 @@
 // console is a 404, not a 401: an endpoint that admits it exists invites guessing.
 import { BRAND } from "@openmasq/branding";
 import { getMessages } from "@openmasq/i18n";
-import { Router, type Request, type Response } from "express";
+import express, { Router, type Request, type Response } from "express";
 import type { ProxyConfig } from "../../config/config.js";
 import { timingSafeEqual } from "node:crypto";
 import {
@@ -18,6 +18,7 @@ import {
   sideShown,
   type ConsoleBus,
 } from "./events.js";
+import type { ApplyResult, MaskingRequest } from "./applyMasking.js";
 import { appJs, renderPage, tokensCss } from "./page.js";
 
 export interface ConsoleRouteDeps {
@@ -31,6 +32,40 @@ export interface ConsoleRouteDeps {
   config: Pick<ProxyConfig, "level" | "mode" | "disabledKinds">;
   /** `--mcp`: what the agent's tools go through. Absent ⇒ the panel says so. */
   mcp?: { servers: string[]; writes: string };
+  /**
+   * Apply a masking change the page asked for. ABSENT ⇒ the panel stays read-only and the
+   * route answers 404 like any other unknown path — which is the honest default: a run
+   * without a terminal has nobody to confirm a loosening, so it is given no way to ask.
+   */
+  applyMasking?: (connector: string, next: MaskingRequest) => Promise<ApplyResult>;
+}
+
+/** Narrow by hand, because this arrives from a browser. Anything unexpected is refused
+ *  outright rather than coerced — a level that silently became `undefined` would read as
+ *  "follow the default", which is a loosening nobody asked for. */
+function maskingRequest(raw: unknown): MaskingRequest | undefined {
+  // Read from the RAW body, like every other POST this proxy takes
+  // (`routes/middlewares/jsonBody.ts`): `express.json()` is not the shape that works here.
+  let body: unknown;
+  try {
+    body = JSON.parse((Buffer.isBuffer(raw) ? raw : Buffer.alloc(0)).toString("utf8"));
+  } catch {
+    return undefined;
+  }
+  if (typeof body !== "object" || body === null || Array.isArray(body)) return undefined;
+  const b = body as Record<string, unknown>;
+  const out: MaskingRequest = {};
+  if ("level" in b) {
+    if (b.level !== null && typeof b.level !== "string") return undefined;
+    out.level = b.level as string | null;
+  }
+  for (const key of ["disable", "keep"] as const) {
+    if (!(key in b)) continue;
+    if (!Array.isArray(b[key]) || (b[key] as unknown[]).some((v) => typeof v !== "string"))
+      return undefined;
+    out[key] = b[key] as string[];
+  }
+  return out;
 }
 
 /** Constant-time compare of two strings of any length. */
@@ -74,6 +109,33 @@ export default function consoleRouter(deps: ConsoleRouteDeps): Router {
     }
     res.set("cache-control", "no-store").type("js").send(appJs());
   });
+
+  // The one route that CHANGES something. Same token, same 404, and the gate behind it
+  // (`maskingGate.ts`) is what makes a URL in a browser history unable to lower protection
+  // on its own.
+  // A small, explicit body limit: this route takes a level and two short lists, and nothing
+  // else on this app parses a body for the console.
+  router.post(
+    "/masking/:connector",
+    express.raw({ type: () => true, limit: "8kb" }),
+    async (req: Request, res: Response) => {
+      if (!authorized(req, deps.token) || !deps.applyMasking) {
+        res.status(404).end();
+        return;
+      }
+      const next = maskingRequest(req.body);
+      if (!next) {
+        res.status(400).json({ ok: false, why: "unreadable masking request" });
+        return;
+      }
+      // `:connector` is `-` for the run's own default — an empty path segment is not routable,
+      // and a connector id can never be a bare dash.
+      const id = req.params.connector === "-" ? "" : (req.params.connector ?? "");
+      const result = await deps.applyMasking(id, next);
+      // 409, not 403: the request was understood and legitimate, and the operator declined it.
+      res.status(result.ok ? 200 : 409).json(result);
+    },
+  );
 
   router.get("/events", (req: Request, res: Response) => {
     if (!authorized(req, deps.token)) {

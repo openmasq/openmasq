@@ -3,7 +3,9 @@ import { WORDMARK_COLS, WORDMARK_ROWS, wordmarkCells } from "./wordmark";
 
 const render = (reveal: number) =>
   Array.from({ length: WORDMARK_ROWS }, (_, r) =>
-    Array.from({ length: WORDMARK_COLS }, (_, c) => (wordmarkCells(reveal).has(`${c},${r}`) ? "#" : ".")).join(""),
+    Array.from({ length: WORDMARK_COLS }, (_, c) =>
+      wordmarkCells(reveal).has(`${c},${r}`) ? "#" : ".",
+    ).join(""),
   );
 
 describe("the wordmark", () => {

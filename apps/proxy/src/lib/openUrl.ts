@@ -17,7 +17,10 @@ export function openerCommand(url: string, platform: NodeJS.Platform = process.p
 
 /** Resolves true when the opener was launched; false when none answered. Detached, silent:
  *  a browser's stderr has no business in the proxy's terminal. */
-export function openInBrowser(url: string, platform: NodeJS.Platform = process.platform): Promise<boolean> {
+export function openInBrowser(
+  url: string,
+  platform: NodeJS.Platform = process.platform,
+): Promise<boolean> {
   const [cmd, ...args] = openerCommand(url, platform);
   return new Promise((resolve) => {
     try {

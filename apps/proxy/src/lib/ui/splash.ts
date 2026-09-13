@@ -80,7 +80,9 @@ export function splashFrame(
     ...said.map((l) => centre(tty, l, tty.columns)),
   ];
   const top = Math.max(0, Math.floor((rows - lines.length) / 2));
-  return [...Array(top).fill(""), ...lines].slice(0, rows).map((l) => (l ? tty.fit(l, tty.columns) : ""));
+  return [...Array(top).fill(""), ...lines]
+    .slice(0, rows)
+    .map((l) => (l ? tty.fit(l, tty.columns) : ""));
 }
 
 /**

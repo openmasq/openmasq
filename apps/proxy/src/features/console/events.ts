@@ -266,3 +266,23 @@ export const activeCategories = (level: RedactionLevel, disabled: readonly strin
     (c) => c.key,
   );
 };
+
+/**
+ * The reporter, teed to the page. The terminal keeps printing exactly what it printed; each
+ * request line is also published on the bus. One wrapper rather than a second reporter,
+ * because the two must never disagree about what happened — the page is a WINDOW onto the
+ * log, not a second account of it.
+ */
+export function teeToConsole<R extends { request(e: RequestEvent): void }>(
+  reporter: R,
+  bus: ConsoleBus | undefined,
+): R {
+  if (!bus) return reporter;
+  return {
+    ...reporter,
+    request(e: RequestEvent) {
+      reporter.request(e);
+      bus.publish(e);
+    },
+  };
+}

@@ -30,7 +30,13 @@ describe("the opening sequence", () => {
     expect(blocks(0.5, THEME_HEX.dark.brand)).toBeGreaterThan(0);
     // The ring CLOSES at the end: the name ends up enclosed, not caught mid-lap.
     const perimeter = (WORDMARK_COLS + 4) * 2 + (WORDMARK_ROWS + 4) * 2 - 4;
-    const litAtEnd = ring.reduce((n, hue) => n + blocks(1, hue), 0) + blocks(1, HUE_HEX.slate) + blocks(1, HUE_HEX.gold) + blocks(1, HUE_HEX.red) + blocks(1, HUE_HEX.teal) + blocks(1, "#0f1c06");
+    const litAtEnd =
+      ring.reduce((n, hue) => n + blocks(1, hue), 0) +
+      blocks(1, HUE_HEX.slate) +
+      blocks(1, HUE_HEX.gold) +
+      blocks(1, HUE_HEX.red) +
+      blocks(1, HUE_HEX.teal) +
+      blocks(1, "#0f1c06");
     expect(litAtEnd).toBeGreaterThanOrEqual(perimeter - 2);
   });
 
@@ -74,7 +80,9 @@ describe("the opening sequence", () => {
     expect(drawn(44)).toBe(false);
     expect(text(1, view("standard"), 44)).toContain("OpenMasq");
     // A terminal too SHORT for the ring and the claim also gets the written name.
-    expect(tty().strip(splashFrame(tty(92), 1, 10, view("standard")).join("\n"))).toContain("OpenMasq");
+    expect(tty().strip(splashFrame(tty(92), 1, 10, view("standard")).join("\n"))).toContain(
+      "OpenMasq",
+    );
   });
 
   /** A frame that overflows the screen scrolls the alternate screen and tears. */
