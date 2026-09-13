@@ -96,6 +96,13 @@ var openmasqConsole = (() => {
 
   // src/features/console/page/tooltip.ts
   var OPEN_DELAY_MS = 400;
+  function mountTooltipsWhenReady(doc = document) {
+    if (doc.body) {
+      mountTooltips(doc);
+      return;
+    }
+    doc.addEventListener("DOMContentLoaded", () => mountTooltips(doc), { once: true });
+  }
   function mountTooltips(doc = document) {
     const bubble = doc.createElement("div");
     bubble.className = "tip";
@@ -182,6 +189,6 @@ var openmasqConsole = (() => {
   }
 
   // src/features/console/page/main.ts
-  if (typeof document !== "undefined") mountTooltips();
+  if (typeof document !== "undefined") mountTooltipsWhenReady();
   return __toCommonJS(main_exports);
 })();

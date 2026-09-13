@@ -36,6 +36,24 @@ export interface TooltipLayer {
  * Mount the layer on a document. Returns a handle that removes every listener and restores
  * any `title` it had taken — a page that is torn down must not leave a control mute.
  */
+/**
+ * Mount as soon as there is a body to mount INTO.
+ *
+ * ⚠️ The bundle is loaded from `<head>`, so at module evaluation `document.body` is still
+ * null. Appending to it there threw — and because the bundle is an IIFE assigned to a global,
+ * a throw inside it means the global is never assigned at all: the page then found no API,
+ * every call site fell to its degraded path, and the masking panel redrew on every poll
+ * because the "did anything change" watch it could not reach answers yes by default. One
+ * missing null check, two symptoms, neither of them looking like a tooltip.
+ */
+export function mountTooltipsWhenReady(doc: Document = document): void {
+  if (doc.body) {
+    mountTooltips(doc);
+    return;
+  }
+  doc.addEventListener("DOMContentLoaded", () => mountTooltips(doc), { once: true });
+}
+
 export function mountTooltips(doc: Document = document): TooltipLayer {
   const bubble = doc.createElement("div");
   bubble.className = "tip";
