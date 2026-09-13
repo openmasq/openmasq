@@ -71,7 +71,6 @@ function strings(v: unknown, where: string): Record<string, string> {
  */
 export const assertPrivate = assertOwnerOnly;
 
-
 /** Parse the `mcpServers` map. Unknown shapes are refused rather than skipped: a server the
  *  user believes is connected but that we silently dropped is a hole in their expectations. */
 export function parseServers(json: string): ServerSpec[] {

@@ -68,9 +68,7 @@ if (process.argv.includes("--check")) {
     /* missing counts as drift */
   }
   if (current !== next) {
-    console.error(
-      `${OUT} is stale.\nRun: pnpm --filter @openmasq/proxy console:build`,
-    );
+    console.error(`${OUT} is stale.\nRun: pnpm --filter @openmasq/proxy console:build`);
     process.exit(1);
   }
   console.log("console bundle up to date.");
