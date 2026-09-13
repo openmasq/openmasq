@@ -16,7 +16,7 @@
  * clear for this connector too, and a connector cannot re-mask what the run globally spared.
  * The LEVEL is the one field that replaces — that is what "its own level" means.
  */
-import type { RedactionLevel } from "./levels";
+import { categoriesForLevel, type RedactionLevel } from "./levels";
 
 /** What a connector may say about how ITS results are masked. Every field optional: an
  *  absent one follows the global setting, which is what the pickers call "Default". */
@@ -79,4 +79,45 @@ function union(a: readonly string[] | undefined, b: readonly string[] | undefine
   const out: string[] = [];
   for (const v of [...(a ?? []), ...(b ?? [])]) if (!out.includes(v)) out.push(v);
   return out;
+}
+
+/**
+ * The categories a connector's results are ACTUALLY masked at — the level's set, minus what
+ * is left in clear. Computed rather than named, because that is the only comparable form: two
+ * settings can differ in their level AND their disables and still protect the same things.
+ */
+export function maskedCategories(m: {
+  level: RedactionLevel;
+  disable?: readonly string[];
+}): Set<string> {
+  const on = categoriesForLevel(m.level);
+  const out = new Set<string>();
+  for (const [key, isOn] of Object.entries(on)) if (isOn) out.add(key);
+  for (const key of m.disable ?? []) out.delete(key);
+  return out;
+}
+
+/**
+ * Does moving from `before` to `after` EXPOSE MORE than before?
+ *
+ * The question a surface must ask before applying a change it was handed — and the reason it
+ * is asked on the sets rather than on the level name: dropping from `strict` to `renforce`
+ * loosens, but so does staying at `strict` while adding one category to `disable`, or adding
+ * a value to `keep`. A rule written on the level alone would wave both of those through.
+ *
+ * Fails toward TRUE: anything this cannot prove to be at least as protective counts as a
+ * loosening, so the caller's gate is asked rather than skipped.
+ */
+export function loosensMasking(
+  before: { level: RedactionLevel; disable?: readonly string[]; keep?: readonly string[] },
+  after: { level: RedactionLevel; disable?: readonly string[]; keep?: readonly string[] },
+): boolean {
+  const was = maskedCategories(before);
+  const now = maskedCategories(after);
+  // A category that WAS masked and no longer is.
+  for (const key of was) if (!now.has(key)) return true;
+  // A value newly spared everywhere is exposure too, whatever the categories say.
+  const kept = new Set(before.keep ?? []);
+  for (const value of after.keep ?? []) if (!kept.has(value)) return true;
+  return false;
 }

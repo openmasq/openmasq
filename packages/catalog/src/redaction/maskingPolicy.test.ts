@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   effectiveMasking,
+  loosensMasking,
+  maskedCategories,
   overriddenConnectors,
   overridesMasking,
   type MaskingPolicy,
@@ -80,5 +82,44 @@ describe("which connectors genuinely differ", () => {
     };
     expect(overriddenConnectors(p)).toEqual(["acme", "zed"]);
     expect(overriddenConnectors({ level: "standard" })).toEqual([]);
+  });
+});
+
+/* The question a surface asks before applying a change it was handed. Asked on the SETS, not
+   on the level name: a rule written on the name alone waves through a `strict` that just
+   disabled a category, which is exactly the move a gate exists to catch. */
+describe("does this change expose more than before", () => {
+  it("is true of a lower level, false of a higher one", () => {
+    expect(loosensMasking({ level: "strict" }, { level: "standard" })).toBe(true);
+    expect(loosensMasking({ level: "renforce" }, { level: "standard" })).toBe(true);
+    expect(loosensMasking({ level: "standard" }, { level: "strict" })).toBe(false);
+    expect(loosensMasking({ level: "standard" }, { level: "standard" })).toBe(false);
+  });
+
+  /** The move a level-name comparison misses entirely. */
+  it("is true of a category newly left in clear, at the SAME level", () => {
+    expect(loosensMasking({ level: "strict" }, { level: "strict", disable: ["email"] })).toBe(true);
+    // …and false the other way: taking a disable away protects more.
+    expect(loosensMasking({ level: "strict", disable: ["email"] }, { level: "strict" })).toBe(
+      false,
+    );
+  });
+
+  it("is true of a value newly kept in clear", () => {
+    const at = { level: "renforce" } as const;
+    expect(loosensMasking(at, { ...at, keep: ["Acme"] })).toBe(true);
+    expect(loosensMasking({ ...at, keep: ["Acme"] }, at)).toBe(false);
+  });
+
+  /** A trade — one level down, one disable removed — must not read as neutral just because
+   *  the two moves cancel in a count. Anything that was masked and no longer is counts. */
+  it("sees a category dropped even when another is picked up", () => {
+    expect(loosensMasking({ level: "strict" }, { level: "renforce", disable: [] })).toBe(true);
+  });
+
+  it("counts the credential floor as never lost — no level can drop it", () => {
+    for (const level of ["standard", "renforce", "strict"] as const)
+      for (const key of ["apikey", "secret"])
+        expect(maskedCategories({ level }).has(key)).toBe(true);
   });
 });

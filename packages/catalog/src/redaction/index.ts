@@ -153,6 +153,8 @@ export {
 // edit it (`maskingPolicy.ts` says what each surface keeps for itself).
 export {
   effectiveMasking,
+  loosensMasking,
+  maskedCategories,
   MASKING_KEYS,
   overriddenConnectors,
   overridesMasking,
