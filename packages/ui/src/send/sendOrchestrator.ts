@@ -1661,7 +1661,7 @@ export function createSendMessage(d: SendMessageDeps) {
               ...extraSecrets,
               ...(settings.coffre ?? []).map((t) => t.value.trim()).filter(Boolean),
             ],
-            disabledKinds,
+            disabledKinds, connectorMasking: settings.connectorMasking,
             structuralUrlHosts: engineCtx.structuralUrlHosts,
             // Org enforcement: strip tools from any connector the org disallows,
             // so a blocked server can't be invoked even if already connected.

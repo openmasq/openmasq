@@ -150,6 +150,7 @@ export interface McpAgentParams {
   kinds?: Record<string, string>;
   secrets: string[];
   disabledKinds: string[];
+  connectorMasking?: Record<string, import("@openmasq/catalog").ConnectorMasking>;
   /** The domains of CONNECTED integrations (`send/redactKeep.ts` `connectedUrlHosts`):
    *  the sub-parts of a link pointing to one of them stay in clear, including
    *  on the clear-mode path. Absent ⇒ no exemption. */
@@ -645,7 +646,7 @@ export async function runMcpAgentLoop(p: McpAgentParams): Promise<boolean> {
         // The LIVE array (the reveal gate mutates it in place) + this send's
         // value→kind spans, so the replay honours the same per-tool clear policy
         // (BROWSER_CLEAR/SEARCH_CLEAR + user reveals) as the full path.
-        disabledKinds: p.disabledKinds ?? [],
+        disabledKinds: p.disabledKinds ?? [], connectorMasking: p.connectorMasking,
         kinds: p.kinds,
         structuralUrlHosts: p.structuralUrlHosts,
         onEscalate: () => {

@@ -11,7 +11,7 @@ import { remoteRedact, remoteContractDowngrade, DEFAULT_REDACT_FN_URL } from "@o
 import { redactNumbersOn } from "./redactNumbers";
 import { findConnector } from "@openmasq/catalog/mcp";
 import { isBrowserTool, isWebBrowseTool } from "../state/browserPolicy";
-import { toolClearKinds } from "../agent/toolRedactionPolicy";
+import { disabledKindsForTool } from "./toolMasking";
 import { toolResultKeep } from "./toolResultKeep";
 import { clipFileText } from "./foldPayload";
 import { makeScreenInbound } from "./screenInbound";
@@ -82,24 +82,6 @@ export function capToolResultText(rawText: string, tool?: string): string {
     : rawText;
 }
 
-/** The category-clear policy for a tool's RESULTS, resolved onto a base `disabledKinds`.
- *  Public web-search connectors keep place/org names + URL/asset path & CDN key-noise in
- *  clear; the BROWSER keeps only place/org (it can read an AUTHENTICATED page, so
- *  secret/apikey/path stay REDACTED). Keyed off the tool-name connector prefix. Shared by
- *  the full redaction path below AND the clear-mode replay (`agent/navClearRedact.ts`),
- *  so the two views of "what may stay clear for this tool" cannot drift (root rule 9). */
-export function disabledKindsForTool(disabledKinds: string[], tool?: string): string[] {
-  if (!tool) return disabledKinds;
-  const px = tool.indexOf("__");
-  const connectorId = px > 0 ? tool.slice(0, px) : tool;
-  const clear = toolClearKinds(
-    connectorId,
-    findConnector(connectorId)?.category === "search",
-    isWebBrowseTool(tool),
-  );
-  return clear.length ? [...disabledKinds, ...clear] : disabledKinds;
-}
-
 /**
  * Build the tool-RESULT redactor (real server reply → fakes for the model) bound to a
  * send's redaction context. FAIL-CLOSED on every path: a remote engine that can't redact
@@ -110,6 +92,8 @@ export function disabledKindsForTool(disabledKinds: string[], tool?: string): st
  * place/org (an authenticated page's real credentials stay redacted). Returns the wrapped
  * fn (the inner redaction + a Debug-Log entry).
  */
+export { disabledKindsForTool };
+
 /** Callable per result, plus `many` — N results from the SAME tool in ONE engine pass. */
 export interface ToolResultRedactor {
   (text: string, v: Vault, tool?: string): Promise<string>;
@@ -147,7 +131,8 @@ export function makeRedactToolResult(deps: RedactToolResultDeps): ToolResultReda
     for (const m of matches) if (m.value) toolKinds[m.value] = redactionCategory(m.category ?? m.type);
   };
 
-  const disabledForTool = (tool?: string): string[] => disabledKindsForTool(engine.disabledKinds, tool);
+  const disabledForTool = (tool?: string): string[] =>
+    disabledKindsForTool(engine.disabledKinds, tool, settings.connectorMasking);
 
   const redactToolResultInner = async (
     rawText: string,

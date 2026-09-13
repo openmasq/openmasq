@@ -10,7 +10,9 @@ import {
   URL_EXEMPT_KINDS,
   type Vault,
 } from "@openmasq/redact";
-import { capToolResultText, disabledKindsForTool } from "../send/toolResult";
+import { capToolResultText } from "../send/toolResult";
+import { disabledKindsForTool } from "../send/toolMasking";
+import type { ConnectorMasking } from "@openmasq/catalog";
 import { labelInbound, prescreen } from "../send/inboundScreen";
 import { pushDebug } from "../state/debug/debug";
 
@@ -47,6 +49,9 @@ export function makeNavClearRedactor(opts: {
   secrets: readonly string[];
   /** The send's disabled categories — the LIVE array the reveal gate mutates. */
   disabledKinds: string[];
+  /** Connectors masked at their own level — resolved HERE too, or this view of "what may
+   *  stay clear for this tool" and the full path's would disagree (`send/toolMasking.ts`). */
+  connectorMasking?: Record<string, ConnectorMasking>;
   /** value → category map (this send's spans included), so the per-tool clear
    *  policy can prove which vault entries it may leave un-replayed. */
   kinds?: Record<string, string>;
@@ -82,7 +87,7 @@ export function makeNavClearRedactor(opts: {
         // tool deliberately keeps in clear (org/place on a page are the answer's
         // substance) or that the user disabled/revealed for the conversation.
         const excluded = disabledVaultTokens(vault, {
-          disabledKinds: disabledKindsForTool(opts.disabledKinds, tool),
+          disabledKinds: disabledKindsForTool(opts.disabledKinds, tool, opts.connectorMasking),
           kinds: opts.kinds,
         });
         let replayed: Vault = vault;

@@ -1,3 +1,4 @@
+import type { ConnectorMasking } from "@openmasq/catalog";
 import type { ProviderId } from "@openmasq/llm";
 import type { Message as SchemaMessage, RedactCategoryKey } from "@openmasq/schema";
 
@@ -145,6 +146,14 @@ export interface Settings {
    * conversation can override any of these via `Conversation.redactCategories`.
    */
   redactCategories: Record<RedactCategoryKey, boolean>;
+  /**
+   * Per-CONNECTOR masking, for the few that must not follow the rules above: the app reads
+   * the user's own files through one connector and a stranger's web page through another.
+   * Absent for a connector ⇒ it follows the global rules, which is what the pickers call
+   * "Default". SHAPE and resolution are `@openmasq/catalog`'s `ConnectorMasking` — the local
+   * proxy edits the same policy, so neither side may hold its own idea of what it means.
+   */
+  connectorMasking?: Record<string, ConnectorMasking>;
   /**
    * How model inference is billed for a platform-eligible provider (OpenAI/Anthropic/
    * Google/Mistral/DeepSeek + Scaleway/OpenRouter) :

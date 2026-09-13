@@ -1,6 +1,6 @@
 {
   "packages/ui/src/styles.css": 12146,
-  "packages/ui/src/agent/mcpAgent.ts": 2663,
+  "packages/ui/src/agent/mcpAgent.ts": 2664,
   "packages/ui/src/send/sendOrchestrator.ts": 2357,
   "packages/ui/src/pages/ChatWorkspace/ChatView.tsx": 1921,
   "packages/ui/src/state/store.ts": 1540,
