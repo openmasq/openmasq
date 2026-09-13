@@ -40,9 +40,22 @@ const FORBIDDEN_WITHIN = [
   },
 ];
 
+/**
+ * An asar entry in ONE shape, whatever listed it: separators as `/`, no leading one.
+ *
+ * ⚠️ On Windows the lister hands back `\out\renderer\index.html`. Splitting that on `/`
+ * yields the WHOLE path as its first segment, so every single entry read as an illegal
+ * root and packaging failed with nine hundred violations — the Windows preflight of
+ * 13/09/2026, the first time this gate ever ran on Windows. The table below stays pure;
+ * the normalisation happens here, once, on the way in.
+ */
+function normaliseEntry(entry) {
+  return entry.replace(/\\/g, "/").replace(/^\/+/, "");
+}
+
 /** The first segment of an asar entry (`/out/main/index.js` → `out`). */
 function rootOf(entry) {
-  return entry.replace(/^\/+/, "").split("/")[0];
+  return normaliseEntry(entry).split("/")[0];
 }
 
 /**
@@ -56,7 +69,7 @@ function rootOf(entry) {
 function findPackagingViolations(entries) {
   const violations = [];
   for (const raw of entries) {
-    const entry = raw.replace(/^\/+/, "");
+    const entry = normaliseEntry(raw);
     if (entry === "") continue;
     const root = rootOf(entry);
     if (!ALLOWED_ROOTS.includes(root)) {
