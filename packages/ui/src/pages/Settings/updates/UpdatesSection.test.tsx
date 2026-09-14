@@ -74,7 +74,7 @@ beforeEach(() => {
 describe("Réglages → Versions — l'historique publié", () => {
   it("liste les versions publiées et leur contenu, la plus récente en tête", async () => {
     ordinaryDevice();
-    store.dispatch(setReleaseNotesCache(NOTES));
+    store.dispatch(setReleaseNotesCache({ notes: NOTES, locale: "fr" }));
     const ui = await render();
 
     expect(ui.findAll(".rn-version").map((v) => v.textContent)).toEqual(["0.5.0", "0.4.2"]);
@@ -89,7 +89,7 @@ describe("Réglages → Versions — l'historique publié", () => {
 
   it("une liste vide se DIT — un blanc se lirait comme une panne", async () => {
     ordinaryDevice();
-    store.dispatch(setReleaseNotesCache([]));
+    store.dispatch(setReleaseNotesCache({ notes: [], locale: "fr" }));
     const ui = await render();
 
     expect(ui.find(".ver-empty").textContent).toContain("Aucune note de version publiée");
@@ -98,7 +98,7 @@ describe("Réglages → Versions — l'historique publié", () => {
 
   it("sans source de notes (aperçu, relais coupé), aucune section vide n'apparaît", async () => {
     ordinaryDevice();
-    store.dispatch(setReleaseNotesCache(NOTES));
+    store.dispatch(setReleaseNotesCache({ notes: NOTES, locale: "fr" }));
     const ui = await render({ updates: updatesHost().updates }); // no `releaseNotesUrl`
 
     expect(ui.maybe(".rn-list")).toBeNull();
@@ -119,7 +119,7 @@ describe("Réglages → Versions — l'historique publié", () => {
         error: null,
       }),
     );
-    store.dispatch(setReleaseNotesCache(NOTES));
+    store.dispatch(setReleaseNotesCache({ notes: NOTES, locale: "fr" }));
     const ui = await render();
 
     expect(ui.maybe(".rn-list")).toBeNull();

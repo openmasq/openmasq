@@ -63,7 +63,7 @@ const render = (host: Partial<Host>) => {
 
 beforeEach(() => {
   store.dispatch(resetSettingsCache());
-  store.dispatch(setReleaseNotesCache([NOTE]));
+  store.dispatch(setReleaseNotesCache({ notes: [NOTE], locale: "fr" }));
 });
 
 describe("useUpdateReady", () => {
@@ -123,7 +123,7 @@ describe("useUpdateReady", () => {
   });
 
   it("sans note publiée, elle s'annonce quand même — le geste compte plus que le texte", async () => {
-    store.dispatch(setReleaseNotesCache([]));
+    store.dispatch(setReleaseNotesCache({ notes: [], locale: "fr" }));
     const h = fakeHost();
     const { ui, out } = await render(h.host);
 

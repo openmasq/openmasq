@@ -3,7 +3,8 @@ import { describe, expect, it, vi, afterEach } from "vitest";
 import { Provider } from "react-redux";
 import type { ReactNode } from "react";
 import { GuideModal } from "./GuideModal";
-import { getMessages } from "@openmasq/i18n";
+import { getMessages, type Locale } from "@openmasq/i18n";
+import { I18nProvider } from "../../i18n";
 import { guideChapters, HELP_CENTER_URL } from "../../help";
 import { store } from "../../state/redux";
 import { resetSettingsCache, setReleaseNotesCache } from "../../state/settings/settingsCache";
@@ -18,10 +19,17 @@ const NOTES = [
   { version: "0.4.1", releaseDate: "2026-07-28", title: "Réglages plus courts", body: "", highlights: [] },
 ];
 
-const render = (host: Partial<Host>) =>
+const render = (host: Partial<Host>, locale?: Locale) =>
   mount(<GuideModal onClose={() => {}} />, {
     host,
-    wrap: (children: ReactNode) => <Provider store={store}>{children}</Provider>,
+    wrap: (children: ReactNode) =>
+      locale ? (
+        <I18nProvider locale={locale}>
+          <Provider store={store}>{children}</Provider>
+        </I18nProvider>
+      ) : (
+        <Provider store={store}>{children}</Provider>
+      ),
   });
 
 const titles = (ui: Awaited<ReturnType<typeof render>>) =>
@@ -37,7 +45,7 @@ const GUIDE = guideChapters(getMessages("fr"));
 
 describe("GuideModal — sommaire par thème", () => {
   it("tous les chapitres sont au menu, un seul est affiché, et le clic change lequel", async () => {
-    store.dispatch(setReleaseNotesCache(NOTES));
+    store.dispatch(setReleaseNotesCache({ notes: NOTES, locale: "fr" }));
     const ui = await render({ releaseNotesUrl: "https://exemple.test/release-notes" });
 
     expect(titles(ui)).toEqual(GUIDE.map((c) => c.title));
@@ -87,7 +95,7 @@ describe("GuideModal — sommaire par thème", () => {
  */
 describe("GuideModal — l'onglet « Nouveautés »", () => {
   it("liste les versions publiées, la plus récente en tête", async () => {
-    store.dispatch(setReleaseNotesCache(NOTES));
+    store.dispatch(setReleaseNotesCache({ notes: NOTES, locale: "fr" }));
     const ui = await render({ releaseNotesUrl: "https://exemple.test/release-notes" });
 
     await ui.click(ui.findAll(".guide-nav-item").find((i) => i.textContent === "Nouveautés")!);
@@ -103,7 +111,7 @@ describe("GuideModal — l'onglet « Nouveautés »", () => {
   });
 
   it("sans source de notes (aperçu navigateur), le chapitre n'existe pas", async () => {
-    store.dispatch(setReleaseNotesCache(NOTES));
+    store.dispatch(setReleaseNotesCache({ notes: NOTES, locale: "fr" }));
     const ui = await render({}); // no `releaseNotesUrl`
     expect(titles(ui)).not.toContain("Nouveautés");
     await ui.unmount();
@@ -118,7 +126,23 @@ describe("GuideModal — l'onglet « Nouveautés »", () => {
 
     const ui = await render({ releaseNotesUrl: "https://exemple.test/release-notes" });
     await ui.click(ui.findAll(".guide-nav-item").find((i) => i.textContent === "Nouveautés")!);
-    expect(fetchMock).toHaveBeenCalledWith("https://exemple.test/release-notes");
+    // In the app's language: a note is copy, the endpoint serves it in the language asked.
+    expect(fetchMock).toHaveBeenCalledWith("https://exemple.test/release-notes?locale=fr");
+
+    await ui.unmount();
+  });
+
+  it("des notes lues en français ne servent pas l'app en anglais — elle les redemande", async () => {
+    // The cache holds French notes (a first visit); the person has since switched the
+    // app to English. The tab must not show French copy under an English heading:
+    // the cached notes are stale for this language, and the feed asks again.
+    const fetchMock = vi.fn(async () => ({ ok: true, json: async () => ({ items: NOTES }) }));
+    vi.stubGlobal("fetch", fetchMock);
+    store.dispatch(setReleaseNotesCache({ notes: NOTES, locale: "fr" }));
+
+    const ui = await render({ releaseNotesUrl: "https://exemple.test/release-notes" }, "en");
+    await ui.click(ui.findAll(".guide-nav-item").find((i) => i.textContent === "What's new")!);
+    expect(fetchMock).toHaveBeenCalledWith("https://exemple.test/release-notes?locale=en");
 
     await ui.unmount();
   });

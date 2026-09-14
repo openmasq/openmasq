@@ -1,5 +1,7 @@
 import { useEffect } from "react";
+import type { Locale } from "@openmasq/i18n";
 import { useHost, type Host, type DesktopChannelReleases } from "../../host";
+import { useLocale } from "../../i18n";
 import { useAuth } from "../auth/useAuth";
 import { useAppDispatch, useAppSelector, type AppDispatch } from "../redux";
 import {
@@ -135,22 +137,26 @@ export async function loadUpdates(host: Host, dispatch: AppDispatch): Promise<vo
   }
 }
 
-/** Fetch the published release notes (Contentful via analytics-fn) and cache them. */
-export async function loadReleaseNotes(host: Host, dispatch: AppDispatch): Promise<void> {
+/** Fetch the published release notes (Contentful via analytics-fn) in the app's language
+ *  and cache them. `?locale=` is the endpoint's contract: a note written in that language
+ *  when one exists, its original otherwise — never an empty note. */
+export async function loadReleaseNotes(host: Host, dispatch: AppDispatch, locale: Locale): Promise<void> {
   const url = host.releaseNotesUrl;
   if (!url) {
-    dispatch(setReleaseNotesCache([]));
+    dispatch(setReleaseNotesCache({ notes: [], locale }));
     return;
   }
   try {
-    const r = await fetch(url);
+    const target = new URL(url);
+    target.searchParams.set("locale", locale);
+    const r = await fetch(target.toString());
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     const data = (await r.json()) as { items?: ReleaseNote[] };
-    dispatch(setReleaseNotesCache(Array.isArray(data.items) ? data.items : []));
+    dispatch(setReleaseNotesCache({ notes: Array.isArray(data.items) ? data.items : [], locale }));
   } catch {
     // A failed fetch caches an empty list (loaded:true) — the notes are optional
     // decoration; the version list still renders without them.
-    dispatch(setReleaseNotesCache([]));
+    dispatch(setReleaseNotesCache({ notes: [], locale }));
   }
 }
 
@@ -168,6 +174,7 @@ export function useSettingsPrefetch(): void {
   const billing = useAppSelector(selectBillingCache);
   const updates = useAppSelector(selectUpdatesCache);
   const releaseNotes = useAppSelector(selectReleaseNotesCache);
+  const { locale } = useLocale();
 
   // Billing is per-account: (re)load when never loaded OR the account changed.
   useEffect(() => {
@@ -178,7 +185,8 @@ export function useSettingsPrefetch(): void {
     if (!updates.loaded) void loadUpdates(host, dispatch);
   }, [host, dispatch, updates.loaded]);
 
+  // Release notes are copy: a language switch makes the cached ones stale.
   useEffect(() => {
-    if (!releaseNotes.loaded) void loadReleaseNotes(host, dispatch);
-  }, [host, dispatch, releaseNotes.loaded]);
+    if (!releaseNotes.loaded || releaseNotes.locale !== locale) void loadReleaseNotes(host, dispatch, locale);
+  }, [host, dispatch, releaseNotes.loaded, releaseNotes.locale, locale]);
 }

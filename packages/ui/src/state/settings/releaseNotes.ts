@@ -1,6 +1,7 @@
 import type { Messages } from "@openmasq/i18n";
 import { useEffect } from "react";
 import { useHost } from "../../host";
+import { useLocale } from "../../i18n";
 import { useAppDispatch, useAppSelector } from "../redux";
 import { selectReleaseNotesCache } from "./settingsCache";
 import { loadReleaseNotes } from "./settingsPrefetch";
@@ -35,8 +36,12 @@ export interface UseReleaseNotes {
 export function useReleaseNotes(): UseReleaseNotes {
   const host = useHost();
   const url = host.releaseNotesUrl;
-  const { notes, loaded } = useAppSelector(selectReleaseNotesCache);
-  return { notes, loading: !!url && !loaded, unavailable: !url, error: null };
+  const { locale } = useLocale();
+  const { notes, loaded, locale: cachedLocale } = useAppSelector(selectReleaseNotesCache);
+  // Notes cached in another language are not these notes: loading, until the feed
+  // (`useReleaseNotesFeed` / `useSettingsPrefetch`) has fetched them in this one.
+  const stale = !loaded || cachedLocale !== locale;
+  return { notes: stale ? [] : notes, loading: !!url && stale, unavailable: !url, error: null };
 }
 
 /**
@@ -51,11 +56,12 @@ export function useReleaseNotes(): UseReleaseNotes {
 export function useReleaseNotesFeed(): UseReleaseNotes {
   const host = useHost();
   const dispatch = useAppDispatch();
+  const { locale } = useLocale();
   const state = useReleaseNotes();
   const { unavailable, loading } = state;
   useEffect(() => {
-    if (!unavailable && loading) void loadReleaseNotes(host, dispatch);
-  }, [host, dispatch, unavailable, loading]);
+    if (!unavailable && loading) void loadReleaseNotes(host, dispatch, locale);
+  }, [host, dispatch, unavailable, loading, locale]);
   return state;
 }
 

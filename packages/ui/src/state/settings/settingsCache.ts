@@ -6,6 +6,7 @@ import type {
   DesktopRelease,
   DesktopChannelReleases,
 } from "../../host";
+import type { Locale } from "@openmasq/i18n";
 import type { ReleaseNote } from "./releaseNotes";
 import type { RootState } from "../redux";
 
@@ -46,6 +47,10 @@ export interface UpdatesCache {
 export interface ReleaseNotesCache {
   notes: ReleaseNote[];
   loaded: boolean;
+  /** The language the notes were fetched IN: a note is copy, and copy has a language.
+   *  A reader in another language finds the cache stale and loads again — the notes
+   *  used to stay in the language of the first visit whatever the person switched to. */
+  locale?: Locale;
 }
 
 export interface SettingsCacheState {
@@ -88,8 +93,8 @@ const slice = createSlice({
     setUpdatesCache(state, action: PayloadAction<Omit<UpdatesCache, "loaded">>) {
       state.updates = { ...action.payload, loaded: !action.payload.error };
     },
-    setReleaseNotesCache(state, action: PayloadAction<ReleaseNote[]>) {
-      state.releaseNotes = { notes: action.payload, loaded: true };
+    setReleaseNotesCache(state, action: PayloadAction<{ notes: ReleaseNote[]; locale: Locale }>) {
+      state.releaseNotes = { notes: action.payload.notes, loaded: true, locale: action.payload.locale };
     },
     /** Drop everything (e.g. on sign-out) so the next visit re-fetches clean. */
     resetSettingsCache() {
