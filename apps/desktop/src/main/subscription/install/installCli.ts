@@ -28,7 +28,7 @@ import { extractTar } from "./tarExtract";
 
 const CLAUDE_INSTALL_TIMEOUT_MS = 5 * 60 * 1000;
 
-export interface InstallContext {
+interface InstallContext {
   platform: NodeJS.Platform;
   arch: string;
   /** The app's own data dir: codex lives under it, and so do the temporary downloads. */
@@ -39,7 +39,7 @@ export interface InstallContext {
 }
 
 /** Where this app keeps the codex IT installed. */
-export function codexInstallRoot(userData: string): string {
+function codexInstallRoot(userData: string): string {
   return join(userData, "cli", "codex", CODEX_PIN_VERSION);
 }
 

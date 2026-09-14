@@ -3,7 +3,7 @@ import type { SubscriptionCliStatus, SubscriptionSetupError } from "@openmasq/ll
 import { useHost } from "../host";
 import type { AgentCli } from "./useAgentOptIns";
 
-export type AgentSetupPhase = "idle" | "installing" | "connecting";
+type AgentSetupPhase = "idle" | "installing" | "connecting";
 
 /**
  * Where a subscription CLI stands on this machine and the two gestures that move it:

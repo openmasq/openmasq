@@ -24,7 +24,7 @@
  */
 import type { SubscriptionCliId } from "../resolveCli";
 
-export type InstallableCli = "claude" | "codex";
+type InstallableCli = "claude" | "codex";
 
 export interface InstallPin {
   cli: InstallableCli;
