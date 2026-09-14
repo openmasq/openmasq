@@ -23,7 +23,7 @@ import { GLOBAL_RULES } from "./rules.global";
 import { FULLWIDTH_RULES } from "./rules.fullwidth";
 import { DB_URI_RULE, URL_CREDS_RULE } from "./rules.connection";
 import { EMAIL_RULES } from "./rules.email";
-import { isCodeTerm, isIntegrityHash, isNumericLiteral } from "./codeTerms";
+import { isCodeTerm, isIntegrityHash, isLowEntropyRun, isNumericLiteral } from "./codeTerms";
 import { ENV_SECRET_RULES } from "./rules.envSecrets";
 import { CRYPTO_RULES } from "./rules.crypto";
 import { TOKEN_RULES } from "./rules.tokens";
@@ -397,7 +397,8 @@ export const RULES: RedactionRule[] = [
       !isIsin(m) &&
       !isCodeTerm(m) &&
       !isNumericLiteral(m) &&
-      !isIntegrityHash(m),
+      !isIntegrityHash(m) &&
+      !isLowEntropyRun(m),
   },
 ];
 

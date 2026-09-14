@@ -139,3 +139,15 @@ export const isCodeReference = (value: string): boolean => {
   // reference; the length test then refuses a key with an interpolation pasted in front.
   return /^[\w./:@=,-]*$/.test(rest) && !/[A-Za-z0-9_-]{12,}/.test(rest);
 };
+
+/**
+ * An UPPER_SNAKE identifier used AS a value — `token: X_ACCESS_TOKEN`.
+ *
+ * That is the NAME of a secret, and a name is a label: the engine already refuses to mask
+ * `iban` or `siren` for the same reason. A real credential is drawn from a random alphabet,
+ * so it carries lowercase; an all-caps run joined by underscores is how every ecosystem
+ * spells a variable and how none of them spells a key. Requiring the underscore is what
+ * keeps an all-caps HEX key (`ABCDEF0123456789`) out of this.
+ */
+export const isEnvVarName = (value: string): boolean =>
+  /^[A-Z][A-Z0-9]*(?:_[A-Z0-9]+)+$/.test(value.trim());

@@ -226,3 +226,35 @@ describe("a bank card is not found inside an identifier", () => {
     },
   );
 });
+
+/* The last two shapes from that session, both about what a value IS rather than what key
+   sat beside it. */
+describe("a name is a label, and padding is not a key", () => {
+  /** `X_ACCESS_TOKEN` is the NAME of a secret. The engine already refuses to mask `iban` or
+   *  `siren` for that reason; a credential is drawn from a random alphabet, so it carries
+   *  lowercase, and an all-caps run joined by underscores is how every ecosystem spells a
+   *  variable and how none of them spells a key. */
+  it.each(["token: X_ACCESS_TOKEN", "api_key = SCW_SECRET_KEY", "password: DB_PASSWORD"])(
+    "leaves the variable NAME %s alone",
+    (line) => expect(redact(line).text).toBe(line),
+  );
+
+  it("still masks an all-caps HEX key, which carries no underscore", () => {
+    expect(redact("api_key: ABCDEF0123456789ABCDEF").text).not.toBe(
+      "api_key: ABCDEF0123456789ABCDEF",
+    );
+  });
+
+  /** The generic rule exists for what is « long and high-entropy in a way ordinary text
+   *  never is ». Nine zeroes and a letter is the opposite: padding, a placeholder, a column
+   *  of a fixture. */
+  it.each(["000000000s", 'const pad = "000000000s";', "key: 000000000s"])(
+    "leaves the low-entropy run %s alone",
+    (line) => expect(redact(line).text).toBe(line),
+  );
+
+  it.each(["sk_live_51H8xKLMNopQRstUV", "ghp_A1b2C3d4E5f6G7h8I9j0"])(
+    "still masks %s, which draws from a real alphabet",
+    (line) => expect(redact(line).text).not.toBe(line),
+  );
+});

@@ -1,5 +1,10 @@
 import type { RedactionRule } from "../../types";
-import { isBenignConfigValue, isCodeReference, isTemplatePlaceholder } from "../validators";
+import {
+  isBenignConfigValue,
+  isCodeReference,
+  isEnvVarName,
+  isTemplatePlaceholder,
+} from "../validators";
 
 // The ENV / config SECRET-VALUE family — split out of rules.ts (300-LOC ratchet). Four rules,
 // in the ORDER and at the POSITION they held: they redact the VALUE of a secret-named
@@ -19,11 +24,13 @@ const notProse = (m: string): boolean => !/,\s|\.\s*\p{L}|;\s|\\[nrt]/u.test(m);
  *   - `<your-key>` — what a reader is told to replace;
  *   - `var.scaleway_secret_key`, `${SCW_SECRET_KEY}` — the secret is elsewhere BY DESIGN,
  *     and masking the reference corrupts the code while protecting nothing;
+ *   - `X_ACCESS_TOKEN` — the NAME of a secret, which is a label like `iban` or `siren`;
  *   - `...)`, `--`, `"` — the tail of a sentence a lookbehind reached into. A run with no
  *     letter AND no digit cannot be a credential, whatever the key beside it was called. */
 const isValue = (m: string): boolean =>
   !isTemplatePlaceholder(m) &&
   !isCodeReference(m) &&
+  !isEnvVarName(m) &&
   /[A-Za-z0-9]/.test(m.replace(/^\W+|\W+$/g, ""));
 
 export const ENV_SECRET_RULES: RedactionRule[] = [

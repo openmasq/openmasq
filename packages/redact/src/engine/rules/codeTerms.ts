@@ -11,23 +11,65 @@
 // 8-char floor, so `argon2i`/`aes128` already pass). Compared lower-cased, whole-value only.
 const CODE_TERMS = new Set<string>([
   // Password hashing / KDF
-  "argon2id", "argon2ad", "pbkdf2sha256", "pbkdf2sha512", "bcryptsha256",
+  "argon2id",
+  "argon2ad",
+  "pbkdf2sha256",
+  "pbkdf2sha512",
+  "bcryptsha256",
   // Elliptic curves
-  "secp256k1", "secp256r1", "secp384r1", "secp521r1", "prime256v1", "brainpoolp256r1",
+  "secp256k1",
+  "secp256r1",
+  "secp384r1",
+  "secp521r1",
+  "prime256v1",
+  "brainpoolp256r1",
   // AEAD / ciphers
-  "aes128gcm", "aes192gcm", "aes256gcm", "aes128cbc", "aes256cbc", "aes256ctr",
-  "chacha20poly1305", "xchacha20poly1305",
+  "aes128gcm",
+  "aes192gcm",
+  "aes256gcm",
+  "aes128cbc",
+  "aes256cbc",
+  "aes256ctr",
+  "chacha20poly1305",
+  "xchacha20poly1305",
   // Hashes / digests
-  "sha1prng", "sha224", "sha384", "sha512224", "sha512256", "keccak256", "keccak512",
-  "ripemd160", "blake2b512", "blake2s256", "whirlpool512",
+  "sha1prng",
+  "sha224",
+  "sha384",
+  "sha512224",
+  "sha512256",
+  "keccak256",
+  "keccak512",
+  "ripemd160",
+  "blake2b512",
+  "blake2s256",
+  "whirlpool512",
   // Encoding helpers + names an all-lowercase code token shares with a lowercase key's shape
   // (no camelCase hump for `isCodeIdentifier` to read), so only a name spares them.
-  "b64encode", "b64decode", "b32encode", "b32decode", "b16encode", "urlsafeb64encode",
-  "base64url", "base32hex", "base16", "base58btc", "base36",
+  "b64encode",
+  "b64decode",
+  "b32encode",
+  "b32decode",
+  "b16encode",
+  "urlsafeb64encode",
+  "base64url",
+  "base32hex",
+  "base16",
+  "base58btc",
+  "base36",
   // CSS 3-D transforms
-  "translate3d", "matrix3d", "rotate3d", "scale3d",
+  "translate3d",
+  "matrix3d",
+  "rotate3d",
+  "scale3d",
   // Postgres range / numeric types
-  "int4range", "int8range", "numrange", "tsrange", "tstzrange", "daterange", "int8multirange",
+  "int4range",
+  "int8range",
+  "numrange",
+  "tsrange",
+  "tstzrange",
+  "daterange",
+  "int8multirange",
 ]);
 
 /** Is `value` a published algorithm/encoding name (never a secret)? Whole-value, case-blind. */
@@ -59,7 +101,9 @@ export const isIntegrityHash = (value: string): boolean =>
  * (a 40-hex address also has its own crypto rule). Octal/binary have no such collision.
  */
 export const isNumericLiteral = (value: string): boolean =>
-  /^0[xX][0-9a-fA-F]{1,16}$/.test(value) || /^0[oO][0-7]+$/.test(value) || /^0[bB][01]+$/.test(value);
+  /^0[xX][0-9a-fA-F]{1,16}$/.test(value) ||
+  /^0[oO][0-7]+$/.test(value) ||
+  /^0[bB][01]+$/.test(value);
 
 const VOWEL = /[aeiouyàâäéèêëïîôöùûü]/i;
 
@@ -84,4 +128,20 @@ export function isCodeIdentifier(s: string): boolean {
     if (seg.length >= 3) hasWord = true;
   }
   return hasWord;
+}
+
+/**
+ * A run with almost no character DIVERSITY — `000000000s`, `aaaaaaaa1`, `--------x`.
+ *
+ * The generic token rule exists for what is "long and high-entropy in a way ordinary text
+ * never is" (`engine/CLAUDE.md`, the precision bar). A string built from three distinct
+ * characters is the opposite of that: it is padding, a placeholder, a column of zeroes in a
+ * fixture. A real key of this length draws from dozens of symbols.
+ *
+ * Deliberately generous — THREE distinct characters, not "looks random" — so nothing is
+ * refused that could plausibly have been drawn at random.
+ */
+export function isLowEntropyRun(value: string): boolean {
+  if (value.length < 8) return false;
+  return new Set(value).size <= 3;
 }
