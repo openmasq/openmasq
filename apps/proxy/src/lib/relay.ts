@@ -2,7 +2,7 @@
 // caller's own headers, then bring the reply back restored — JSON in one go, SSE frame by
 // frame. The caller's key transits, it is never read; the vault never leaves this process.
 import type { Request, Response } from "express";
-import { Readable } from "node:stream";
+import { pipeline, Readable } from "node:stream";
 import type { RedactionMatch } from "@openmasq/redact";
 import type { ProxyConfig } from "../config/config.js";
 import type { Masker, Vault } from "./masker.js";
@@ -137,9 +137,27 @@ export async function relay(
     // The vault's KEYS are the fakes — what the model saw — never the real values.
     deps.reporter.fakes(Object.keys(locals.vault));
     const rw = o.stream(locals.vault, fns);
-    Readable.fromWeb(up.body as import("node:stream/web").ReadableStream)
-      .pipe(new SseTransform(rw.rewrite, rw.end))
-      .pipe(res);
+    // ⚠️ `pipeline`, never a chain of `.pipe()`. A `.pipe()` does not forward errors, so an
+    // upstream that DIES MID-STREAM — a laptop losing wifi, a provider dropping the
+    // connection — emitted `error` on a Readable nobody listened to, and Node turned that
+    // into an uncaught exception: the proxy exited, taking the wrapped tool with it. The
+    // one thing this process must not do is disappear while it is somebody's only way to
+    // reach a model. `pipeline` propagates the error, destroys every stream in the chain,
+    // and hands it here.
+    pipeline(
+      Readable.fromWeb(up.body as import("node:stream/web").ReadableStream),
+      new SseTransform(rw.rewrite, rw.end),
+      res,
+      (err) => {
+        if (!err) return;
+        // The headers went out long ago, so there is no status left to change: the client
+        // sees a truncated stream, which is what actually happened and what it can retry.
+        // Said on the operator's screen, because a silent truncation looks like an answer
+        // that simply stopped.
+        deps.reporter.note?.(`upstream stream ended early: ${errText(err)}`, "warn");
+        res.end();
+      },
+    );
     return;
   }
 
@@ -154,4 +172,13 @@ export async function relay(
   }
   res.writeHead(up.status, resHeaders);
   res.end(out);
+}
+
+/** An upstream failure in one line. `undici` reports a dropped connection as a bare
+ *  « terminated » whose `cause` carries the real reason (`read EHOSTUNREACH`), so the cause
+ *  is what an operator needs to see. */
+function errText(err: unknown): string {
+  if (!(err instanceof Error)) return String(err);
+  const cause = (err as { cause?: unknown }).cause;
+  return cause instanceof Error ? `${err.message} (${cause.message})` : err.message;
 }
