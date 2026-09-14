@@ -92,12 +92,24 @@ const STATUS_ARGS: Record<SubscriptionCli, string[] | null> = {
   antigravity: null,
 };
 
-/** Is the CLI signed in? One short process, bounded, `null` when it did not answer. */
+/**
+ * Is the CLI signed in? One short process, bounded, `null` when it did not answer.
+ *
+ * BOTH streams are read. Measured 14/09/2026 with codex 0.149: `codex login status`
+ * prints « Logged in using ChatGPT » on STDERR and nothing on stdout — reading stdout
+ * alone answered `null` for an account that was signed in, and the interface then
+ * offered « Se connecter » to someone already connected. claude's `--json` goes to
+ * stdout; concatenating the two costs nothing there (stderr stays empty).
+ *
+ * antigravity has no status command at all (`agy --help`: no auth subcommand): what
+ * says it is signed in is `agy models` listing the account's models — `account.ts`
+ * reads that already, so the caller asks it (`readSubscriptionAccount`) instead.
+ */
 export function readLoginStatus(cli: SubscriptionCli, binPath: string, cwd: string): Promise<LoginStatus> {
   const args = STATUS_ARGS[cli];
   if (!args) return Promise.resolve({ loggedIn: null });
   return new Promise((resolve) => {
-    const child = spawn(binPath, args, { cwd, env: minimalChildEnv(), stdio: ["ignore", "pipe", "ignore"] });
+    const child = spawn(binPath, args, { cwd, env: minimalChildEnv(), stdio: ["ignore", "pipe", "pipe"] });
     let out = "";
     let settled = false;
     const finish = () => {
@@ -110,9 +122,17 @@ export function readLoginStatus(cli: SubscriptionCli, binPath: string, cwd: stri
     const timer = setTimeout(finish, STATUS_TIMEOUT_MS);
     child.stdout.setEncoding("utf8");
     child.stdout.on("data", (c: string) => (out += c));
+    child.stderr.setEncoding("utf8");
+    child.stderr.on("data", (c: string) => (out += c));
     child.on("error", finish);
     child.on("exit", finish);
   });
+}
+
+/** This build can run the CLI's own sign-in from the app (claude, codex — antigravity has
+ *  no such command: its account is connected from the tool itself). */
+export function loginSupported(cli: SubscriptionCli): boolean {
+  return LOGIN_ARGS[cli] !== null;
 }
 
 export interface LoginSession {

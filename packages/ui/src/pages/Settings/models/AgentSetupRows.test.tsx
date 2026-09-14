@@ -15,6 +15,7 @@ const status = (over: Partial<NonNullable<Awaited<ReturnType<NonNullable<Host["r
   cli: "claude" as const,
   installed: false,
   installable: true,
+  connectable: true,
   downloadBytes: 199_000_000,
   loggedIn: null,
   ...over,
@@ -75,6 +76,19 @@ describe("AgentSetupRows", () => {
     });
     await tick();
     expect(ui.find(".agent-setup-row").textContent).toContain("a@b.c");
+    expect(ui.maybe("button")).toBeNull();
+  });
+
+  it("installed, no sign-in the app can run (antigravity): one line, no button", async () => {
+    // `agy` has no auth command: a « Se connecter » here could only answer « unsupported ».
+    const ui = await mount(<AgentSetupRows cli="antigravity" label="Antigravity" />, {
+      host: hostWith({
+        readSubscriptionStatus: async () =>
+          status({ cli: "antigravity", installed: true, installable: false, connectable: false, loggedIn: null }),
+      }),
+    });
+    await tick();
+    expect(ui.find(".agent-setup-row").textContent).toMatch(/outil lui-même|tool itself/);
     expect(ui.maybe("button")).toBeNull();
   });
 

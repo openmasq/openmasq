@@ -15,7 +15,9 @@ export type AgentConnectedCause = "read" | "login";
  *
  *   absent     → what the click downloads (name, size, from whom), [Installer]
  *   installing → a bar, then « Installation… »
- *   installed  → « pas encore connectée », [Se connecter]
+ *   installed  → « pas encore connectée », [Se connecter] — or, for a CLI with no sign-in
+ *                the app can run (antigravity), the one line saying the account is
+ *                connected from the tool itself, and no button
  *   connecting → the page to open, and EITHER the code to type there (codex) OR a field
  *                to paste the code the page shows (claude) — `useAgentSetup` says which
  *   connected  → the account's e-mail and plan, as the CLI reported them
@@ -143,6 +145,14 @@ export function AgentSetupRows({
             {copy.cancel}
           </button>
         </div>
+      </div>
+    );
+  }
+
+  if (!status.connectable) {
+    return (
+      <div className="agent-account-row agent-setup-row">
+        <div className="agent-account-note">{copy.notConnectable}</div>
       </div>
     );
   }

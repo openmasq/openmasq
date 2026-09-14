@@ -164,6 +164,7 @@ export const modelPicker = {
       notInstallable: "This build of the app cannot install it on this machine.",
       connect: "Sign in",
       notConnected: "Installed, not yet connected to your account.",
+      notConnectable: "Installed. Sign in to your account from the tool itself.",
       connecting: "Signing in, in your browser…",
       openPage: "Open the page",
       typeCode: (code) => `Enter this code on the page: ${code}`,

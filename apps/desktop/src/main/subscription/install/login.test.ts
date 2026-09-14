@@ -1,8 +1,11 @@
 // The sign-in relay is only as good as its reading of what the CLIs print; these pin the
 // measured outputs (2026-09-05) and the one refusal that matters: a URL off the vendor's
 // domain is never handed to the interface to open.
+import { chmodSync, mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { parseClaudeStatus, parseCodexStatus, parseLoginOutput, stripAnsi } from "./login";
+import { parseClaudeStatus, parseCodexStatus, parseLoginOutput, readLoginStatus, stripAnsi } from "./login";
 
 const ESC = String.fromCharCode(27);
 
@@ -21,6 +24,8 @@ describe("parseClaudeStatus", () => {
 describe("parseCodexStatus", () => {
   it("reads `login status`", () => {
     expect(parseCodexStatus("Logged in using ChatGPT\n")).toEqual({ loggedIn: true });
+    // Measured 14/09/2026: codex 0.149 prints this line on STDERR — `readLoginStatus`
+    // must feed both streams to this parser, or a signed-in account reads as unknown.
     expect(parseCodexStatus("Not logged in\n")).toEqual({ loggedIn: false });
     expect(parseCodexStatus("")).toEqual({ loggedIn: null });
   });
@@ -40,5 +45,17 @@ describe("parseLoginOutput", () => {
     expect(parseLoginOutput("claude", "visit: https://evil.example/claude.com/x")).toEqual({});
     expect(parseLoginOutput("codex", "https://openai.com.evil.example/device")).toEqual({});
     expect(parseLoginOutput("claude", "nothing here")).toEqual({});
+  });
+});
+
+describe("readLoginStatus", () => {
+  // codex 0.149 answers `login status` on STDERR (measured 14/09/2026). A stand-in binary
+  // that does the same is enough to pin that the reader listens to both streams.
+  it.skipIf(process.platform === "win32")("reads a status the CLI prints on stderr", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "om-login-"));
+    const bin = join(dir, "codex");
+    writeFileSync(bin, '#!/bin/sh\necho "Logged in using ChatGPT" 1>&2\n');
+    chmodSync(bin, 0o755);
+    expect(await readLoginStatus("codex", bin, dir)).toEqual({ loggedIn: true });
   });
 });

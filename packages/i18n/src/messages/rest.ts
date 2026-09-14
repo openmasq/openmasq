@@ -141,6 +141,8 @@ export interface ModelPickerMessages {
       notInstallable: string;
       connect: string;
       notConnected: string;
+      /** The CLI has no sign-in the app can run: the account is connected from the tool. */
+      notConnectable: string;
       connecting: string;
       openPage: string;
       /** codex: the one-time code to type on the page it opened. */

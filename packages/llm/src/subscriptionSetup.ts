@@ -16,6 +16,10 @@ export interface SubscriptionCliStatus {
   installable: boolean;
   /** Bytes the install would download — said before the click, never a surprise. */
   downloadBytes?: number;
+  /** This build can run the CLI's own sign-in from the app (claude, codex). False for
+   *  antigravity, which has no sign-in command: the row then says so instead of
+   *  offering a button that can only answer « unsupported ». */
+  connectable: boolean;
   /** `null` = not asked (binary absent) or the CLI did not answer — a normal state. */
   loggedIn: boolean | null;
   email?: string;

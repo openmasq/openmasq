@@ -3,10 +3,12 @@ import type { SubscriptionCli, SubscriptionCliStatus, SubscriptionSetupResult } 
 import { handle, str } from "./handle";
 import { withMainWindow } from "../mainWindowRef";
 import { subscriptionCliPath, subscriptionCwd } from "../subscription/desktop";
+import { readSubscriptionAccount } from "../subscription/account";
 import {
   cancelLogin,
   installPin,
   installSubscriptionCli,
+  loginSupported,
   readLoginStatus,
   startLogin,
   submitLoginCode,
@@ -35,8 +37,20 @@ export function registerSubscriptionSetupIpc(): void {
     if (!cli) return null;
     const bin = subscriptionCliPath(cli);
     const pin = installPin(cli, process.platform, process.arch);
-    const base = { cli, installable: pin !== null, ...(pin ? { downloadBytes: pin.size } : {}) };
+    const base = {
+      cli,
+      installable: pin !== null,
+      connectable: loginSupported(cli),
+      ...(pin ? { downloadBytes: pin.size } : {}),
+    };
     if (!bin) return { ...base, installed: false, loggedIn: null };
+    if (cli === "antigravity") {
+      // No status command: the account is signed in when the CLI lists its models
+      // (`account.ts`, the same read the account card does). Nothing listed says
+      // nothing — `null`, never « not connected ».
+      const account = await readSubscriptionAccount(cli, bin, subscriptionCwd(cli));
+      return { ...base, installed: true, loggedIn: account ? true : null };
+    }
     const login = await readLoginStatus(cli, bin, subscriptionCwd(cli));
     return { ...base, installed: true, ...login };
   });
