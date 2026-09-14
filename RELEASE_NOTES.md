@@ -50,6 +50,20 @@ kept in the French they were sent in, for the reason given above.
 
 ---
 
+## 0.11.0 — 2026-09-14
+> Your Claude Code or Codex subscription, ready from the first screen.
+
+### What's new
+- **Set up a subscription CLI from the app** — install Claude Code or Codex and sign in, without opening a terminal.
+- **Your subscription is on as soon as you choose it** — pick the subscription card during onboarding and the connected CLI is ready in the chat.
+- **A free key wherever one is asked** — the one-click OpenRouter key is offered right where a send waits for it.
+
+### Improvements & fixes
+- Masking shows on your message before anything else, even when the send cannot leave yet.
+- Each CLI's account state reads more reliably, Codex and Antigravity included.
+- Sign-in with Google says when it is not available yet, instead of failing.
+- The onboarding tells whether each CLI is installed and connected.
+
 ## 0.10.2 — 2026-09-13
 > OpenMasq comes to Windows.
 
