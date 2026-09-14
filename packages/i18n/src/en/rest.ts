@@ -21,6 +21,7 @@ export const login = {
   sendLink: "Send the sign-in link",
   or: "or",
   continueWithGoogle: "Continue with Google",
+  googleSoon: "Coming soon — use the e-mail link.",
   noPassword: "No password: your email is enough.",
   code: "Sign-in code",
   verifying: "Checking…",

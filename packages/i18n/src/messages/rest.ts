@@ -28,6 +28,8 @@ export interface LoginMessages {
   sendLink: string;
   or: string;
   continueWithGoogle: string;
+  /** Under a greyed Google button: the server does not offer the provider yet. */
+  googleSoon: string;
   noPassword: string;
   code: string;
   verifying: string;

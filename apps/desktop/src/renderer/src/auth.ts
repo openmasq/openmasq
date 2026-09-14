@@ -4,7 +4,7 @@ import { captureError, initialLocale } from "@openmasq/ui";
 import type { AuthHost, AuthUser } from "@openmasq/ui";
 // Supabase client credentials — PUBLIC (publishable key), resolved in THE renderer's
 // environment reader (`./appEnv`), which also carries their defaults.
-import { BRAND } from "@openmasq/branding"; import { SUPABASE_ANON_KEY, SUPABASE_URL } from "./appEnv";
+import { BRAND } from "@openmasq/branding"; import { SUPABASE_ANON_KEY, SUPABASE_URL } from "./appEnv"; import { googleProviderEnabled } from "./authProviders";
 
 // Enable with `localStorage.debug = "openmasq:*"`. Privacy: NEVER log the email,
 // the access token, or the PKCE code — only booleans, event names, and presence.
@@ -302,9 +302,7 @@ const supabase = createClient(
 // When connectivity returns, nudge a refresh so the session re-establishes and
 // `onAuthStateChange` fires TOKEN_REFRESHED → the offline banner clears.
 if (typeof window !== "undefined") {
-  window.addEventListener("online", () => {
-    void supabase.auth.refreshSession().catch(() => {});
-  });
+  window.addEventListener("online", () => void supabase.auth.refreshSession().catch(() => {}));
 }
 
 /** The provider's display name, when the session carries one (Google OAuth populates
@@ -485,6 +483,7 @@ export const authHost: AuthHost = {
     else debug("verifyCode → ok");
     return { error: error?.message };
   },
+  googleEnabled: () => googleProviderEnabled(AUTH_ORIGIN, SUPABASE_ANON_KEY),
   async signInWithGoogle() {
     // PKCE OAuth: ask Supabase for the Google consent URL but DON'T let the
     // renderer navigate (skipBrowserRedirect) — we open it in the system browser

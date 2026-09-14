@@ -1,6 +1,7 @@
 import { BRAND } from "@openmasq/branding";
 import { useState, useEffect } from "react";
 import { useAuth } from "../../state/auth/useAuth";
+import { useGoogleEnabled } from "../../state/auth/useGoogleEnabled";
 import { BrandMark } from "../../components/media/BrandLogo";
 import { ModalTitle } from "../../containers/modals/ModalTitle";
 import { AssureStrip, Err, OfflineNote, Field, Spinner, GoogleIcon, SpamHint } from "./parts";
@@ -69,6 +70,9 @@ export function LoginScreen({
   // UNDER the field, before the refusal `loginErrors.ts` would otherwise be the first to
   // mention. A self-hosted stack with no hosted service gets no such promise.
   const inviteOnly = platformAccessServed();
+  // `false` only when the auth server SAID the provider is off: the button is then
+  // greyed with a word underneath, rather than offered and refused on click.
+  const googleEnabled = useGoogleEnabled();
   const { sendMagicLink, verifyCode, codeSupported, linkFirst, googleSupported, signInWithGoogle } =
     useAuth();
   const online = useOnline();
@@ -171,7 +175,10 @@ export function LoginScreen({
               </button>
               {/* Google SSO exists only where the HOST exposes it (`auth.signInWithGoogle`):
                   a host whose SSO is off simply omits the slot, and no greyed button is
-                  drawn in its place — a disabled control promises a road that isn't there. */}
+                  drawn in its place — a disabled control promises a road that isn't there.
+                  The one greyed case is different: the platform HAS the flow, the auth
+                  server has not switched the provider on yet (`useGoogleEnabled`). The
+                  road exists and is coming; the button says so instead of failing. */}
               {googleSupported && (
                 <>
                   <div className="login-divider">
@@ -180,7 +187,8 @@ export function LoginScreen({
                   <button
                     type="button"
                     className="login-sso"
-                    disabled={busy}
+                    disabled={busy || googleEnabled === false}
+                    aria-disabled={googleEnabled === false || undefined}
                     onClick={() => {
                       setError(null);
                       void signInWithGoogle().then((r) => {
@@ -191,6 +199,7 @@ export function LoginScreen({
                     <GoogleIcon />
                     <span className="om-sweep">{t.login.continueWithGoogle}</span>
                   </button>
+                  {googleEnabled === false && <p className="login-note">{t.login.googleSoon}</p>}
                 </>
               )}
               <AssureStrip />

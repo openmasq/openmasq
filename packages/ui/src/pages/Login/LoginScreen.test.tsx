@@ -2,6 +2,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { mount } from "../../testKit";
 import { LoginScreen } from "./LoginScreen";
+import { forgetGoogleEnabled } from "../../state/auth/useGoogleEnabled";
 import type { Host } from "../../host";
 
 /**
@@ -117,6 +118,35 @@ describe("LoginScreen", () => {
     await withSso.click(btn);
     expect(signInWithGoogle).toHaveBeenCalledTimes(1);
     await withSso.unmount();
+  });
+
+  /**
+   * The one greyed case: the platform HAS the flow, the auth server has not switched
+   * the provider on (14/09/2026: every click ended in « provider is not enabled »).
+   * The button is then disabled with a word underneath — and a server that could not
+   * be asked (`null`) leaves it live: no verdict, no grey.
+   */
+  it("le bouton Google est grisé quand le serveur dit que le fournisseur est éteint", async () => {
+    forgetGoogleEnabled();
+    const signInWithGoogle = vi.fn(async () => ({}));
+    const off = await mount(<LoginScreen />, {
+      host: codeFirstHost({ signInWithGoogle, googleEnabled: async () => false }),
+    });
+    await new Promise((r) => setTimeout(r, 0));
+    await off.rerender(<LoginScreen />);
+    expect(off.find<HTMLButtonElement>(".login-sso").disabled).toBe(true);
+    expect(off.el.textContent).toMatch(/Bientôt disponible|Coming soon/);
+    await off.unmount();
+
+    forgetGoogleEnabled();
+    const unknown = await mount(<LoginScreen />, {
+      host: codeFirstHost({ signInWithGoogle, googleEnabled: async () => null }),
+    });
+    await new Promise((r) => setTimeout(r, 0));
+    await unknown.rerender(<LoginScreen />);
+    expect(unknown.find<HTMLButtonElement>(".login-sso").disabled).toBe(false);
+    await unknown.unmount();
+    forgetGoogleEnabled();
   });
 
   // On the hosted service sign-ups are closed: the card says « accès sur invitation »

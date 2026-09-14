@@ -62,6 +62,12 @@ export interface AuthHost {
    *  redirect returns via the same `<protocol>://auth/callback` deep link the magic
    *  link uses, so `onChange` fires on success. Absent = no Google button. */
   signInWithGoogle?(): Promise<{ error?: string }>;
+  /** Is the Google provider actually ENABLED on the auth server this build signs in
+   *  on? `signInWithGoogle` says the platform has the flow; this says the server will
+   *  answer it — the two came apart on 2026-09-14, when the button was drawn and
+   *  every click ended in « provider is not enabled ». `false` greys the button;
+   *  `null` (server unreachable, not asked) leaves it as it is. */
+  googleEnabled?(): Promise<boolean | null>;
   signOut(): Promise<void>;
 }
 
