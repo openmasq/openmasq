@@ -293,6 +293,25 @@ describe("KeyChoice — l'accès aux modèles au premier lancement", () => {
     await m.unmount();
   });
 
+  it("avec un agent à offrir, la carte abonnement vient EN PREMIER et porte « conseillé » — la clé ne le porte plus", async () => {
+    // Product decision 14/09/2026: someone who already pays for Claude Code or Codex has
+    // the best model they can get, on this machine, with nothing to paste.
+    const fr = getMessages("fr").onboarding.keyChoice;
+    const withAgent = await mount(
+      <KeyChoice mode={null} onMode={noop} onSaveKey={async () => {}} keyConfigured={new Set()} agents={[agent()]} />,
+    );
+    const cards = withAgent.findAll(".ob-access-opt");
+    expect(cards[0].textContent).toContain(agentTitle);
+    expect(cards[0].textContent).toContain(fr.recommended);
+    expect(cardTitled(withAgent, fr.ownKey.title).textContent).not.toContain(fr.recommended);
+    await withAgent.unmount();
+
+    // Without one, the key keeps the recommendation, as before.
+    const without = await mount(<KeyChoice mode={null} onMode={noop} onSaveKey={async () => {}} keyConfigured={new Set()} />);
+    expect(cardTitled(without, fr.ownKey.title).textContent).toContain(fr.recommended);
+    await without.unmount();
+  });
+
   it("revenir sur l'étape avec un agent déjà activé rouvre sa carte", async () => {
     const m = await mount(
       <KeyChoice

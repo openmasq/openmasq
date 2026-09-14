@@ -44,6 +44,12 @@ const KEY_PROVIDERS: ProviderId[] = [
  * promised this road (« ou votre abonnement Claude Code / Codex ») while nothing on
  * the screen led to it — the card is that door. With no probeable agent (web preview)
  * it isn't drawn: a card with nothing under it would be the same broken promise.
+ *
+ * ORDER (product decision, 14/09/2026): the subscription card comes FIRST and carries
+ * « conseillé » whenever this build can offer one — a person who already pays for Claude
+ * Code or Codex has the best model they can get, on this machine, with nothing to paste;
+ * the key is the road for everyone else. Without an agent to offer, the key card keeps
+ * the recommendation, as before.
  */
 export function KeyChoice({
   mode,
@@ -166,8 +172,23 @@ export function KeyChoice({
     onMode(m);
   };
 
+  const hasAgents = agents.length > 0;
   return (
     <div className="ob-access">
+      {/* The subscription CLI already on this machine — see the file's header. First,
+          and recommended, whenever the build can offer one. */}
+      {hasAgents &&
+        option(
+          agentPath,
+          () => {
+            setAgentPath(true);
+            setAgentChosen(true);
+          },
+          t.onboarding.keyChoice.agent.title,
+          t.onboarding.keyChoice.agent.sub,
+          t.onboarding.keyChoice.recommended,
+        )}
+      {agentPath && hasAgents && <KeyChoiceAgents agents={agents} autoEnable={agentChosen} />}
       {/* ⚠️ This card no longer promises a free model on the app's account: what it
           describes is paid for in subscription credits, and a BRAND-NEW account has none.
           A card promising free access to someone who hasn't subscribed to anything sells
@@ -186,32 +207,23 @@ export function KeyChoice({
             ? t.onboarding.keyChoice.subscription.sub
             : t.onboarding.keyChoice.included.sub,
         )}
-      {/* The RECOMMENDED path, and the only one that costs nothing: an OpenRouter key reaches
-          every model — free ones included, on the user's own account quota, never
-          ours. The "conseillé" lives on the card because it's HERE that you choose; the
-          rest (one-click OAuth, nothing to copy) is already below the card once it's checked. */}
+      {/* The road for everyone without a subscription CLI, and the only one that costs
+          nothing: an OpenRouter key reaches every model — free ones included, on the
+          user's own account quota, never ours. It carries « conseillé » only when no
+          subscription card stands above it; the rest (one-click OAuth, nothing to copy)
+          is already below the card once it's checked. */}
       {option(
         mode === "byo" && !agentPath,
         () => pickMode("byo"),
         t.onboarding.keyChoice.ownKey.title,
         t.onboarding.keyChoice.ownKey.sub,
-        t.onboarding.keyChoice.recommended,
+        hasAgents ? undefined : t.onboarding.keyChoice.recommended,
       )}
-      {/* The subscription CLI already on this machine — see the file's header. */}
-      {agents.length > 0 &&
-        option(
-          agentPath,
-          () => {
-            setAgentPath(true);
-            setAgentChosen(true);
-          },
-          t.onboarding.keyChoice.agent.title,
-          t.onboarding.keyChoice.agent.sub,
-        )}
 
-      {agentPath && agents.length > 0 && <KeyChoiceAgents agents={agents} autoEnable={agentChosen} />}
-
-      {!agentPath && (mode === "byo" || !served) && onSaveKey && (
+      {/* Without a hosted service the key form used to stand open with no card chosen —
+          the key was the only road, so the choice was a step. With a subscription card
+          above it, it opens like the others: when its card is picked. */}
+      {!agentPath && (mode === "byo" || (!served && !hasAgents)) && onSaveKey && (
         <div className="ob-access-key">
           <div className="ob-access-providers">
             {KEY_PROVIDERS.filter((p) => othersOpen || p === "openrouter").map((p) => (

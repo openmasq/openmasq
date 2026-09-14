@@ -39,6 +39,9 @@ export const onboarding = {
       "Vous changerez d'avis quand vous voudrez. Quel que soit le chemin, le masquage s'applique avant chaque envoi.",
     subUnserved:
       "Une clé, un modèle qui tourne sur votre machine, ou votre abonnement Claude Code / Codex — le masquage s'applique avant chaque envoi, quel que soit le chemin.",
+    titleAgents: "Votre abonnement, ou une clé",
+    subAgents:
+      "Claude Code ou Codex sur cette machine : vos envois passent par votre abonnement, sans clé à coller. Sinon, une clé ou un modèle local. Le masquage s'applique avant chaque envoi, quel que soit le chemin.",
   },
 
   ready: {
@@ -83,7 +86,7 @@ export const onboarding = {
     },
     agent: {
       title: "Mon abonnement Claude Code / Codex",
-      sub: "Déjà installé, déjà payé : vos envois passent par la CLI présente sur cette machine, sans clé à coller. Chaque envoi consomme votre abonnement personnel.",
+      sub: "Déjà payé : vos envois passent par la CLI, installée et connectée ici en deux clics si elle ne l'est pas encore. Chaque envoi consomme votre abonnement personnel, sans clé à coller.",
       hint: "L'abonnement et le quota de chaque CLI se lisent dans Réglages → Modèles.",
     },
     recommended: "conseillé",

@@ -39,6 +39,9 @@ export const onboarding = {
       "You can change your mind whenever you like. Whichever road you take, masking applies before every send.",
     subUnserved:
       "A key, a model running on your own machine, or your Claude Code / Codex subscription — masking applies before every send, whichever road you take.",
+    titleAgents: "Your subscription, or a key",
+    subAgents:
+      "Claude Code or Codex on this machine: your sends go through your subscription, no key to paste. Otherwise, a key or a local model. Masking applies before every send, whichever road you take.",
   },
 
   ready: {
@@ -83,7 +86,7 @@ export const onboarding = {
     },
     agent: {
       title: "My Claude Code / Codex subscription",
-      sub: "Already installed, already paid for: your sends go through the CLI on this machine, no key to paste. Each send draws on your personal subscription.",
+      sub: "Already paid for: your sends go through the CLI, installed and signed in here in two clicks if it is not yet. Each send draws on your personal subscription, no key to paste.",
       hint: "Each CLI's subscription and quota can be read in Settings → Models.",
     },
     recommended: "recommended",

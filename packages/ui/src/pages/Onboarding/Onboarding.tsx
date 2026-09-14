@@ -160,15 +160,23 @@ export function Onboarding({ settings, onChange, onDone, onSaveKey, onConnectOpe
                 {/* Without a hosted service (`send/platformAccess.ts`), there is no account
                     to offer; with one, but nothing to SELL (the default), the choice is
                     "your account or your key" — never a subscription that doesn't exist. */}
+                {/* With a subscription CLI to offer, the subscription leads the sentence
+                    as it leads the cards (`KeyChoice`), whatever the hosted service says. */}
                 <h1 className="cv-display ob-title">
-                  {!served
-                    ? t.onboarding.access.titleUnserved
-                    : subscriptionsSold()
-                      ? t.onboarding.access.titleServed
-                      : t.onboarding.access.titleIncluded}
+                  {agents.length > 0
+                    ? t.onboarding.access.titleAgents
+                    : !served
+                      ? t.onboarding.access.titleUnserved
+                      : subscriptionsSold()
+                        ? t.onboarding.access.titleServed
+                        : t.onboarding.access.titleIncluded}
                 </h1>
                 <p className="ob-sub">
-                  {served ? t.onboarding.access.subServed : t.onboarding.access.subUnserved}
+                  {agents.length > 0
+                    ? t.onboarding.access.subAgents
+                    : served
+                      ? t.onboarding.access.subServed
+                      : t.onboarding.access.subUnserved}
                 </p>
                 <KeyChoice
                   // `?? null`: nothing is checked until something has been chosen.

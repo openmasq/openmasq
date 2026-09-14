@@ -42,6 +42,10 @@ export interface OnboardingMessages {
     titleUnserved: string;
     subServed: string;
     subUnserved: string;
+    /** When this build can offer a subscription CLI (Claude Code / Codex): the
+     *  subscription leads, the key follows — whatever the hosted service says. */
+    titleAgents: string;
+    subAgents: string;
   };
 
   /** Screen 2 — « c'est prêt ». The 2nd sentence makes the 1st verifiable: a free model is
