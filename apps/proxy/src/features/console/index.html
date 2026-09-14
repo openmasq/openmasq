@@ -108,6 +108,10 @@ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
 .sh-toast{min-height:0;padding:0 16px;font-size:11.5px;line-height:1.5;color:var(--ink-on-blue);transition:min-height .15s}
 .sh-toast:not(:empty){min-height:28px;padding:7px 16px}
 .sh-toast.bad{color:var(--hl-red)}
+/* The collapsed row's multiplier: « 8 ×8 » = eight occurrences across eight calls. Kept
+   discreet — the number that matters is the total; the call count answers the second
+   question (was it repeated INSIDE one call, or carried by many?). */
+.cnt em{font-style:normal;font-family:var(--mono);font-size:9.5px;color:var(--text-muted);margin-left:4px}
 .ro-b{display:flex;align-items:flex-start;gap:9px;padding:9px 11px;margin-bottom:14px;
   border:1px solid var(--border-subtle);border-radius:10px;background:var(--surface-sunken);
   font-size:11.5px;line-height:1.45;color:var(--text-muted)}
@@ -461,6 +465,7 @@ tbody tr.sel td:first-child{box-shadow:inset 2px 0 0 var(--brand)}
     <label class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="q" placeholder="Search a call, a substitute, a category" spellcheck="false" title="Filters the rows below — the substitute, the route, the category, the session. Never a real value: one is not in a row unless you revealed it."></label>
     <button class="tail live" id="tail" title="Following new calls: the log scrolls to each one as it arrives. Click to hold your place instead."><i></i>Direct</button>
     <button class="pill" id="pass" aria-pressed="false" title="Show the requests that carried nothing to mask — health probes, model lists. Relayed untouched, and hidden by default so the log stays about your data."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h14M13 6l6 6-6 6"/></svg><span class="t">Transmis <b id="pass-n">0</b></span></button>
+    <button class="pill on" id="uniq" aria-pressed="true" hidden title="One row per VALUE instead of one per value per call. An agent re-sends its whole conversation every turn, so a value masked once is masked again in every later call — collapsed, the two substitutes that appeared once stop scrolling away between twenty copies of the same e-mail."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M7 12h10M10 17h4"/></svg><span class="t">Unique <b id="uniq-n"></b></span></button>
     <button class="pill" id="reveal" aria-pressed="false" title="Show the real values beside their substitutes. They are already on this page — the proxy sent them to it — and they go no further; a download carries them only while this is on."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12Z"/><circle cx="12" cy="12" r="2.6"/><path d="M3 3l18 18" id="eye-slash"/></svg><span class="t">Real values</span></button>
     <button class="pill" id="tier-btn" title="What this run masks, category by category, and what it leaves in clear. Read-only: the level is changed on the terminal."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6.5v5c0 4.4 3.4 8.3 8 9.5 4.6-1.2 8-5.1 8-9.5v-5L12 3Z"/></svg><span class="t" id="tier-lb">Masking</span></button>
     <button class="pill" id="mcp-btn" title="The MCP connectors: the ones answering on this run, then the full catalogue. Read-only — connect one with `openmasq-proxy mcp add`."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17.5h7M17.5 14v7"/></svg><span class="t" id="mcp-lb">MCP</span></button>
@@ -727,7 +732,11 @@ function renderRows(filter){
     });
     rowsEl.innerHTML = h || '<tr><td colspan="5" style="padding:30px 14px;color:var(--text-muted)">Aucun appel pour cette recherche.</td></tr>';
   } else {
-    DATA.forEach(function(d,i){
+    /* `page/unique.ts` decides; the key is (session, substitute), never the substitute
+       alone — two clients have two vaults, so one fake can stand for two real values. */
+    var shownRows = uniq ? API.collapseByValue(DATA) : DATA;
+    setUniqCount(API.hiddenByCollapse(DATA, API.collapseByValue(DATA)));
+    shownRows.forEach(function(d,i){
       /* The timeline bucket filters Data too, not only Calls: a value belongs to the
          bucket of the call it was masked in. */
       if (!inBucket(d.t)) return;
@@ -740,7 +749,10 @@ function renderRows(filter){
           + '<span class="v2">'+shown(d.it.tok)+'</span></span></td>'
         + '<td class="c-type">'+d.it.type+'</td>'
         + '<td class="c-cat"><span class="cat-tag"><i style="background:'+cav(d.it.cat)+'"></i>'+catLabel(d.it.cat)+'</span></td>'
-        + '<td class="c-cnt"><span class="cnt"><b>'+d.it.n+'</b></span></td>'
+        + '<td class="c-cnt" title="' + esc(uniq
+              ? d.total + " occurrence" + (d.total > 1 ? "s" : "") + " across " + d.calls + " call" + (d.calls > 1 ? "s" : "")
+              : "in this call") + '"><span class="cnt"><b>'
+          + (uniq ? d.total : d.it.n) + '</b>' + (uniq && d.calls > 1 ? '<em>×' + d.calls + '</em>' : "") + '</span></td>'
         + '</tr>';
     });
     rowsEl.innerHTML = h || '<tr><td colspan="6" style="padding:30px 14px;color:var(--text-muted)">Aucune donnée pour cette recherche.</td></tr>';
@@ -915,6 +927,8 @@ function setMode(next){
   mode = next;
   document.getElementById("m-calls").className = next === "calls" ? "on" : "";
   document.getElementById("m-items").className = next === "items" ? "on" : "";
+  // The collapse is about VALUES; on the call log there is nothing for it to fold.
+  document.getElementById("uniq").hidden = next !== "items";
   document.getElementById("m-calls").setAttribute("aria-selected", next === "calls");
   document.getElementById("m-items").setAttribute("aria-selected", next === "items");
   renderRows(document.getElementById("q").value.trim().toLowerCase());
@@ -930,6 +944,14 @@ function setRev(next){
 document.getElementById("reveal").addEventListener("click", function(){ setRev(!rev); });
 document.getElementById("m-calls").addEventListener("click", function(){ setMode("calls"); });
 document.getElementById("m-items").addEventListener("click", function(){ setMode("items"); dTab = "items"; renderDetail(); });
+document.getElementById("uniq").addEventListener("click", function(){
+  uniq = !uniq;
+  this.className = "pill" + (uniq ? " on" : "");
+  this.setAttribute("aria-pressed", String(uniq));
+  renderRows(document.getElementById("q").value.trim().toLowerCase());
+});
+/* Nothing repeated ⇒ say nothing rather than « 0 », which reads as a filter that failed. */
+function setUniqCount(hidden){ set("uniq-n", hidden > 0 ? String(hidden) : ""); }
 
 rowsEl.addEventListener("click", function(e){
   var tr = e.target.closest("tr[data-i]"); if(!tr) return;
@@ -1147,6 +1169,8 @@ function armReveal(on){
 var RULES = [], MASKING = [], LEVEL = "", MODE = "", MCP = null, LEVELS = [], shTab = "tier", shOpen = false;
 /* Each connected server's level, and whether this run can change one at all. */
 var SRV_LVL = {}, CAN_SET = false;
+/* Collapse repeats in the Data view. ON by default — see the button's own label. */
+var uniq = true;
 
 
 function tierBody(){

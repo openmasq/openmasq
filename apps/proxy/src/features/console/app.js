@@ -24,10 +24,12 @@ var openmasqConsole = (() => {
   // src/features/console/page/main.ts
   var main_exports = {};
   __export(main_exports, {
+    collapseByValue: () => collapseByValue,
     createMaskingWatch: () => createMaskingWatch,
     exportDocument: () => exportDocument,
     exportFilename: () => exportFilename,
     exportableEvent: () => exportableEvent,
+    hiddenByCollapse: () => hiddenByCollapse,
     mayReveal: () => mayReveal
   });
 
@@ -52,6 +54,25 @@ var openmasqConsole = (() => {
       }
     };
   }
+
+  // src/features/console/page/unique.ts
+  function collapseByValue(rows) {
+    const byKey = /* @__PURE__ */ new Map();
+    for (const row of rows) {
+      const tok = row.it?.tok;
+      if (!tok) continue;
+      const key = `${row.ses ?? ""}\0${tok}`;
+      const seen = byKey.get(key);
+      if (!seen) {
+        byKey.set(key, { ...row, total: row.it.n ?? 1, calls: 1 });
+        continue;
+      }
+      seen.total += row.it.n ?? 1;
+      seen.calls += 1;
+    }
+    return [...byKey.values()];
+  }
+  var hiddenByCollapse = (rows, unique) => rows.filter((r) => r.it?.tok).length - unique.length;
 
   // src/features/console/page/reveal.ts
   var mayReveal = (sent, shown) => sent === true && shown === true;

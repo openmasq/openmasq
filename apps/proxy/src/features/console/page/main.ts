@@ -10,10 +10,19 @@
 // never left behind "for now". Two copies of a rule about who may see a real value is exactly
 // the bug rule 9 exists to prevent.
 import { createMaskingWatch } from "./poll.js";
+import { collapseByValue, hiddenByCollapse } from "./unique.js";
 import { exportableEvent, exportDocument, exportFilename, mayReveal } from "./reveal.js";
 import { mountTooltipsWhenReady } from "./tooltip.js";
 
-export { createMaskingWatch, exportableEvent, exportDocument, exportFilename, mayReveal };
+export {
+  collapseByValue,
+  createMaskingWatch,
+  exportableEvent,
+  exportDocument,
+  exportFilename,
+  hiddenByCollapse,
+  mayReveal,
+};
 
 // The tooltip layer is the page's, not the inline script's: it reads `title` attributes off
 // the DOM wherever they are, so it needs no call site and gains none as the move proceeds.
@@ -29,6 +38,8 @@ declare global {
     openmasqConsole?: {
       mayReveal: typeof mayReveal;
       createMaskingWatch: typeof createMaskingWatch;
+      collapseByValue: typeof collapseByValue;
+      hiddenByCollapse: typeof hiddenByCollapse;
       exportableEvent: typeof exportableEvent;
       exportDocument: typeof exportDocument;
       exportFilename: typeof exportFilename;
