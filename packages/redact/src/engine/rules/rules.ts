@@ -211,8 +211,14 @@ export const RULES: RedactionRule[] = [
     // REAL digits, or the pattern becomes STARTABLE on the trailing o of an ordinary
     // word (« cartão 5005-… » matched from the o, failed Luhn, and its rejection
     // CONSUMED the real card behind it — the DOB_RULE lesson yet again).
+    // ⚠️ The two lookarounds keep the rule OUT of a longer hexadecimal identifier. A UUID
+    // written after a number (`- 37 47325589-2958-435c-…`) offered a thirteen-digit run
+    // that passes Luhn about one time in ten, and the match OVERLAPPED the uuid without
+    // being contained by it — so de-nesting could not arbitrate, and a row id went out as a
+    // « bank card ». A dash-group carrying a hex LETTER is an identifier continuing; a real
+    // dashed PAN is digits all the way, so nothing legitimate is refused here.
     pattern: new RegExp(
-      String.raw`\b\d(?:(?:${SP}{1,2}|[-–—](?:${WRAP})?|${WRAP})?[0-9Oo]){11,17}(?:${SP}{1,2}|[-–—](?:${WRAP})?|${WRAP})?\d\b`,
+      String.raw`(?<![0-9a-f]-)\b\d(?:(?:${SP}{1,2}|[-–—](?:${WRAP})?|${WRAP})?[0-9Oo]){11,17}(?:${SP}{1,2}|[-–—](?:${WRAP})?|${WRAP})?\d\b(?!-[0-9a-f]*[a-f])`,
       "g",
     ),
     // ⚠️ `!isEpochMs` (13 CONTIGUOUS digits) before Luhn: an epoch-ms timestamp passes it
@@ -387,7 +393,11 @@ export const RULES: RedactionRule[] = [
     // pages the model browses. Also spare a checksum-valid ISIN (`FR0011871110`) — a
     // public security identifier the model needs verbatim (financial data), not a secret.
     validate: (m) =>
-      !isStructuredId(m) && !isIsin(m) && !isCodeTerm(m) && !isNumericLiteral(m) && !isIntegrityHash(m),
+      !isStructuredId(m) &&
+      !isIsin(m) &&
+      !isCodeTerm(m) &&
+      !isNumericLiteral(m) &&
+      !isIntegrityHash(m),
   },
 ];
 

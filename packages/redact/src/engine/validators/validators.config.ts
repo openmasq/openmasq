@@ -105,11 +105,27 @@ export function isTemplatePlaceholder(value: string): boolean {
  * (`sk_live_…${SUFFIX}`). Fails toward MASKING, like every gate in this file.
  */
 const CODE_REFERENCE =
-  /^(?:\$\{[^}]{1,80}\}|\$[A-Za-z_][A-Za-z0-9_]{0,60}|(?:var|local|each|self|data|module|secrets|vars|inputs|config)\.[A-Za-z_][\w.[\]"'-]{0,80}|(?:process\.env|os\.environ|import\.meta\.env)[.[][\w.[\]"']{0,80}|(?:env|getenv|os\.getenv|Deno\.env\.get|config\.get|secret)\(\s*["'`]?[\w.-]{1,60}["'`]?\s*\))$/;
+  /^(?:\$\{[^}]{1,80}\}|\$[A-Za-z_][A-Za-z0-9_]{0,60}|(?:var|local|each|self|data|module|secrets|vars|inputs|config)\.[A-Za-z_][\w.[\]"'-]{0,80}|(?:process\.env|os\.environ|import\.meta\.env)[.[][\w.[\]"']{0,80}|[A-Za-z_$][\w$.]{0,60}\([^()]{0,140}\))$/;
+
+/**
+ * A call the capture CUT. The rules that feed this stop at a comma or a quote, so a call
+ * with arguments arrives beheaded — the four characters `env(` are a real example from a
+ * session — and only its opening paren survives.
+ *
+ * ⚠️ An unclosed `(` is NOT enough on its own: `hunter2(sekret` is a password with a paren
+ * in it and has exactly that shape. So either nothing follows the paren (`env(`,
+ * `os.getenv(` — a value that stops there was cut, it was not chosen), or the callee is
+ * unmistakably a function: dotted (`os.getenv`) or camelCase (`loadKey`). A password that is
+ * also a dotted or camelCase identifier followed by an open paren is a shape we accept
+ * losing; one that is a lowercase word plus a digit is not.
+ */
+const CUT_CALL_BARE = /^[A-Za-z_$][\w$.]{0,60}\($/;
+const CUT_CALL_NAMED = /^(?:[A-Za-z_$][\w$]*\.[\w$.]{1,60}|[a-z_$][\w$]*[A-Z][\w$]*)\([^)]*$/;
+const isCutCall = (v: string): boolean => CUT_CALL_BARE.test(v) || CUT_CALL_NAMED.test(v);
 
 export const isCodeReference = (value: string): boolean => {
   const v = value.trim();
-  if (CODE_REFERENCE.test(v)) return true;
+  if (CODE_REFERENCE.test(v) || isCutCall(v)) return true;
   // An interpolation with something AROUND it — `${url}/v1`, `$HOST:8080`. Still a
   // reference, but only while what remains once the interpolations are removed could not
   // itself be the secret: `${PREFIX}sk_live_51H8xKLMN…` is not a reference, it is a key with

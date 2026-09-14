@@ -177,3 +177,52 @@ describe("a reference to a secret is not a secret", () => {
     expect(redact(line).text).not.toBe(line);
   });
 });
+
+/* A project names its own helpers, so the reference forms cannot be a list of known ones. */
+describe("a function CALL is code, whatever it is called", () => {
+  it.each([
+    "api_key: resolveGithubToken()",
+    'token: env("ANTHROPIC_API_KEY")',
+    "secret: loadKey(cfg, 2)",
+    "password: os.getenv('X')",
+  ])("leaves %s alone", (line) => expect(redact(line).text).toBe(line));
+
+  /** ⚠️ The rules that feed this stop at a comma or a quote, so a call with arguments
+   *  arrives BEHEADED — `env(` is four characters from a real session. Only its opening
+   *  paren survives, and the callee's shape is what tells it from a password with a paren
+   *  in it. */
+  it.each(["token: env(", "password: os.getenv(", "api_key: os.getenv('X", "secret: loadKey(cfg"])(
+    "leaves the cut call %s alone",
+    (line) => expect(redact(line).text).toBe(line),
+  );
+
+  it.each([
+    "password: hunter2(sekret",
+    "password: Tr0ub4dor&3(x",
+    "api_key: sk_live_51H8xKLMNopQRstUV",
+  ])("still masks %s", (line) => expect(redact(line).text).not.toBe(line));
+});
+
+/* A UUID written after a number offers a thirteen-digit run that passes Luhn about one time
+   in ten. The match OVERLAPPED the uuid without being contained by it, so de-nesting could
+   not arbitrate — and a database row id went out labelled « bank card ». */
+describe("a bank card is not found inside an identifier", () => {
+  const WITH_UUID = "- 37 47325589-2958-435c-b9bb-7b661e9537e6";
+
+  it("claims no card in a line whose digits belong to a uuid", () => {
+    const { matches } = redact(WITH_UUID);
+    expect(matches.filter((m) => m.type === "card")).toEqual([]);
+  });
+
+  /** …while the uuid itself is still claimed, by the rule that exists for it. */
+  it("leaves the identifier rule untouched", () => {
+    expect(redact(WITH_UUID).matches.some((m) => m.type === "api_key")).toBe(true);
+  });
+
+  it.each(["4111 1111 1111 1111", "4111-1111-1111-1111", "Ma carte : 5555555555554444"])(
+    "still finds a real card in %s",
+    (line) => {
+      expect(redact(line).matches.some((m) => m.type === "card")).toBe(true);
+    },
+  );
+});
