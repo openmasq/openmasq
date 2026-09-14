@@ -41,14 +41,21 @@ const TEXT_CONTENT_TYPES = [
  * anything runs it (a subscription CLI's official build: `subscription/install/`). The
  * download path is the same as every other accept (per-hop SSRF, cap, timeout, host
  * allow-list); what makes EXECUTING the bytes safe is the pin the caller checks, never
- * this list. Measured labels: `application/octet-stream` on both downloads.claude.ai and
- * GitHub's release-asset host.
+ * this list. Measured labels: `application/octet-stream` on GitHub's release-asset host
+ * and on downloads.claude.ai for the mac and linux binaries — and
+ * `application/x-msdos-program` for its Windows `claude.exe` (measured 14/09/2026: the
+ * same origin labels the `.exe` by extension, and the list refused it, so the in-app
+ * install of Claude Code on Windows died at the download with no reason kept anywhere).
+ * `application/vnd.microsoft.portable-executable` is the registered name for the same
+ * thing, admitted so a relabel does not repeat that.
  */
 const BINARY_CONTENT_TYPES = [
   "application/octet-stream",
   "binary/octet-stream",
   "application/gzip",
   "application/x-gzip",
+  "application/x-msdos-program",
+  "application/vnd.microsoft.portable-executable",
 ];
 
 export function contentTypeOk(ct: string, accept: FetchAccept): boolean {

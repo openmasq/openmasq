@@ -15,9 +15,12 @@ const response = (chunks: Uint8Array[], contentLength?: number): Response =>
   );
 
 describe("contentTypeOk", () => {
-  it("binary admits octet-stream and gzip, nothing textual or executable", () => {
+  it("binary admits octet-stream, gzip and a Windows executable's labels, nothing textual", () => {
     expect(contentTypeOk("application/octet-stream", "binary")).toBe(true);
     expect(contentTypeOk("application/gzip; charset=binary", "binary")).toBe(true);
+    // downloads.claude.ai labels `win32-x64/claude.exe` this way (measured 14/09/2026).
+    expect(contentTypeOk("application/x-msdos-program", "binary")).toBe(true);
+    expect(contentTypeOk("application/vnd.microsoft.portable-executable", "binary")).toBe(true);
     expect(contentTypeOk("text/html", "binary")).toBe(false);
     expect(contentTypeOk("application/javascript", "binary")).toBe(false);
     expect(contentTypeOk("application/octet-stream", "text")).toBe(false);

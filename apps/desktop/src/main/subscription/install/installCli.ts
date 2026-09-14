@@ -24,6 +24,7 @@ import type { SubscriptionCli, SubscriptionInstallProgress, SubscriptionSetupRes
 import { minimalChildEnv } from "../../childEnv";
 import { PinMismatchError, downloadPinned } from "./download";
 import { CODEX_PIN_VERSION, installPin } from "./pins";
+import { reportMainError } from "../../runtime/errorReport";
 import { extractTar } from "./tarExtract";
 
 const CLAUDE_INSTALL_TIMEOUT_MS = 5 * 60 * 1000;
@@ -78,14 +79,21 @@ async function run(cli: SubscriptionCli, ctx: InstallContext): Promise<Subscript
         ctx.onProgress?.({ cli, phase: "download", received, total }),
       );
     } catch (e) {
-      return { ok: false, error: e instanceof PinMismatchError ? "checksum" : "network" };
+      const error = e instanceof PinMismatchError ? "checksum" : "network";
+      // The interface gets a CODE; the reason goes where an operator can read it —
+      // the in-app error log and, on a distributed build, error tracking. A Windows
+      // download that the fetch refused by content type used to leave nothing but
+      // « Le téléchargement a échoué » on screen (14/09/2026).
+      reportMainError("cli-install", `${cli}:${error}`, e);
+      return { ok: false, error };
     }
     ctx.onProgress?.({ cli, phase: "install" });
     if (pin.layout === "binary") await installClaude(file, tmpDir, ctx.home);
     else await installCodex(file, codexInstallRoot(ctx.userData), ctx.platform);
     ctx.onProgress?.({ cli, phase: "done" });
     return { ok: true };
-  } catch {
+  } catch (e) {
+    reportMainError("cli-install", `${cli}:install`, e);
     return { ok: false, error: "install" };
   } finally {
     rmSync(tmpDir, { recursive: true, force: true });
