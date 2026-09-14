@@ -16,12 +16,38 @@ import { isReservedHostUrl } from "./validators.network";
  */
 const BENIGN_CONFIG_VALUES = new Set([
   // Loopback / any-interface hosts
-  "localhost", "127.0.0.1", "0.0.0.0", "::1", "host.docker.internal",
+  "localhost",
+  "127.0.0.1",
+  "0.0.0.0",
+  "::1",
+  "host.docker.internal",
   // Booleans + the empty-ish markers
-  "true", "false", "1", "0", "null", "none", "undefined", "auto", "default",
+  "true",
+  "false",
+  "1",
+  "0",
+  "null",
+  "none",
+  "undefined",
+  "auto",
+  "default",
   // Environments + log levels
-  "production", "prod", "development", "dev", "staging", "test", "local", "ci",
-  "debug", "info", "warn", "warning", "error", "trace", "silent", "verbose",
+  "production",
+  "prod",
+  "development",
+  "dev",
+  "staging",
+  "test",
+  "local",
+  "ci",
+  "debug",
+  "info",
+  "warn",
+  "warning",
+  "error",
+  "trace",
+  "silent",
+  "verbose",
 ]);
 
 export function isBenignConfigValue(value: string): boolean {
@@ -32,7 +58,7 @@ export function isBenignConfigValue(value: string): boolean {
   if (isReservedHostUrl(v)) return true;
   // A value that IS a template interpolation (`${url}/v1`, `${API_HOST}`) is a variable
   // REFERENCE, never a literal secret: masking it corrupts the code and protects nothing.
-  if (/^\$\{[\w.]+\}/.test(v)) return true;
+  if (isCodeReference(v)) return true;
   return isTemplatePlaceholder(v);
 }
 
@@ -54,3 +80,46 @@ export function isTemplatePlaceholder(value: string): boolean {
   // (`Sm7p!<Tanc2026`) is untouched, and the residue test still refuses a long run.
   return /^(?:<|\{\{)/.test(value) && !SECRET_RUN.test(value.replace(/^[<{]+/, ""));
 }
+
+/**
+ * A value that REFERENCES a secret rather than being one.
+ *
+ * Configuration written as CODE is full of these, and they are the opposite of a leak: the
+ * whole point of `secret_key = var.scaleway_secret_key` is that the secret is NOT in the
+ * file. Masking the reference corrupts the code the model was asked to read — it can no
+ * longer see which variable feeds which field — and protects nothing, because there was
+ * nothing there to protect.
+ *
+ * The idioms, one per ecosystem, all saying "look it up elsewhere":
+ *   `${VAR}` `$VAR`            shell / compose / CI interpolation
+ *   `var.x` `local.x`          Terraform inputs and locals
+ *   `data.x.y` `module.x.y`    Terraform lookups
+ *   `each.value` `self.x`      Terraform iteration
+ *   `secrets.X` `vars.X`       GitHub Actions contexts
+ *   `env("X")` `getenv("X")`   a call whose ARGUMENT is a name, never a value
+ *   `process.env.X`            Node
+ *   `os.environ["X"]`          Python
+ *
+ * ⚠️ Anchored WHOLE, on purpose. A value that merely CONTAINS one of these still has
+ * something else in it, and that something else may be the secret
+ * (`sk_live_…${SUFFIX}`). Fails toward MASKING, like every gate in this file.
+ */
+const CODE_REFERENCE =
+  /^(?:\$\{[^}]{1,80}\}|\$[A-Za-z_][A-Za-z0-9_]{0,60}|(?:var|local|each|self|data|module|secrets|vars|inputs|config)\.[A-Za-z_][\w.[\]"'-]{0,80}|(?:process\.env|os\.environ|import\.meta\.env)[.[][\w.[\]"']{0,80}|(?:env|getenv|os\.getenv|Deno\.env\.get|config\.get|secret)\(\s*["'`]?[\w.-]{1,60}["'`]?\s*\))$/;
+
+export const isCodeReference = (value: string): boolean => {
+  const v = value.trim();
+  if (CODE_REFERENCE.test(v)) return true;
+  // An interpolation with something AROUND it — `${url}/v1`, `$HOST:8080`. Still a
+  // reference, but only while what remains once the interpolations are removed could not
+  // itself be the secret: `${PREFIX}sk_live_51H8xKLMN…` is not a reference, it is a key with
+  // a prefix pasted on. Same residue test as `isTemplatePlaceholder`, for the same reason.
+  const rest = v.replace(/\$\{[^}]{1,80}\}|\$[A-Za-z_][A-Za-z0-9_]{0,60}/g, "");
+  if (rest === v) return false;
+  // ⚠️ What is LEFT must be structural — a path, a port, a separator — and nothing else.
+  // A password carries `$` like any other symbol (`)2B+Fr$o^`), so a bare `$o` inside one
+  // would otherwise read as an interpolation and spare the whole thing. Anything a
+  // credential is made of (brackets, `+`, `^`, `!`, `#`, quotes) says this is not a
+  // reference; the length test then refuses a key with an interpolation pasted in front.
+  return /^[\w./:@=,-]*$/.test(rest) && !/[A-Za-z0-9_-]{12,}/.test(rest);
+};

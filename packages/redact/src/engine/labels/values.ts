@@ -1,3 +1,4 @@
+import { isCodeReference } from "../validators";
 // The VALUE of a labeled field: clean it, bound it, and decide whether it is one.
 //
 // Every pass in `contextFields.ts` (inline, vertical, serialised) and the detached
@@ -181,6 +182,11 @@ export function acceptFieldValue(
   // A PLACEHOLDER is not a value: the form's own « N/A », « TBD », « Not provided », « To be
   // filled by the tenant », a template's « [Insert Coverage Limit] », a blank of underscores.
   if (PLACEHOLDER.test(value)) return null;
+  // A value that REFERENCES a secret is not one: the whole point of
+  // `secret_key = var.scaleway_secret_key` is that the secret is NOT in the file. Masking
+  // it corrupts the code the model was asked to read and protects nothing. One home for
+  // that test (`engine/validators/validators.config.ts`), shared with the env rules.
+  if (isCodeReference(value)) return null;
   // …and neither is a SENTENCE under a NAME label (see `isProse`).
   if (groupCategory === "NAME" && isProse(value)) return null;
   // …nor is a running PROSE clause under a SECRET label — « API key: the proxy forwards it

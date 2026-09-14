@@ -1,5 +1,5 @@
 import type { RedactionRule } from "../../types";
-import { isBenignConfigValue, isTemplatePlaceholder } from "../validators";
+import { isBenignConfigValue, isCodeReference, isTemplatePlaceholder } from "../validators";
 
 // The ENV / config SECRET-VALUE family — split out of rules.ts (300-LOC ratchet). Four rules,
 // in the ORDER and at the POSITION they held: they redact the VALUE of a secret-named
@@ -14,11 +14,17 @@ import { isBenignConfigValue, isTemplatePlaceholder } from "../validators";
  *  (`__cases__/codeSecrets.test.ts`). */
 const notProse = (m: string): boolean => !/,\s|\.\s*\p{L}|;\s|\\[nrt]/u.test(m);
 
-/** A documentation PLACEHOLDER (`<your-ref>`, `{{GITHUB_TOKEN}}`) is what a reader is told to
- *  REPLACE — masking it corrupts the instructions and protects nothing. Applied to all four
- *  rules, since a `.env` example and a real `.env` are the same shape apart from this.
- *  `isTemplatePlaceholder` spares only what reduces to nothing secret-like. */
-const notTemplate = (m: string): boolean => !isTemplatePlaceholder(m);
+/** Not a placeholder, not a REFERENCE, and carrying enough substance to be a secret at all.
+ *  The three ways a captured « value » turns out to be none:
+ *   - `<your-key>` — what a reader is told to replace;
+ *   - `var.scaleway_secret_key`, `${SCW_SECRET_KEY}` — the secret is elsewhere BY DESIGN,
+ *     and masking the reference corrupts the code while protecting nothing;
+ *   - `...)`, `--`, `"` — the tail of a sentence a lookbehind reached into. A run with no
+ *     letter AND no digit cannot be a credential, whatever the key beside it was called. */
+const isValue = (m: string): boolean =>
+  !isTemplatePlaceholder(m) &&
+  !isCodeReference(m) &&
+  /[A-Za-z0-9]/.test(m.replace(/^\W+|\W+$/g, ""));
 
 export const ENV_SECRET_RULES: RedactionRule[] = [
   {
@@ -31,7 +37,7 @@ export const ENV_SECRET_RULES: RedactionRule[] = [
     type: "secret",
     pattern:
       /(?<=(?:password|passwd|pwd|secret|token|api[_-]?key|access[_-]?key|client[_-]?secret|auth[_-]?token|mot[ -]de[ -]passe|code[ -]secret|phrase[ -]secr[eè]te|cl[eé][ -]secr[eè]te|(?:^|[\s{,])(?:pass|mdp|passe))[ \t]*[:=][ \t]*["'`])(?!\[REDACTED_)[^"'`\n\r]{6,}(?=["'`])/gim,
-    validate: (m) => notProse(m) && notTemplate(m),
+    validate: (m) => notProse(m) && isValue(m),
   },
   {
     // The bare `pass` / `mdp` KEY — ubiquitous in a YAML/compose/ini dump and absent from the
@@ -41,7 +47,7 @@ export const ENV_SECRET_RULES: RedactionRule[] = [
     type: "secret",
     pattern:
       /(?<=(?:^|[\s{,])(?:pass|mdp|passe)["']?[ \t]*[:=][ \t]*["']?)(?!\[REDACTED_)[^\s"'`#,;]{6,}/gim,
-    validate: notTemplate,
+    validate: isValue,
   },
   {
     type: "secret",
@@ -50,7 +56,7 @@ export const ENV_SECRET_RULES: RedactionRule[] = [
     // stops it re-redacting a value a structured rule already replaced.
     pattern:
       /(?<=(?:password|passwd|pwd|secret|token|api[_-]?key|access[_-]?key|client[_-]?secret|auth[_-]?token|mot[ -]de[ -]passe|code[ -]secret|phrase[ -]secr[eè]te|cl[eé][ -]secr[eè]te)["']?\s*[:=]\s*["']?)(?!\[REDACTED_)[^\s"'#,;]{6,}/giu,
-    validate: notTemplate,
+    validate: isValue,
   },
   {
     // The VALUE of an ENV assignment whose UPPER_SNAKE key ENDS in an identifier/credential/URL
@@ -63,6 +69,6 @@ export const ENV_SECRET_RULES: RedactionRule[] = [
       /(?<=\b[A-Z][A-Z0-9_]*_(?:ID|URL|URI|KEY|SECRET|TOKEN|PASSWORD|PASS|PWD|DSN|HOST|HOSTNAME|ENDPOINT|ACCOUNT|PROJECT|BUCKET|CREDENTIALS?|CERT|SALT|SEED|SIGNATURE|OAUTH|WEBHOOK|CONNECTION)["']?[ \t]*[:=][ \t]*["']?)(?!\[REDACTED_)[^\s"'#,;]{3,}/g,
     // The KEY suffix is the signal; the VALUE can be plainly benign (`DATABASE_HOST=localhost`).
     // A closed value list, never a shape guess (audit R2).
-    validate: (m) => !isBenignConfigValue(m),
+    validate: (m) => !isBenignConfigValue(m) && isValue(m),
   },
 ];

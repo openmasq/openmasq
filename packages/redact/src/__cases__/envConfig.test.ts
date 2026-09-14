@@ -108,10 +108,10 @@ describe("an integrity hash survives whole", () => {
    *  carrying the `sha512-` prefix can be any length — fifteen characters here. A floor on
    *  it renamed exactly that piece, which is half a hash. */
   it.each([
-    'sha512-c7jFQRklXua0mTz+GW9QVyxFjUgwci/C4bXEtujIo2ouWCe1Ajt==',
-    'sha512-Ab+cdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUV==',
-    'sha384-x/yQ1mNHl0w5N+XgL0n3I9PlFUP0THsR8UabcdefghijklmnopqrstuvwxyzAB',
-    'sha1-2jmj7l5rSw0yVb/vlWAYkK/YBwk=',
+    "sha512-c7jFQRklXua0mTz+GW9QVyxFjUgwci/C4bXEtujIo2ouWCe1Ajt==",
+    "sha512-Ab+cdefghijklmnopqrstuvwxyz0123456789ABCDEFGHIJKLMNOPQRSTUV==",
+    "sha384-x/yQ1mNHl0w5N+XgL0n3I9PlFUP0THsR8UabcdefghijklmnopqrstuvwxyzAB",
+    "sha1-2jmj7l5rSw0yVb/vlWAYkK/YBwk=",
   ])("keeps %s whole, wherever the base64 breaks it", async (hash) => {
     const line = `  "integrity": "${hash}",`;
     expect(redact(line).text).toBe(line);
@@ -120,8 +120,60 @@ describe("an integrity hash survives whole", () => {
 
   it("keeps every hash verbatim while the real token beside them is masked", async () => {
     const { text } = await pseudonymize(LOCK, { vault: {} });
-    expect(text).toContain("sha512-c7jFQRklXua0mTzneGW9QVyxFjUgwcihC4bXEtujIo2ouWCe1Ajt/amn2PCxYnhYfd5k09JX3SB7OYWFKYqj8Q==");
+    expect(text).toContain(
+      "sha512-c7jFQRklXua0mTzneGW9QVyxFjUgwcihC4bXEtujIo2ouWCe1Ajt/amn2PCxYnhYfd5k09JX3SB7OYWFKYqj8Q==",
+    );
     expect(text).toContain("sha256-Ab3+xY/zQ1mNHl0w5N+XgL0n3I9PlFUP0THsR8U=");
     expect(text).not.toContain("ghp_A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5");
+  });
+});
+
+/* Configuration written as CODE is full of REFERENCES to secrets, and a reference is the
+   opposite of a leak: the whole point of `secret_key = var.scaleway_secret_key` is that the
+   secret is NOT in the file. Masking it corrupts the code the model was asked to read — it
+   can no longer see which variable feeds which field — and protects nothing.
+
+   Measured on a real Terraform/Scaleway session through the proxy: `var.…`, `local.…`,
+   `${…}`, `env("…")` and a bare `SCW_SECRET_KEY` were each replaced, and the tail of a
+   sentence (`...)`) came back as a « key » of its own. */
+describe("a reference to a secret is not a secret", () => {
+  const CLEAN = [
+    // Terraform / HCL
+    "secret_key = var.scaleway_secret_key",
+    "token = local.scw_secret_key",
+    "secret_key = data.scaleway_secret.main.value",
+    "value = module.vault.secret_key",
+    'alltrue([for k, v in local.required_secrets : k if length(v) != ""])',
+    // Shell / compose / CI
+    "secret_key: ${SCW_SECRET_KEY}",
+    "token: ${{ secrets.SCW_SECRET_KEY }}",
+    "api_key = $SCW_SECRET_KEY",
+    // A call whose ARGUMENT is a name, never a value
+    'const k = env("SCW_SECRET_KEY") || env("SCW_TOKEN");',
+    'key = os.environ["SCW_SECRET_KEY"]',
+    "const k = process.env.SCW_SECRET_KEY;",
+    // The NAME of a secret is a label, not the secret
+    "SCW_SECRET_KEY",
+    "SCW_SECRET_KEY doit être défini côté serveur (voir SCW_ACCESS_KEY=...)",
+  ];
+
+  it.each(CLEAN)("leaves %s exactly as written", async (line) => {
+    expect(redact(line).text).toBe(line);
+    expect((await pseudonymize(line, { vault: {} })).text).toBe(line);
+  });
+
+  /** ⚠️ The direction that must not move. A reference is spared because it holds nothing;
+   *  a LITERAL beside the same key is still the thing this engine exists for. */
+  it.each([
+    'password: "Sm7p!Tanc2026#x"',
+    "pass: hunter2sekret",
+    "mot de passe : Tr0ub4dor&3xx",
+    "SCW_SECRET_KEY=8f3c1b2a4d5e6f708192a3b4c5d6e7f8",
+    "token = ghp_A1b2C3d4E5f6G7h8I9j0K1l2M3n4O5",
+    "api_key: sk_live_51H8xKLMNopQRstUV",
+    // A reference GLUED to a literal is not a reference: something else is in there.
+    'key = "${PREFIX}sk_live_51H8xKLMNopQRstUV"',
+  ])("still masks %s", (line) => {
+    expect(redact(line).text).not.toBe(line);
   });
 });
