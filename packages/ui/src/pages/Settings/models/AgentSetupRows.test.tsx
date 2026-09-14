@@ -65,7 +65,7 @@ describe("AgentSetupRows", () => {
     expect(login).toHaveBeenCalledWith("claude");
     // claude: the page shows a code to paste back — the field appears while it waits.
     await ui.rerender(<AgentSetupRows cli="claude" label="Claude Code" />);
-    expect(ui.maybe("input.agent-setup-input")).not.toBeNull();
+    expect(ui.maybe("input#agent-setup-code")).not.toBeNull();
   });
 
   it("connected: the account's e-mail and plan, no button", async () => {

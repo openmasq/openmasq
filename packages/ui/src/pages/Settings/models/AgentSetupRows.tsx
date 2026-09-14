@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { SubscriptionCliStatus } from "@openmasq/llm";
+import { ExternalIcon, KeyIcon } from "../../../components/brand";
 import { useT } from "../../../i18n";
 import { useAgentSetup } from "../../../hooks/useAgentSetup";
 import type { AgentCli } from "../../../hooks/useAgentOptIns";
@@ -105,43 +106,56 @@ export function AgentSetupRows({
   }
 
   if (phase === "connecting") {
+    // The sign-in in progress is ONE card: the status line with the page to open, then
+    // the code — typed on the page (codex's device flow) or pasted here (claude) — as the
+    // same field the API-key modal draws (`.field` + `.key-row`), and the two actions on
+    // one line. It used to be three loose rows of bare controls.
     return (
       <div className="agent-account-row agent-setup-row">
-        <div className="agent-account-note">{copy.connecting}</div>
-        {setup.loginCode && <div className="agent-setup-code">{copy.typeCode(setup.loginCode)}</div>}
-        {cli === "claude" && (
-          <form
-            className="agent-setup-actions"
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (code.trim()) setup.submitCode(code);
-              setCode("");
-            }}
-          >
-            <label className="agent-account-note" htmlFor="agent-setup-code">
-              {copy.pasteCode}
-            </label>
-            <input
-              id="agent-setup-code"
-              className="agent-setup-input"
-              value={code}
-              placeholder={copy.codePlaceholder}
-              onChange={(e) => setCode(e.target.value)}
-              autoComplete="off"
-              spellCheck={false}
-            />
-            <button type="submit" className="btn-primary btn-inline" disabled={!code.trim()}>
-              {copy.submitCode}
-            </button>
-          </form>
-        )}
-        <div className="agent-setup-actions">
-          {setup.loginUrl && (
-            <a className="lnk" href={setup.loginUrl} target="_blank" rel="noreferrer">
-              {copy.openPage}
-            </a>
+        <div className="agent-setup-connect">
+          <div className="agent-setup-status">
+            <span className="agent-setup-pulse" aria-hidden="true" />
+            <span className="agent-account-note">{copy.connecting}</span>
+            {setup.loginUrl && (
+              <a className="agent-setup-link" href={setup.loginUrl} target="_blank" rel="noreferrer">
+                {copy.openPage} <ExternalIcon size={12} />
+              </a>
+            )}
+          </div>
+          {setup.loginCode && <div className="agent-setup-code">{copy.typeCode(setup.loginCode)}</div>}
+          {cli === "claude" && (
+            <form
+              className="field"
+              onSubmit={(e) => {
+                e.preventDefault();
+                if (code.trim()) setup.submitCode(code);
+                setCode("");
+              }}
+            >
+              <label className="field-label" htmlFor="agent-setup-code">
+                {copy.pasteCode}
+              </label>
+              <div className="key-row">
+                <span className="akm-key-icon">
+                  <KeyIcon size={16} />
+                </span>
+                <input
+                  id="agent-setup-code"
+                  type="text"
+                  value={code}
+                  placeholder={copy.codePlaceholder}
+                  onChange={(e) => setCode(e.target.value)}
+                  autoComplete="off"
+                  spellCheck={false}
+                  autoFocus
+                />
+                <button type="submit" className="btn-primary btn-inline" disabled={!code.trim()}>
+                  {copy.submitCode}
+                </button>
+              </div>
+            </form>
           )}
-          <button type="button" className="lnk" onClick={setup.cancelLogin}>
+          <button type="button" className="link-btn" onClick={setup.cancelLogin}>
             {copy.cancel}
           </button>
         </div>
