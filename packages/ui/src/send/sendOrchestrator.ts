@@ -96,6 +96,7 @@ import {
 import { isNerWarmed, markNerWarmed } from "../state/redaction/nerWarm";
 import { BRAND } from "@openmasq/branding";
 import { mintRedactionKey } from "./redactionKey";
+import { redactRefusedTurn } from "./refusedTurnRedaction";
 
 // The three MODULE constants only the send consumed — moved along with it.
 // The tool NARRATOR's instruction (the "Searching…" phrase from the loader).
@@ -381,15 +382,11 @@ export function createSendMessage(d: SendMessageDeps) {
       };
 
       // Show the user's message + a pending assistant bubble IMMEDIATELY — before the
-      // pre-flight gate, before the platform-token fetch, before the redaction pass.
-      // EVERY refusal below patches this pair rather than appending its own, so the
-      // message the user just typed is on screen within a frame whatever happens next.
-      // That ordering is the fix for a real bug: the token fetch waits up to
-      // PLATFORM_TOKEN_TIMEOUT_MS (5 s) on an unreachable auth server, and appending the
-      // pair only on failure left the composer cleared and the thread EMPTY for those
-      // seconds — the send looked lost. The bubble renders the ORIGINAL text; the wire
-      // payload is still built from the redacted result far below, so nothing leaves the
-      // machine un-scrubbed by showing it early.
+      // pre-flight gate, the platform-token fetch and the redaction pass; EVERY refusal
+      // below patches this pair rather than appending its own. Fix for a real bug: the
+      // token fetch waits up to PLATFORM_TOKEN_TIMEOUT_MS (5 s) on an unreachable auth
+      // server, and appending only on failure left the thread EMPTY meanwhile. The bubble
+      // renders the ORIGINAL text; the wire is built from the redacted result far below.
       const sentAt = Date.now();
       // Idempotency turn id: a fresh one per send, but a RETRY reuses the failed turn's id
       // (`resendTurnId`) so write-idempotency keys match and an already-completed action
@@ -462,18 +459,21 @@ export function createSendMessage(d: SendMessageDeps) {
       // credits, missing key, not signed in) is shown INLINE as a failed turn: the
       // user's message stays put with an error + "Réessayer" (which regenerates in
       // place — no duplicate send) and, when relevant, a CTA (e.g. missing key).
-      // No transient banner.
-      //
-      // It PATCHES the bubble appended above — it does not append its own pair. Same
-      // shape as the redaction fail-closed patch and the stream `onError` path, so a
-      // turn that fails has ONE representation whatever killed it, and an awaited
-      // refusal (the 5 s token fetch) resolves a bubble the user is already looking at
-      // instead of materialising a second copy of their message.
-      const failTurn = (errorText: string, errorAction?: Message["errorAction"]) => {
+      // No transient banner. It PATCHES the bubble appended above — it does not append
+      // its own pair: same shape as the redaction fail-closed patch and the stream
+      // `onError` path, so a turn that fails has ONE representation whatever killed it.
+      // And the bubble is REDACTED FIRST (`refusedTurnRedaction.ts`): the pass below
+      // never runs for a refused send, and the typed e-mail sat in clear under « Clé
+      // requise » — masking comes before whatever the model costs, on screen too.
+      const failTurn = async (errorText: string, errorAction?: Message["errorAction"]) => {
         // The log ALSO: preflight (org/credits/key), platform token, salt — a
         // send refused here left NO entry at all, and "send blocked: no more
         // credits" was debugged against an entirely empty log (audit 13/08).
         dbg({ type: "error", scope: "preflight", message: errorText });
+        await redactRefusedTurn({
+          host, settings, orgForced: orgProfileRef.current?.forcedCategories,
+          conv, text, userMsgId: userMsg.id, patchConversation,
+        });
         patchConversation(convId!, (c) => ({
           ...c,
           messages: c.messages.map((m) =>
@@ -517,7 +517,7 @@ export function createSendMessage(d: SendMessageDeps) {
         antigravityCliReady: antigravityCliReadyRef.current,
       });
       if (preflightFail) {
-        failTurn(preflightFail.text, preflightFail.action);
+        await failTurn(preflightFail.text, preflightFail.action);
         return;
       }
 
@@ -549,7 +549,7 @@ export function createSendMessage(d: SendMessageDeps) {
             freeModel: isFreeModel(model.id),
             personalSub: personalSubRef.current,
           });
-          failTurn(fail.text, fail.action);
+          await failTurn(fail.text, fail.action);
           return;
         }
       }
@@ -597,7 +597,7 @@ export function createSendMessage(d: SendMessageDeps) {
       const needsMint = conv.redactionSalt == null || conv.redactionKey == null;
       if (needsMint && typeof globalThis.crypto?.getRandomValues !== "function") {
         const reason = "générateur aléatoire indisponible (clé de redaction)";
-        failTurn(new RedactionUnavailableError(reason).message);
+        await failTurn(new RedactionUnavailableError(reason).message);
         throw new RedactionUnavailableError(reason);
       }
       const redactionSalt =

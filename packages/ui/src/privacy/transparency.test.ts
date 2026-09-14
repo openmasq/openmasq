@@ -101,6 +101,19 @@ describe("shouldShowTransparencyCard — une seule fois, et après la première 
     expect(shouldShowTransparencyCard(pending, false)).toBe(false);
   });
 
+  it("un tour REFUSÉ n'est pas une réponse : rien n'est parti, la carte se tait", () => {
+    // A send refused at the gate (no key) now redacts its bubble and fills the vault
+    // — the card must not say « rétablies dans la réponse que vous lisez » over « Clé requise ».
+    const refused = conv({
+      redactionVault: VAULT,
+      messages: [
+        msg({ id: "u", content: "Écris à Marie Rebour." }),
+        msg({ id: "a", role: "assistant", content: "", error: true, errorText: "Clé requise" }),
+      ],
+    });
+    expect(shouldShowTransparencyCard(refused, false)).toBe(false);
+  });
+
   it("ne s'affiche pas quand il n'y a rien à montrer", () => {
     const nothing = conv({
       messages: [msg({ content: "salut" }), msg({ id: "a", role: "assistant", content: "hello" })],

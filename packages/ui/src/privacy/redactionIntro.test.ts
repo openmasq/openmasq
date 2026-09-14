@@ -31,6 +31,8 @@ describe("shouldShowRedactionIntro", () => {
   it("jamais avant une réponse arrivée : pendant l'attente, il n'explique rien", () => {
     expect(shouldShowRedactionIntro(conv([msg({})]), false)).toBe(false);
     expect(shouldShowRedactionIntro(conv([msg({}), msg({ role: "assistant", pending: true })]), false)).toBe(false);
+    // A refused turn (no key, no credits): the bubble is settled, nothing has left.
+    expect(shouldShowRedactionIntro(conv([msg({}), msg({ role: "assistant", error: true })]), false)).toBe(false);
     expect(shouldShowRedactionIntro(conv([]), false)).toBe(false);
     expect(shouldShowRedactionIntro(null, false)).toBe(false);
   });

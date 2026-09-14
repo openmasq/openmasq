@@ -93,7 +93,11 @@ export const protectedValueCount = conversationProtectedCount;
  * learns to get rid of — the opposite of what the audit asks for.
  *
  * It ALSO waits for the first reply: before it, the user has not yet seen anything
- * go out, and "voyez ce que le modèle a vu" points at nothing.
+ * go out, and "voyez ce que le modèle a vu" points at nothing. A REFUSED turn is not a
+ * reply: its bubble is settled but nothing went out — and since a refused send now
+ * redacts its bubble (`send/refusedTurnRedaction.ts`), the vault is no longer empty
+ * there. « Rétablies dans la réponse que vous lisez » over « Clé requise » would be
+ * the card lying on its first appearance.
  */
 export function shouldShowTransparencyCard(
   conv: Conversation | null | undefined,
@@ -101,7 +105,7 @@ export function shouldShowTransparencyCard(
 ): boolean {
   if (!conv || alreadySeen) return false;
   if (protectedValueCount(conv) === 0) return false;
-  const settledReply = (conv.messages ?? []).some((m) => m.role === "assistant" && !m.pending);
+  const settledReply = (conv.messages ?? []).some((m) => m.role === "assistant" && !m.pending && !m.error);
   if (!settledReply) return false;
   return transparencyPairs(conv).length > 0;
 }

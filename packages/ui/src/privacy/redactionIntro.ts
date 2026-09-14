@@ -14,7 +14,8 @@ import type { Conversation } from "../types";
  *
  *  - **It waits for the first answer to ARRIVE.** Before that nothing has left: offering
  *    to « expliquer mon masquage » points at nothing yet, and the welcome screen already
- *    has its onboarding.
+ *    has its onboarding. A refused turn (no key, no credits) is not an answer: its
+ *    bubble is settled, but nothing has left either.
  *  - **« Fermer pour toujours » is global and final** (`Settings.redactionIntroSeen`,
  *    never a component state — otherwise it comes back on the next mount, the lesson of
  *    the neighbouring cards). Final because this knowledge stays reachable elsewhere: the
@@ -26,5 +27,5 @@ export function shouldShowRedactionIntro(
   seen: boolean | undefined,
 ): boolean {
   if (!conv || seen) return false;
-  return (conv.messages ?? []).some((m) => m.role === "assistant" && !m.pending);
+  return (conv.messages ?? []).some((m) => m.role === "assistant" && !m.pending && !m.error);
 }

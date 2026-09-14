@@ -23,13 +23,15 @@ export type RedactFn = (
    *  (`effectiveRedactCategories`: global ⊕ conversation ⊕ org-forced). Absent when
    *  there is no conversation yet (e.g. the Library file viewer). */
   convCategories?: Record<string, boolean>,
-  /** The conversation's fake-mapping SEED — its salt and, when it has one, its key.
+  /** The conversation's fake-mapping SEED — its salt and, when it has one, its key —
+   *  and the wire MODE it was pinned to at its first redaction (fake / token): a text
+   *  joining a vault already built must take the vault's form, not the current setting's.
    *  Without it this path mints fakes under the fully public mapping (salt 0, no key),
    *  which a table precomputed over the pools reverses: the send REUSES a document's
    *  replacements verbatim, so an unseeded drop-time pass would put that public mapping
    *  on the wire. Absent only where there is genuinely no conversation yet (the Library
    *  viewer, a preview) — those results are not reused by a send. */
-  convSeed?: { salt?: number; key?: string },
+  convSeed?: { salt?: number; key?: string; mode?: "fake" | "token" },
 ) => Promise<RedactionResult>;
 
 /**
@@ -43,7 +45,7 @@ export function makeRedactFn(host: Host, settings: Settings, orgForced?: string[
     signal?: AbortSignal,
     vault?: Record<string, string>,
     convCategories?: Record<string, boolean>,
-    convSeed?: { salt?: number; key?: string },
+    convSeed?: { salt?: number; key?: string; mode?: "fake" | "token" },
   ) => {
     if (!text.trim()) return { text, matches: [] };
     if (signal?.aborted) throw new DOMException("aborted", "AbortError");
@@ -97,7 +99,7 @@ export function makeRedactFn(host: Host, settings: Settings, orgForced?: string[
     // family of residual as `keep`/`avoid`/`forced` above — and it is bounded by
     // `redactEngineSig` (the mode enters the signature, so a map produced under
     // the other mode is stale and the send re-detects instead of reusing it).
-    const mode = settings.redactWireTokens ? ("token" as const) : ("fake" as const);
+    const mode = convSeed?.mode ?? (settings.redactWireTokens ? ("token" as const) : ("fake" as const));
     const work = pseudonymize(text, {
       vault, detectLocal, numbers: false, disabledKinds, mode,
       forced, commercialNotoriety, peopleNotoriety,
