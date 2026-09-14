@@ -1,7 +1,12 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { SubscriptionCliStatus } from "@openmasq/llm";
 import { useT } from "../../../i18n";
 import { useAgentSetup } from "../../../hooks/useAgentSetup";
 import type { AgentCli } from "../../../hooks/useAgentOptIns";
+
+/** Why the rows report a connected account: `read` = the status was read as it stands
+ *  (mount, a finished install), `login` = the sign-in the person just ran here succeeded. */
+export type AgentConnectedCause = "read" | "login";
 
 /**
  * The rows that take a subscription CLI from « not on this machine » to « connected »
@@ -18,13 +23,37 @@ import type { AgentCli } from "../../../hooks/useAgentOptIns";
  * Draws nothing on a host without the set-up slots. Every failure is one line, from the
  * catalogue — the interface never shows a server's sentence.
  */
-export function AgentSetupRows({ cli, label }: { cli: AgentCli; label: string }) {
+export function AgentSetupRows({
+  cli,
+  label,
+  onConnected,
+}: {
+  cli: AgentCli;
+  label: string;
+  /** The account is connected — with WHY the rows know it. The onboarding listens: a
+   *  CLI the person signs in from this very screen is the one they mean to use. */
+  onConnected?: (status: SubscriptionCliStatus, cause: AgentConnectedCause) => void;
+}) {
   const t = useT();
   const copy = t.modelPicker.cli.setup;
   const setup = useAgentSetup(cli);
   const [code, setCode] = useState("");
-  if (!setup.supported) return null;
   const { status, phase } = setup;
+  // Set when the person starts a sign-in here, consumed by the status that follows it.
+  const loginStartedRef = useRef(false);
+  const onConnectedRef = useRef(onConnected);
+  onConnectedRef.current = onConnected;
+  useEffect(() => {
+    if (!status?.loggedIn) return;
+    const cause: AgentConnectedCause = loginStartedRef.current ? "login" : "read";
+    loginStartedRef.current = false;
+    onConnectedRef.current?.(status, cause);
+  }, [status]);
+  const login = () => {
+    loginStartedRef.current = true;
+    setup.login();
+  };
+  if (!setup.supported) return null;
 
   if (status === undefined) {
     return <div className="agent-account-row agent-setup-row"><div className="agent-account-note">{copy.checking}</div></div>;
@@ -122,7 +151,7 @@ export function AgentSetupRows({ cli, label }: { cli: AgentCli; label: string })
     <div className="agent-account-row agent-setup-row">
       <div className="agent-setup-actions">
         <div className="agent-account-note">{copy.notConnected}</div>
-        <button type="button" className="btn-primary btn-inline" onClick={setup.login}>
+        <button type="button" className="btn-primary btn-inline" onClick={login}>
           {copy.connect}
         </button>
       </div>

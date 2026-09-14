@@ -78,6 +78,9 @@ export function KeyChoice({
   const [error, setError] = useState("");
   // The agent panel is open: pre-opened when one is already on (coming back to this step).
   const [agentPath, setAgentPath] = useState(() => agents.some((a) => a.enabled));
+  // True once the person CLICKED the agent card here (not when it pre-opens on return):
+  // `KeyChoiceAgents` then switches on the CLIs already connected — see its header.
+  const [agentChosen, setAgentChosen] = useState(false);
   // The five other providers sit behind « Autre fournisseur »: OpenRouter alone is the
   // recommendation, and six chips made it one option out of six. Pre-unfolded when a
   // key already sits on one of them — a saved key must never hide behind a link.
@@ -198,12 +201,15 @@ export function KeyChoice({
       {agents.length > 0 &&
         option(
           agentPath,
-          () => setAgentPath(true),
+          () => {
+            setAgentPath(true);
+            setAgentChosen(true);
+          },
           t.onboarding.keyChoice.agent.title,
           t.onboarding.keyChoice.agent.sub,
         )}
 
-      {agentPath && agents.length > 0 && <KeyChoiceAgents agents={agents} />}
+      {agentPath && agents.length > 0 && <KeyChoiceAgents agents={agents} autoEnable={agentChosen} />}
 
       {!agentPath && (mode === "byo" || !served) && onSaveKey && (
         <div className="ob-access-key">
