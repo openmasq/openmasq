@@ -50,6 +50,18 @@ kept in the French they were sent in, for the reason given above.
 
 ---
 
+## 0.11.1 — 2026-09-14
+> Your subscription comes first, and connecting it takes fewer steps.
+
+### What's new
+- **Your subscription leads the welcome screen** — Claude Code or Codex is the first card offered, recommended, ready in one click when it is already connected.
+- **Codex signs in through the browser** — no code to type and no account setting to switch on.
+
+### Improvements & fixes
+- The in-app install of Claude Code covers Windows.
+- The sign-in step reads as one card, its code field styled like every other.
+- When a set-up step fails, the reason reaches the app's error log.
+
 ## 0.11.0 — 2026-09-14
 > Your Claude Code or Codex subscription, ready from the first screen.
 
