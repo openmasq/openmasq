@@ -14,6 +14,7 @@ import {
   useAppDispatch,
 } from "../../../state/redux";
 import { canPitchSubscription } from "../../../state/billing/billing";
+import { makeConnectOpenRouter } from "../../../state/auth/connectOpenRouter";
 import { sendTargetConvId } from "../../../hooks/workspaceSeed";
 import type { ShellApi } from "../useShell";
 
@@ -167,6 +168,7 @@ export function ChatPane({
       onAddMemoryCard={chat.addMemoryCard}
       memoryHint={!!host.complete}
       onSetApiKey={chat.setApiKey}
+      onConnectOpenRouter={makeConnectOpenRouter(host, chat.refreshKeys)}
       keyConfigured={chat.keyConfigured}
       orgProfile={chat.orgProfile}
       credits={chat.personalCredits}

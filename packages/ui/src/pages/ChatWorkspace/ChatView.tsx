@@ -217,6 +217,12 @@ interface Props {
   memoryHint?: boolean;
   /** Set an API key inline (encrypted in main) — powers the missing-key modal. */
   onSetApiKey?: (id: string, value: string) => void | Promise<void>;
+  /** « Obtenir une clé gratuitement » — OpenRouter's OAuth flow, the key minted and
+   *  stored by the platform (`state/auth/connectOpenRouter.ts`). The same road the
+   *  onboarding and Réglages → Modèles offer: the modal that opens over a failed send is
+   *  the third place a person meets this choice, and it used to be the only one with
+   *  nothing but a paste field. Absent (preview) ⇒ paste only. */
+  onConnectOpenRouter?: () => Promise<boolean>;
   /** Which provider keys are configured; a change here fires the auto-retry. */
   keyConfigured?: Set<string>;
   /** A file to drop into the composer (library "re-attach"); consumed once. */
@@ -298,6 +304,7 @@ export function ChatView({
   onAddMemoryCard,
   memoryHint,
   onSetApiKey,
+  onConnectOpenRouter,
   keyConfigured,
   pendingAttachment,
   onPendingConsumed,
@@ -1087,6 +1094,19 @@ export function ChatView({
     pendingRetryRef.current = true; // regenerate the failed turn once keyConfigured updates
   }
 
+  // The OAuth road ends the same way as a pasted key: the platform refreshes
+  // `keyConfigured` once the key is stored, and that change is what replays the turn.
+  const connectKey = onConnectOpenRouter
+    ? async () => {
+        const ok = await onConnectOpenRouter();
+        if (ok) {
+          setKeyTarget(null);
+          pendingRetryRef.current = true;
+        }
+        return ok;
+      }
+    : undefined;
+
   const updateAttachment = (cid: string, patch: Partial<Attachment>) =>
     setAttachments((prev) => prev.map((a) => (a.cid === cid ? { ...a, ...patch } : a)));
   // Component captures threaded into the extracted `redactAttachment` (fresh per render so
@@ -1750,6 +1770,7 @@ export function ChatView({
             label={keyTarget.label}
             keyUrl={PROVIDERS[keyTarget.provider].keyUrl}
             onSave={saveKey}
+            onConnect={keyTarget.provider === "openrouter" ? connectKey : undefined}
             onClose={() => setKeyModalOpen(false)}
           />
         )}

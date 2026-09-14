@@ -1,6 +1,7 @@
 import { AnimatePresence } from "framer-motion";
 import { PROVIDERS, type ProviderId } from "@openmasq/llm";
 import { ApiKeyModal, ModelAccessModal } from "../../../containers/modals";
+import { useT } from "../../../i18n";
 
 /**
  * The two modals the Modèles tab can open — the free-models explainer (from a card's
@@ -34,6 +35,7 @@ export function ModelsTabModals({
   /** OAuth PKCE — offered INSIDE the key modal, for the provider that has it. */
   onConnectOpenRouter?: () => Promise<boolean>;
 }) {
+  const t = useT();
   return (
     <>
       <AnimatePresence>
@@ -49,7 +51,7 @@ export function ModelsTabModals({
             provider={keyProvider}
             label={PROVIDERS[keyProvider].label}
             keyUrl={PROVIDERS[keyProvider].keyUrl}
-            saveLabel="Enregistrer"
+            saveLabel={t.common.save}
             hasKey={!!keyConfigured?.has(keyProvider)}
             onClear={onClearApiKey ? () => onClearApiKey(keyProvider) : undefined}
             onSave={(v) => onSetApiKey(keyProvider, v)}
