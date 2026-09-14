@@ -7,11 +7,14 @@
  *   then « If the browser didn't open, visit: <url> », then « Paste code here if
  *   prompted > » and WAITS on stdin. The page shows a code; we write it to stdin
  *   (`submitCode`), and exit 0 is the sign-in. The CLI opens the browser itself.
- * - **codex 0.149.1** `login --device-auth`: prints the device page URL and a one-time
- *   code `XXXX-XXXXX` (ANSI-coloured), then polls on its own until the code is entered on
- *   that page; exit 0 is the sign-in. Nothing on stdin. It does NOT open the browser.
+ * - **codex 0.149.1** `login` (14/09/2026): prints « Starting local login server on
+ *   http://localhost:1455 », then the `auth.openai.com/oauth/authorize?…` URL — on STDERR —
+ *   opens the browser itself and waits for the callback; exit 0 is the sign-in. Nothing on
+ *   stdin. (`--device-auth`, measured 05/09, printed a URL and a `XXXX-XXXXX` code instead
+ *   and needs « device code authorization » switched on in the ChatGPT account — dropped
+ *   for that reason, see `LOGIN_ARGS`.)
  * - status: `claude auth status --json` → `{loggedIn, email, subscriptionType}`;
- *   `codex login status` → « Logged in using ChatGPT » / « Not logged in ».
+ *   `codex login status` → « Logged in using ChatGPT » / « Not logged in » (on STDERR).
  *
  * A URL is relayed only if it sits on the vendor's own domain (`LOGIN_HOSTS`) —
  * fail-closed: a CLI that printed anything else gets nothing opened for it.
@@ -142,9 +145,19 @@ export interface LoginSession {
   cancel(): void;
 }
 
+/**
+ * codex: the DEFAULT `login`, not `--device-auth`. The device flow asks the person to type
+ * a code on a page, and ChatGPT only accepts it once « device code authorization » has
+ * been switched on in the account's security settings — a detour nobody expects from a
+ * button that says « Se connecter ». The default flow is the ordinary browser sign-in:
+ * the CLI opens a local callback (`localhost:1455`), prints the authorize URL (on STDERR,
+ * measured 14/09/2026 with 0.149.1 — hence both streams are read below), opens the
+ * browser itself, and finishes when the page comes back. PKCE: the verifier never leaves
+ * the CLI, the URL we relay carries only the challenge. No account setting to flip.
+ */
 const LOGIN_ARGS: Record<SubscriptionCli, string[] | null> = {
   claude: ["auth", "login", "--claudeai"],
-  codex: ["login", "--device-auth"],
+  codex: ["login"],
   antigravity: null,
 };
 
@@ -163,7 +176,7 @@ export function startLogin(
   const child: ChildProcess = spawn(binPath, args, {
     cwd,
     env: minimalChildEnv(),
-    stdio: [cli === "claude" ? "pipe" : "ignore", "pipe", "ignore"],
+    stdio: [cli === "claude" ? "pipe" : "ignore", "pipe", "pipe"],
   });
   let out = "";
   let sentUrl = false;
@@ -183,8 +196,8 @@ export function startLogin(
       child.kill("SIGTERM");
       finish(false);
     }, LOGIN_TIMEOUT_MS);
-    child.stdout?.setEncoding("utf8");
-    child.stdout?.on("data", (c: string) => {
+    // Both streams: claude prints on stdout, codex's `login` on stderr.
+    const onData = (c: string) => {
       out += c;
       const parsed = parseLoginOutput(cli, out);
       if (parsed.url && !sentUrl) {
@@ -195,7 +208,11 @@ export function startLogin(
         sentCode = true;
         emit({ cli, kind: "code", code: parsed.code });
       }
-    });
+    };
+    child.stdout?.setEncoding("utf8");
+    child.stdout?.on("data", onData);
+    child.stderr?.setEncoding("utf8");
+    child.stderr?.on("data", onData);
     child.on("error", () => finish(false));
     child.on("exit", (code) => finish(code === 0));
   });

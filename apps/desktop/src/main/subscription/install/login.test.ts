@@ -5,7 +5,7 @@ import { chmodSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { parseClaudeStatus, parseCodexStatus, parseLoginOutput, readLoginStatus, stripAnsi } from "./login";
+import { parseClaudeStatus, parseCodexStatus, parseLoginOutput, readLoginStatus, startLogin, stripAnsi } from "./login";
 
 const ESC = String.fromCharCode(27);
 
@@ -41,6 +41,14 @@ describe("parseLoginOutput", () => {
     expect(parseLoginOutput("codex", text)).toEqual({ url: "https://auth.openai.com/codex/device", code: "VYVS-FZCHL" });
     expect(stripAnsi(`${ESC}[90mx${ESC}[0m`)).toBe("x");
   });
+  it("codex: the browser sign-in URL of the default `login`, and no code", () => {
+    // Measured 14/09/2026 (0.149.1): the authorize URL, PKCE challenge included, no code.
+    const text =
+      "Starting local login server on http://localhost:1455.\nIf your browser did not open, navigate to this URL to authenticate:\n\nhttps://auth.openai.com/oauth/authorize?response_type=code&client_id=app_x&redirect_uri=http%3A%2F%2Flocalhost%3A1455%2Fauth%2Fcallback&code_challenge=abc&state=s\n";
+    expect(parseLoginOutput("codex", text)).toEqual({
+      url: "https://auth.openai.com/oauth/authorize?response_type=code&client_id=app_x&redirect_uri=http%3A%2F%2Flocalhost%3A1455%2Fauth%2Fcallback&code_challenge=abc&state=s",
+    });
+  });
   it("relays no URL that is not on the vendor's domain", () => {
     expect(parseLoginOutput("claude", "visit: https://evil.example/claude.com/x")).toEqual({});
     expect(parseLoginOutput("codex", "https://openai.com.evil.example/device")).toEqual({});
@@ -57,5 +65,20 @@ describe("readLoginStatus", () => {
     writeFileSync(bin, '#!/bin/sh\necho "Logged in using ChatGPT" 1>&2\n');
     chmodSync(bin, 0o755);
     expect(await readLoginStatus("codex", bin, dir)).toEqual({ loggedIn: true });
+  });
+});
+
+describe("startLogin", () => {
+  // codex's `login` prints its authorize URL on STDERR (measured 14/09/2026): a session
+  // that listened to stdout alone relayed nothing, and the row showed no page to open.
+  it.skipIf(process.platform === "win32")("relays a sign-in URL the CLI prints on stderr", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "om-login-"));
+    const bin = join(dir, "codex");
+    writeFileSync(bin, '#!/bin/sh\necho "navigate to this URL: https://auth.openai.com/oauth/authorize?x=1" 1>&2\n');
+    chmodSync(bin, 0o755);
+    const events: string[] = [];
+    const session = startLogin("codex", bin, dir, (e) => events.push(e.kind === "url" ? e.url : e.kind));
+    expect(await session!.done).toEqual({ ok: true });
+    expect(events).toEqual(["https://auth.openai.com/oauth/authorize?x=1", "done"]);
   });
 });
