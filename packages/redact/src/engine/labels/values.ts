@@ -83,7 +83,14 @@ export function cleanValue(raw: string): string {
   // the substituted line is no longer valid YAML/JSON. Strip a MATCHED surrounding pair
   // only; an apostrophe inside the value (« l'Étang ») is untouched.
   v = v.replace(/^(["'`])([\s\S]*)\1$/u, "$2").trim();
-  return v.length > 80 ? v.slice(0, 80).trim() : v;
+  // ⚠️ The 80-char cap must not CUT a code reference. It exists to stop a greedy capture
+  // carrying off a clause, and a clause is exactly what an expression of references is not:
+  // `env("X_CLIENT_ID") || env("X_ID_CLIENT") || (looksOauth1 ? "" : env("X_ACCESS_TOKEN"))`
+  // cut at 80 lands mid-call, and `acceptFieldValue`'s reference gate — which would have
+  // dropped it whole — then reads the fragment as a secret and vaults a line of source.
+  // So the reference is measured BEFORE the cut; the gate downstream is what refuses it.
+  if (v.length <= 80 || isCodeReference(v)) return v;
+  return v.slice(0, 80).trim();
 }
 
 /** A NAME field's value, trimmed to the NAME: the civil-status tail after a comma is

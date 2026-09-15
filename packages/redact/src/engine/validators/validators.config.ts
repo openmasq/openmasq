@@ -123,9 +123,61 @@ const CUT_CALL_BARE = /^[A-Za-z_$][\w$.]{0,60}\($/;
 const CUT_CALL_NAMED = /^(?:[A-Za-z_$][\w$]*\.[\w$.]{1,60}|[a-z_$][\w$]*[A-Z][\w$]*)\([^)]*$/;
 const isCutCall = (v: string): boolean => CUT_CALL_BARE.test(v) || CUT_CALL_NAMED.test(v);
 
+/**
+ * Real code is not one reference per line — it is an EXPRESSION of them:
+ *
+ *   export const X_API_KEY   = env("X_API_KEY") || env("X_KEY");
+ *   export const X_CLIENT_ID = env("X_CLIENT_ID") || (looksOauth1 ? "" : env("X_ACCESS_TOKEN"));
+ *
+ * Measured on the file this was reported from. Testing the whole value as a SINGLE reference
+ * caught `var.x` and missed every line above, which is most of what a config module is made
+ * of. So the value is cut on the operators that join alternatives, and it is a reference when
+ * EVERY part is one — a literal anywhere in the chain still masks the whole expression,
+ * because a key pasted between two `||` is exactly the leak this must not wave through.
+ *
+ * The trailing `;` and `,` go first: a statement's punctuation is not part of its value, and
+ * the rules that feed this capture up to the end of the line.
+ */
+const JOINERS = /\s*(?:\|\||\?\?|\?|:|&&)\s*/;
+const STRING_LITERAL = /^(?:""|''|``)$/;
+/**
+ * A bare name — the CONDITION of a ternary, the only part of these expressions that is not
+ * itself one of the idioms above. `hunter2` has exactly this shape, so two things make it
+ * safe: it is accepted only as a PART, never as the whole value, and only while a genuine
+ * reference stands beside it in the same chain.
+ * ⚠️ Residual, stated: an UNQUOTED literal sitting in such a chain would ride through. In
+ * every language written this way a bare word IS an identifier — a literal is quoted, and a
+ * quoted one is not this shape — so the residual is source that would not compile.
+ */
+const BARE_NAME = /^[A-Za-z_$][\w$]{0,40}$/;
+
+/**
+ * Cutting on the joiners unbalances the parentheses: the grouping paren of
+ * `(looksOauth1 ? "" : env("X"))` falls on two different parts. Only the SURPLUS is stripped
+ * — a part with as many opens as closes keeps them, because those are a CALL's own and
+ * removing them turns `env("X")` into something no idiom matches.
+ */
+function balance(part: string): string {
+  const opens = (part.match(/\(/g) ?? []).length;
+  const closes = (part.match(/\)/g) ?? []).length;
+  if (closes > opens) return part.replace(new RegExp(`\\){${closes - opens}}$`), "");
+  if (opens > closes) return part.replace(new RegExp(`^\\({${opens - closes}}`), "");
+  return part;
+}
+
 export const isCodeReference = (value: string): boolean => {
-  const v = value.trim();
+  const v = value.trim().replace(/[;,]+$/, "");
   if (CODE_REFERENCE.test(v) || isCutCall(v)) return true;
+  // An EXPRESSION: every alternative must itself be a reference, and at least one must be a
+  // genuine idiom — a chain of bare names says nothing, and a value that is ONE bare name is
+  // a word, which is what a weak password is too.
+  const parts = v
+    .split(JOINERS)
+    .map((p) => balance(p.trim()))
+    .filter(Boolean);
+  const part = (p: string) => STRING_LITERAL.test(p) || BARE_NAME.test(p) || CODE_REFERENCE.test(p);
+  if (parts.length > 1 && parts.every(part) && parts.some((p) => CODE_REFERENCE.test(p)))
+    return true;
   // An interpolation with something AROUND it — `${url}/v1`, `$HOST:8080`. Still a
   // reference, but only while what remains once the interpolations are removed could not
   // itself be the secret: `${PREFIX}sk_live_51H8xKLMN…` is not a reference, it is a key with

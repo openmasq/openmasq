@@ -11,6 +11,7 @@
 // 2026-09-07 (`bench/spans/`): customer/employee ids at 26 %, PINs at 8 %, routing numbers
 // at 11 %, court-case numbers at 0 % — every one written next to its label, in prose.
 import type { Detection } from "../../types";
+import { isCodeReference } from "../validators";
 
 interface CodeFamily {
   category: string;
@@ -166,6 +167,12 @@ const PASSWORD_RE = new RegExp(
 function isPasswordShaped(v: string): boolean {
   if (!/\p{L}/u.test(v) || !/[\p{N}\p{P}\p{S}]/u.test(v)) return false;
   if (/:\/\/|^\/|@.+\.|^\*+$|^[\[({<].*[\])}>]$/u.test(v)) return false;
+  // …nor a value that REFERENCES the password instead of being it. `BSKY_APP_PASSWORD =
+  // var.bsky_app_password` says the secret is NOT in this file, and the `_` before the label
+  // is a word boundary, so the idiom reads as « password = … » exactly as prose does. The
+  // dots and underscores of a reference also satisfy the symbol test above — which is why
+  // this cannot be left to the shape. One home for the test (`validators.config.ts`).
+  if (isCodeReference(v)) return false;
   return true;
 }
 
@@ -175,13 +182,26 @@ export function detectLabeledCodes(text: string): Detection[] {
   if (!text) return [];
   const out: Detection[] = [];
   const seen = new Set<string>();
-  const push = (value: string, category: string, start: number, minDigits: number, check?: (v: string) => boolean) => {
+  const push = (
+    value: string,
+    category: string,
+    start: number,
+    minDigits: number,
+    check?: (v: string) => boolean,
+  ) => {
     const v = value.replace(/[\s.,;:)\]]+$/u, "");
     if ((v.match(/\d/g) ?? []).length < minDigits) return;
     if (check && !check(v)) return;
+    // A reference is never the code either — same gate, same reason as above.
+    if (isCodeReference(v)) return;
     // A pure DATE is never a code (« case of 12/05/2024 »), nor is a money amount, nor a
     // bare YEAR (« the medical record number was updated in 2023 »).
-    if (/^\d{1,2}[\/.\-]\d{1,2}[\/.\-]\d{2,4}$/.test(v) || /[.,]\d{1,2}$/.test(v) || /^(?:19|20)\d{2}$/.test(v)) return;
+    if (
+      /^\d{1,2}[\/.\-]\d{1,2}[\/.\-]\d{2,4}$/.test(v) ||
+      /[.,]\d{1,2}$/.test(v) ||
+      /^(?:19|20)\d{2}$/.test(v)
+    )
+      return;
     const key = `${category}::${v}`;
     if (seen.has(key)) return;
     seen.add(key);
@@ -189,15 +209,21 @@ export function detectLabeledCodes(text: string): Detection[] {
   };
   for (const m of text.matchAll(PASSWORD_RE)) {
     const quoted = m[2] !== undefined;
-    const raw = (m[2] ?? m[3] ?? "");
+    const raw = m[2] ?? m[3] ?? "";
     // A bare value keeps its own punctuation but not the sentence's (« m)%l8jQz0C. Bitte »,
     // « N8$kR9mZpY5!. ») — a final stop or comma, and a closing paren that opens nothing.
-    const v = quoted ? raw : raw.replace(/[.,;:]+$/u, "").replace(/\)$/u, (c, i, str) => (str.includes("(") ? c : ""));
+    const v = quoted
+      ? raw
+      : raw.replace(/[.,;:]+$/u, "").replace(/\)$/u, (c, i, str) => (str.includes("(") ? c : ""));
     if (v.length < 6 || !isPasswordShaped(v)) continue;
     const key = `SECRET::${v}`;
     if (seen.has(key)) continue;
     seen.add(key);
-    out.push({ value: v, category: "SECRET", start: m.index + m[0].length - raw.length - (quoted ? 1 : 0) });
+    out.push({
+      value: v,
+      category: "SECRET",
+      start: m.index + m[0].length - raw.length - (quoted ? 1 : 0),
+    });
   }
   for (const f of FAMILIES) {
     // The value is bounded on both sides: no letter/digit before, none after — so the
@@ -214,7 +240,8 @@ export function detectLabeledCodes(text: string): Detection[] {
       if (CASE_LIST.test(value)) {
         const tail = text.slice(start + value.length, start + value.length + 80);
         for (const e of tail.matchAll(/^(?:\s*(?:,|and|et|&|und|y|e)\s*(\d{2,6}\/\d{2,4}))+/gu)) {
-          for (const n of e[0].matchAll(/\d{2,6}\/\d{2,4}/g)) push(n[0], f.category, start + value.length + (n.index ?? 0), f.minDigits);
+          for (const n of e[0].matchAll(/\d{2,6}\/\d{2,4}/g))
+            push(n[0], f.category, start + value.length + (n.index ?? 0), f.minDigits);
         }
       }
     }

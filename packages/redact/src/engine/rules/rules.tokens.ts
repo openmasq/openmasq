@@ -28,6 +28,22 @@ function notPlaceholderCookie(m: string): boolean {
   return !COOKIE_PLACEHOLDER.has(val.toLowerCase().replace(/^[<{[]+|[>}\]]+$/g, ""));
 }
 
+/**
+ * « Bearer » followed by ORDINARY WORDS is PROSE, not a credential. Measured on a source
+ * comment — « X : bearer app-only pour lire » — where the line explains WHICH auth mode the
+ * service takes, and the fake turned the explanation into nonsense.
+ *
+ * A real bearer token is drawn from a random alphabet: it carries a digit, a capital, or a
+ * length no word reaches. A short run of lowercase words joined by `-`/`_`/`.` is how a
+ * token is never written and how a compound word always is. The length floor is what keeps
+ * an all-lowercase opaque token — a hex or base36 run — on the masking side.
+ */
+const BEARER_PROSE = /^[a-z]+(?:[-_.][a-z]+)*$/;
+function notProseBearer(m: string): boolean {
+  const token = m.replace(/^\s*bearer\s+/i, "");
+  return !(token.length < 32 && BEARER_PROSE.test(token));
+}
+
 export const TOKEN_RULES: RedactionRule[] = [
   // The FOUNDING vendor prefixes (formerly inline in rules.ts — same family, one
   // home). Order preserved: they ran immediately before this table's own entries.
@@ -43,7 +59,7 @@ export const TOKEN_RULES: RedactionRule[] = [
   // `o` = legacy workspace token, `e` = the config access/refresh pair (which also comes
   // as `xoxe.xoxb-` / `xoxe.xoxp-`). Both are live credentials and neither was in the class.
   { type: "slack_token", pattern: /\bxox[baeoprs](?:\.xox[bp])?-[A-Za-z0-9-]{10,}\b/g },
-  { type: "bearer", pattern: /\bBearer\s+[A-Za-z0-9._-]{8,}/gi },
+  { type: "bearer", pattern: /\bBearer\s+[A-Za-z0-9._-]{8,}/gi, validate: notProseBearer },
   // Vendor API keys / tokens with distinctive prefixes → category "secret" (ON by
   // default). The generic api_token rule is OFF by default, so these dedicated
   // rules ensure real vendor secrets are always caught.

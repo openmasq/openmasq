@@ -23,6 +23,7 @@ pins, and add a row here.
 | `bankStatement.test.ts` | unit case (`pnpm test`) | relevé bancaire — dates et vocabulaire intacts, PII toujours redacted |
 | `benchFixes.test.ts` | recall bench (`pnpm test:corpus`) | champ de compte en PROSE — « mon pseudo est … » |
 | `benchReplay.test.ts` | recall bench (`pnpm test:corpus`) | rejeu du bench manuel du 27/07/2026 — contre le chemin d'ENVOI |
+| `codeReferences.test.ts` | unit case (`pnpm test`) | a config module written as CODE — a reference is not a value |
 | `codeSecrets.test.ts` | unit case (`pnpm test`) | code-oriented secret rules |
 | `employmentLetter.test.ts` | unit case (`pnpm test`) | lettre Pôle emploi — la protection tient, le reste reste lisible |
 | `enrolmentLetter.test.ts` | unit case (`pnpm test`) | courrier d'inscription — the public sender ships in clear, the member is protected |
