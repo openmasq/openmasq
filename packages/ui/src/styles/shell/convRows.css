@@ -1,0 +1,149 @@
+/* The hairline that separates the MENUS from the LIST. Carried by the list, not the nav:
+   pins slot in between the two, so placed here it stays stuck to what it announces. */
+.conv-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px 8px 0;
+  border-top: 1px solid var(--border-subtle);
+}
+.conv-list .cv-eyebrow {
+  padding: 8px 8px 4px;
+}
+
+.empty-hint {
+  padding: 10px 8px;
+  color: var(--text-faint);
+  font-size: var(--text-sm);
+}
+
+.conv-item {
+  position: relative; /* anchor for the actions, which are out of flow — see `.conv-actions` */
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  margin-bottom: 2px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  background: transparent;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+.conv-item:hover {
+  background: var(--surface-hover);
+}
+.conv-item.active {
+  background: var(--surface-selected);
+}
+.conv-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.conv-title {
+  font-size: var(--text-sm);
+  color: var(--text-body);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.conv-item.active .conv-title {
+  color: var(--text-strong);
+}
+.conv-model {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.02em;
+  color: var(--text-faint);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* The row's ⋯ actions (rename / delete), revealed on hover, on `:focus-within` (keyboard
+   reach) and while their menu is open (`.icon-btn.active`). They take the TIME'S place
+   rather than sitting beside it, and hover changes NO dimension of the row: the time goes
+   to `visibility` (its box stays, the title does not widen) and the actions are absolute
+   (a 30px IconButton in the flow would grow the 20px row under the cursor). */
+.conv-actions {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  flex-shrink: 0;
+  display: none;
+}
+.conv-item:hover .conv-actions,
+.conv-item:focus-within .conv-actions,
+.conv-actions:has(.icon-btn.active) {
+  display: inline-flex;
+}
+.conv-item:hover .conv-time,
+.conv-item:focus-within .conv-time {
+  visibility: hidden;
+}
+
+/* Inline rename — the row's own title turned editable, so the name is renamed where it
+   is read. Sized off `.conv-title` so committing doesn't shift the text by a pixel. */
+.conv-title-edit {
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--text-strong);
+  background: var(--surface-card);
+  border: 1px solid var(--brand);
+  border-radius: var(--radius-sm);
+  padding: 2px 6px;
+  outline: none;
+}
+.conv-item.editing {
+  cursor: default;
+}
+
+.shield-card {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 12px 10px;
+  padding: 10px 12px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--green-soft);
+  color: var(--green-ink);
+  text-align: left;
+}
+.shield-card .shield-count {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  line-height: 1.1;
+}
+.shield-card .shield-sub {
+  font-size: 11px;
+  opacity: 0.8;
+}
+
+.sidebar-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 11px 12px;
+  border: none;
+  border-top: 1px solid var(--border-subtle);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+.sidebar-user:hover {
+  background: var(--surface-hover);
+}
+.sidebar-user .u-name {
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-strong);
+}
+.sidebar-user .u-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+}

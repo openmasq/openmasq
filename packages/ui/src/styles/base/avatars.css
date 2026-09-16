@@ -1,0 +1,38 @@
+/* Brand icon / avatar primitives (sizes + data colours stay inline — runtime). */
+.cv-icon {
+  display: block;
+  flex-shrink: 0;
+}
+.cv-mark {
+  color: var(--text-strong);
+}
+.icon-wrap {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: 50%;
+  font-weight: 600;
+}
+.model-tile {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+}
+/* Backing for an UNTILED vendor icon drawn as dark ink on transparency — without it the
+   mark vanishes in the dark theme. The colour is inline (the fixed brand plate). */
+.model-mark-plate {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  padding: 1px;
+  border-radius: 3px;
+}

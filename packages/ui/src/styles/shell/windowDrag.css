@@ -1,0 +1,40 @@
+
+/* ============================================ Window drag (frameless) === */
+/* macOS runs `titleBarStyle: "hiddenInset"` (no native title bar), so the window can only
+   be moved over regions marked draggable: the left rail and the top strip of each view.
+   Interactive children opt back out so buttons, inputs and links keep working. */
+.rail,
+.sidebar-wordmark,
+.page-header {
+  -webkit-app-region: drag;
+}
+.rail *,
+.sidebar-wordmark *,
+.page-header * {
+  -webkit-app-region: no-drag;
+}
+
+/* macOS traffic lights float over the top-left of our content, where the brand mark sits in
+   both nav chromes: inset the two so the mark clears them. `data-os="mac"` is stamped on
+   <html> by the desktop renderer; Windows/Linux draw a real title bar and must not pay this
+   padding, and `@openmasq/ui` reads the attribute rather than sniffing the platform. */
+/* The two values differ on purpose so the mark lands at the same y in both chromes: the
+   rail centres a 24px mark in a 40px button (top + 20), the sidebar offsets a 26px mark by
+   padding-top (+ 13). 36 + 20 = 43 + 13 = 56. */
+:root[data-os="mac"] .rail {
+  padding-top: 36px;
+}
+:root[data-os="mac"] .sidebar-wordmark {
+  padding-top: 43px;
+}
+/* The chat view has no header, only corner floatbars, so this invisible strip gives it a
+   draggable top. It sits under the floatbars (z-index 30), which stay clickable. */
+.chat-drag {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 44px;
+  z-index: 20;
+  -webkit-app-region: drag;
+}

@@ -1,0 +1,249 @@
+.model-detail-panel {
+  flex-shrink: 0;
+  width: 268px;
+  position: sticky;
+  top: 8px;
+  align-self: flex-start;
+}
+@media (max-width: 760px) {
+  .model-picker-split {
+    flex-direction: column;
+  }
+  .model-detail-panel {
+    width: 100%;
+    position: static;
+  }
+}
+.model-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+  border-radius: var(--radius-md, 12px);
+  border: 1px solid var(--border-default);
+  background: var(--surface-card, #fff);
+}
+.model-detail-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.model-detail-name {
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--text-strong);
+}
+.model-detail-vendor {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.model-detail-badges,
+.model-detail-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.model-badge {
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
+}
+.model-badge.oss {
+  background: var(--hl-lime-soft, #edf7cf);
+  color: var(--forest-500, #3c6b1e);
+  border-color: transparent;
+}
+
+/* Hosting-jurisdiction mark beside a model's provider (CountryFlag.tsx). Flags keep their
+   own colours; the globe/local glyphs follow the text tone. Inline so it sits within the
+   vendor text; rectangular flags get a rounded clip + hairline ring. */
+.country-flag {
+  display: inline-flex;
+  align-items: center;
+  vertical-align: -0.15em;
+  margin-right: 0.35em;
+  color: var(--text-faint);
+  flex: none;
+}
+.country-flag svg {
+  display: block;
+}
+.country-flag.cf-US,
+.country-flag.cf-FR,
+.country-flag.cf-CN {
+  border-radius: 2px;
+  overflow: hidden;
+  box-shadow: 0 0 0 0.5px var(--border-subtle);
+}
+.model-badge.host {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.model-badge.host .country-flag {
+  margin-right: 0;
+}
+.model-detail-section {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+/* Per-token price in the detail panel (input/output USD per 1M tokens, or "Gratuit"). */
+.model-detail-price {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-strong);
+}
+.model-detail-price b {
+  font-variant-numeric: tabular-nums;
+}
+.model-price-row {
+  color: var(--text-muted);
+}
+.model-price-row b {
+  color: var(--text-strong);
+}
+.model-price-unit {
+  flex-basis: 100%;
+  font-size: 11px;
+  color: var(--text-faint);
+}
+.model-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.model-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.model-bar-label {
+  flex: 0 0 84px;
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+.model-bar-track {
+  display: flex;
+  gap: 3px;
+  flex: 1;
+}
+.model-bar-seg {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--surface-sunken);
+}
+.model-bar-seg.on {
+  background: var(--brand, var(--forest-500));
+}
+.model-detail-list {
+  margin: 0;
+  padding-left: 16px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-body);
+}
+.model-detail-list.muted {
+  color: var(--text-muted);
+}
+.model-detail-bestfor {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.5;
+  color: var(--text-body);
+}
+.model-tag {
+  font-size: 10.5px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+}
+.model-card {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 11px 13px;
+  border-radius: var(--radius-md, 12px);
+  cursor: pointer;
+  text-align: left;
+  background: var(--surface-card, #fff);
+  border: 1px solid var(--border-default);
+}
+
+.model-card.active {
+  border-color: var(--brand, var(--coral-500));
+  box-shadow: var(--glow-coral, 0 0 0 3px rgba(251, 92, 46, 0.15));
+}
+.model-card-body {
+  flex: 1;
+  min-width: 0;
+}
+.model-card-name {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-strong);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* Flag · provider · badges on ONE line: the provider label ellipses, the badges never wrap
+   or overflow the card. */
+.model-card-vendor {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.model-card-vendor > svg,
+.model-card-vendor > .model-free-badge,
+.model-card-vendor > .model-unavailable {
+  flex: none;
+  /* The flex gap spaces the row — the badges' own inline margins would double it. */
+  margin-left: 0;
+}
+.model-card-provider {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.model-card-check {
+  color: var(--brand, var(--coral-600));
+  flex-shrink: 0;
+}
+.model-card {
+  position: relative;
+}
+/* Per-PROVIDER settings gear (in the group header) — opens that provider's API-key
+   modal. Always visible (one per provider), not a per-card hover reveal. */
+.model-gear {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-sm);
+  color: var(--text-muted);
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  cursor: pointer;
+  transition: background var(--dur-fast), color var(--dur-fast);
+}
+.model-gear:hover,
+.model-gear:focus-visible {
+  background: var(--surface-hover);
+  color: var(--text-strong);
+}

@@ -1,0 +1,282 @@
+/* Inline wrapper carrying the hover-to-open menu (integrated vs external browser).
+   Phrasing content so it nests inside a Markdown paragraph. */
+.md-link-hoverwrap {
+  display: inline;
+}
+/* The hover menu popover (portal to <body>, position:fixed → never clipped by the
+   bubble's overflow). Its top/left are set inline from the link's rect. */
+.md-link-menu {
+  position: fixed;
+  z-index: 210;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px;
+  min-width: 190px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md, 0 12px 32px -12px rgba(0, 0, 0, 0.4));
+  animation: md-link-menu-in 0.14s var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)) both;
+}
+/* The link popover's own entry — it borrowed the conversation-switch keyframe, which is
+   gone. A POPOVER appearing under the cursor is not a page transition: it earns its fade. */
+@keyframes md-link-menu-in {
+  from { opacity: 0.5; filter: blur(6px); }
+  to { opacity: 1; filter: blur(0); }
+}
+.md-link-menu-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 7px 10px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-body);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--dur-fast);
+}
+.md-link-menu-btn:hover {
+  background: var(--surface-hover);
+  color: var(--text-strong);
+}
+@media (prefers-reduced-motion: reduce) {
+  .md-link-menu {
+    animation: none;
+  }
+  .md-link-menu-btn {
+    transition: none;
+  }
+}
+/* A link whose visible text is a bare URL: cap the displayed length (~44ch) with an
+   ellipsis. The full URL stays selectable and shows on hover (native `title`). */
+.md-link-url {
+  display: inline-block;
+  max-width: 44ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  vertical-align: bottom;
+}
+@media (prefers-reduced-motion: reduce) {
+  .md-link {
+    transition: none;
+  }
+}
+/* Blockquote — sunken card (chat-app reference). */
+.md blockquote {
+  margin: 0 0 16px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-subtle);
+  font-size: 14px;
+  color: var(--text-muted);
+}
+.md blockquote p { margin: 0; }
+.md blockquote blockquote { margin: 10px 0 0; background: var(--surface-hover); }
+.md hr { border: none; height: 1px; background: var(--border-subtle); margin: 26px 0; }
+.md code {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.83em;
+  background: var(--surface-sunken, rgba(0, 0, 0, 0.05));
+  border: 1px solid var(--border-subtle);
+  padding: 1px 6px;
+  border-radius: 5px;
+}
+/* A fenced code block: header (language + copy) over the scrollable <pre>. The
+   accent hue is set per-language on `.md-code` via the runtime `--lang-hue`. */
+/* Fenced code block — dark forest "terminal" (chat-app reference). */
+.md-code {
+  margin: 0 0 16px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--forest-900, #0f1c06);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 12.5px;
+}
+.md-code-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 9px 13px;
+  background: rgba(255, 255, 255, 0.05);
+}
+.md-code-lang {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  color: #8fa577;
+}
+.md-code.has-lang .md-code-lang {
+  color: hsl(var(--lang-hue, 90) 45% 66%);
+}
+.md-code-copy {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 10.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgba(213, 222, 198, 0.7);
+  background: transparent;
+  border: 0;
+  padding: 2px 4px;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+.md-code-copy:hover {
+  color: #d5dec6;
+}
+/* CSV/TSV fence rendered as a TABLE (see CsvBlock) — a LIGHT, theme-aware data card
+   (not the dark code theme) so it reads like the app's other tables. */
+.md-csv-block {
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+}
+.md-csv-block .md-code-head {
+  background: var(--surface-sunken);
+  border-bottom: 1px solid var(--border-subtle);
+}
+.md-csv-block .md-code-lang {
+  color: var(--text-muted);
+}
+.md-csv-block .md-code-copy {
+  color: var(--text-muted);
+}
+.md-csv-block .md-code-copy:hover {
+  color: var(--text-strong);
+}
+.md-csv-block pre {
+  color: var(--text-body);
+}
+.md-code-spacer {
+  flex: 1;
+}
+.md-csv-toggle {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+}
+.md-csv-toggle button {
+  border: 0;
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 11.5px;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+.md-csv-toggle button.on {
+  background: var(--surface-sunken);
+  color: var(--text-strong);
+}
+.md-csv-scroll {
+  overflow-x: auto;
+  max-width: 100%;
+}
+.md-csv {
+  border-collapse: collapse;
+  width: 100%;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--text-body);
+}
+.md-csv th,
+.md-csv td {
+  padding: 7px 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-subtle);
+  white-space: nowrap;
+}
+.md-csv th {
+  background: var(--surface-sunken);
+  color: var(--text-strong);
+  font-weight: 600;
+  font-size: 12px;
+}
+.md-csv tbody tr:hover {
+  background: var(--surface-hover);
+}
+.md-csv tr.is-total {
+  font-weight: 700;
+  color: var(--text-strong);
+  background: color-mix(in oklch, var(--hl-lime) 10%, transparent);
+}
+.md-csv tr.is-total td {
+  border-top: 1px solid var(--border-default);
+}
+
+/* ── Artifact chip (a CSV / substantial code block shown as a clickable FILE) ── */
+.md-artifact-chip {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  margin: 6px 0;
+  padding: 11px 13px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg, 12px);
+  background: var(--surface-card);
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font-sans);
+  transition: border-color 0.14s, background 0.14s;
+}
+.md-artifact-chip:hover {
+  border-color: var(--border-strong, var(--border-default));
+  background: var(--surface-hover);
+}
+.md-artifact-glyph {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-md, 9px);
+  background: var(--surface-sunken);
+  color: var(--brand-text);
+}
+.md-artifact-chip.kind-code .md-artifact-glyph {
+  color: var(--hl-violet, var(--brand));
+}
+.md-artifact-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.md-artifact-title {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-strong);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.md-artifact-hint {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-faint);
+}
+.md-artifact-open {
+  flex-shrink: 0;
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.md-artifact-chip:hover .md-artifact-open {
+  color: var(--text-strong);
+}

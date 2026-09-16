@@ -1,0 +1,44 @@
+/* ============================================== Nav dock (Rail ⇄ Sidebar) === */
+/* Both primary-nav panels stay mounted in this dock: it animates its WIDTH (what the
+   content reflows against) while the panels crossfade, so the sidebar glides instead of
+   snapping. Panels are absolutely positioned, so neither reflows mid-transition. */
+.nav-dock {
+  position: relative;
+  flex-shrink: 0;
+  width: 60px; /* = .rail width */
+  transition: width 0.26s var(--ease-out);
+}
+.nav-dock.open {
+  width: var(--sidebar-w);
+}
+.nav-dock-panel {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  transition: opacity 0.18s var(--ease-out), transform 0.26s var(--ease-out);
+}
+.nav-dock-rail {
+  width: 60px;
+}
+.nav-dock-sidebar {
+  width: var(--sidebar-w);
+}
+/* The panel that isn't in play fades out + is click-through (aria-hidden too). */
+.nav-dock:not(.open) .nav-dock-sidebar {
+  opacity: 0;
+  transform: translateX(-12px);
+  pointer-events: none;
+}
+.nav-dock.open .nav-dock-rail {
+  opacity: 0;
+  transform: translateX(-8px);
+  pointer-events: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .nav-dock,
+  .nav-dock-panel {
+    transition: none;
+  }
+}

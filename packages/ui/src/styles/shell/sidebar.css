@@ -1,0 +1,205 @@
+/* ================================================================ Sidebar === */
+.sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  /* Transparent: it blends into the shell tone, the chat floats beside it. */
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+}
+[data-theme="dark"] .sidebar {
+  background: transparent;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 16px 16px 10px;
+}
+.sidebar-brand .wordmark {
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  color: var(--text-strong);
+  letter-spacing: -0.01em;
+}
+
+/* New-conversation pill: rounder, lifts + brightens with a sheen sweep on hover;
+   the plus icon spins a quarter-turn. Matches the design-system `.om-newchat`. */
+.btn-new {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: calc(100% - 28px);
+  /* margin-top reproduces the rail's logo→new gap (6px btn margin + 2px rail gap); the
+     rest of the column hangs off this, so nothing shifts on toggle. */
+  margin: 8px 14px 0;
+  height: 40px;
+  padding: 0 14px;
+  /* --radius-md, matching `.sidebar-search` directly below AND `.rail-new`, so the
+     corner doesn't change when the sidebar collapses. */
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  background: var(--brand);
+  /* The ink that INVERTS with `--brand` (root rule 12) — a literal is unreadable in the
+     dark-green theme, where the brand IS the light lime. */
+  color: var(--ink-on-brand);
+  font-size: var(--text-base);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+  box-shadow: var(--shadow-xs);
+  transition: transform 0.22s var(--ease-out), box-shadow 0.22s var(--ease-out),
+    filter 0.22s var(--ease-out), background var(--dur-fast) var(--ease-out);
+}
+.btn-new::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -60%;
+  width: 45%;
+  height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+  transform: skewX(-18deg);
+  pointer-events: none;
+}
+.btn-new svg {
+  transition: transform 0.3s var(--ease-out);
+}
+.btn-new:hover {
+  background: var(--brand-hover);
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+  filter: brightness(1.05) saturate(1.05);
+}
+.btn-new:hover::after {
+  animation: om-newchat-sheen 0.6s var(--ease-out);
+}
+.btn-new:hover svg {
+  transform: rotate(90deg) scale(1.08);
+}
+.btn-new:active {
+  transform: translateY(0) scale(0.985);
+}
+@keyframes om-newchat-sheen {
+  from { left: -60%; }
+  to { left: 130%; }
+}
+
+/* `.om-sweep` / `.om-sweep-host` are INERT hooks: hover feedback belongs to the row
+   (`.settings-rail-btn:hover`, `.conv-item:hover`, a chip's `.on`), not to a band across
+   the label. Giving a label a treatment again means one rule here, not re-wrapping the
+   components. */
+
+/* Search affordance: a sunken button under "new conversation" that opens the ⌘K palette;
+   the label carries a hover sweep. */
+.sidebar-search {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: calc(100% - 28px);
+  /* margin-top = the rail's new→search gap (10px btn margin + 2px rail gap). */
+  margin: 12px 14px 0;
+  height: 40px;
+  padding: 0 14px;
+  background: var(--surface-sunken);
+  border: 1px solid transparent;
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out), border-color var(--dur-fast) var(--ease-out);
+}
+.sidebar-search:hover {
+  background: var(--surface-hover);
+  border-color: var(--border-subtle);
+}
+.sidebar-search svg {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+.sidebar-search .search-lbl {
+  flex: 1;
+  text-align: left;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+}
+.sidebar-search .search-kbd {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-faint);
+}
+.kbd-hint {
+  position: absolute;
+  right: 9px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-faint);
+  border: 1px solid var(--border-default);
+  border-radius: 4px;
+  padding: 1px 5px;
+  cursor: pointer;
+  background: var(--surface-card);
+}
+
+/* Search palette rows (⌘K modal). */
+.search-row {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+.search-row:hover {
+  background: var(--surface-hover);
+}
+/* Keyboard-highlighted row (↑/↓ navigation) — reads as selected even without a
+   pointer; slightly stronger than hover + a lime accent bar. */
+.search-row.is-active {
+  background: var(--surface-hover);
+  box-shadow: inset 2px 0 0 var(--brand);
+}
+.search-row-title {
+  flex: 1;
+  min-width: 0;
+  font-family: "Archivo", var(--font-sans);
+  font-weight: 700;
+  font-size: var(--text-sm);
+  color: var(--text-strong);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* The "Nouvelle conversation" action at the top of the ⌘K palette: brand-tinted
+   glyph + a divider separating it from the dated conversation groups below. */
+.search-row-new {
+  color: var(--brand-text);
+  margin-bottom: 6px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+}
+.search-row-new .search-row-title {
+  color: var(--text-strong);
+}
+/* A conversation still streaming a reply → a small brand spinner in its ⌘K row. */
+.search-row-spin {
+  flex-shrink: 0;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 2px solid var(--border-default);
+  border-top-color: var(--brand);
+  animation: om-spin-kf 0.7s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .search-row-spin {
+    animation-duration: 1.6s;
+  }
+}

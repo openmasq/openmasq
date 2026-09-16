@@ -1,0 +1,104 @@
+/* ── THE toast (`components/feedback/Toast.tsx`) — a transient notice, one family.
+   Anchored at a viewport point (`.om-toast-at`) or docked above the composer
+   (`.om-toast-dock`). Tone via `.kb--<tone>`, which sets `--ac`/`--bg`. A permanent state
+   is a `StatusChip`, a decision a `ModalShell` — never a toast. */
+.om-toast {
+  --ac: var(--text-strong);
+  --bg: var(--surface-card);
+  position: fixed;
+  z-index: 60;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: min(420px, calc(100vw - 32px));
+  padding: 8px 12px;
+  background: var(--bg);
+  color: var(--text-strong);
+  border: 1px solid color-mix(in oklch, var(--ac) 30%, transparent);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  line-height: 1.35;
+  -webkit-app-region: no-drag;
+}
+.om-toast-ic {
+  flex-shrink: 0;
+  display: inline-flex;
+  color: var(--ac);
+}
+.om-toast-ic svg {
+  width: 14px;
+  height: 14px;
+}
+.om-toast-title {
+  font-weight: var(--weight-semibold);
+}
+.om-toast-act {
+  flex-shrink: 0;
+  margin-left: 4px;
+  padding: 3px 8px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: var(--ac);
+  color: #fff;
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+}
+.om-toast-at {
+  transform: translate(-50%, calc(-100% - 8px));
+  animation: sel-menu-pop 120ms var(--ease-out, ease);
+}
+.om-toast-dock {
+  left: 50%;
+  bottom: 96px;
+  transform: translateX(-50%);
+  animation: om-toast-rise 200ms var(--ease-out, ease);
+}
+@keyframes om-toast-rise {
+  from { opacity: 0; transform: translate(-50%, 8px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+/* Credit-blocked action-card tiles (subscription / own-key) — the SAME .mcp-tile box
+   as the integration cards, with static highlight hues (a class, not inline style). */
+.credit-tile-sub {
+  background: var(--hl-lime);
+}
+.credit-tile-key {
+  background: var(--hl-violet);
+}
+
+/* Typing dots */
+.typing {
+  display: inline-flex;
+  gap: 5px;
+  padding: 4px 0;
+}
+.typing i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--warm-300);
+  animation: cv-bounce 1.2s infinite ease-in-out;
+}
+.typing i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.typing i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+@keyframes cv-bounce {
+  0%,
+  80%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.5;
+  }
+  40% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
+}

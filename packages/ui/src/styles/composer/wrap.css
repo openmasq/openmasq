@@ -1,0 +1,83 @@
+.composer-wrap {
+  position: relative;
+  width: 100%;
+  max-width: var(--composer-max);
+  margin: 0 auto;
+  padding: 8px 24px 18px;
+}
+/* A split pane is narrow — reclaim the wide side padding so the composer + its
+   toolbar row fit on one line instead of wrapping. */
+.ws-split .composer-wrap { padding-left: 12px; padding-right: 12px; }
+/* Let the model chip shrink (+ clip its label) so the toolbar stays on ONE row in
+   a narrow pane instead of the model name pushing the buttons onto a second line. */
+.ws-split .composer-row { min-width: 0; flex-wrap: nowrap; }
+.ws-split .composer-row .model-chip {
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.composer {
+  position: relative;
+  background: var(--surface-card);
+  /* Softer, less-black hairline than the full --border-default ink. */
+  border: 1px solid color-mix(in oklch, var(--border-default) 55%, transparent);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-md);
+  padding: 14px 14px 10px;
+  transition: border-color var(--dur-base), box-shadow var(--dur-base);
+}
+.composer:focus-within {
+  /* Gently stronger on focus. */
+  border-color: color-mix(in oklch, var(--border-default) 80%, transparent);
+  box-shadow: var(--shadow-lg);
+}
+.composer-input-wrap {
+  position: relative;
+}
+/* Shared box + typography so the highlight backdrop lines up 1:1 with the text. */
+.composer-input,
+.composer-highlight {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  font-family: var(--font-sans);
+  /* 15px to match the message typography (Space Grotesk); both the textarea and
+     its highlight backdrop share this rule so the redaction overlay stays aligned. */
+  font-size: 15px;
+  line-height: 1.6;
+  letter-spacing: inherit;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  min-height: 28px;
+  max-height: 200px;
+}
+.composer-input {
+  position: relative;
+  z-index: 1;
+  outline: none;
+  resize: none;
+  /* The glyphs are painted by the backdrop, not by the field: the textarea only carries the
+     caret, the selection and the input. The backdrop mirrors the same controlled `value` in
+     the same render (no typing lag), which is what lets a redacted span take the hue's ink
+     (`--mk-ink`) instead of the field's. */
+  color: transparent;
+  caret-color: var(--text-strong);
+  background: transparent;
+}
+.composer-input::placeholder {
+  color: var(--text-faint);
+}
+/* Backdrop behind the textarea: it renders the same text and is the copy you READ — the
+   field's own text is transparent (`.composer-input`), so a mark can give its span the hue's
+   ink. Same font rule as the textarea, so the two align exactly. */
+.composer-highlight {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  color: var(--text-strong);
+}

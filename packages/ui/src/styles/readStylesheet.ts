@@ -60,6 +60,6 @@ function inlineImports(file: string, seen: Set<string>): string {
     return ""; // a Tailwind/package import (`tailwindcss`, a bare specifier) — not ours
   }
   return text.replace(/@import\s+"([^"]+)"\s*;/g, (whole, spec: string) =>
-    spec.startsWith(".") ? inlineImports(resolve(dirname(file), spec), seen) : whole,
+    spec.startsWith(".") ? `\n${inlineImports(resolve(dirname(file), spec), seen)}` : whole,
   );
 }

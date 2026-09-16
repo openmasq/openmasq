@@ -1,0 +1,207 @@
+
+/* ── Settings: Default model grid ─────────────────────────────────────────── */
+.model-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+/* ── Default-model picker: grouped list (left) + detail panel (right) ──────── */
+.model-picker-split {
+  display: flex;
+  gap: 16px;
+  align-items: flex-start;
+}
+.model-picker-list {
+  flex: 1;
+  min-width: 0;
+}
+/* A card carries logo + name + vendor line + star + check: under ~220px the name
+   ellipses to two letters and the badges bleed out of it. */
+.model-picker-list .model-grid {
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+}
+
+/* ── Picker toolbar: search + vendor-family chips (tames the ~320 OpenRouter cards) ── */
+.model-filter {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.model-filter-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 10px 0 12px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: var(--surface-card);
+  color: var(--text-faint);
+}
+.model-filter-search:focus-within {
+  border-color: var(--brand);
+}
+.model-filter-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--text-strong);
+}
+.model-filter-count {
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.model-filter-clear {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.model-filter-clear:hover {
+  background: var(--surface-hover);
+  color: var(--text-strong);
+}
+.model-filter-families {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.model-family-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 28px;
+  padding: 0 11px 0 6px;
+  border-radius: 999px;
+  border: 1px solid var(--border-default);
+  background: var(--surface-card);
+  color: var(--text-body);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+}
+/* The "Tous" chip carries no logo, so restore its symmetric padding. */
+.model-family-chip:first-child {
+  padding-left: 11px;
+}
+/* Unknown-vendor fallback: a neutral letter monogram, sized like the vendor tile. */
+.model-family-mono {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+  font-family: var(--font-display, var(--font-sans));
+  font-weight: 700;
+  font-size: 10px;
+  line-height: 1;
+}
+.model-family-chip.on {
+  border-color: transparent;
+  background: var(--brand);
+  color: var(--brand-contrast);
+  font-weight: 600;
+}
+/* ── Price-tier row — a different chip species from the vendor chips above (mono
+   micro-pills on the sunken surface, behind a « PRIX » eyebrow), so the two filter axes read
+   as two tools. Selected = the lime the price vocabulary already owns, with the
+   theme-stable dark ink. */
+.model-filter-prices {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+/* The same row inside the chat's Finder dropdown: flush strip under its search,
+   closed by the finder's own column border. */
+.model-filter-prices.finder {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+.model-filter-prices-label {
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-caps);
+  text-transform: uppercase;
+  color: var(--text-faint);
+  margin-right: 2px;
+}
+.model-price-chip {
+  height: 22px;
+  padding: 0 9px;
+  border-radius: 999px;
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
+}
+.model-price-chip:hover {
+  background: var(--surface-hover);
+  color: var(--text-body);
+}
+.model-price-chip.on {
+  border-color: transparent;
+  /* Selected price tier: brand fill + the inverting ink, like the buttons. */
+  background: var(--brand);
+  color: var(--ink-on-brand);
+  font-weight: 700;
+}
+.model-family-count {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  opacity: 0.85;
+}
+.model-filter-empty {
+  margin: 4px 0 16px;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+/* Vendor-family sub-groups under a provider. No separator: the boundary that matters is
+   the credit platform (the group above), not each vendor family. */
+.model-subgroup + .model-subgroup {
+  margin-top: 14px;
+}
+.model-subhead {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 8px;
+  color: var(--text-body);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+.model-subhead-count {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-muted);
+}

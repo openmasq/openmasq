@@ -1,0 +1,137 @@
+/* ── File library (Bibliothèque) ─────────────────────────────────────────── */
+.library-page {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  /* Floating rounded panel beside the sidebar, like the chat. */
+  margin: 10px 10px 10px 0;
+  background: var(--surface-card);
+  border-radius: 18px;
+  overflow: hidden;
+}
+/* Bibliothèque: a ROW of [page column | full-height detail panel] (kit split).
+   Only the library wears it — the other pages keep the plain column skeleton. */
+.library-page.split-row {
+  flex-direction: row;
+}
+.library-body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 26px 32px 48px;
+  min-height: 0;
+}
+/* Centred content column for the reskinned library (tabs + card grid). */
+.library-inner {
+  max-width: 1040px;
+  margin: 0 auto;
+}
+/* Card GRID (design LibraryPage) — auto-fill cards, ~190px min. */
+.library-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+  gap: 16px;
+}
+/* Category tab bar + search (design LibraryPage header). */
+.lib-tabs {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  border-bottom: 1px solid var(--border-subtle);
+  margin-bottom: 20px;
+}
+.lib-tabs-spacer {
+  flex: 1;
+}
+.lib-tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 4px;
+  margin-right: 12px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-muted);
+}
+.lib-tab.on {
+  font-weight: 700;
+  color: var(--text-strong);
+}
+/* Every tab carries a rail, not just the active one: a 1.5px hairline the active tab
+   thickens to 2px in brand, so the underline reads as one track the selection slides along. */
+.lib-tab::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1.5px;
+  background: var(--border-default);
+  border-radius: 2px;
+}
+.lib-tab.on::after {
+  height: 2px;
+  background: var(--brand);
+}
+.lib-tab-count {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  border-radius: 3px;
+  padding: 1px 5px;
+  color: var(--text-faint);
+  background: var(--surface-sunken);
+}
+/* The count on the selected tab wears the mark. The ink is `--brand-contrast`, NOT
+   `--ink-on-brand` (the light lime of the marker swipes): white on the brand in both
+   themes, so fill and ink flip together (rule 12). */
+.lib-tab.on .lib-tab-count {
+  background: var(--brand);
+  color: var(--brand-contrast);
+}
+.lib-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 12px;
+  margin-bottom: 6px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text-faint);
+}
+.lib-search input {
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--text-strong);
+  width: 190px;
+}
+/* Multi-select toolbar (kept — bulk delete). */
+.library-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.library-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.library-sel-count {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}

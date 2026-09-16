@@ -1,0 +1,143 @@
+/* Document-preview loading state: the animated black brand logo above a label
+   (shared FileLoading). The nested status drops its own padding — the column
+   owns the spacing. */
+/* ═══ Document loading SKELETON (`FileSkeleton`) — content-shaped shimmer, not a
+   spinner, so the viewer doesn't jump when the bytes land. Reuses `md-img-shimmer`. ═══ */
+.fv-skel {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+  padding: 22px;
+}
+.fv-skel--doc {
+  display: flex;
+  justify-content: center;
+}
+.fv-skel-page {
+  width: min(680px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 34px 40px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+}
+.fv-skel--sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.fv-skel-line,
+.fv-skel-row,
+.fv-skel-shine {
+  /* Shimmer in the highlight palette: a lime→sky sweep over the sunken base, the same
+     `md-img-shimmer` keyframe as every other skeleton. */
+  background:
+    linear-gradient(
+        100deg,
+        transparent 30%,
+        color-mix(in srgb, var(--hl-lime) 30%, transparent) 45%,
+        color-mix(in srgb, var(--hl-sky) 26%, transparent) 55%,
+        transparent 70%
+      )
+      no-repeat,
+    var(--surface-sunken);
+  background-size: 400% 100%, auto;
+  animation: md-img-shimmer 1.4s ease infinite;
+}
+.fv-skel-line {
+  height: 12px;
+  border-radius: 6px;
+}
+.fv-skel-title {
+  height: 20px;
+  width: 46%;
+  margin-bottom: 6px;
+}
+.fv-skel-line:nth-child(2) { width: 94%; }
+.fv-skel-line:nth-child(3) { width: 82%; }
+.fv-skel-line:nth-child(4) { width: 90%; }
+.fv-skel-line:nth-child(5) { width: 66%; }
+.fv-skel-line:nth-child(7) { width: 88%; }
+.fv-skel-line:nth-child(8) { width: 74%; }
+.fv-skel-line:nth-child(9) { width: 58%; }
+.fv-skel-gap { height: 8px; }
+.fv-skel-row {
+  height: 30px;
+  border-radius: 6px;
+}
+.fv-skel-shine {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: var(--radius-md);
+}
+@media (prefers-reduced-motion: reduce) {
+  .fv-skel-line,
+  .fv-skel-row,
+  .fv-skel-shine {
+    animation: none;
+  }
+}
+/* The merged redaction line (`fv-seg-masked`): the shield + masked categories sit inline in
+   the toggle row. */
+.fv-seg-masked {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.fv-seg-masked svg {
+  color: var(--brand-text);
+  flex-shrink: 0;
+}
+/* Extracted document text is rendered as DOCUMENT PAGES (`DocText`): `.fv-desk` is a grey
+   canvas holding one white portrait sheet per page. `pageMetrics` (docFit.ts) sizes each
+   sheet to the document's body width and fits the font so the body fills the sheet. */
+.fv-desk {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+  padding: 14px 0 18px;
+  background: var(--surface-sunken);
+  border-radius: var(--radius-md);
+}
+.fv-page {
+  /* Fixed page width (fit by `pageMetrics`) + a √2 PORTRAIT min-height so a short page
+     still shows a full sheet. Horizontal padding (2×48) stays in sync with DOC_PAGE_PAD_X. */
+  width: var(--fv-page-w, 720px);
+  max-width: 100%;
+  min-height: calc(var(--fv-page-w, 720px) * 1.414);
+  padding: 48px 48px 56px;
+  box-sizing: border-box;
+  background: var(--doc-paper);
+  color: var(--doc-ink);
+  border: 1px solid var(--doc-edge);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lg);
+}
+.fv-text {
+  margin: 0;
+  padding: 0;
+  max-width: 100%;
+  font-family: var(--font-mono);
+  font-size: var(--fv-fs, 12.5px);
+  line-height: 1.5;
+  color: inherit;
+  /* Keep the reconstructed line structure. The font is sized so BODY lines fill the sheet
+     without wrapping; pre-wrap only catches a rare outlier line. */
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+/* A layout grid too wide for the sheet even at the floor font: never WRAP (that breaks the
+   columns) — hold the lines and scroll horizontally. Set by `pageMetrics`' overflow flag. */
+.fv-text-scroll {
+  white-space: pre;
+  overflow-wrap: normal;
+  word-break: normal;
+  max-width: 100%;
+  overflow-x: auto;
+}

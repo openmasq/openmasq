@@ -1,0 +1,130 @@
+/* ═══════════════════ SPADE v2 — frame, markdown, dark, sweep ══════════════ */
+
+/* Full-bleed window filled with the shell tone; the chat is a rounded floating
+   panel inside it (see .chat / chat-app kit). */
+body {
+  padding: 0;
+  background: var(--surface-shell, var(--surface-page));
+}
+#root {
+  height: 100%;
+  overflow: hidden;
+  background: var(--surface-shell, var(--surface-page));
+  border: none;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+/* Assistant answers are rendered markdown: `white-space: normal` so the blocks (each <p>
+   already spaced) do not also honour the raw newlines between them. The streaming render
+   keeps its own inline pre-wrap while tokens arrive. */
+.msg-answer {
+  font-family: var(--font-sans);
+  font-weight: var(--weight-regular);
+  letter-spacing: normal;
+  font-size: var(--text-md);
+  line-height: 1.7;
+  /* Very slightly softer than the full body ink — easier on the eyes in long replies. */
+  color: color-mix(in oklch, var(--text-body) 88%, var(--text-muted));
+  white-space: normal;
+}
+.msg-answer > :first-child {
+  margin-top: 0;
+}
+.msg-answer > :last-child {
+  margin-bottom: 0;
+}
+/* Markdown element styling for the assistant reply lives entirely in the `.md` scope; only
+   the `.msg-answer` container above (font family, softer ink, margin resets) is set here. */
+
+/* Redaction highlight sweeps in (staggered via inline animation-delay) */
+.redaction-mark {
+  background-repeat: no-repeat;
+  background-position: left center;
+  background-size: 100% 100%;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .redaction-mark {
+    animation: spade-pill-sweep 0.3s var(--ease-out) both;
+  }
+  /* …but NOT while the reply streams: ReactMarkdown re-parses the whole reply on every chunk
+     and the <mark> nodes remount, which would replay this sweep as a per-chunk flash. When
+     `.streaming` drops, the marks sweep in once. Hover / historical marks keep their
+     entrance sweep. */
+  .msg-answer.streaming .redaction-mark {
+    animation: none;
+  }
+}
+@keyframes spade-pill-sweep {
+  from {
+    background-size: 0% 100%;
+  }
+  to {
+    background-size: 100% 100%;
+  }
+}
+/* The fill is a background-IMAGE so the size animation reveals it: `background-size` cannot
+   animate a background-colour. Reading `--mk` means every hue sweeps, with no per-tone list
+   to forget one. */
+.redaction-mark { background-image: linear-gradient(var(--mk), var(--mk)); background-color: transparent; }
+
+
+/* ── THE DARK THEME (Settings → « Mode sombre »): a neutral-cool dark ground (a whisper of
+   blue, not green-black — the accent is indigo) + the same indigo one step lighter.
+   Everything else inherits `:root`. ── */
+[data-theme="dark"] {
+  --surface-page: #0e0f13;
+  /* Shell tone sits a touch DARKER than the floating card, so the panel reads. */
+  --surface-shell: #0a0b0e;
+  /* One step lighter than #3939FA: 3.3:1 on this ground (1.4.11). On the dark surface the
+     hover LIGHTENS so it still reads; ink on it is white. */
+  --brand: #5252ff;
+  --brand-hover: #6262ff;
+  --brand-active: #4747ff;
+  --brand-contrast: #ffffff;
+  --brand-soft: #1c1c4a;
+  --brand-tint: #1c1c4a; /* the soft fill follows the GROUND, not the light skeleton */
+  --lime: #11160b;
+  /* `--ink-on-brand` tracks `--lime`, near-black here and unreadable on the blue fill: white
+     (5.2:1 on #5252ff). */
+  --ink-on-brand: #ffffff;
+  --lime-bright: #b8e635;
+  --green-soft: #28381a;
+  --green-ink: #b8e635;
+  /* The other semantic SOFT fills (banner, chip and toast skins `.kb--<tone>`): a tint of the
+     ground, so the light ink they carry stays readable. */
+  --blue-soft: #1a2342;
+  --amber-soft: #3a2b0f;
+  --red-soft: #44201c;
+  --text-strong: #f1f2f7;
+  --text-body: #d3d5df;
+  --text-muted: #969aab;
+  --text-faint: #878a98;
+  /* Links: a soft blue — mixed toward the body ink. */
+  --text-link: color-mix(in oklch, #6b6bff 62%, var(--text-body));
+  --surface-card: #181920;
+  /* Floating menus/popovers (HueSelect dropdown etc.) sit a touch LIGHTER than the
+     card so they read as raised — without this override they kept the light #ffffff. */
+  --surface-raised: #1d1e26;
+  --surface-sunken: #131419;
+  --surface-hover: #21222b;
+  --surface-active: #292a35;
+  /* Selected nav/conversation rows carry the brand accent. */
+  --surface-selected: #26265c;
+  /* Document TEXT preview (`.fv-page`): a dark sheet + light ink in dark mode, read as a
+     raised sheet; the redaction tone marks stay legible on it. */
+  --doc-paper: #1a1b22;
+  --doc-ink: #d9dbe4;
+  --doc-edge: rgba(217, 219, 228, 0.14);
+  --warm-50: #131419;
+  --warm-100: #181920;
+  --warm-200: #292a35;
+  --warm-400: #6b6e7c;
+  --warm-700: #d3d5df;
+  --warm-800: #d3d5df;
+  --warm-900: #181920;
+  --border-subtle: rgba(208, 212, 235, 0.1);
+  --border-default: rgba(208, 212, 235, 0.16);
+  --border-strong: rgba(208, 212, 235, 0.28);
+  --border-focus: #4a4aff;
+}

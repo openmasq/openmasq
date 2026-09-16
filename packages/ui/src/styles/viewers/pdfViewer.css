@@ -1,0 +1,274 @@
+/* ── PDF redacted viewer (pdf.js canvas + fake-data overlay) ───────────────── */
+.pdfv {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+.pdfv-pages {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+}
+.pdfv-page {
+  position: relative;
+  /* FIT to the panel, up to the page's natural width (`--page-nat`, set per page): a wide
+     page scales down instead of being clipped; a narrow page stays at its true size. */
+  width: min(100%, calc(var(--page-nat, 10000) * 1px));
+  background: #fff;
+  border: 1px solid var(--border-subtle);
+  border-radius: 4px;
+  box-shadow: var(--shadow-md);
+  overflow: hidden;
+}
+/* Loupe: the page width becomes FIT × `--pdf-zoom`. Wider than the panel, `.fv-body`
+   scrolls horizontally; left-aligned so the left edge stays reachable. */
+.pdfv-pages.zoomed {
+  align-items: flex-start;
+}
+.pdfv-pages.zoomed .pdfv-page {
+  width: calc(min(100%, var(--page-nat, 10000) * 1px) * var(--pdf-zoom, 1));
+}
+/* The zoom cluster: a small pill group stuck to the panel's top-right, above the
+   pages, surviving both scroll axes. */
+.pdfv-zoom {
+  position: sticky;
+  top: 2px;
+  right: 8px;
+  z-index: 5;
+  display: inline-flex;
+  align-self: flex-end;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  margin-bottom: -30px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill);
+  background: var(--surface-card);
+  box-shadow: var(--shadow-sm);
+}
+.pdfv-zoom button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 6px;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1;
+  cursor: pointer;
+}
+.pdfv-zoom button:hover {
+  background: var(--surface-hover);
+  color: var(--text-strong);
+}
+.pdfv-zoom .pdfv-zoom-fit {
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+/* Loading state: the animated brand mark + caption, centred. */
+.pdfv-loading {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  /* `.pdfv` centres its children: without a definite width this box shrink-wraps its EMPTY
+     shimmer spans and renders 0px wide. */
+  width: 100%;
+  padding: 0 0 20px;
+}
+/* The doc skeleton replaces the pages 1:1 — full width, NEVER flex-squeezed
+   (`.fv-skel`'s base `flex:1` + `overflow:hidden` collapse it inside this
+   auto-height column). */
+.pdfv-loading .fv-skel {
+  flex: none;
+  width: 100%;
+  padding: 0;
+  overflow: visible;
+}
+
+/* Invisible hover targets over each redacted region — hovering reveals the
+   original value (native title tooltip). Sits above the canvas. */
+.pdfv-reveal {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+/* Zones the page SHOWS that its text layer does not carry (logo, stamp, insert), marked at
+   open so the user learns without clicking that those pixels are not part of what the
+   model receives. `pointer-events: none` is load-bearing: a click must reach the canvas
+   word-picker underneath. The ink is a literal on purpose (rule 12's checked case): it sits
+   on `.pdfv-page`'s frozen `#fff`, a ground that cannot change — checked in both themes. */
+.pdfv-imgzones {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.pdfv-imgzone {
+  position: absolute;
+  border: 1.5px dashed rgba(20, 28, 22, 0.5);
+  border-radius: 3px;
+  background: rgba(20, 28, 22, 0.04);
+}
+/* A page with no text layer at all: one badge instead of framing every run. */
+.pdfv-imgbadge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 1;
+  pointer-events: none;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px dashed rgba(20, 28, 22, 0.4);
+  background: rgba(255, 255, 255, 0.92);
+  color: rgba(20, 28, 22, 0.72);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.02em;
+}
+/* The legend. Sits in the panel chrome, so THIS one is themed. */
+.pdfv-imgnote {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  line-height: 1.4;
+}
+.pdfv-imgnote-key {
+  flex-shrink: 0;
+  width: 22px;
+  height: 14px;
+  border: 1.5px dashed currentColor;
+  border-radius: 3px;
+  opacity: 0.7;
+}
+.pdfv-mark {
+  position: absolute;
+  pointer-events: auto;
+  cursor: help;
+  border-radius: 2px;
+}
+.pdfv-mark:hover {
+  /* Themed, not frozen: on the blue palette a forest-green outline over a saturated
+     redaction box read as a stray artefact (root rule 12). */
+  outline: 1.5px solid var(--text-strong);
+  background: color-mix(in oklch, var(--text-strong) 8%, transparent);
+}
+/* Clickable reveal (before-send preview): a button, not only a tooltip target. */
+.pdfv-mark.clickable {
+  cursor: pointer;
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+/* Click-to-redact pre-highlight: amber wash on the hovered word, a lime lock on the
+   clicked one while its « Masquer » picker is open. Pure overlay, never intercepts the pointer. */
+.pdfv-wordhl {
+  position: absolute;
+  pointer-events: none;
+  border-radius: 2px;
+  /* The hover wash and the picked lock ride the redaction tokens, so the document's
+     click-to-redact affordance matches the boxes the painter draws in every theme. */
+  background: color-mix(in oklch, var(--hl-amber) 55%, transparent);
+  outline: 1px solid color-mix(in oklch, var(--hl-amber) 70%, black 30%);
+  display: none;
+}
+.pdfv-wordhl.on {
+  display: block;
+}
+.pdfv-wordhl.picked {
+  background: color-mix(in oklch, var(--hl-lime) 60%, transparent);
+  outline: 1.5px solid var(--hl-lime);
+}
+/* The picked-RUN layer (drag selection): a full-bleed passthrough box whose
+   children are the per-word highlight boxes. */
+.pdfv-wordpick {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+/* Info line in the «Masquer» picker («zone image, non envoyée…»). */
+.sel-redact-note {
+  display: block;
+  max-width: 240px;
+  font-size: 10.5px;
+  line-height: 1.35;
+  color: var(--text-faint);
+  padding: 2px 0 4px;
+}
+/* The scanned-image analogue needs a positioned box around the canvas for the
+   %-positioned word highlights to track the displayed size. */
+.fv-imgwrap {
+  position: relative;
+  display: inline-block;
+}
+/* A revealed box shows the original glyphs and the redaction DISAPPEARS: no outline, no
+   tint — the page reads as what will be sent. The box stays hoverable to re-redact. */
+.pdfv-mark.revealed {
+  outline: none;
+  background: transparent;
+}
+.pdfv-page canvas {
+  display: block;
+  /* Responsive: never overflow the panel. `height:auto` keeps the page's aspect
+     ratio, and the %-positioned reveal marks scale in lockstep. */
+  width: 100%;
+  height: auto;
+}
+.pdfv-note {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-faint);
+}
+/* Redaction-model failure inside the PDF viewer — names/addresses unmasked. */
+.pdfv-warn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  background: var(--amber-soft);
+  color: var(--amber-500);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+  line-height: 1.4;
+}
+/* "Configurer" CTA inside a redaction warning (PDF viewer + message caption). */
+.warn-cta {
+  flex-shrink: 0;
+  padding: 4px 11px;
+  border-radius: var(--radius-sm);
+  border: 1px solid currentColor;
+  background: transparent;
+  color: inherit;
+  font-family: var(--font-sans);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+}
+.warn-cta:hover {
+  background: color-mix(in oklch, currentColor 12%, transparent);
+}
+.shield-caption.warn {
+  flex-wrap: wrap;
+}
+.akm-key-icon {
+  display: flex;
+  align-items: center;
+  color: var(--text-faint);
+  padding-left: 2px;
+}

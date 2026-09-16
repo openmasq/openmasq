@@ -1,0 +1,102 @@
+/* ============================================================== Switch ===== */
+.cv-switch {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  flex-shrink: 0;
+  border: none;
+  padding: 0;
+  border-radius: var(--radius-pill);
+  background: var(--switch-off, var(--warm-300));
+  cursor: pointer;
+  transition: background var(--dur-base) var(--ease-out);
+}
+.cv-switch.on {
+  background: var(--brand);
+}
+.cv-switch:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.cv-switch .knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: var(--shadow-sm);
+  transition: left var(--dur-base) var(--ease-spring);
+}
+.cv-switch.on .knob {
+  left: 23px;
+}
+
+/* ======================================================= Settings cards ==== */
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.settings-card {
+  background: var(--surface-card);
+  /* border-default (not -subtle, transparent in the borderless skin) — a visible hairline. */
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+.settings-card.pad {
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+/* The redaction rules rendered inline on the settings page (the same
+   `RedactionRulesContent` as the conversation modal, minus its engine picker). The `.rrm-*`
+   family has no modal ancestor in any selector, so it only needs the padding + column flow
+   `.rrm-body` gives it. */
+.settings-rules-card {
+  margin-top: 10px;
+  padding: 4px 18px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.settings-rules-head {
+  padding: 14px 0 2px;
+}
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+}
+.toggle-row + .toggle-row {
+  border-top: 1px solid color-mix(in oklch, var(--border-default) 55%, transparent);
+}
+.toggle-row .row-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.toggle-row .row-body {
+  flex: 1;
+  min-width: 0;
+}
+.toggle-row .row-title {
+  font-size: var(--text-base);
+  font-weight: var(--weight-medium);
+  color: var(--text-strong);
+}
+.toggle-row .row-desc {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin-top: 1px;
+}

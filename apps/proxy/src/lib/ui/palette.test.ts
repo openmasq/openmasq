@@ -1,17 +1,22 @@
 import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { dirname, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { HUE_HEX, INK_HEX, LIME_HEX, THEME_HEX } from "./palette";
 
 // Parity with the design tokens: the CSS is the home, this file mirrors it for a terminal.
-const css = readFileSync(resolve(__dirname, "../../../../../packages/ui/src/styles.css"), "utf8");
+// `styles.css` is an @import list; the tokens live in the sheets it names, so read them in
+// cascade order (one level, like `scripts/gen-console-tokens.mjs`).
+const ENTRY = resolve(__dirname, "../../../../../packages/ui/src/styles.css");
+const css = readFileSync(ENTRY, "utf8").replace(/@import\s+"(\.\/[^"]+)";/g, (_, rel: string) =>
+  readFileSync(resolve(dirname(ENTRY), rel), "utf8"),
+);
 const token = (name: string): string | undefined =>
   new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{6})`).exec(css)?.[1].toLowerCase();
 
-// The dark theme re-points a handful of tokens in its own block; everything else inherits
-// `:root`. So a token has a LIGHT value (its first hex, before that block) and, when the
-// theme overrides it, a DARK one (its last hex inside it).
-const DARK_AT = css.indexOf('\n[data-theme="dark"] {');
+// The dark theme re-points a handful of tokens in its own sheets (`theme/spadeDark.css`,
+// after the light kit in cascade order); everything else inherits `:root`. So a token has a
+// LIGHT value (its first hex before that sheet) and, when overridden, a DARK one (its last hex after).
+const DARK_AT = css.indexOf(readFileSync(resolve(dirname(ENTRY), "styles/theme/spadeDark.css"), "utf8"));
 const hexes = (name: string) =>
   [...css.matchAll(new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{6})`, "g"))].map((m) => ({
     at: m.index ?? 0,

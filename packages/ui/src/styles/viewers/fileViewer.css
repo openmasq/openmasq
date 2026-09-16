@@ -1,0 +1,260 @@
+/* ── File viewer modal ────────────────────────────────────────────────────── */
+/* Reskinned file-viewer chrome (design ImagePreviewModal): header tile + name,
+   Aperçu/Conversations underline tabs, Original⇄Redacted segmented pill, summary. */
+/* « Demander » — the kit's compact 30px ghost pill (a side action, not the
+   viewer's main job; `btn-ghost` read far too big in this header). */
+.fv-ask {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 11px;
+  flex-shrink: 0;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-pill, 999px);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  transition: background 0.14s, color 0.14s;
+}
+.fv-ask:hover {
+  background: var(--surface-hover);
+  color: var(--text-strong);
+}
+.fv-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+/* Prominent close for the file viewer: a 38px target with a visible resting state and a
+   clear hover — a small header IconButton is easy to miss on a 94vw/94vh modal. Escape and
+   the scrim still work. */
+.fv-close {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+.fv-close:hover {
+  background: var(--hl-pink, color-mix(in oklch, red 12%, var(--surface-card)));
+  color: var(--ink-on-hl-pink);
+  border-color: var(--brand);
+}
+/* AttachmentPreviewModal has no header flex row, so its corner controls (view picker,
+   close) pin to the panel's top-right; `z-index` clears the header and the opening sweep. */
+.fv-corner {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+/* Reuses `.fv-close` tile visuals, a touch smaller. */
+.fv-close-x {
+  width: 34px;
+  height: 34px;
+}
+/* The file-type tile (IMG / PDF / XLSX…) is MONOCHROME: a hue per kind would read as a
+   redaction category when it is only an extension. `kind-*` stays on the element as
+   metadata and is deliberately unstyled — do not re-attach a hue to it. */
+.fv-tile {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-subtle);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-body);
+  letter-spacing: 0.02em;
+}
+.fv-head-main {
+  flex: 1;
+  min-width: 0;
+}
+/* The filename wears the marker swipe. The ellipsis lives on the INNER `.om-mark` so a
+   long name clips inside the highlight instead of the swipe being cut mid-stroke. */
+.fv-title {
+  font-size: var(--text-md);
+  font-weight: 700;
+  color: var(--text-strong);
+  min-width: 0;
+}
+.fv-title .om-mark {
+  display: inline-block;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
+}
+.fv-sub {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-faint);
+  margin-top: 1px;
+}
+.fv-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+}
+/* Document viewer (AttachmentPreviewModal): a compact header so the document keeps the
+   height. Scoped via `.rrm-head.fv-head` — `.rrm-head` is shared by several modals and
+   `.fv-head` by the file viewer, so neither is touched globally. The find bar and the
+   re-redact action share ONE optional row; the head stacks eyebrow → filename → meta →
+   toolbar. */
+.rrm-head.fv-head {
+  display: block;
+  padding: 14px 22px 12px;
+}
+.fv-head .rrm-eyebrow {
+  margin-bottom: 4px;
+}
+/* The corner controls float over the head, so the filename gets its own lane and never
+   runs under the view picker. */
+.fv-head .fv-title-caption,
+.fv-head .fv-caption-sub {
+  padding-right: 96px;
+}
+.fv-toolbar-bar {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+  row-gap: 6px;
+  margin-top: 10px;
+}
+/* Filename + meta directly under the eyebrow; the toolbar follows on its own row. */
+.fv-title-caption {
+  margin-top: 0;
+}
+.fv-caption-sub {
+  margin-top: 2px;
+}
+.fv-toolbar-bar .fv-search {
+  margin: 0;
+  /* Wide enough for its placeholder; the row wraps, so a narrow modal gives the field its
+     own line. */
+  flex: 0 1 340px;
+  min-width: 250px;
+}
+.fv-toolbar-bar .fv-reredact {
+  margin: 0;
+}
+/* The document preview's LAYER picker (`DocViewMenu`), beside the close button. An
+   in-flow absolute child opening downward from the panel's top, so
+   `.modal-panel { overflow: hidden }` never clips it. */
+.fv-viewmenu {
+  position: relative;
+}
+/* Same tile as the close button beside it — the two read as one corner control. */
+.fv-viewmenu-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s, border-color 0.12s;
+}
+.fv-viewmenu-btn:hover,
+.fv-viewmenu-btn.on {
+  background: var(--surface-hover);
+  color: var(--text-strong);
+  border-color: var(--brand);
+}
+.fv-viewmenu-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 4;
+  min-width: 290px;
+  padding: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-default);
+  background: var(--surface-card);
+  box-shadow: 0 18px 40px -18px rgba(11, 21, 5, 0.5);
+}
+.fv-viewmenu-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 9px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-body);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.12s, color 0.12s;
+}
+.fv-viewmenu-item:hover {
+  background: var(--surface-hover);
+  color: var(--text-strong);
+}
+.fv-viewmenu-item.on {
+  color: var(--text-strong);
+}
+.fv-viewmenu-item-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.fv-viewmenu-item-name {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: var(--text-sm);
+  font-weight: 600;
+}
+.fv-viewmenu-hint {
+  font-size: 11px;
+  color: var(--text-faint);
+}
+.fv-viewmenu-check {
+  flex-shrink: 0;
+  color: var(--brand-text);
+}
+/* Phone: the menu is wider than the corner it hangs from, so cap it to the panel. */
+@media (max-width: 420px) {
+  .fv-viewmenu-menu {
+    min-width: 0;
+    width: calc(100vw - 72px);
+  }
+}

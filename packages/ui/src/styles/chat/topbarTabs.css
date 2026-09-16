@@ -1,0 +1,241 @@
+/* ================================================================== Chat === */
+/* The floating rounded "webview" panel: white card, gutter around it, clipped to the
+   radius. It wraps the conversation tabs + a horizontal split (chat | optional
+   agent-browser pane). */
+.chat-workspace {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  position: relative;
+  margin: 10px 0;
+  background: var(--surface-card);
+  border-radius: 18px;
+  overflow: hidden;
+}
+/* The left split pane, transparent — the workspace supplies the panel + rounded clip. */
+.chat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0; /* ⚠️ load-bearing for the thread's SCROLL — `pages/ChatWorkspace/CLAUDE.md` */
+  position: relative;
+}
+
+/* Browser-style conversation tabs, inline inside `.chat-topbar`: grows to fill the bar's
+   middle, pushing the action cluster right; `.chat-topbar` owns the drag region. */
+.conv-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+.conv-tabs-scroll {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.conv-tabs-scroll::-webkit-scrollbar {
+  display: none;
+}
+.conv-tab {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  /* Compact when numerous: tabs shrink to a readable floor before the strip starts scrolling. */
+  flex: 0 1 auto;
+  min-width: 90px;
+  max-width: 190px;
+  padding: 8px 10px 8px 11px;
+  border-radius: 10px 10px 0 0;
+  cursor: pointer;
+  /* Tabs read as tabs at rest: a sunken chip with a hairline, not transparent-until-hover.
+     The active tab lifts to the card surface and, with no bottom border, merges into the
+     pane below. */
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-subtle);
+  border-bottom: none;
+  color: var(--text-muted);
+  /* Progressive focus falloff from the active tab: `--tab-op` is set per tab (distance from
+     the current conversation) and animated — it is what keeps a long strip readable. */
+  opacity: var(--tab-op, 1);
+  transition: background 0.14s, color 0.14s, border-color 0.14s, opacity 0.22s var(--ease-out, ease);
+  -webkit-app-region: no-drag;
+}
+/* Hovering or the active tab always reads at full strength (overrides the falloff). */
+.conv-tab:hover,
+.conv-tab.on {
+  opacity: 1;
+}
+.conv-tab:hover {
+  background: var(--surface-hover);
+  color: var(--text-body);
+}
+.conv-tab.on {
+  background: var(--surface-card);
+  border-color: var(--border-default);
+  color: var(--text-strong);
+}
+/* The tab in flight reads as the hole its ghost was lifted out of. Last of the
+   `.conv-tab.*` rules on purpose: same specificity as `:hover` and `.on`, it must come after. */
+.conv-tab.dragging {
+  opacity: 0.4;
+  background: var(--surface-sunken);
+  border-style: dashed;
+  color: var(--text-muted);
+}
+.conv-tab-ico {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+/* Loading spinner shown in place of the tab logo while the thread generates a
+   reply (currentColor arc → adapts to the active/inactive tab text colour). */
+.conv-tab-spin {
+  width: 15px;
+  height: 15px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  border: 2px solid var(--border-strong);
+  border-top-color: currentColor;
+  animation: om-spin-kf 0.7s linear infinite;
+  flex-shrink: 0;
+}
+@media (prefers-reduced-motion: reduce) {
+  .conv-tab-spin {
+    animation-duration: 1.3s;
+  }
+}
+.conv-tab-label {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.conv-tab-x {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: 5px;
+  background: transparent;
+  color: currentColor;
+  cursor: pointer;
+  opacity: 0.55;
+  flex-shrink: 0;
+}
+/* « +N » — the out-of-view tab count, pinned after the scroll area. */
+.conv-tabs-more {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  height: 24px;
+  padding: 0 8px;
+  margin-left: 2px;
+  border: 1px solid var(--border-default);
+  border-radius: 999px;
+  background: var(--surface-card);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.conv-tabs-more:hover {
+  color: var(--text-strong);
+  border-color: var(--border-strong);
+}
+.conv-tab-x:hover {
+  opacity: 1;
+  background: var(--surface-active);
+}
+.conv-tab-new {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  -webkit-app-region: no-drag;
+}
+.conv-tab-new:hover {
+  background: var(--surface-sunken);
+  color: var(--text-strong);
+}
+
+/* Hover-reveal "diviser l'écran" menu on a conversation tab (portaled to <body>,
+   fixed-positioned from the tab's rect so the tab strip's overflow can't clip it). */
+.conv-tab-split-menu {
+  position: fixed;
+  z-index: 60;
+  min-width: 168px;
+  padding: 5px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg, 0 12px 32px rgba(15, 28, 6, 0.18));
+  animation: conv-tab-split-in 0.11s ease-out;
+}
+@keyframes conv-tab-split-in {
+  from {
+    opacity: 0;
+    transform: translateY(-3px);
+  }
+}
+.conv-tab-split-head {
+  padding: 5px 8px 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.conv-tab-split-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 8px 9px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-body);
+  cursor: pointer;
+  text-align: left;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+}
+.conv-tab-split-item:hover {
+  background: var(--surface-sunken);
+  color: var(--text-strong);
+}
+.conv-tab-split-flip {
+  display: inline-flex;
+  transform: scaleX(-1);
+}
+@media (prefers-reduced-motion: reduce) {
+  .conv-tab-split-menu {
+    animation: none;
+  }
+}
+
+/* split view: chat pane (+ optional agent-browser pane) */
+.chat-split {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}

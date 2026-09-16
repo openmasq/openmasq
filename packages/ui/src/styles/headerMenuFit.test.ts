@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { readStylesheet } from "./readStylesheet";
 
 /**
  * A conversation's ⋯ menu keeps its labels on ONE line — the invariant, pinned
@@ -24,7 +25,7 @@ import { join } from "node:path";
  * chrome.css) and overrides ONLY `width`. A cap set on the base rule would
  * pinch it with nothing to flag it.
  */
-const css = readFileSync(join(__dirname, "..", "styles.css"), "utf8");
+const css = readStylesheet();
 
 /** A rule's body, from its selector at the start of a line to the brace. */
 function rule(selector: string): string {

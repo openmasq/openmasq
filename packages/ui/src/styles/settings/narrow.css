@@ -1,0 +1,195 @@
+/* ── Settings content on a NARROW VIEWPORT ──
+   These rows assume a column wide enough for two things side by side, and break the same
+   way in a narrowed desktop window as on a phone. The tabs are one surface for both
+   platforms (rule 9), so the responsive rules are shared too — not an `.app-mobile` override. */
+@media (max-width: 560px) {
+  /* The e-mail is the identity — it must not ellipsise to "dev@kavi…" to make
+     room for a button. Stack, and let the action own its own line. */
+  .account-card {
+    flex-wrap: wrap;
+  }
+  .account-info {
+    flex-basis: 100%;
+    order: 2;
+  }
+  .account-signout {
+    order: 3;
+    width: 100%;
+    justify-content: center;
+  }
+  /* Two stat cards side by side leave ~140px each, which wraps the label every
+     two words and makes the NUMBER — the thing being reported — the smallest
+     part of the card. */
+  .privacy-stats {
+    flex-direction: column;
+  }
+}
+.account-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-sunken);
+  color: var(--text-strong);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.account-info {
+  min-width: 0;
+  flex: 1;
+}
+.account-email {
+  font-size: var(--text-md);
+  font-weight: 600;
+  color: var(--text-strong);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.account-hint {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+.account-signout {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-default);
+  background: var(--surface-card);
+  color: var(--text-strong);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.14s ease, border-color 0.14s ease;
+}
+.account-signout:hover {
+  background: var(--surface-hover);
+  border-color: var(--border-strong);
+}
+.privacy-card-types {
+  flex: 1.4;
+}
+.privacy-shield {
+  width: 52px;
+  height: 52px;
+  border-radius: var(--radius-lg);
+  background: var(--surface-sunken);
+  color: var(--text-strong);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.privacy-stat-num {
+  font-family: var(--font-display);
+  font-size: 38px;
+  font-weight: 700;
+  color: var(--text-strong);
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+.privacy-stat-sub {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin-top: 4px;
+}
+.privacy-types-head {
+  font-size: var(--text-md);
+  font-weight: 600;
+  color: var(--text-strong);
+  margin-bottom: 14px;
+}
+.privacy-empty {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+.privacy-types-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.privacy-type-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.privacy-type-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.privacy-type-label {
+  width: 130px;
+  font-size: var(--text-sm);
+  color: var(--text-body);
+}
+.privacy-bar {
+  flex: 1;
+  height: 8px;
+  background: var(--surface-sunken);
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+}
+.privacy-bar-fill {
+  height: 100%;
+  border-radius: var(--radius-pill);
+}
+.privacy-type-count {
+  width: 40px;
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-strong);
+}
+.privacy-recent {
+  overflow: hidden;
+  box-shadow: none;
+}
+.privacy-recent-head {
+  padding: 16px 18px 12px;
+  font-size: var(--text-md);
+  font-weight: 600;
+  color: var(--text-strong);
+}
+.privacy-recent-grid {
+  display: grid;
+  grid-template-columns: 84px 1fr 110px 40px;
+  gap: 12px;
+}
+.privacy-recent-cols {
+  padding: 8px 18px;
+  background: var(--surface-sunken);
+  border-top: 1px solid color-mix(in oklch, var(--border-default) 55%, transparent);
+  border-bottom: 1px solid color-mix(in oklch, var(--border-default) 55%, transparent);
+}
+.privacy-recent-row {
+  align-items: center;
+  padding: 11px 18px;
+  border-bottom: 1px solid color-mix(in oklch, var(--border-default) 40%, transparent);
+}
+.privacy-recent-when {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.privacy-recent-title {
+  font-size: var(--text-sm);
+  color: var(--text-body);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.privacy-recent-items {
+  font-size: var(--text-sm);
+  color: var(--text-strong);
+  font-weight: 600;
+}

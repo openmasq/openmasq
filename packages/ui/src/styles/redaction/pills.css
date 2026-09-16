@@ -1,0 +1,210 @@
+/* ── Redaction highlight pills (reproduces redact RedactionPill) ───────────── */
+.redaction-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  vertical-align: baseline;
+  padding: 1px 7px;
+  margin: 0 1px;
+  border-radius: var(--radius-xs, 6px);
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.82em;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  cursor: default;
+  user-select: none;
+}
+/* Tone map — same pairs as `.cv-badge.tone-*` (rule 12). `tone-emerald` pairs `--green-ink`
+   because `--green-soft` flips dark in the dark theme and its ink must flip WITH it. */
+.redaction-pill.tone-coral   { background: var(--pearl-coral-soft, #ffe3d8); color: var(--pearl-coral-ink, #be330a); }
+.redaction-pill.tone-blue    { background: #d9f2f5; color: #0e6b7a; /* theme-checked */ }
+.redaction-pill.tone-violet  { background: var(--pearl-violet-soft, #e9e1fd); color: var(--pearl-violet-ink); }
+.redaction-pill.tone-emerald { background: var(--green-soft, #d2f4e7); color: var(--green-ink, #0c6b4f); }
+.redaction-pill.tone-amber   { background: var(--pearl-amber-soft, #fdefcf); color: var(--pearl-amber-ink); }
+.redaction-pill.tone-neutral { background: var(--surface-active, #e8eadf); color: var(--text-muted); }
+
+/* Inline highlight that shows the REAL value, tinted by its type. */
+.redaction-mark {
+  /* Tone fill as a same-colour gradient (a background image) so `background-size` can reveal
+     it left→right. The hue arrives via the mark's `.hl-<hue>` class; the fallback is for a
+     mark rendered without one. */
+  --mark-fill: var(--mk-soft, var(--hl-slate-soft));
+  color: inherit;
+  background-color: transparent;
+  background-image: linear-gradient(var(--mark-fill), var(--mark-fill));
+  background-repeat: no-repeat;
+  background-position: left center;
+  background-size: 100% 100%;
+  border-radius: var(--radius-xs, 6px);
+  padding: 0 2px;
+  margin: 0 -1px;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-decoration-color: color-mix(in oklch, currentColor 35%, transparent);
+  text-underline-offset: 2px;
+}
+/* The highlight sweeps in from the left as each redacted value mounts
+   (`spade-pill-sweep`). `both` + one-shot per mount, so a settled mark never re-sweeps on a
+   re-render; reduced-motion keeps the flat fill. */
+@media (prefers-reduced-motion: no-preference) {
+  .redaction-mark {
+    animation: om-redact-sweep 0.3s var(--ease-out) both;
+  }
+}
+@keyframes om-redact-sweep {
+  from {
+    background-size: 0% 100%;
+  }
+  to {
+    background-size: 100% 100%;
+  }
+}
+/* Eye toggle OFF: render redacted values as plain text (no highlight) — the
+   restored real data still reads normally, just without the coloured marks. */
+.messages.hide-redaction .redaction-mark {
+  background: none !important;
+  /* No highlight behind it now, so fall back to the normal body ink (the forced
+     on-highlight dark ink would vanish on a dark page). */
+  color: inherit !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  border-radius: 0 !important;
+  text-decoration: none !important;
+  cursor: text;
+}
+/* Click-to-un-redact marks (when the message wires the reveal actions). */
+.redaction-mark.is-actionable {
+  cursor: pointer;
+}
+/* Un-redacted (« suspended ») = the redaction disappears: plain text, never struck through
+   nor faded — a strikethrough reads as « deleted » whereas the value goes out in clear.
+   Still interactive: hover → « Remasquer ». */
+.redaction-mark.suspended {
+  background-image: none;
+  color: inherit;
+  padding: 0;
+  margin: 0;
+  border-radius: 0;
+  text-decoration: none;
+  animation: none;
+}
+.redaction-mark.forced {
+  cursor: not-allowed;
+}
+/* The redaction POPOVER — hovering a mark opens a small tone-bordered card: tinted header
+   (data type + counterpart value), then one action per scope. Portaled + fixed; flips below
+   the mark near the viewport top (`.below`). Tone = the mark's highlight hue. */
+.rmark-pop {
+  /* The popover wears the mark's own hue, from the `.hl-<hue>` map. */
+  --rmark-tone: var(--mk, var(--hl-slate));
+  --rmark-ink: var(--mk-ink, var(--ink-on-hl-slate));
+  position: fixed;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  min-width: 216px;
+  max-width: 320px;
+  padding: 5px;
+  border: 1.5px solid var(--rmark-tone);
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+  box-shadow: 0 16px 40px -18px rgba(11, 21, 5, 0.5);
+  transform: translateX(-50%);
+  transform-origin: bottom center;
+  animation: rmark-pop-in 130ms var(--ease-out, ease);
+}
+.rmark-pop.below {
+  transform-origin: top center;
+}
+@keyframes rmark-pop-in {
+  from { opacity: 0; transform: translateX(-50%) scale(0.94); }
+  to { opacity: 1; transform: translateX(-50%) scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .rmark-pop { animation: none; }
+}
+.rmark-pop-value {
+  display: block;
+  margin: 1px 1px 4px;
+  padding: 7px 10px;
+  border-radius: var(--radius-sm);
+  background: var(--rmark-tone);
+  /* The header sits ON the redaction tone, so its ink follows that hue's own ink token (set
+     by the tone class), never `--text-strong`. The fallback covers a popover with no tone
+     class. */
+  color: var(--rmark-ink, var(--ink-on-hl));
+}
+.rmark-pop-eyebrow {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+.rmark-pop-val {
+  display: block;
+  overflow: hidden;
+  margin-top: 2px;
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.rmark-pop-btn {
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  width: 100%;
+  padding: 7px 8px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-body);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: 12.5px;
+  font-weight: 500;
+  text-align: left;
+  white-space: nowrap;
+}
+.rmark-pop-btn.danger {
+  color: var(--danger, #b3261e);
+}
+.rmark-pop-btn.danger:hover {
+  background: color-mix(in srgb, var(--danger, #b3261e) 10%, transparent);
+}
+.rmark-pop-btn svg {
+  color: var(--text-strong);
+  flex-shrink: 0;
+}
+.rmark-pop-btn:hover {
+  background: var(--surface-hover);
+}
+.rmark-pop-btn.locked {
+  cursor: default;
+  color: var(--text-muted);
+}
+.rmark-pop-btn.locked:hover {
+  background: transparent;
+}
+.rmark-pop-arrow {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  margin-left: -6px;
+  border-left: 6px solid transparent;
+  border-right: 6px solid transparent;
+  border-top: 6px solid var(--rmark-tone);
+}
+.rmark-pop.below .rmark-pop-arrow {
+  top: auto;
+  bottom: 100%;
+  border-top: none;
+  border-bottom: 6px solid var(--rmark-tone);
+}

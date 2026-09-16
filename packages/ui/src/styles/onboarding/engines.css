@@ -1,0 +1,72 @@
+.ob-engines {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ob-engine {
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--border-default);
+  background: var(--surface-card);
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color 0.14s;
+}
+.ob-engine.on {
+  border-color: var(--text-strong);
+}
+.ob-engine-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+}
+.ob-engine-icon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+.ob-engine-fields {
+  padding: 0 14px 14px 52px;
+}
+.ob-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+.ob-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 11px 6px 7px;
+  border-radius: var(--radius-pill);
+  border: 1.5px solid var(--border-default);
+  background: var(--surface-card);
+  cursor: pointer;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-strong);
+}
+.ob-chip.on {
+  border-color: var(--text-strong);
+}
+.ob-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ob-input {
+  height: 40px;
+  padding: 0 13px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  color: var(--text-strong);
+  outline: none;
+  box-sizing: border-box;
+}
+.ob-input.mono {
+  font-family: var(--font-mono);
+}
+.ob-input.full {
+  width: 100%;
+}

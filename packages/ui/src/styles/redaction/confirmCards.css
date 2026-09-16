@@ -1,0 +1,247 @@
+/* Confirm dialog (destructive action). */
+.confirm-body {
+  padding: 24px 24px 18px;
+}
+.confirm-title {
+  font-size: var(--text-lg);
+  color: var(--text-strong);
+  margin-bottom: 8px;
+}
+.confirm-text {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0;
+}
+.confirm-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border-default);
+  background: var(--surface-sunken);
+}
+
+/* Write-confirmation card (WriteConfirmCard): readable action summary +
+   a collapsible JSON details view + the "always allow this session" checkbox. */
+/* Exfiltration warning inside the browser navigation write-confirm. */
+.write-confirm-exfil {
+  width: 100%;
+  margin: 4px 0 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: var(--red-soft);
+  border: 1px solid color-mix(in oklch, var(--red-500) 35%, transparent);
+}
+.write-confirm-exfil-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: var(--text-sm);
+  line-height: 1.4;
+  color: var(--red-500);
+}
+.write-confirm-exfil-head b {
+  color: var(--red-500);
+}
+.write-confirm-exfil-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.write-confirm-exfil-list li {
+  font-size: var(--text-xs);
+  color: var(--text-body);
+  font-family: var(--font-mono);
+  word-break: break-all;
+}
+.write-confirm-exfil-list code {
+  color: var(--red-500);
+  font-family: var(--font-mono);
+}
+.write-confirm-exfil-val {
+  color: var(--text-muted);
+}
+
+/* Real files that will be attached to an outgoing action (audit M1) — the user's
+   own un-redacted bytes leaving via their account, so surfaced amber before approval. */
+.write-confirm-attachments {
+  width: 100%;
+  margin: 4px 0 0;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  background: var(--hl-amber);
+  border: 1px solid color-mix(in oklch, var(--amber-500) 35%, transparent);
+}
+.write-confirm-attachments-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: var(--text-sm);
+  line-height: 1.4;
+  color: var(--text-strong);
+}
+.write-confirm-attachments-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.write-confirm-attachments-list li {
+  font-size: var(--text-xs);
+  color: var(--text-body);
+  font-family: var(--font-mono);
+  word-break: break-all;
+}
+
+/* Agent-browser security card — the domain allow-list textarea. */
+.toggle-row-stack {
+  align-items: flex-start;
+}
+.mcp-allowlist {
+  margin-top: 9px;
+  width: 100%;
+  min-height: 64px;
+  resize: vertical;
+  padding: 8px 11px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  line-height: 1.5;
+  color: var(--text-strong);
+  outline: none;
+  box-sizing: border-box;
+}
+
+.write-confirm-actions {
+  list-style: none;
+  margin: 4px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+.write-confirm-actions li {
+  font-size: var(--text-sm);
+  color: var(--text-strong);
+  padding: 8px 12px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+}
+.write-confirm-context {
+  margin: 10px 0 0;
+  width: 100%;
+  font-size: 12.5px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+.write-confirm-json {
+  margin: 12px 0 0;
+  width: 100%;
+}
+.write-confirm-json summary {
+  cursor: pointer;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+}
+.write-confirm-json pre {
+  margin: 8px 0 0;
+  max-height: 200px;
+  overflow: auto;
+  padding: 10px 12px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-default);
+  border-radius: 10px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+/* Scope block under the card: the once-per-conversation notice + the session opt-in. */
+.write-confirm-scope {
+  margin-top: 16px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.write-confirm-scope-note {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+.write-confirm-remember {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  width: 100%;
+  font-size: var(--text-sm);
+  color: var(--text-strong);
+  cursor: pointer;
+}
+.write-confirm-remember input {
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+
+/* Inline write-confirmation card (WriteConfirmCard), rendered under the pending assistant
+   bubble like the web-nav offer: the user decides in the conversation flow, without a
+   blocking modal and without hiding the live agent-browser panel. Reuses the
+   .write-confirm-* sub-parts above. */
+/* The write confirmation is an `.agent-card` too — the shell owns the box, so only
+   placement stays here. Its urgency reads from the stripe/tile hue (amber on an exfil flag),
+   not from a red border. */
+.write-confirm-card {
+  margin-top: 10px;
+}
+.write-confirm-card-head {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+.write-confirm-card-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-md);
+  background: var(--red-soft);
+  color: var(--red-500);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.write-confirm-card-title {
+  font-family: var(--font-display);
+  font-weight: 800;
+  color: var(--text-strong);
+  font-size: var(--text-md);
+  letter-spacing: -0.01em;
+}
+.write-confirm-card-sub {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  line-height: 1.45;
+  margin-top: 2px;
+}
+.write-confirm-real {
+  margin: 8px 0 0;
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+.write-confirm-card-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 14px;
+}

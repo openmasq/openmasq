@@ -1,0 +1,273 @@
+/* ========================================================= Audit log tab === */
+/* Dark hero banner (mirrors the DS AuditSection): headline count + CSV export. */
+.audit-hero {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  /* Brand gradient. */
+  background: linear-gradient(135deg, var(--brand-active), var(--brand));
+  border-radius: var(--radius-lg);
+  padding: 18px 22px;
+  margin-bottom: 16px;
+  color: #eef1f8; /* theme-checked — the band is the indigo brand in BOTH themes: 5.9:1 */
+}
+.audit-hero-icon {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  /* Light-lime accent on the blue, matching the app chrome. */
+  background: color-mix(in oklch, #c7f08a 20%, transparent);
+  color: #c7f08a;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.audit-hero-text {
+  flex: 1;
+  min-width: 0;
+}
+.audit-hero-num {
+  font-family: var(--font-display);
+  font-weight: 900;
+  font-size: 26px;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+}
+.audit-hero-sub {
+  font-size: var(--text-sm);
+  color: #c2c7d6;
+  margin-top: 2px;
+}
+.audit-export {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid color-mix(in oklch, var(--lime) 26%, transparent);
+  background: color-mix(in oklch, var(--lime) 12%, transparent);
+  color: #eaf3dc;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.14s ease;
+}
+.audit-export:hover:not(:disabled) {
+  background: color-mix(in oklch, var(--lime) 20%, transparent);
+}
+.audit-export:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.audit-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 36px 20px;
+  color: var(--text-muted);
+}
+.audit-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.audit-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 220px;
+  height: 36px;
+  padding: 0 12px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  color: var(--text-faint);
+}
+.audit-search input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--text-strong);
+}
+.audit-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-bottom: 14px;
+}
+.audit-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-pill);
+  background: var(--surface-card);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-body);
+  white-space: nowrap;
+}
+/* Selection = the mark, with the ink made for it (`--ink-on-brand`), so the page has one
+   selection style. */
+.audit-chip.on {
+  background: var(--brand);
+  color: var(--ink-on-brand);
+  border-color: var(--brand);
+}
+.audit-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.audit-list {
+  padding: 0;
+  overflow-x: auto;
+}
+/* One card PER CONVERSATION: the coffre is, so the log is too (`auditRows.ts`). */
+.audit-list + .audit-list {
+  margin-top: 10px;
+}
+.audit-grid {
+  display: grid;
+  /* Fixed / min-0 fraction tracks so column widths never depend on a row's content: every
+     row (its own grid) resolves identical tracks. */
+  grid-template-columns: 150px minmax(0, 1.3fr) minmax(0, 1.3fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  padding: 11px 18px;
+  min-width: 560px;
+}
+/* The group header wears what belongs to the CONVERSATION, not to the value: title, count,
+   date — the vault does not timestamp its entries, so a date per row would promise a
+   precision the data does not carry. */
+.audit-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 18px;
+  min-width: 560px;
+  border-bottom: 1px solid var(--border-default);
+}
+.audit-group-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-width: 0;
+  font-size: var(--text-sm);
+  font-weight: 650;
+  color: var(--text-strong);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.audit-group-n {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  white-space: nowrap;
+}
+/* The date sits alone on the right — `margin-left:auto` on it rather than a spacer. */
+.audit-group .audit-when {
+  margin-left: auto;
+}
+/* The jump to the exact message: an arrow, right-aligned, that doesn't compete with the
+   values you came to read. */
+.audit-goto {
+  justify-self: end;
+  display: inline-flex;
+  align-items: center;
+  padding: 3px;
+  border-radius: var(--radius-sm);
+  color: var(--text-faint);
+}
+.audit-goto:hover {
+  background: var(--surface-hover);
+  color: var(--brand-text);
+}
+.audit-cols {
+  padding: 10px 18px;
+  background: var(--surface-page);
+  border-bottom: 1px solid var(--border-default);
+}
+.audit-th {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+  font-weight: 600;
+}
+.audit-row + .audit-row {
+  border-top: 1px solid var(--border-subtle);
+}
+.audit-type {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--text-strong);
+  white-space: nowrap;
+  justify-self: start;
+  /* Fixed track — clip an over-long label instead of letting it spill. */
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+}
+.audit-type-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.audit-orig,
+.audit-fake {
+  font-size: var(--text-sm);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.audit-orig {
+  font-family: var(--font-mono);
+  color: var(--text-strong);
+  font-weight: 600;
+}
+.audit-fake {
+  font-family: var(--font-mono);
+  color: var(--text-muted);
+}
+/* What leads to the conversation or the message: the group header and the row arrow.
+   Button chrome reset, underlined on hover; `justify-self:start` so the grid track is not
+   stretched. */
+.audit-conv-link {
+  justify-self: start;
+  max-width: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  color: var(--brand-text);
+  font: inherit;
+}
+.audit-conv-link:hover {
+  text-decoration: underline;
+}

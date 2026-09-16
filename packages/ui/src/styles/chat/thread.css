@@ -1,0 +1,119 @@
+/* Messages scroll region */
+.messages {
+  flex: 1;
+  overflow-y: auto;
+}
+.messages-inner {
+  max-width: var(--reading-max);
+  margin: 0 auto;
+  padding: 28px 26px 40px;
+}
+/* ── The thread on a NARROW VIEWPORT ──
+   The kit's phone scale (15px / 1.55), expressed once. Keyed on the viewport, not
+   `.app-mobile`: the chat is one component on every platform and a narrowed desktop window
+   needs the same rules. A media query does not cover a narrow split pane in a wide window;
+   the pane's floor is wide enough not to need it. */
+@media (max-width: 560px) {
+  .messages-inner {
+    padding: 14px 14px 28px;
+  }
+  .msg {
+    margin-bottom: 22px;
+  }
+  .msg-answer {
+    font-size: var(--text-base);
+    line-height: 1.55;
+  }
+  /* A bubble may take almost the full width — at 76% of 390px a two-line reply
+     becomes four. */
+  .msg-bubble {
+    max-width: 88%;
+    padding: 11px 14px;
+  }
+  /* The welcome hero centres vertically; taller than the viewport, flex centring
+     clips the TOP (unreachable overflow) — top-align and size the greeting down. */
+  .welcome {
+    justify-content: flex-start;
+    padding: 18px 16px 24px;
+  }
+  .welcome h1 {
+    font-size: var(--text-xl);
+  }
+  /* The model chip must never wrap the composer row; long names crop instead. */
+  .composer-row .model-chip {
+    min-width: 0;
+    max-width: 44vw;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+}
+
+/* Welcome / empty state */
+.welcome {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 24px;
+  text-align: center;
+  /* The starters can overflow a short window — scroll rather than clip them. */
+  overflow-y: auto;
+  /* `safe` is load-bearing: centring content taller than its scrolling container pushes its
+     start above the scroll origin and `scrollTop` cannot go negative, so the greeting
+     becomes unreachable. `safe center` falls back to `start` when it overflows
+     (`welcomeReach.test.ts`). */
+  justify-content: safe center;
+}
+
+.welcome h1 {
+  font-family: var(--font-display);
+  font-weight: 900;
+  letter-spacing: var(--tracking-tight);
+  font-size: var(--text-3xl);
+  color: var(--text-strong);
+}
+.welcome p {
+  font-size: var(--text-md);
+  color: var(--text-muted);
+  max-width: 460px;
+  margin-top: -2px;
+}
+/* The composer, rendered up in the welcome on the home screen. It carries its own
+   max-width + centring; this wrapper only bounds it to the same track and drops the page
+   padding to avoid a double inset. */
+.welcome-composer {
+  width: 100%;
+  max-width: var(--composer-max);
+  margin-top: 6px;
+  /* The welcome centers its text; the composer has its own internal layout, so reset. */
+  text-align: left;
+}
+.welcome-composer .composer-wrap {
+  padding: 0;
+}
+.welcome-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 6px;
+}
+.welcome-actions button {
+  height: 38px;
+  padding: 0 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  background: var(--brand);
+  /* Inverts with `--brand` (rule 12). */
+  color: var(--ink-on-brand);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  cursor: pointer;
+}
+.welcome-actions button.ghost {
+  background: var(--surface-card);
+  border-color: var(--border-default);
+  color: var(--text-body);
+}
+.welcome-actions button.ghost:hover {
+  background: var(--surface-hover);
+}

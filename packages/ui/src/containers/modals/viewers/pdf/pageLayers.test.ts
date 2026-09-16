@@ -37,7 +37,7 @@ describe("buildImageZoneLayer", () => {
     // stylesheet, so assert the rule where it lives.
     // Repo-root relative: the vitest config's include globs are root-anchored, so the
     // suite only ever runs from there (`import.meta.url` is an http URL under jsdom).
-    const css = readFileSync("packages/ui/src/styles.css", "utf8");
+    const css = readFileSync("packages/ui/src/styles/viewers/pdfViewer.css", "utf8");
     const block = css.slice(css.indexOf(".pdfv-imgzones {"));
     expect(block.slice(0, block.indexOf("}"))).toContain("pointer-events: none");
   });
