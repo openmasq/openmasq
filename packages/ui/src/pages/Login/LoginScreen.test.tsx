@@ -5,8 +5,8 @@ import { LoginScreen } from "./LoginScreen";
 import type { Host } from "../../host";
 
 /**
- * What these cases pin down is the CONTRACT that `apps/web`'s invitation page has
- * started consuming: it mounts this very screen rather than its own card, with its
+ * What these cases pin down is the CONTRACT an invitation flow consumes: it mounts this
+ * very screen rather than its own card, with its
  * own title — and above all, on a CODE-first platform, the code field must appear
  * right after sending. That's exactly what the local card didn't have: the
  * authentication email is code-first outside desktop (`supabase/functions/send-email`), so

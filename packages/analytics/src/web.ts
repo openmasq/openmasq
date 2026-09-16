@@ -1,10 +1,5 @@
 /**
- * The skeleton of the WEB surfaces (help center, admin console) set on the same core
- * as the desktop and the extension.
- *
- * ⚠️ The landing used it too, before leaving this monorepo for its own repo
- * (18/08) — it is no longer an OBSERVABLE caller from here, but nothing prevents its
- * new repo from sharing the same shape (even this same package, published).
+ * The skeleton of the WEB surfaces set on the same core as the desktop.
  *
  * What these sites have in common is not the event vocabulary — it genuinely
  * differs — but the PLUMBING around it: an anonymous id drawn once in

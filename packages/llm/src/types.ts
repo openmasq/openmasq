@@ -35,13 +35,9 @@ export interface ToolCall {
   name: string;
   arguments: Record<string, unknown>;
   /**
-   * Set when the model's raw `arguments` string was NOT valid JSON. Providers
-   * that hand back a JSON STRING (the OpenAI-compatible path — OpenAI/Mistral/
-   * Scaleway) can't parse a malformed call; instead of silently degrading to `{}`
-   * (the model then never learns its JSON was broken), they surface the parse
-   * error here so the caller can feed it back and let the model self-correct.
-   * Absent = parsed cleanly. Never present on providers that return native objects
-   * (Anthropic/Google).
+   * Set when the model's raw `arguments` string was NOT valid JSON. Providers that hand
+   * back a JSON STRING surface the parse error here so the caller can feed it back and let
+   * the model self-correct, instead of silently degrading to `{}`. Absent = parsed cleanly.
    */
   argsError?: string;
   /**
@@ -92,17 +88,10 @@ export interface CompleteToolsOptions {
   onReasoning?: (delta: string) => void;
 }
 
-/** Token accounting for one model call (input = prompt, output = completion).
- *
- *  ⚠️ **`inputTokens` is ALWAYS the FULL prompt, cache included.** The two provider
- *  families don't count the same way and normalization happens at read time, not
- *  here: OpenAI/OpenRouter already include the cache in `prompt_tokens`, whereas
- *  Anthropic PULLS IT OUT (`input_tokens` = only the tokens billed at full rate, next
- *  to `cache_read_input_tokens` / `cache_creation_input_tokens`). An Anthropic
- *  reader that copies `input_tokens` as-is therefore makes the total DROP as soon as the
- *  cache works — reading "cheaper" where it should read "well cached".
- *  Each adapter re-adds them, so `cachedInputTokens` is everywhere a
- *  PART of `inputTokens`. */
+/** Token accounting for one model call.
+ *  ⚠️ `inputTokens` is ALWAYS the FULL prompt, cache included. OpenAI-style providers
+ *  already include the cache in `prompt_tokens`; Anthropic PULLS IT OUT, and each adapter
+ *  re-adds it, so `cachedInputTokens` is everywhere a PART of `inputTokens`. */
 export interface TokenUsage {
   inputTokens: number;
   outputTokens: number;
@@ -140,12 +129,8 @@ export interface CompleteToolsResult {
   stopReason: "tool_calls" | "stop" | "length" | "other";
   /** Token usage for this turn, when the provider reports it. */
   usage?: TokenUsage;
-  /**
-   * The provider's remaining REQUEST quota after this call, when its headers state one.
-   * Numbers only — no content, so it is safe to surface to the user. It exists so a cap
-   * can be ANNOUNCED while there is still room to act: the counter rides every reply,
-   * and reading it only on the refusal is how a daily quota came as a surprise.
-   */
+  /** The provider's remaining REQUEST quota after this call, when its headers state one.
+   *  Numbers only, so a cap can be ANNOUNCED while there is still room to act. */
   rateLimit?: { remaining: number; limit?: number; resetAt?: number };
 }
 

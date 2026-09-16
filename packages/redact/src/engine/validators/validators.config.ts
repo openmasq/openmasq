@@ -1,18 +1,13 @@
 // The CONFIG-VALUE gates — what the env/config secret rules must NOT take for a secret.
-// Split out of `validators.ts` (300-LOC ratchet); one family, one file, reached through the
-// same barrel. Both are PRECISION filters on rules that fire on a KEY's name, and both fail
-// toward MASKING: a value they do not recognise is still a secret.
+// PRECISION filters on rules that fire on a KEY's name, and they fail toward MASKING: a
+// value they do not recognise is still a secret.
 import { isReservedHostUrl } from "./validators.network";
 
 /**
- * A config VALUE that can never be a credential — so the UPPER_SNAKE env rule
- * (`…_HOST=`, `…_ENDPOINT=`, `…_PROJECT=`) must not redact it.
- *
- * The rule fires on the KEY's suffix, which is the right signal for a secret but says
- * nothing about the value: `DATABASE_HOST=localhost` redacted « localhost », and the
- * model then reasons on a fake hostname in config it was asked to debug. Same rationale
- * as the `REGION` suffix already carved out of that rule — a closed list of values, never
- * a shape heuristic, so a real secret can never fall in by accident. Audit R2.
+ * A config VALUE that can never be a credential, so the UPPER_SNAKE env rule (`…_HOST=`)
+ * must not redact it: the rule fires on the KEY's suffix, which says nothing about the
+ * value (`DATABASE_HOST=localhost`). A closed list, never a shape heuristic, so a real
+ * secret can never fall in by accident.
  */
 const BENIGN_CONFIG_VALUES = new Set([
   // Loopback / any-interface hosts
@@ -82,15 +77,9 @@ export function isTemplatePlaceholder(value: string): boolean {
 }
 
 /**
- * A value that REFERENCES a secret rather than being one.
- *
- * Configuration written as CODE is full of these, and they are the opposite of a leak: the
- * whole point of `secret_key = var.scaleway_secret_key` is that the secret is NOT in the
- * file. Masking the reference corrupts the code the model was asked to read — it can no
- * longer see which variable feeds which field — and protects nothing, because there was
- * nothing there to protect.
- *
- * The idioms, one per ecosystem, all saying "look it up elsewhere":
+ * A value that REFERENCES a secret rather than being one: the whole point of
+ * `secret_key = var.x` is that the secret is NOT in the file, and masking the reference
+ * corrupts the code while protecting nothing. The idioms, all saying "look it up elsewhere":
  *   `${VAR}` `$VAR`            shell / compose / CI interpolation
  *   `var.x` `local.x`          Terraform inputs and locals
  *   `data.x.y` `module.x.y`    Terraform lookups
@@ -108,35 +97,20 @@ const CODE_REFERENCE =
   /^(?:\$\{[^}]{1,80}\}|\$[A-Za-z_][A-Za-z0-9_]{0,60}|(?:var|local|each|self|data|module|secrets|vars|inputs|config)\.[A-Za-z_][\w.[\]"'-]{0,80}|(?:process\.env|os\.environ|import\.meta\.env)[.[][\w.[\]"']{0,80}|[A-Za-z_$][\w$.]{0,60}\([^()]{0,140}\))$/;
 
 /**
- * A call the capture CUT. The rules that feed this stop at a comma or a quote, so a call
- * with arguments arrives beheaded — the four characters `env(` are a real example from a
- * session — and only its opening paren survives.
- *
- * ⚠️ An unclosed `(` is NOT enough on its own: `hunter2(sekret` is a password with a paren
- * in it and has exactly that shape. So either nothing follows the paren (`env(`,
- * `os.getenv(` — a value that stops there was cut, it was not chosen), or the callee is
- * unmistakably a function: dotted (`os.getenv`) or camelCase (`loadKey`). A password that is
- * also a dotted or camelCase identifier followed by an open paren is a shape we accept
- * losing; one that is a lowercase word plus a digit is not.
+ * A call the capture CUT: the rules that feed this stop at a comma or a quote, so a call
+ * arrives beheaded (`env(`). ⚠️ An unclosed `(` is NOT enough: `hunter2(sekret` is a
+ * password. So either nothing follows the paren, or the callee is unmistakably a function
+ * (dotted or camelCase). A password shaped like that is a loss we accept.
  */
 const CUT_CALL_BARE = /^[A-Za-z_$][\w$.]{0,60}\($/;
 const CUT_CALL_NAMED = /^(?:[A-Za-z_$][\w$]*\.[\w$.]{1,60}|[a-z_$][\w$]*[A-Z][\w$]*)\([^)]*$/;
 const isCutCall = (v: string): boolean => CUT_CALL_BARE.test(v) || CUT_CALL_NAMED.test(v);
 
 /**
- * Real code is not one reference per line — it is an EXPRESSION of them:
- *
- *   export const X_API_KEY   = env("X_API_KEY") || env("X_KEY");
- *   export const X_CLIENT_ID = env("X_CLIENT_ID") || (looksOauth1 ? "" : env("X_ACCESS_TOKEN"));
- *
- * Measured on the file this was reported from. Testing the whole value as a SINGLE reference
- * caught `var.x` and missed every line above, which is most of what a config module is made
- * of. So the value is cut on the operators that join alternatives, and it is a reference when
- * EVERY part is one — a literal anywhere in the chain still masks the whole expression,
- * because a key pasted between two `||` is exactly the leak this must not wave through.
- *
- * The trailing `;` and `,` go first: a statement's punctuation is not part of its value, and
- * the rules that feed this capture up to the end of the line.
+ * Real code is an EXPRESSION of references (`env("X") || (cond ? "" : env("Y"))`), so the
+ * value is cut on the operators that join alternatives, and it is a reference when EVERY
+ * part is one — a literal anywhere in the chain still masks the whole expression. The
+ * trailing `;` and `,` go first: a statement's punctuation is not part of its value.
  */
 const JOINERS = /\s*(?:\|\||\?\?|\?|:|&&)\s*/;
 const STRING_LITERAL = /^(?:""|''|``)$/;

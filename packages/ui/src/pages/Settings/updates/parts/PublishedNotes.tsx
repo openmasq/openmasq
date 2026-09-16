@@ -5,7 +5,7 @@ import { BrandLoader } from "../../../../components/media/BrandLogo";
 import { useT } from "../../../../i18n";
 /**
  * The PUBLISHED HISTORY in the Versions menu — the versions and what each one brought
- * (Contentful, via analytics-fn), most recent first.
+ * (the published notes), most recent first.
  *
  * ⚠️ Why it exists when the TECHNICAL view already shows a note under each build:
  * that view only renders on a staging build or for a privileged device

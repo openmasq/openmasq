@@ -14,19 +14,13 @@ import { fakePath } from "./paths";
 import { fakeUrl } from "./urls";
 
 /**
- * Build a believable fake of the same kind as `value`. `attempt` varies it for uniqueness
- * (collision retry). `salt` (default 0 = the legacy deterministic mapping) is
- * a per-conversation SHIFT of the value→fake mapping: the same real value maps to a
- * different fake in another conversation, which defeats a PRECOMPUTED public table.
- * ⚠️ It is NOT a keyed PRF and must not be described as one: `hashString` is public and
- * the shift is additive over a 31-bit space, so ONE known (value, fake) pair recovers it
- * by exhaustive search, after which other values fall to a dictionary. What the fake does
- * NOT do is leak the real value to someone holding only the fake — that property lives in
- * the generators (`digitsNotInvertible.test.ts`), not here.
- * A fake « Simon Cros » therefore no longer reverses to « Augustin Vaudel » by precomputing
- * the pool over a name list. Stability WITHIN a conversation
- * comes from the vault, not from this — so the same salt is passed for every send of one
- * conversation. Added into every seed so an entity and its fragments/casings shift together.
+ * Build a believable fake of the same kind as `value`. `attempt` varies it for uniqueness.
+ * `salt` (0 = the legacy deterministic mapping) is a per-conversation SHIFT of the
+ * value→fake mapping, defeating a PRECOMPUTED public table. ⚠️ NOT a keyed PRF: one known
+ * (value, fake) pair recovers it. Not leaking the real value to someone holding only the
+ * fake is the generators' property (`digitsNotInvertible.test.ts`). Stability WITHIN a
+ * conversation comes from the vault; the salt rides every seed so an entity and its
+ * fragments shift together.
  */
 export function fakeFor(
   category: string,
@@ -73,10 +67,8 @@ export function fakeFor(
       // cookie's names and a connection string's URI SCHEME are FORMAT and stay; every
       // other character is redrawn in its own class. What a coding agent derives from a
       // credential — its vendor, its kind, the endpoint it speaks to — survives.
-      // ⚠️ CONNECTION_STRING belongs HERE, with the rest of its family. The default arm is
-      // the DIGIT swapper, which redraws `5432` and leaves every letter alone: the user,
-      // the host and the alphabetic half of the password would travel verbatim inside
-      // their own "fake". Same reason the URL case above exists. `credentials.test.ts`.
+      // ⚠️ CONNECTION_STRING belongs HERE: the default arm is the DIGIT swapper, which would
+      // leave user, host and the alphabetic half of the password verbatim. `credentials.test.ts`.
       return fakeCredential(value, h, category);
     case "PRIVATE_KEY":
     case "BIC":
@@ -91,9 +83,7 @@ export function fakeFor(
       // to « correct » it, a correction that no longer reverses. Other chains (bech32,
       // Monero, Ethereum…) keep the scramble: their proof isn't a checksum.
       return fakeBitcoinLegacyAddress(value, h) ?? fakeToken(value, h);
-    // NAME/EMAIL deliberately ABANDON length-matching (the documented trade: a usable
-    // identity beats the size hint) — `fitLen` padded «Julien» into «Garciaopihar»,
-    // a gibberish surname the model second-guesses.
+    // NAME/EMAIL deliberately ABANDON length-matching: a usable identity beats the size hint.
     case "NAME":
     case "PERSON":
     case "FULLNAME": {
@@ -112,16 +102,12 @@ export function fakeFor(
     case "SURNAME":
       return pick(FAKE_LAST, h);
     case "EMAIL":
-      // The RAW attempt, not `a`: the third arg is CONCATENATED into the local-part as a
-      // disambiguating suffix, and folding the salt in printed the conversation salt's
-      // leading digits inside the fake («…savary9876@…» under salt 987654321) — a
-      // partial leak of the salt into the wire. It must only ever reach the output
-      // THROUGH the hash — it already shifts the name pick via `h`.
+      // The RAW attempt, not `a`: the third arg is CONCATENATED into the local-part, and the
+      // salt must only ever reach the output THROUGH the hash (it already shifts `h`).
       return fakeEmail(value, h, attempt);
     case "USERNAME":
-      // A pseudo / handle → per-character CLASS-preserving scramble (lower/upper/digit
-      // each stay their class, `@`/`_`/`.`/`-` kept) — the full scramble's ransom-note
-      // casing («@rOpGRSj») read fake at a glance. Never used for secrets.
+      // A pseudo / handle → per-character CLASS-preserving scramble (a ransom-note casing
+      // reads fake at a glance). Never used for secrets.
       return fakeHandle(value, h);
     // A filesystem path: keep the root, scramble the username + folders.
     case "PATH":
@@ -144,14 +130,9 @@ export function fakeFor(
       // salt in would blow the tolerance open on the first try of every salted
       // conversation. The salt already shifts the pick through `h`.
       return fakeOrg(value.length, h, attempt);
-    // Geographic spans -> a coherent REAL place of the SAME country, in that
-    // country's own address FORMAT (FR also stays in the same region). The logic +
-    // per-country data live in ../engine/geo (fakeGeo); `country` comes from the
-    // address detector (Detection.country). An UNCOVERED country falls back to the FR
-    // default (still fully hidden) -- or, for an odd postal shape, a same-shape
-    // scramble -- so a fake is NEVER a place from the wrong country. This also keeps a
-    // "CP Ville" code + city consistent (they used to be faked apart) and stops a city
-    // like "MALAKOFF" being mistyped as a name.
+    // Geographic spans → a coherent REAL place of the SAME country, in that country's own
+    // address FORMAT (`../engine/geo`); `country` comes from the detector. An UNCOVERED
+    // country keeps the value's shape, so a fake is NEVER a place from the wrong country.
     case "PLACE":
     case "ADDRESS":
     case "LOCATION":
@@ -161,10 +142,8 @@ export function fakeFor(
     case "POSTCODE":
     case "ZIP":
     case "ZIPCODE": {
-      // ⚠️ An address COMPLEMENT carries the ADDRESS category, and the ADDRESS branch
-      // always fabricates a STREET: « appartement A02 » used to get « 27 CHEMIN des
-      // Tilleuls », a second invented place where the document named only one.
-      // A complement's fake keeps its keyword and changes only the code.
+      // An address COMPLEMENT carries the ADDRESS category, but must not become a STREET
+      // (« appartement A02 » is not a second place): its fake keeps the keyword, changes the code.
       const comp = fakeAddressComplement(value, h);
       if (comp != null) return comp;
       const g = fakeGeo(category, value, h, country, geoAnchors, attempt) ??

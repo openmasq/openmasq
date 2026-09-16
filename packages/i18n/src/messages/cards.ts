@@ -9,7 +9,7 @@
  * people give up a feature for no reason.
  *
  * A SLICE of the contract (`../messages.ts`), which stays the only list of namespaces.
- * The split holds the 300-LOC cap (rule 1) — same shape as `packages/emails/i18n/`.
+ * The split holds the 300-LOC cap (rule 1).
  */
 export interface CardsMessages {
   /** The home screen of an empty thread. */

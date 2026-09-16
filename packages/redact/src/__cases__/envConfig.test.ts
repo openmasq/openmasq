@@ -131,11 +131,7 @@ describe("an integrity hash survives whole", () => {
 /* Configuration written as CODE is full of REFERENCES to secrets, and a reference is the
    opposite of a leak: the whole point of `secret_key = var.scaleway_secret_key` is that the
    secret is NOT in the file. Masking it corrupts the code the model was asked to read — it
-   can no longer see which variable feeds which field — and protects nothing.
-
-   Measured on a real Terraform/Scaleway session through the proxy: `var.…`, `local.…`,
-   `${…}`, `env("…")` and a bare `SCW_SECRET_KEY` were each replaced, and the tail of a
-   sentence (`...)`) came back as a « key » of its own. */
+   can no longer see which variable feeds which field — and protects nothing. */
 describe("a reference to a secret is not a secret", () => {
   const CLEAN = [
     // Terraform / HCL

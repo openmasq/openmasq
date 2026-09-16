@@ -2,47 +2,25 @@ import type { ProviderId } from "../types.js";
 import { MODEL_PRICING } from "./pricing.js";
 import { findModel, PLATFORM_OPENROUTER_IDS } from "./registry.js";
 
-/** PLATFORM-PROVIDED providers: no user API key REQUIRED — a keyless send is proxied
- *  by the platform's gateway (the platform's key) and metered on the prepaid credit budget. The
- *  send pipeline skips the missing-key check for these and gates them on credits.
- *
- *  EXACTLY TWO, and the split is the product's commercial shape:
- *  - **Scaleway** — subscription ONLY (the platform's key, no `keyUrl`: a user cannot bring
- *    their own).
- *  - **OpenRouter** — the ONLY dual one: own key ⇒ DIRECT; no key ⇒ the gateway serves
- *    the CURATED ids on the platform's key (`PLATFORM_OPENROUTER_IDS` / the gateway's
- *    `PLATFORM_MODELS`), so a dynamically-discovered slug stays BYO-only (fail-closed).
- *
- *  Everything else is BYO-PERSONAL-KEY ONLY: OpenAI / Anthropic / Google / Mistral /
- *  DeepSeek are NOT served on the platform's keys (a keyless send is refused « Clé requise »,
- *  never billed to the subscription), and `openai-compat` is the user's own machine.
- *  ⚠️ This set has a SECOND home the type system cannot bind: the gateway's
- *  `PLATFORM_MODELS` allow-list (`apps/gateway/.../chat/scaleway.ts`). Widening one
- *  without the other either 400s a legitimate send or serves inference nobody pays
- *  for — change them in the same commit (`platformModels.test.ts`). */
+/** PLATFORM-PROVIDED providers: no user API key REQUIRED — a keyless send is proxied by
+ *  the platform (its key) and metered on the prepaid credit budget. EXACTLY TWO:
+ *  - **Scaleway** — subscription ONLY (no `keyUrl`: a user cannot bring their own).
+ *  - **OpenRouter** — the ONLY dual one: own key ⇒ DIRECT; no key ⇒ the platform serves
+ *    the CURATED ids (`PLATFORM_OPENROUTER_IDS`), so a discovered slug stays BYO-only.
+ *  Everything else is BYO-PERSONAL-KEY ONLY (a keyless send is refused « Clé requise »).
+ *  The server keeps its own copy of this allow-list; `platformModels.test.ts` pins ours. */
 export function isPlatformProvider(provider: ProviderId): boolean {
   return provider === "scaleway" || provider === "openrouter";
 }
 
-/** Platform-eligible AND actually SERVABLE by the gateway for THIS model id. Differs
- *  from `isPlatformProvider` for ONE case: OpenRouter, the aggregator, whose catalogue
- *  is DISCOVERED at runtime rather than compiled in. The routing decision
- *  (`resolveEffectivePlatform`), the picker's greying AND the gateway's own allow-list
- *  all key off this one predicate, so a greyed row, a refused send and a 400 can't
- *  disagree (rule 9).
- *
- * ⚠️ For OpenRouter the rule is **"known AND priced"**, and the pricing half is a
- * MONEY invariant, not a nicety: the gateway meters with `deriveCreditCents`, which
- * reads `MODEL_PRICING` — an id we have no price for meters ZERO, i.e. inference on
- * the platform's key that no credit ever pays for. So an id absent from the registry, or
- * present with no price row, is NOT servable. Both sides merge the same catalogue
- * (`normalizeOpenRouterModels` → `setDynamicModels`, which always writes a price), so
- * "in the catalogue" and "priced" coincide by construction; the check is the backstop
- * for anything that arrives another way. A `:free` tier carries an explicit
- * `{in:0,out:0}` — that IS a price (and `isFreeModel` then waives the credit gate).
- *
- * With no catalogue merged (offline, or a failed fetch) the registry still holds the
- * curated static baseline, so this degrades to exactly the old behaviour. */
+/** Platform-eligible AND actually SERVABLE for THIS model id. Differs from
+ *  `isPlatformProvider` for OpenRouter only, whose catalogue is DISCOVERED at runtime. The
+ *  routing decision (`resolveEffectivePlatform`) and the picker's greying key off this one
+ *  predicate (rule 9).
+ *  ⚠️ For OpenRouter the rule is **"known AND priced"**, a MONEY invariant: metering reads
+ *  `MODEL_PRICING`, and an id with no price meters ZERO. `setDynamicModels` always writes a
+ *  price, so this is the backstop for anything arriving another way. A `:free` tier's
+ *  explicit `{in:0,out:0}` IS a price. With no catalogue merged the static baseline applies. */
 export function isPlatformServableModel(provider: ProviderId, modelId: string): boolean {
   if (!isPlatformProvider(provider)) return false;
   if (provider !== "openrouter") return true;
@@ -57,33 +35,20 @@ export function supportsTools(modelId: string): boolean {
   return findModel(modelId)?.noTools !== true;
 }
 
-/** A FREE model — priced explicitly at 0 in/out (the OpenRouter `:free` tiers).
- *  It costs the platform nothing upstream, so it is NEVER blocked by the prepaid credit
- *  budget: usable by ANY account, even without a subscription. Both the client send
- *  gate and the gateway credit pre-check skip the block for these. An UNPRICED model
- *  (undefined) is NOT free (we don't assume) — only an explicit `{in:0,out:0}`. */
+/** A FREE model — priced explicitly at 0 in/out (the OpenRouter `:free` tiers). NEVER
+ *  blocked by the credit budget, usable by ANY account. An UNPRICED model is NOT free. */
 export function isFreeModel(id: string): boolean {
   const p = MODEL_PRICING[id];
   return !!p && p.in === 0 && p.out === 0;
 }
 
 /**
- * FREE MODE — what an account with no key AND no subscription can run on the
- * platform's key. TWO models, named (product decision of 18/08).
- *
- * ⚠️ "Free" doesn't mean "no cost for us". An OpenRouter `:free` isn't
- * billed per token, but it consumes our key's QUOTA, shared by everyone:
- * opening the catalogue's ~20 free tiers to anyone paying nothing would let a handful
- * of accounts drain the queue for all. Hence a NAMED list rather than "anything that costs
- * 0" — price stays the BILLING rule (`isFreeModel`), it's no longer the ACCESS
- * rule.
- *
- * ⚠️ This list is the only one (rule 9): the picker greys/hides from it, the send gate
- * re-reads it, and the GATEWAY re-reads it again — without which the restriction would be
- * only cosmetic, a renderer not being a trust boundary (rule 7).
- *
- * An id absent here isn't forbidden: it simply goes back to being a matter of subscription or
- * personal key, like any paid model.
+ * FREE MODE — what an account with no key AND no subscription can run on the platform's
+ * key. A NAMED list, not "anything that costs 0": a `:free` tier still consumes the shared
+ * key's QUOTA, so price stays the BILLING rule (`isFreeModel`), not the ACCESS rule.
+ * ⚠️ The only list (rule 9): the picker, the send gate and the server all re-read it — a
+ * renderer is not a trust boundary (rule 7). An id absent here simply falls back to
+ * subscription or personal key.
  */
 export const FREE_MODE_MODEL_IDS: readonly string[] = [
   "poolside/laguna-s-2.1:free",
@@ -95,35 +60,21 @@ export function isFreeModeModel(id: string): boolean {
   return FREE_MODE_MODEL_IDS.includes(id);
 }
 
-/**
- * OpenAI REASONING models (the GPT-5.x family, the legacy o-series) reject a
- * custom `temperature` — only the API default is allowed, so sending one 400s.
- * The OpenAI-compatible request path (`providers/openai.ts`, `tools/openai.ts`)
- * omits `temperature` for these ids. Non-OpenAI ids that share that path
- * (Mistral, Scaleway/platform, local Ollama) don't start with `gpt-5`/`o<digit>`,
- * so they keep the temperature and are unaffected.
- */
+/** OpenAI REASONING models (GPT-5.x, the o-series) reject a custom `temperature`; the
+ *  OpenAI-compatible request paths omit it for these ids. Other ids on that path don't
+ *  start with `gpt-5`/`o<digit>`. */
 export function omitsTemperature(modelId: string): boolean {
   return /^(gpt-5|o\d)/i.test(modelId);
 }
 
-/**
- * Claude models that accept **adaptive thinking** (`thinking: {type:"adaptive"}`) —
- * the only shape that streams a reflection back. Everything from the 4.6 family on
- * takes it; **Haiku 4.5 and the 3.x family predate it** and 400 on `adaptive` (they
- * would need the deprecated fixed `budget_tokens`, which eats the answer's own
- * `max_tokens` — not worth it on the cheap/fast tier), so they are excluded and
- * simply stream no reflection.
- */
+/** Claude models that accept **adaptive thinking**: the 4.6 family on. Haiku 4.5 and the
+ *  3.x family 400 on `adaptive` and simply stream no reflection. */
 export function supportsAdaptiveThinking(modelId: string): boolean {
   return modelId.startsWith("claude-") && !/^claude-(haiku|3)/.test(modelId);
 }
 
-/**
- * Gemini models that can return **thought summaries** (`thinkingConfig.includeThoughts`):
- * the 2.5 family and everything after it. `gemini-2.0-*` and older have no thinking
- * stage at all — sending the field to them is an error, not a no-op, hence the gate.
- */
+/** Gemini models that can return **thought summaries**: the 2.5 family and later. Older
+ *  ones error on the field, hence the gate. */
 export function supportsGeminiThoughts(modelId: string): boolean {
   return /^gemini-(2\.5|[3-9])/.test(modelId);
 }

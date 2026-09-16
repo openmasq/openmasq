@@ -34,8 +34,8 @@ export { NOTORIOUS_PEOPLE, NOTORIOUS_COMMERCIAL_ORGS } from "./data";
 
 const PEOPLE_SET = new Set(PEOPLE.map(norm));
 const ORGS_SET = new Set([...ORGS, ...TICKERS].map(norm));
-// The opt-in commercial dispensation — a SEPARATE set, never merged into ORGS_SET: the
-// merge would be the silent return of the unconditional dispensation from 27/07.
+// The opt-in commercial dispensation — a SEPARATE set, never merged into ORGS_SET (the
+// merge would silently make the dispensation unconditional).
 const COMMERCIAL_SET = new Set(COMMERCIAL_ORGS.map(norm));
 // Tickers are checked CASE-SENSITIVELY (the raw ALL-CAPS symbols) for the
 // category-independent branch below.
@@ -58,14 +58,10 @@ export interface NotorietyOpts {
   commercial?: boolean;
   people?: boolean;
   /**
-   * Allow the SHAPE dispensation (the model-name grammar)? True by default.
-   *
-   * ⚠️ The FRAGMENT gate (`pseudonymize/textContext.ts`) sets it to FALSE, and it's a
-   * safeguard, not an optimization: it recomposes "value + neighbour" to catch a
-   * fragment of a notorious entity (« emploi » next to « Pôle »). A closed list lends
-   * itself to that; a productive GRAMMAR does not — « madame Claude 3 fois cette semaine »
-   * was recomposing « Claude 3 », a real model name, and was sending one of the
-   * most common French first names out in clear (audit 13/08, pinned by `modelNames.test.ts`).
+   * Allow the SHAPE dispensation (the model-name grammar)? True by default. ⚠️ The FRAGMENT
+   * gate (`pseudonymize/textContext.ts`) sets it to FALSE: it recomposes "value + neighbour"
+   * to catch a fragment of a notorious entity, and a productive GRAMMAR recomposes
+   * « Claude 3 » out of « madame Claude 3 fois cette semaine » (`modelNames.test.ts`).
    */
   shape?: boolean;
 }
@@ -76,10 +72,8 @@ export interface NotorietyOpts {
  * issuer / index / ticker for "company", a country for "location". Anything else —
  * including these same strings under ANOTHER category — is not spared.
  */
-/** « HSBC FRANCE », « Google France », « Amazon Belgique »: the national subsidiary = the
- *  brand + a trailing COUNTRY. No list can enumerate every declension — when
- *  the multi-word value doesn't match as-is, we retry WITHOUT the trailing country
- *  (log 02/08: « HSBC FRANCE » redacted as a person, « FRANCE » aliased everywhere). */
+/** « HSBC FRANCE », « Amazon Belgique »: the national subsidiary = the brand + a trailing
+ *  COUNTRY. No list can enumerate every declension — retry WITHOUT the trailing country. */
 function withoutTrailingCountry(s: string): string | null {
   const words = s.trim().split(/\s+/);
   if (words.length < 2) return null;
@@ -87,25 +81,14 @@ function withoutTrailingCountry(s: string): string | null {
 }
 
 /**
- * The same value WITHOUT its legal form — « Ovh Sas », « GitHub Inc », « Github, Inc. ».
- *
- * ⚠️ It was a BANK STATEMENT LABEL that forced this (user-journey finding from 15/08/2026, a
- * real statement): in Enhanced, « Ovh Sas » and « Github, Inc. » were being REDACTED even though
- * the policy dispenses them — the legal suffix was missing the dispensation — while a real
- * customer, itself, was going out in clear. The opposite of the intent: the world brands masked,
- * the identifiable SMB in clear.
- *
- * ⚠️ FAIL-OPEN direction, so bounded: the legal form was never the discriminant
- * (anyone can register "Orange SARL"), and the risk ALREADY exists for the same reason without
- * the suffix — a company genuinely named "Orange" is dispensed today. We're extending
- * an accepted exposure, not creating a new one. What is NOT dispensed
- * stays that way: « Karl Studio SAS » and « Apple Consulting » (measured). Same shape as
- * `withoutTrailingCountry` just above, and `stripOrgAffixes` is the sole implementation
- * of the legal-form vocabulary (rule 9).
+ * The same value WITHOUT its legal form — « Ovh Sas », « Github, Inc. » (bank statement
+ * labels). ⚠️ FAIL-OPEN direction, so bounded: the legal form was never the discriminant
+ * (anyone can register "Orange SARL"), and a company genuinely named "Orange" is dispensed
+ * already — an accepted exposure extended, not a new one. « Karl Studio SAS » stays
+ * redacted. `stripOrgAffixes` is the sole implementation of the legal-form vocabulary (rule 9).
  */
 function withoutLegalForm(s: string): string | null {
-  // Edge punctuation first: « Github, Inc. » wasn't trimming, the « , » glued to the
-  // first word was preventing the suffix from matching.
+  // Edge punctuation first: the « , » of « Github, Inc. » glued to the first word.
   const clean = s.trim().replace(/[,;.]+\s*$/u, "").replace(/,\s+/g, " ");
   const core = stripOrgAffixes(clean).trim();
   return core && core !== clean ? core : null;
@@ -134,12 +117,10 @@ export function isNotoriousEntity(value: string, coarseCategory: string, opts?: 
   if (coarseCategory === "name") {
     // `people: false` = the Strict level — public figures become redacted again.
     if (opts?.people !== false && PEOPLE_SET.has(norm(v))) return true;
-    // A MODEL NAME tagged as a person (« Claude Sonnet 4.6 », « GPT-4o », `claude-opus`)
-    // is the product mis-read — same logic as the mis-read org below, and like it, NEVER
-    // for a bare word with no digit: « Claude »/« Gemini » alone stay protected first
-    // names (audit 13/08 — the dispensation is of shape, the protection of person). The
-    // hyphenated form is a model ID as a coding agent's system prompt writes it; a
-    // hyphenated FIRST name (« Jean-Claude ») never has the family at its head.
+    // A MODEL NAME tagged as a person (« Claude Sonnet 4.6 », `claude-opus`) is the product
+    // mis-read — NEVER for a bare word with no digit: « Claude »/« Gemini » alone stay
+    // protected first names. A hyphenated FIRST name (« Jean-Claude ») never has the
+    // family at its head.
     if (
       opts?.shape !== false &&
       (/\s/.test(v) || /\d/.test(v) || /-/.test(v)) &&

@@ -7,7 +7,7 @@ import { PLATFORM_OPENROUTER_IDS } from "./registry.js";
 
 // `isPlatformServableModel` is what decides, on BOTH sides of the platform boundary,
 // whether the platform's own OpenRouter key may run a model: the picker greys on it, the send
-// gate refuses on it, and `apps/gateway` allow-lists on it. For an aggregator whose
+// gate refuses on it, and the server allow-lists on it. For an aggregator whose
 // catalogue is discovered at runtime, the invariant that matters is that "servable"
 // can never outrun "priced" — the gateway meters from `MODEL_PRICING`, so an
 // unpriced-but-served id would be inference nobody is charged for.

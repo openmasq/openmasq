@@ -1,6 +1,6 @@
 // @openmasq/i18n — the TYPED translation catalogue, no React, no library.
 // The React layer (provider + `useT`) lives in `@openmasq/ui`: this package stays
-// importable by `main`, `emails` and the backend, which have no React.
+// importable by the desktop main process and other React-free consumers.
 export type {
   Messages,
   SettingsTab,

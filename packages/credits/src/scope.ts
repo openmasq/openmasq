@@ -14,12 +14,9 @@ export interface CreditScope {
 // credits (id_organization = null). Multi-org → first (documented simplification).
 // null = user not found. Shared by the container's pre-check + meter so both agree.
 //
-// The `identifier` may be EITHER the Supabase auth id (the JWT `sub`, mirrored to
-// `users.id` — this is what the gateway passes) OR the app-level `users.user_uuid`.
-// We match on both because the two columns differ (`attachUser` sets `id` = the
-// auth sub and lets `user_uuid` default to a separate app uuid); querying only
-// `user_uuid` silently missed every caller that passes the auth sub — the gateway
-// did, so its credit scope never resolved and metering was skipped.
+// The `identifier` may be EITHER the auth id (the JWT `sub`) OR the app-level user uuid;
+// both are matched, because a caller that passes the auth sub must resolve too — a scope
+// that fails to resolve is metering silently skipped.
 export async function resolveCreditScope(db: Knex, identifier: string): Promise<CreditScope | null> {
   const user = (await db("users")
     .where("id", identifier)

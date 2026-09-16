@@ -4,7 +4,7 @@
   "license": "Apache-2.0",
   "private": true,
   "type": "module",
-  "description": "Le format des manifestes de mise à jour du bureau — UNE maison, partagée par le producteur (apps/desktop) et le serveur du flux (apps/updates, dépôt infra).",
+  "description": "Le format des manifestes de mise à jour du bureau — une maison, partagée par le producteur (apps/desktop) et le serveur du flux.",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",

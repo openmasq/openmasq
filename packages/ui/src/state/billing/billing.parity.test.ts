@@ -23,8 +23,8 @@ describe("billing.ts ⇄ @openmasq/credits — l'allotement affiché est celui a
   // The types that keep an allotment WITHOUT being sold. They aren't a
   // convenience exception: `CREDITS_CENTS_PER_SEAT` must keep serving them (a
   // subscription taken before the retirement renews and must be credited), but
-  // offering them a card would put a retired tier back on sale. See `RETIRED_TIERS`
-  // (apps/backend/.../subscriptions/tiers.ts).
+  // offering them a card would put a retired tier back on sale (the server keeps the same
+  // retired set).
   const NOT_SOLD = new Set(["PRO", "SCALE"]);
 
   it("aucun tier VENDU n'est absent des cartes", () => {

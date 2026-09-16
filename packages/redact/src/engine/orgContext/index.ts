@@ -22,13 +22,11 @@
 //     (≤5 tokens, each cased or a particle) so a table label ("Total des
 //     produits d'exploitation") above a fused number column never qualifies.
 //
-// The name tokens pass the shared stopword/generic/country/affix guards, so
-// "la sarl", "une petite sarl" never yield a candidate. The gate word stays in
-// clear, and the emitted value is canonicalised through `stripOrgAffixes` HERE —
-// exactly like the NER/LLM detector paths — so "berlioz sarl" and the LLM's
-// "Berlioz" share ONE `entityKey` (one company = one fake); the legal form ships
-// in clear. (The deterministic sources do NOT pass through the detector-level
-// strip, so skipping it here split the identity.)
+// The name tokens pass the shared stopword/generic/country/affix guards, so "la sarl",
+// "une petite sarl" never yield a candidate. The gate word stays in clear, and the emitted
+// value is canonicalised through `stripOrgAffixes` HERE — the deterministic sources do NOT
+// pass through the detector-level strip — so "berlioz sarl" and the LLM's "Berlioz" share
+// ONE `entityKey` (one company = one fake).
 import type { Detection } from "../../types";
 import { isStopword, isGenericTerm, isOrgAffix, stripOrgAffixes } from "../../model/detect";
 import { isCountry } from "../geo/countries";
@@ -38,11 +36,9 @@ import {
 } from "./vocab";
 
 const TOKEN = "\\p{L}[\\p{L}'’-]*\\p{L}";
-// 1-2 spaces, never a RUN: a run of 3+ is the COLUMN GUTTER of a two-column layout, and
-// crossing it glued a company to the next column's label ("SARL BATIRENOV        Matricule"
-// → one ORG whose fake then replaced the word « Matricule » everywhere). The value is
-// normalised to single spaces downstream, so `lineSplit` cannot see the gutter afterwards
-// — it has to be refused HERE. A real multi-word company name never carries one.
+// 1-2 spaces, never a RUN: 3+ is the COLUMN GUTTER of a two-column layout ("SARL BATIRENOV
+//        Matricule"). The value is normalised to single spaces downstream, so the gutter
+// has to be refused HERE. A real multi-word company name never carries one.
 const GAP = "[^\\S\\r\\n]{1,2}";
 
 const byLengthDesc = (a: string, b: string): number => b.length - a.length;
@@ -72,13 +68,10 @@ function* windowed(text: string, probe: RegExp, family: RegExp, before = 80): Ge
   }
 }
 
-// The separator before the legal form is captured (group 2) so it may be a COMMA:
-// `Acme, Inc.` is the standard American rendering, and it shipped in clear while
-// `Acme Inc.` was caught — one company, one signal, two treatments, for a punctuation
-// mark. It cannot simply live inside the name group: the emitted value must be VERBATIM
-// text at `start`, and a value of "Acme," would key a second identity for the same
-// company. `push` drops the trailing punctuation after the affix strip, which only ever
-// removes characters from the END and so leaves `start` valid.
+// The separator before the legal form is captured (group 2) so it may be a COMMA (`Acme,
+// Inc.`, the American rendering). It cannot live inside the name group: the emitted value
+// must be VERBATIM text at `start`, and "Acme," would key a second identity. `push` drops
+// the trailing punctuation after the affix strip, which only removes from the END.
 const RE_LEGAL = new RegExp(
   `(?<![\\p{L}'’-])((?:${TOKEN}${GAP}){0,2}${TOKEN})(,?${GAP})(${alt(LEGAL_SUFFIXES)})(?![\\p{L}])`,
   "giu",
@@ -148,13 +141,11 @@ function okToken(tok: string): boolean {
 }
 
 /** A CAPITALIZED token is denomination MATERIAL even when the word itself is generic:
- *  French denominations are MADE of ordinary words (« ATELIER VERNE », « KELVEA
- *  SANTÉ », « SCI DU VIEUX PORT ») and the legal form beside them certifies the whole
- *  name — dropping the generic half left « VERNE » alone, under the 60 % coverage the
- *  bench demands. Stopwords, kinship, digits and the org AFFIXES stay excluded
- *  (« La Sarl » must still die), and the callers require a second token or one
- *  distinctive token so a LONE capitalized generic (« société ANONYME ») never
- *  becomes a company on its own. */
+ *  French denominations are MADE of ordinary words (« ATELIER VERNE », « SCI DU VIEUX
+ *  PORT ») and the legal form beside them certifies the whole name. Stopwords, kinship,
+ *  digits and the org AFFIXES stay excluded (« La Sarl » must still die), and the callers
+ *  require a second token or one distinctive token, so a LONE capitalized generic
+ *  (« société ANONYME ») never becomes a company. */
 function nameishToken(tok: string): boolean {
   if (okToken(tok)) return true;
   if (!/^\p{Lu}/u.test(tok) || tok.length < 3 || /\d/.test(tok)) return false;

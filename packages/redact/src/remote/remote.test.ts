@@ -4,7 +4,7 @@ import { remoteRedact, remoteContractDowngrade } from "./remote";
 const okResponse = (body: unknown): Response =>
   ({ ok: true, status: 200, json: async () => body }) as unknown as Response;
 
-describe("remoteRedact (client for apps/gateway)", () => {
+describe("remoteRedact (client for the remote redaction endpoint)", () => {
   it("POSTs the payload with the Bearer token and returns the parsed result", async () => {
     const fetchImpl = vi.fn(async () =>
       okResponse({ redacted: "hi FAKE", matches: [{ value: "x" }], vault: { FAKE: "x" } }),

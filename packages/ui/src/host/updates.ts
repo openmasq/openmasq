@@ -81,7 +81,7 @@ export interface AllDesktopReleases {
 
 /**
  * Optional auto-update capability (desktop only). Backed by electron-updater
- * pointed at the apps/updates Worker feed. `check` looks for the newest eligible
+ * pointed at the update feed. `check` looks for the newest eligible
  * release on the channel; `pin` forces an exact version (rollback / forced
  * upgrade, allowDowngrade on); `install` restarts into a downloaded update.
  * Absent in the browser preview → the updates settings section doesn't render.

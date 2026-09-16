@@ -173,11 +173,9 @@ export interface OrgProfileInfo {
    *  (`composeConfirmationMode`) — the composition takes the stricter of the two, which
    *  is why an unverified floor is safe: it can only ever add confirmations. */
   confirmationFloor?: "standard" | "renforce";
-  /** Prepaid credit budget for platform-provided answer-model usage (Scaleway/
-   *  OpenRouter on the platform's key). Absent = unknown → not enforced. `blocked` = budget
-   *  exhausted: platform-provided sends fail closed (BYO-own-key + redaction are
-   *  never affected). Amounts in eurocents. Populated by the host from
-   *  GET …/organizations/:id/usage. */
+  /** Prepaid credit budget for platform-provided answer-model usage. Absent = unknown →
+   *  not enforced. `blocked` = exhausted: platform-provided sends fail closed (own-key
+   *  sends and redaction are never affected). Amounts in eurocents. */
   credits?: CreditBalance;
 }
 
@@ -188,9 +186,8 @@ export interface OrgProfileInfo {
  */
 export interface OrgHost {
   getProfile(): Promise<OrgProfileInfo | null>;
-  /** Open the org admin console (the web app's `/admin`) in the system browser.
-   *  Present only when an admin URL is configured; the UI shows the link only for
-   *  owners/admins when this exists. */
+  /** Open the organisation's admin console in the system browser. Present only when an
+   *  admin URL is configured; shown to owners/admins only. */
   openAdmin?(): void;
 }
 

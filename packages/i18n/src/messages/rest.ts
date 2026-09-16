@@ -10,8 +10,8 @@
 
 export interface LoginMessages {
   /** The RETURNING title (« Content de vous revoir ») — only once an account has already
-   *  been seen on this device; `apps/web` sets another on its invitation page, where
-   *  signing in is not a return but an arrival. */
+   *  been seen on this device; an invitation flow sets another, where signing in is not a
+   *  return but an arrival. */
   heading: string;
   /** The FIRST-LAUNCH title: neutral, no account has been seen here yet. */
   headingFirst: (brand: string) => string;

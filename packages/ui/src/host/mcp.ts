@@ -81,21 +81,17 @@ export interface McpCatalogEntry {
 }
 
 /**
- * Optional MCP capability. Two server kinds:
- *  - **http** — remote "connector" servers (Notion, Slack, …) over HTTP+OAuth.
- *  - **stdio** — local servers from a vetted catalog (Gmail, Slack, GitHub), each
- *    spawned by main with credentials supplied as encrypted env values.
- * The main process owns the real connections and returns RAW (real) tool data; the
- * renderer wraps every call in the conversation's redaction vault, so the model
- * only ever sees placeholders.
+/**
+ * Optional MCP capability. `http` = remote connector servers over HTTP+OAuth; `stdio` =
+ * local servers from a vetted catalog, spawned by main with encrypted env credentials.
+ * Main owns the real connections and returns RAW tool data; the renderer wraps every call
+ * in the conversation's vault, so the model only ever sees fakes.
  */
 export interface McpHost {
-  /** True when the PLATFORM enforces its own un-spoofable write-confirmation surface
-   *  (desktop main's window) for every mutating non-browser tool. The renderer then
-   *  SKIPS its inline card for a plain write — one confirmation instead of two. The
-   *  exfil / navigation / attachments cards stay renderer-side regardless (they carry
-   *  privacy signals the platform gate doesn't show). Absent = no platform gate ⇒ the
-   *  inline card is the only confirmation and always shows. */
+  /** True when the PLATFORM enforces its own un-spoofable write-confirmation window for
+   *  every mutating non-browser tool; the renderer then SKIPS its inline card for a plain
+   *  write. The exfil / navigation / attachments cards stay renderer-side (privacy signals
+   *  the platform gate doesn't show). Absent ⇒ the inline card is the only confirmation. */
   mainWriteGate?: boolean;
   list(): Promise<McpServerInfo[]>;
   /** The vetted local-server catalog (for the "local servers" section of the UI). */
@@ -105,13 +101,10 @@ export interface McpHost {
   /** `apiKey` = a Bearer key for a header-auth remote connector (e.g. Fireflies);
    *  the desktop stores it encrypted. Absent for OAuth / query-param connectors. */
   add(spec: { id: string; name: string; url: string; apiKey?: string }): Promise<void>;
-  /** Add a USER-DEFINED remote MCP server — a host the app has NOT vetted, so the
-   *  platform decides everything about it: it MINTS the id (never trust one from here),
-   *  requires https with no inline credentials, and SSRF-guards the endpoint before
-   *  persisting it. A refusal comes back as `error` on the returned info (with an empty
-   *  `id`), never as a throw, so the form can show it inline.
-   *  Optional — absent ⇒ the UI shows no "Ajouter un serveur" affordance at all
-   *  (a platform that cannot validate the endpoint must not offer to add one). */
+  /** Add a USER-DEFINED remote MCP server. The platform decides everything: it MINTS the
+   *  id, requires https with no inline credentials, SSRF-guards the endpoint. A refusal
+   *  comes back as `error` on the returned info (empty `id`), never a throw. Absent ⇒ no
+   *  "Ajouter un serveur" affordance (a platform that cannot validate must not offer). */
   addCustom?(input: { name: string; url: string; apiKey?: string }): Promise<McpServerInfo>;
   /** Install a local server from the catalog with its declared env + path grants. */
   addStdio(
@@ -120,14 +113,11 @@ export interface McpHost {
     params?: Record<string, string | string[]>,
   ): Promise<McpServerInfo>;
   /** Native directory picker for a path-grant param; resolves the absolute path. */
-  /** `hint` pre-positions the native dialog on a folder the user dropped. It is a HINT
-   *  and nothing else: the authorisation is what the dialog returns, so a wrong hint
-   *  costs a mis-placed picker and never a grant. */
+  /** Native directory picker for a path-grant param. `hint` only pre-positions the dialog:
+   *  the authorisation is what the dialog returns. */
   pickDir(hint?: string): Promise<string | undefined>;
-  /** Replace the authorized folders of an ALREADY connected local server (add/remove),
-   *  without disconnecting it. A NEW folder must come from `pickDir` (the host verifies
-   *  it, on the privileged side); the live connection is rebuilt behind it, so a removal
-   *  takes effect right away. Absent ⇒ the UI doesn't offer editing. */
+  /** Replace the authorized folders of a connected local server without disconnecting it.
+   *  A NEW folder must come from `pickDir` (verified on the privileged side). Absent ⇒ no editing. */
   setDirs?(id: string, key: string, dirs: string[]): Promise<McpServerInfo>;
   remove(id: string): Promise<void>;
   /** Connect — opens OAuth in a browser (http) or spawns the server (stdio). */
@@ -164,14 +154,10 @@ export interface McpHost {
    *  connectors share ONE OAuth client, so entering the keys for one lets the others
    *  reuse them. The UI shows "déjà enregistré" on a group whose keys exist. */
   byoCredGroups?(): Promise<string[]>;
-  /** Cancel an IN-FLIGHT interactive connect (the "Connexion…" state). Main tears
-   *  down the OAuth loopback (closing the 127.0.0.1 listener so no `code` can land and
-   *  no token is minted), the GitHub device window, and the handshake; the pending
-   *  `connect*` call then rejects/returns an error and nothing is left connected
-   *  (fail-closed). `id` is the same id passed to `connect`/`connectDirect`/
-   *  `addAccount*` (the renderer may safely call it for both the connector id and the
-   *  server id — a no-op when neither is connecting). Optional — absent ⇒ the UI can't
-   *  offer a cancel and the spinner simply runs to completion/timeout. */
+  /** Cancel an IN-FLIGHT interactive connect: main tears down the OAuth loopback (no `code`
+   *  can land, no token is minted), the device window and the handshake; the pending call
+   *  then rejects and nothing is left connected (fail-closed). Safe to call for both the
+   *  connector id and the server id. Absent ⇒ the spinner runs to completion/timeout. */
   cancelConnect?(id: string): Promise<void>;
   disconnect(id: string): Promise<void>;
   /** Enable the controllable-browser connector: opts into driving Electron's own
@@ -190,25 +176,16 @@ export interface McpHost {
   /** Tools across all connected servers, names namespaced `${serverId}__${tool}`. */
   listTools(): Promise<McpTool[]>;
   /** Run a tool with RAW real data (the renderer adds redaction). Write gating is
-   *  MAIN-OWNED: a renderer-supplied approval can never influence it (the old
-   *  renderer-minted token was a fail-open — a renderer XSS could self-approve —
-   *  and its wiring is removed end to end; main applies `CONFIRMATION_POLICY` on
-   *  its own un-spoofable window). */
+   *  MAIN-OWNED: a renderer-supplied approval can never influence it (a renderer XSS could
+   *  self-approve); main applies `CONFIRMATION_POLICY` on its own un-spoofable window. */
   callTool(call: McpToolCall): Promise<McpToolResult>;
-  /** Arm (`true`) / disarm (`false`) SESSION write auto-approve: skip the per-action
-   *  confirmation for mutating tools until the app restarts. SECURITY — enabling is
-   *  confirmed on main's un-spoofable window (the renderer cannot self-grant it), so this
-   *  is a user choice, not a renderer bypass; resolves to the RESULTING state (a refused
-   *  enable stays protected). Absent (browser preview / un-restarted preload) ⇒ the toggle
-   *  hides and every write keeps prompting (fail-closed). */
+  /** Arm / disarm SESSION write auto-approve until restart. Enabling is confirmed on
+   *  main's un-spoofable window (the renderer cannot self-grant); resolves to the RESULTING
+   *  state. Absent ⇒ the toggle hides and every write keeps prompting (fail-closed). */
   setWriteAutoApprove?(enable: boolean): Promise<boolean>;
-  /** The confirmation MODE (`standard` | `renforce`) feeding `CONFIRMATION_POLICY`
-   *  (`@openmasq/catalog/mcp`). MAIN owns and persists it — the renderer only mirrors
-   *  the returned state for its own card decisions. Downgrading renforce→standard is
-   *  confirmed on main's un-spoofable window (a renderer XSS can't lower the posture);
-   *  resolves to the RESULTING mode. Absent (browser preview / un-restarted preload) ⇒
-   *  the Réglages toggle hides and the renderer evaluates the `standard` policy, whose
-   *  system-modal-less rules never defer to a window that doesn't exist. */
+  /** The confirmation MODE feeding `CONFIRMATION_POLICY` (`@openmasq/catalog/mcp`). MAIN
+   *  owns and persists it; downgrading renforce→standard is confirmed on its window.
+   *  Absent ⇒ the toggle hides and the renderer evaluates the `standard` policy. */
   setConfirmationMode?(mode: "standard" | "renforce"): Promise<"standard" | "renforce">;
   /** Read the persisted mode at boot so the renderer mirror starts true. */
   getConfirmationMode?(): Promise<"standard" | "renforce">;
@@ -230,29 +207,20 @@ export interface McpHost {
   syncedIntegrations?(): Promise<
     { id: string; connectorId: string; name: string; kind: string; label?: string }[]
   >;
-  /** Subscribe to live connection-state changes (connect/disconnect and the
-   *  SILENT startup reconnect, which completes after the UI's first `list()`) so
-   *  the UI can re-fetch instead of showing a reconnected server as disconnected.
-   *  Returns an unsubscribe fn. Optional — absent on platforms without a bridge. */
+  /** Live connection-state changes, including the SILENT startup reconnect that completes
+   *  after the UI's first `list()`. Returns an unsubscribe fn. */
   onChanged?(cb: () => void): () => void;
   /** Subscribe to remote connectors that DROPPED unexpectedly (their backend closed the
    *  connection) and need a manual reconnect. Emits the CURRENT full list on each change
    *  ([] when all healthy). Powers the app's bottom "reconnexion nécessaire" banner.
    *  Returns an unsubscribe fn. Optional — absent on platforms without a bridge. */
   onNeedsReconnect?(cb: (items: { id: string; name: string }[]) => void): () => void;
-  /** Subscribe to the OAuth authorize URL of an in-flight interactive connect (id → url),
-   *  so the UI can offer "Copier le lien" — the login then completes in whatever browser the
-   *  user opens (the return path is browser-agnostic). The URL is the PUBLIC authorize URL
-   *  that already goes to the system browser (no secret). Returns an unsubscribe fn. Optional
-   *  — absent ⇒ no copy affordance (the default browser still opens). */
+  /** The OAuth authorize URL of an in-flight connect (public URL, no secret), so the UI can
+   *  offer "Copier le lien". Returns an unsubscribe fn. Absent ⇒ no copy affordance. */
   onOauthUrl?(cb: (e: { id: string; url: string }) => void): () => void;
-  /** Connecting a connector that allows BOTH signed-in and anonymous access
-   *  (Firecrawl…) asks the user which to use: their own account (real credits/
-   *  quotas/scope) or anonymous limited access. Main calls this so the UI can show
-   *  a styled in-app modal (instead of a native OS popup) and await the choice;
-   *  the handler resolves "account" | "anonymous" ("anonymous" = the safe default
-   *  when dismissed). Returns an unsubscribe fn. Optional — absent in the browser
-   *  preview, where main falls back to anonymous. */
+  /** A connector allowing BOTH signed-in and anonymous access asks the user which to use;
+   *  the handler resolves "account" | "anonymous" ("anonymous" = the safe default when
+   *  dismissed). Absent ⇒ main falls back to anonymous. */
   onAuthChoice?(
     handler: (req: { id: string; name: string }) => Promise<"account" | "anonymous">,
   ): () => void;

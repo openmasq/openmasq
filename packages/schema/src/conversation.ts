@@ -1,7 +1,6 @@
 /**
- * The canonical persisted CONVERSATION shape — split out of `index.ts` (rule 1).
- * Same contract as the rest of the schema: PERSISTED data, so only ADD optional
- * fields; never rename/repurpose without a storage migration on both surfaces.
+ * The canonical persisted CONVERSATION shape. PERSISTED data: only ADD optional fields;
+ * never rename or repurpose one without a storage migration on every surface.
  */
 import type { Message } from "./message";
 import type { RedactCategoryKey } from "./index";
@@ -13,143 +12,75 @@ export interface Conversation {
   messages: Message[];
   createdAt: number;
   updatedAt: number;
-  /**
-   * Reversible redaction map (placeholder -> original value) for this
-   * conversation. Lets us send placeholders to the model and restore the
-   * originals in its reply. Persisted with the conversation.
-   */
+  /** Reversible redaction map (placeholder → original) for this conversation. */
   redactionVault?: Record<string, string>;
-  /**
-   * original value -> kind (name/email/phone/company/number), reconstructed from
-   * the persisted redactions so per-type highlight colours survive a reload even
-   * when a message's in-memory redactedSpans are gone.
-   */
+  /** original value → kind, reconstructed from the persisted redactions so per-type
+   *  highlight colours survive a reload. */
   redactionKinds?: Record<string, string>;
   /**
-   * PER-CONVERSATION salt for the value→fake mapping (a 31-bit int from a CSPRNG, minted
-   * once on the first redacting send). It SHIFTS the mapping off the public deterministic
-   * hash, so « Augustin Vaudel » maps to a DIFFERENT fake in each conversation and a table
-   * precomputed over the pool no longer reverses a held fake.
-   * ⚠️ It is not a key: the hash is public and the shift additive over 31 bits, so one
-   * known (value, fake) pair recovers it. Keeping the real value out of the wire is the
-   * generators' job (`fakes/digitsNotInvertible.test.ts`), not the salt's. Stability WITHIN the conversation is the vault's job;
-   * this only decorrelates ACROSS conversations. Absent ⇒ legacy deterministic mapping
-   * (salt 0) — existing conversations keep their vault entries, only newly-minted fakes
-   * differ. At rest it is treated like the vault (device-local, stripped from the plaintext
-   * localStorage mirror when a Host DB owns it).
+   * PER-CONVERSATION salt for the value→fake mapping (31-bit CSPRNG int, minted on the
+   * first redacting send). It SHIFTS the mapping off the public deterministic hash so the
+   * same value maps to a DIFFERENT fake in each conversation. ⚠️ Not a key: one known
+   * (value, fake) pair recovers it. Absent ⇒ legacy deterministic mapping (salt 0). At
+   * rest treated like the vault (stripped from the plaintext mirror when a Host DB owns it).
    */
   redactionSalt?: number;
   /**
-   * PER-CONVERSATION KEY (32 CSPRNG bytes, hex) for the value→fake mapping — what
-   * `redactionSalt` should have been. Every seed becomes `HMAC-SHA256(key, category ‖
-   * value)`, so a known (value, fake) pair reveals nothing about any other value, which
-   * an additive shift over a public hash could never claim.
-   *
-   * Minted on the first redacting send and then fixed, exactly like the salt. A
-   * conversation that predates it keeps its salt AND gets a key: its already-vaulted
-   * values keep their fakes (the vault holds them), only NEW values use the key — so
-   * nothing has to be migrated and no reversibility is lost.
-   *
-   * At rest it is treated like the vault: encrypted DB only, stripped from the plaintext
-   * localStorage mirror (`send/sendGuards.ts`).
+   * PER-CONVERSATION KEY (32 CSPRNG bytes, hex) for the value→fake mapping: every seed is
+   * `HMAC-SHA256(key, category ‖ value)`, so a known pair reveals nothing about any other
+   * value. Minted on the first redacting send, then fixed. A conversation that predates it
+   * keeps its salt AND gets a key: vaulted values keep their fakes, only NEW values use the
+   * key. At rest: encrypted DB only (`send/sendGuards.ts`).
    */
   redactionKey?: string;
   /**
-   * WHAT THE MODEL SEES instead of a sensitive value, PINNED on the conversation:
-   * `"fake"` (default) a plausible fake, `"token"` an opaque marker (`[PERSON1]`).
-   * The global setting only decides at the CREATION of the first redaction; after that
-   * this value is what governs, because switching mid-way would leave a
-   * vault half fake half tokens — each entry stays reversible, but the history
-   * sent back to the model would mix the two forms for the same people. Absent ⇒
-   * `"fake"`, which is what every conversation written before this field is.
+   * WHAT THE MODEL SEES instead of a sensitive value, PINNED on the conversation: `"fake"`
+   * (default) or `"token"` (`[PERSON1]`). The global setting decides only at the first
+   * redaction; switching mid-way would send the model a history mixing both forms.
    */
   redactionMode?: "fake" | "token";
-  /**
-   * AUTO-MEMORY extraction cursor: how many leading messages of this conversation have
-   * already been processed by the memory extractor (desktop). Not sensitive (a count).
-   */
+  /** AUTO-MEMORY extraction cursor: leading messages already processed. A count. */
   memoryWatermark?: number;
-  /**
-   * "No memory in this conversation" (rules modal): cuts memory INJECTION,
-   * the memory-search tool AND silent extraction for this
-   * conversation — in both directions, else the switch would be lying. An EXPLICIT
-   * request ("remember that…") is still honored: it is its own consent, the same rule
-   * as the global extraction setting. Absent ⇒ memory active (the default).
-   */
+  /** "No memory in this conversation": cuts INJECTION, the memory-search tool AND silent
+   *  extraction, in both directions. An EXPLICIT « retiens que… » is still honoured. */
   memoryOff?: boolean;
-  /**
-   * original value -> first-seen epoch ms. EXTENSION-ONLY today (the desktop does
-   * not persist this): lets the extension audit log + "today" stats use a real
-   * per-value time instead of the whole conversation's last-activity time. Kept on
-   * the canonical type so the two surfaces share ONE schema; harmless on desktop.
-   */
+  /** original value → first-seen epoch ms. Not persisted by the desktop; kept on the
+   *  canonical type so every surface shares ONE schema. */
   redactionTimes?: Record<string, number>;
-  /**
-   * NEUTRAL MARKS display mode for this conversation: redacted spans render as plain
-   * text with a small category-coloured badge above them, and only take their full
-   * highlight on hover. Pure DISPLAY preference — detection, vault and wire are
-   * untouched (flipping it redacts neither more nor less). Absent ⇒ off (classic
-   * highlighted marks).
-   */
+  /** NEUTRAL MARKS display mode: redacted spans render as plain text with a small badge and
+   *  highlight on hover. Pure DISPLAY preference — detection, vault and wire are untouched. */
   neutralMarks?: boolean;
-  /**
-   * Per-conversation redaction category OVERRIDE (sparse). Only the keys the user
-   * explicitly set here differ from the global `Settings.redactCategories`; any
-   * absent key inherits the global default. Lets one chat redact more/less than
-   * the rest without touching global settings.
-   */
+  /** Per-conversation category OVERRIDE (sparse): absent keys inherit `Settings.redactCategories`. */
   redactCategories?: Partial<Record<RedactCategoryKey, boolean>>;
-  /**
-   * REAL values the user chose to un-redact for THIS conversation (clicked
-   * "suspendre"/"supprimer" on a redacted element). They're added to the redaction
-   * `keep` allow-list so the next message no longer redacts them, and shown in clear.
-   * "Suspendre" keeps the vault mapping (reversible); "supprimer" also drops the vault
-   * entry. Org-forced categories can never be added here (enforced in the store).
-   */
+  /** REAL values the user chose to un-redact for THIS conversation (« suspendre » keeps the
+   *  vault mapping, « supprimer » drops it). Added to the `keep` allow-list. Org-forced
+   *  categories can never land here (enforced in the store). */
   revealedValues?: string[];
-  /**
-   * User-FORCED redactions (composer text-selection → "Redact" → chosen type):
-   * each `{ value, category }` is redacted for THIS conversation — in the current
-   * message AND every later one — as the chosen canonical category token
-   * (NAME/EMAIL/ORG/…), even if the detectors wouldn't catch it or that category is
-   * disabled. Undone by revealing the value (the audit journal / a mark's hover card), which drops it
-   * from here. `keep`/`revealedValues` win over it (the reveal path).
-   */
+  /** User-FORCED redactions (selection → « Masquer » → a type): each value is redacted for
+   *  THIS conversation, current message and later ones, as the chosen canonical category,
+   *  whatever the detectors say. Undone by revealing the value; `keep`/`revealedValues` win. */
   forcedRedactions?: { value: string; category: string }[];
-  /**
-   * For keyless web-session providers: the id of the matching web thread
-   * (e.g. chatgpt.com/c/<id> or claude.ai/chat/<id>). Saved after the first
-   * message so later messages go to the same thread instead of a new one.
-   */
+  /** For keyless web-session providers: the id of the matching web thread, so later
+   *  messages go to the same thread. */
   sessionConversationId?: string;
-  /**
-   * Redaction applied to ATTACHED FILES (visible mode), kept separate from
-   * message redactions so the log can distinguish "📎 file" from a typed message.
-   */
+  /** Redaction applied to ATTACHED FILES, kept separate so the log can tell a file from a message. */
   fileRedactions?: {
     name: string;
     spans: { value: string; kind: string }[];
     at: number;
   }[];
   /**
-   * Write-idempotency ledger (retry-safety): the opaque keys of side-effecting tool
-   * calls that have ALREADY COMPLETED, keyed on (`Message.turnId`, tool, wire args) by
-   * the agent loop (see `ui/src/agent/writeIdempotency.ts`). A "Réessayer" re-runs the
-   * turn but the loop recognises a key here and SKIPS the real call — so an action that
-   * already succeeded is not repeated. Keys are hashes of redacted (fake) args → no PII,
-   * kept in the plaintext localStorage snapshot. Bounded (the store trims oldest).
+   * Write-idempotency ledger: opaque keys of side-effecting tool calls that ALREADY
+   * COMPLETED, keyed on (`Message.turnId`, tool, wire args) by the agent loop
+   * (`ui/src/agent/writeIdempotency.ts`). A retry SKIPS a call whose key is here. Hashes of
+   * redacted args → no PII, kept in the plaintext snapshot. Bounded (oldest trimmed).
    */
   writeLedger?: string[];
   /**
-   * Checkpoint of the agentic turn currently in flight — the WIRE (redacted) transcript the
-   * model has accumulated, so a turn cut off by a crash, a quit or an auto-update RESUMES
-   * instead of restarting. Companion to `writeLedger`: the ledger says which side effects
-   * already happened, this says what the model already learned.
-   *
-   * ⚠️ It holds what LEFT the machine (wire text: fakes, but also every non-protected word
-   * of the conversation and of the pages it read), so its at-rest home is the encrypted Host
-   * DB — `stripUserContentForLocal` drops it from the localStorage snapshot, exactly like
-   * `Message.modelContent`. Cleared when the turn settles; expires on age
+   * Checkpoint of the agentic turn in flight — the WIRE transcript, so a turn cut off by a
+   * crash or an update RESUMES. Companion to `writeLedger`. ⚠️ It holds what LEFT the
+   * machine (fakes, but every non-protected word too), so its home is the encrypted Host DB
+   * (`stripUserContentForLocal`). Cleared when the turn settles; expires on age
    * (`ui/src/agent/turnCheckpoint.ts`).
    */
   turnCheckpoint?: {
@@ -158,13 +89,9 @@ export interface Conversation {
     messages: unknown[];
   };
   /**
-   * Compaction of the conversation's OLDEST turns, so a long thread degrades into a recap
-   * instead of silently losing its brief (`ui/src/send/contextSummary.ts`). Built from the
-   * WIRE turns — fakes the model already received — so it is egress-neutral to produce and
-   * injectable as-is, with no re-redaction step.
-   *
-   * ⚠️ It is bound to THIS conversation: fakes are salted per conversation, so the same
-   * placeholder names someone else elsewhere. Never copy it onto another thread.
+   * Compaction of the OLDEST turns (`ui/src/send/contextSummary.ts`), built from the WIRE
+   * turns so it is egress-neutral and injectable as-is. ⚠️ Bound to THIS conversation:
+   * fakes are salted per conversation. Never copy it onto another thread.
    */
   contextSummary?: {
     throughTurn: number;

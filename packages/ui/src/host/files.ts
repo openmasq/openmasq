@@ -1,10 +1,5 @@
 import type { Conversation, Settings } from "../types";
 
-/**
- * Optional durable persistence (e.g. a Turso/libSQL database). When present and
- * configured, conversations + their redaction vault are stored there; otherwise
- * the store falls back to localStorage.
- */
 /** One outbound decision, as the platform recorded it. */
 export interface EgressEntry {
   at: number;
@@ -40,12 +35,10 @@ export interface DbHost {
   /** Load the persisted debug journal ring for the CURRENT account (after `setUser`).
    *  `null` = none stored. */
   loadDebugJournal?(): Promise<string | null>;
-  /** The EGRESS journal: which origins this machine actually contacted, and which were
-   *  refused — newest first. **Read-only by contract**: the platform is the sole writer,
-   *  because a record the untrusted renderer could author or erase answers nothing. Rows
-   *  carry the ORIGIN only (scheme + host + port), never a path or query — a signed URL
-   *  carries its token there. Absent ⇒ the platform makes no outbound calls on the user's
-   *  behalf (browser preview) and the section is not drawn: a normal degradation. */
+  /** The EGRESS journal: origins this machine contacted and which were refused, newest
+   *  first. Read-only by contract: the platform is the sole writer (a record the untrusted
+   *  renderer could author answers nothing). Rows carry the ORIGIN only, never a path or
+   *  query (a signed URL carries its token there). Absent ⇒ the section is not drawn. */
   listEgress?(limit?: number): Promise<EgressEntry[]>;
   /** Store an attached file locally (original + redacted bytes). */
   saveFile?(file: StoredFile): Promise<void>;
@@ -98,8 +91,7 @@ export interface FileMeta {
   redactedCount?: number;
 }
 
-// the part recomputable from bytes alone (bytes route) — plus the REFUSAL, which is not
-// data about the file but a verdict on it, and which the caller must not discard.
+// The part recomputable from bytes alone, plus the REFUSAL — a verdict the caller must not discard.
 export type ExtractedBytes = Pick<
   ExtractedFile,
   "text" | "words" | "ocrText" | "ocr" | "ocrPages" | "error" | "blocked"
@@ -110,22 +102,17 @@ export interface ExtractedFile {
   text: string;
   chars: number;
   error?: string;
-  /** The pre-parse SAFETY gate REFUSED this file (oversize, a magic-byte/extension
-   *  contradiction, a decompression bomb) — `@openmasq/redact` `guardUpload`, whose
-   *  reason is in `error`. It is NOT "extraction failed": nothing parsed the bytes, and
-   *  nothing should. A refused file must not be attached, and above all must not travel
-   *  with its `data` — carrying the bytes is what let a refused archive reach the
-   *  viewer's unzip anyway (`pages/ChatWorkspace/extractDropped.ts`). */
+  /** The pre-parse SAFETY gate REFUSED this file (`@openmasq/redact` `guardUpload`; reason
+   *  in `error`). NOT "extraction failed": nothing parsed the bytes. A refused file must
+   *  not be attached and must never travel with its `data`. */
   blocked?: boolean;
   /** The RAW CAUSE of an extraction failure, for the debug journal ONLY
    *  (`ocrDebug.ts`): `error` stays the allow-listed phrase shown to the user;
    *  this distinguishes a missing native package from a corrupt PDF. Never rendered outside the
    *  journal (mirrors `@openmasq/redact` `ExtractedFile.rawCause`). */
   rawCause?: string;
-  /** Count of DISTINCT values the composer's drop-time redaction found in this file's
-   *  text. Forwarded to {@link FilesHost.redactAndSave} so the library card can show the
-   *  badge for formats whose BYTES can't be scrubbed in place (image/PDF) — there the
-   *  storage pass throws and finds nothing to count. Absent until the file is redacted. */
+  /** Count of DISTINCT values the drop-time redaction found in this file's text, forwarded
+   *  to {@link FilesHost.redactAndSave} for formats whose BYTES can't be scrubbed in place. */
   redactPreview?: number;
   /** The DROP's redaction map (real→fake + tone/category), laid down by the
    *  attachment's redaction pass. Threaded through to `redactAndSave` to be
@@ -134,10 +121,8 @@ export interface ExtractedFile {
   replacements?: import("@openmasq/redact/pdf-redact").PdfReplacement[];
   /** Source path on disk (native picks) — lets hidden mode store the original. */
   path?: string;
-  /** In-memory ORIGINAL bytes (base64) — set for a RE-ATTACH from the library,
-   *  where we already hold the decrypted original and must NOT re-read the
-   *  (encrypted, read-gated) on-disk blob. Hidden-mode `redactAndSave` uses this
-   *  instead of `path` when present. */
+  /** In-memory ORIGINAL bytes (base64) for a RE-ATTACH from the library: the decrypted
+   *  original is already held and the on-disk blob is encrypted and read-gated. */
   data?: string;
   /** MIME type (best-effort, by extension). */
   mime?: string;
@@ -145,11 +130,9 @@ export interface ExtractedFile {
    *  boxes, so the viewer can paint the redaction ON the image
    *  (`@openmasq/redact/image-redact` `renderRedactedImage`). */
   words?: { text: string; x0: number; y0: number; x1: number; y1: number; confidence?: number }[];
-  /** THE SECOND LAYER (always-OCR). A PDF is ALWAYS OCR'd, not only when its text layer is
-   *  thin — content baked into page IMAGES is invisible to the text layer. `text` is the
-   *  primary layer (exact text layer, or OCR for a scan); `ocrText` is what the pixels say.
-   *  Surfaced so the before-send preview can show BOTH layers side by side (a discrepancy =
-   *  hidden/altered text or OCR-only PII). Absent when the OCR layer adds nothing over `text`. */
+  /** THE SECOND LAYER: a PDF is ALWAYS OCR'd, because content baked into page images is
+   *  invisible to the text layer. `text` is the primary layer, `ocrText` what the pixels
+   *  say; a discrepancy = hidden text or OCR-only PII. Absent when OCR adds nothing. */
   ocrText?: string;
   /** How the text was EXTRACTED + how long — surfaced to the Debug Log (Développeur →
    *  Journal de débogage): the OCR engine for an image/scanned PDF, or `"pdf-text"` for a
@@ -165,20 +148,15 @@ export interface ExtractedFile {
     confidence?: number;
     fellBack?: boolean;
   };
-  /** Per-page GEOMETRY of the two layers (glyph/word boxes) — fuels the send-time HYBRID
-   *  detection layer (`send/attachmentLayers.ts`: exact characters re-read in the OCR
-   *  order, for a PDF whose text-layer reconstruction is untrustworthy). Types are the
-   *  redact core's (single source); optional — a host without geometry degrades to the
-   *  plain `text ∪ ocrText` union. NOT persisted on re-attach (recomputable, bulky). */
+  /** Per-page GEOMETRY of the two layers, for the send-time HYBRID detection
+   *  (`send/attachmentLayers.ts`). Optional; not persisted on re-attach (recomputable, bulky). */
   textPages?: import("@openmasq/redact/documents.browser").TextLayerPage[];
   ocrPages?: import("@openmasq/redact/documents.browser").OcrLayerPage[];
 }
 /**
- * The persisted EXTRACTION of a stored file — its text (+ OCR layers). Saved alongside
- * the bytes so a RE-ATTACH reuses it instead of re-running OCR/parsing; the new
- * conversation's send still re-redacted the `text` with ITS own vault (value-based, so
- * the fakes regenerate — we never reuse the old scrubbed copy). It is RAW real PII, so
- * it lives ONLY in the encrypted DB column, never the renderer's plaintext localStorage.
+ * The persisted EXTRACTION of a stored file, saved beside the bytes so a RE-ATTACH reuses
+ * it instead of re-running OCR. The new conversation still re-redacts `text` with ITS own
+ * vault. RAW real PII: lives ONLY in the encrypted DB column, never in localStorage.
  */
 export interface ExtractionResult {
   text: string;
@@ -193,12 +171,9 @@ export interface ExtractionResult {
   ocrPages?: ExtractedFile["ocrPages"];
   /** How the text was extracted (engine + timings) — carried for the Debug Log. */
   ocr?: ExtractedFile["ocr"];
-  /** The DROP's redaction map (real→fake + tone/category), FROZEN at the moment
-   *  this document went out. It's THE source for the Bibliothèque's viewer: the conversation's
-   *  coffre, meanwhile, accumulates values from the WHOLE conversation — repainting it
-   *  onto this document used to mark elements this send never redacted (and with
-   *  other tones, its `kinds` coming from a different producer). Observed on 14/08:
-   *  the post-drop modal and the Bibliothèque showed two different redactions. */
+  /** The DROP's redaction map, FROZEN when this document went out — THE source for the
+   *  Bibliothèque's viewer. The conversation's coffre accumulates values from the whole
+   *  conversation and would mark elements this send never redacted. */
   redactions?: { real: string; fake: string; tone?: string; kind?: string }[];
 }
 
@@ -223,30 +198,26 @@ export interface FilesHost {
   /** Read a file's raw bytes from disk — for previewing a not-yet-stored
    *  composer attachment (e.g. rendering a PDF before it's sent). */
   read?(path: string): Promise<Uint8Array>;
-  /** In-memory bytes (base64) — MCP tool files + the drop route (bytes, never a path).
-   *  STRUCTURED: the drop used to lose `words`/`ocrText` — the preview opened the ORIGINAL. */
+  /** In-memory bytes (base64) — MCP tool files + the drop route. STRUCTURED result so the
+   *  preview keeps `words`/`ocrText`. */
   extractBytes?(
     data: string,
     name: string,
     mime?: string,
     onOcrProgress?: (p: OcrProgress) => void,
   ): Promise<ExtractedBytes>;
-  /** The on-disk path of a DROPPED item. ⚠️ Not a read capability: the platform grants
-   *  nothing by answering. Its only sanctioned use is pre-positioning the native folder
-   *  picker (`pages/ChatWorkspace/dropIntake.ts`) — a dropped FILE travels as bytes,
-   *  which the renderer already holds, never as a path. Absent ⇒ no hint, no fallback. */
+  /** The on-disk path of a DROPPED item. ⚠️ Not a read capability. Its only sanctioned use
+   *  is pre-positioning the native folder picker (`pages/ChatWorkspace/dropIntake.ts`); a
+   *  dropped FILE travels as bytes. Absent ⇒ no hint. */
   pathForFile?(file: File): string | undefined;
   /** Download a remote file (e.g. a tool-returned export URL) in main to a temp
    *  path — so a signed URL is fetched off the model's path and its bytes can be
    *  redacted + stored + displayed to the user. Returns the temp path + name/mime. */
   fetchUrl?(url: string): Promise<{ path: string; name: string; mime: string }>;
-  /** Hidden mode: get the file's ORIGINAL bytes, redact them in place with the
-   *  conversation vault, store original + redacted in the files table, and return
-   *  the merged vault. The bytes come from EITHER a granted on-disk `path` (native
-   *  pick) OR inline `data` (base64) when the renderer already holds them — the
-   *  RE-ATTACH case, where the original was loaded (decrypted) from our own DB and
-   *  the on-disk blob is encrypted, so re-reading its path is both wrong and
-   *  blocked by the read-gate. Provide exactly one of `path` / `data`. */
+  /** Hidden mode: redact the file's ORIGINAL bytes in place with the conversation vault,
+   *  store original + redacted, return the merged vault. Bytes come from EITHER a granted
+   *  `path` OR inline `data` (the RE-ATTACH case: the on-disk blob is encrypted and
+   *  read-gated). Provide exactly one. */
   redactAndSave?(p: {
     id: string;
     conversationId: string;
@@ -269,11 +240,9 @@ export interface FilesHost {
     vault: Record<string, string>;
     kinds: Record<string, string>;
     spans: { value: string; kind: string }[];
-    /** Whether the BYTES were rewritten in place. False for a blocked format (PDF,
-     *  image): the stored copy keeps the original bytes — encrypted at rest, with the
-     *  send's own redaction untouched. `spans` is then empty BY DESIGN, and a caller
-     *  reporting it as « 0 masqués » says the opposite of what happened. Absent on a
-     *  host that predates this field ⇒ treat as unknown, never as a failure. */
+    /** Whether the BYTES were rewritten in place. False for PDF/image: the stored copy
+     *  keeps the original bytes (encrypted at rest); `spans` is then empty BY DESIGN, not
+     *  « 0 masqués ». Absent ⇒ unknown, never a failure. */
     redacted?: boolean;
   }>;
 }

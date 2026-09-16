@@ -96,8 +96,8 @@ export function AttachmentPreviewModal({
   stale?: boolean;
   /** Redaction is currently (re-)running for this file. */
   redacting?: boolean;
-  /** FAILED drop-time pass (audit): the header + the views say so — not threaded,
-   *  a failure used to read as "no value detected" under a shield. */
+  /** FAILED drop-time pass: the header + the views say so, else a failure reads as "no
+   *  value detected" under a shield. */
   redactError?: string;
   /** Chunk progress of the in-flight pass (the chip's bar) — shown in the subtitle. */
   redactProgress?: { done: number; total: number };
@@ -352,9 +352,8 @@ export function AttachmentPreviewModal({
   useEffect(() => {
     if (redactedPreview !== null) return; // deterministic path — no re-run
     if (view !== "redacted" || redacted !== null || redactedErr !== null || !file.text) return;
-    // Drop pass in progress → no 2nd concurrent detection (audit): its
-    // `replacements` arrive and take precedence. And bounded to the send cut
-    // (`wireText`) — this path used to run on the whole text, freezing the renderer.
+    // Drop pass in progress → no 2nd concurrent detection: its `replacements` arrive and
+    // take precedence. Bounded to the send cut (`wireText`), never the whole text.
     if (redacting) return;
     let alive = true;
     redact(wireText, undefined, undefined, convCategories)
@@ -407,9 +406,7 @@ export function AttachmentPreviewModal({
   // something to say — an empty toolbar would give back the row the tabs just freed.
   const searchBar = textView && !!file.text && !(view === "redacted" && redactedErr);
   // Only when there is a REASON to re-run: the file was redacted with settings that have
-  // since changed. It used to sit on the redacted view permanently, competing with the
-  // stale hint that carries the actual signal. A failed redaction has its own retry
-  // button in the fallback below.
+  // since changed. A failed redaction has its own retry button in the fallback below.
   const rerunBar = !!(onRerun && stale);
 
   return (
@@ -454,10 +451,8 @@ export function AttachmentPreviewModal({
                 : " — catégories désactivées"}
               .
             </span>
-            {/* No « Activer » shortcut: it opened the redaction-engine modal, which
-                carried no category toggles — the promise the button made was one the
-                destination could not keep. The categories live in Réglages →
-                Confidentialité, which a viewer leaf must not import up into (rule 9). */}
+            {/* No « Activer » shortcut: the categories live in Réglages → Confidentialité,
+                which a viewer leaf must not import up into (rule 9). */}
           </div>
         )}
         {/* FAILED pass: every view says so — otherwise « Pages masquées » painted with
@@ -476,13 +471,11 @@ export function AttachmentPreviewModal({
           </div>
         )}
         {onRevealChange && revealed.size > 0 && (
-          /* One TAG per revealed value — the SAME bare chips row as the composer
-             (no banner box around it): tone by category, «↺» to re-redact
-             that value. Replaces the old counting banner. */
+          /* One TAG per revealed value — the SAME bare chips row as the composer: tone by
+             category, «↺» to re-redact that value. */
           <div className="detect-chips fv-reveal-chips">
             {[...revealed].map((value) => {
-              // A replacement's `tone` IS a hue now (one vocabulary), but it may have been
-              // persisted before that — `hueForTone` guards an unknown name rather than
+              // `hueForTone` guards a `tone` persisted under a retired name rather than
               // letting `hl-<junk>` render an uncoloured chip.
               const hue = hueForTone(
                 file.replacements?.find((r) => r.real === value)?.tone ?? "amber",

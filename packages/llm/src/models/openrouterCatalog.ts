@@ -6,7 +6,7 @@ import type { DynamicModel } from "./dynamic.js";
  *
  * ⚠️ It lives here, not next to a caller, because BOTH sides of the platform boundary
  * consume it and MUST agree (rule 9): the desktop merges it into the picker's registry
- * (`setDynamicModels`), and `apps/gateway` merges the SAME shape to decide what its
+ * (`setDynamicModels`), and the server merges the SAME shape to decide what its
  * OpenRouter key may serve AND at what price. A second normalizer would let the two
  * disagree about which slugs exist or what they cost — i.e. about money.
  *

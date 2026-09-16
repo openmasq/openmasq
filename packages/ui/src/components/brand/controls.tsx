@@ -1,12 +1,8 @@
 import type { ButtonHTMLAttributes, InputHTMLAttributes, ReactNode } from "react";
 
 /**
- * Card / Button / Input — the three form-and-surface primitives the admin consoles
- * compose. They lived TWICE, in `apps/web/components/ui/` and `apps/ops/components/ui/`,
- * the second barrel ANNOUNCING the copy-paste rather than avoiding it — for lack of a
- * shared package. A single home now, because the two copies had already diverged: one
- * wrote `bg-surface-card`, the other `bg-[var(--surface-card)]`, and their primary
- * buttons weren't the same colour.
+ * Card / Button / Input — the three form-and-surface primitives other surfaces compose.
+ * A single home (rule 9): two copies of these had already diverged in colour.
  *
  * The original reason for the split — "brand.tsx is already over 300 LOC" — is gone:
  * `brand.tsx` became this folder, and these get their own file rather than growing
@@ -68,10 +64,9 @@ const VARIANT: Record<ButtonVariant, string> = {
    * ⚠️ Root rule 12 hazard, preserved verbatim rather than silently repainted: this
    * pins a literal ink (`--forest-900`) on a `--lime` ground, and the dark-green theme
    * re-points `--lime` to a near-black (`#11160b`) while `--forest-900` stays dark —
-   * dark ink on a dark ground, i.e. the text is gone. It is safe today only because
-   * `apps/ops` ships no theme switcher. There is no `--ink-on-lime` token to pair it
-   * with; adding one (or moving ops onto `primary`) is the real fix and is a design
-   * decision, not a refactor.
+   * dark ink on a dark ground, i.e. the text is gone. Safe only where no theme switcher
+   * exists. There is no `--ink-on-lime` token to pair it with; adding one (or moving the
+   * consumer onto `primary`) is the real fix and is a design decision, not a refactor.
    */
   cta: "bg-[var(--lime)] text-[var(--forest-900)] border border-transparent font-semibold hover:opacity-90",
   secondary: "bg-surface-card text-body border border-border-default hover:bg-surface-hover",

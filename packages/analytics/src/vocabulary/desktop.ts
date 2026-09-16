@@ -5,10 +5,9 @@
  * `sanitize.parity.test.ts` there pins both directions at the type level.
  *
  * It lives HERE, not beside that union, because it has TWO readers: the app's allow-list
- * walk (drops any key a call site attaches that is not declared) and the relay
- * (`apps/analytics-fn`, private `infra` repo), which admits an envelope only if its event
- * and keys are in this list. One list, imported by both — a copy would let the relay drop
- * what the app declares, silently, on the next event added.
+ * walk (drops any key a call site attaches that is not declared) and the relay, which
+ * admits an envelope only if its event and keys are in this list. One list, imported by
+ * both — a copy would let the relay drop what the app declares, silently.
  */
 export const DESKTOP_EVENTS = {
   app_open: [],

@@ -23,7 +23,7 @@
  * Namespaces follow SURFACES, not files — one word rendered in two
  * places has a single entry (rule 9 applied to copy). This file stays the ONLY
  * list of namespaces; the slices under `messages/` exist only to hold the
- * 300-LOC cap (rule 1), like `packages/emails/i18n/`.
+ * 300-LOC cap (rule 1).
  */
 import type { AgentMessages } from "./messages/agent";
 import type { AvailabilityMessages } from "./messages/availability";

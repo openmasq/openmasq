@@ -52,38 +52,22 @@ export const EUROPE_RULES: RedactionRule[] = [
   nid(re(String.raw`\b[X-Z][0-9]?[0-9]{7}[-]?[A-Z]\b`), esNieValid),
   // ES passport (3 letters + 6 digits) is a generic code shape → context-gated.
   nid(gate("pasaporte|passport", String.raw`[A-Z]{3}[0-9]{6}`)),
-  // Spain — CIF, the COMPANY tax id ("con NIF B12345678"). The person-side NIF/NIE
-  // rules above are mod-23 letter-checked and cannot see it: a CIF is a LEADING
-  // organisation letter + 7 digits + a control char, so it has no trailing mod-23
-  // letter to validate. It is the counterparty id on every Spanish contract, and it
-  // shipped in clear. Gated on the scheme keyword (the shape alone is a banal code)
-  // and structurally bounded: the leading letter must be a real CIF organisation
-  // class (A société anonyme, B S.L., …), which excludes an ordinary word.
+  // Spain — CIF, the COMPANY tax id ("con NIF B12345678"): a LEADING organisation letter +
+  // 7 digits + a control char, so the mod-23 NIF/NIE rules cannot see it. Gated on the
+  // keyword (the shape is a banal code); the leading letter must be a real CIF class.
   {
     type: "company_id",
     pattern: gate("cif|nif", String.raw`[ABCDEFGHJNPQRSUVW][0-9]{7}[0-9A-J]\b`),
   },
-  // Spain — NUSS / número de afiliación a la Seguridad Social. The EXACT equivalent of the
-  // French NIR, which the engine has always redacted: it appears on every payslip,
-  // every contract and every Spanish Seguridad Social document, and no
-  // rule saw it — measured on 17/08/2026 on a real nómina in columns, under its
-  // own label « Nº Seguridad Social ».
-  //
-  // GATED BY THE KEYWORD, not by a checksum: the NUSS does have one (mod 97
-  // on the body), but no published test vector lets us VERIFY it here, and a check
-  // implemented from a description would let through the real numbers it
-  // computes wrong — i.e. a leak disguised as a rule. The precision bar
-  // covers this case: a banal digit run is gated by the scheme's word.
-  // The real-world form is 2 (province) + 7 or 8 (sequence) + 2 (check), separated by
-  // space, slash, dot or dash — or glued.
+  // Spain — NUSS / número de afiliación a la Seguridad Social, the equivalent of the French
+  // NIR (every payslip and contract). GATED BY THE KEYWORD, not by a checksum: the NUSS has
+  // one, but no published test vector lets us VERIFY it, and a check implemented from a
+  // description lets through the real numbers it computes wrong. Form: 2 (province) + 7-8
+  // (sequence) + 2 (check), separated by space, slash, dot, dash — or glued.
   nid(
     gate(
-      // ⚠️ `n.a.f.` is the ABBREVIATION Spanish forms actually use for
-      // the número de afiliación — the label spelled out in full is the exception, not the
-      // rule. Without it, the gate added that same morning only covered half the
-      // documents where the number appears (contract, nómina, alta en la Seguridad Social).
-      // No risk on the FRENCH « code NAF » side: that one is 4 digits + a
-      // letter (6201Z), which can't satisfy the 11-12 digits required below.
+      // `n.a.f.` is the ABBREVIATION Spanish forms actually use. No collision with the
+      // French « code NAF » (4 digits + a letter can't satisfy the 11-12 digits below).
       "seguridad social|n[uú]mero de afiliaci[oó]n|afiliaci[oó]n|nuss|n\\.?\\s?a\\.?\\s?f\\.?",
       String.raw`\d{2}[ /.\-]?\d{7,8}[ /.\-]?\d{2}\b`,
     ),
@@ -96,18 +80,12 @@ export const EUROPE_RULES: RedactionRule[] = [
   nid(re(String.raw`\b[1-9]\d{10}\b`), deTaxIdValid),
   nid(gate("führerschein|fuehrerschein|fuhrerschein|driving licen|driver licen", String.raw`[A-Z]{2}\d{8}[A-Z0-9]`)),
   cid(re(String.raw`\bHR[AB]\s*\d{1,6}\b`)),
-  // ⚠️ The space after the prefix MUST be tolerated: « USt-IdNr.: DE 123456789 »
-  // is a common way German invoices write it, and Germany was the ONLY country
-  // in the VAT pack (below) not to accept it — BE/PL/SE/DK/PT/NL/AT/ES/IE all have their
-  // ` ?`. So the same number went out in clear or redacted depending on a single space.
+  // The space after the prefix MUST be tolerated (« USt-IdNr.: DE 123456789 »), like every
+  // other country of the VAT pack below.
   cid(re(String.raw`\bDE ?\d{9}\b`)),
-  // The STEUERNUMMER — the other German tax id, and the most frequent one on an
-  // invoice: §14 UStG requires one of the two, and a small business without a USt-IdNr writes
-  // this one. No rule saw it. Gated by its LABEL, not by a check: the
-  // « Land » part is structural and there's no published national checksum —
-  // a check written from a description would let through the real numbers
-  // it would compute wrong. The two official groupings (10 and 11 digits),
-  // with slashes or spaces.
+  // The STEUERNUMMER — the other German tax id, the most frequent one on an invoice. Gated
+  // by its LABEL, not by a check (no published national checksum). The two official
+  // groupings (10 and 11 digits), with slashes or spaces.
   cid(
     gate(
       "steuernummer|steuer-?nr|st\\.?-?nr",
@@ -115,19 +93,14 @@ export const EUROPE_RULES: RedactionRule[] = [
     ),
   ),
   nid(gate("versichertennummer|krankenversicherung|kvnr|insurance", String.raw`[A-Z]\d{9}`)),
-  // Italy — Partita IVA (Luhn mod-10), driver licence, identity card, passport.
-  // The IVA is CONTEXT-GATED: an 11-digit run is a banal shape (a phone with country
-  // code, an order id) and Luhn passes ~1/10 of random runs — the weakest checksum in
-  // the pack, so bare it redacted ordinary numbers as company_id (data corruption).
+  // Italy — Partita IVA (Luhn mod-10), driver licence, identity card, passport. The IVA is
+  // CONTEXT-GATED: an 11-digit run is banal and Luhn passes ~1/10 of random runs.
   cid(gate("p\\.?\\s?iva|partita\\s?iva|vat|codice", String.raw`([0-9][ _]?){11}`), itVatValid),
   // Driver licence: the `U1…` form is distinctive (kept bare); the `2-letters+7-
   // digits+letter` form is generic → gated.
   nid(re(String.raw`\bU1[BCDEFGHLJKMNPRSTUWYXZ0-9]{7}[A-Z]\b`)),
   nid(gate("patente|driver licen|driving licen|licenza", String.raw`[A-Z]{2}\d{7}[A-Z]`)),
-  // Identity card / passport — 2-letters+7-digits (and dashed variants) is a very
-  // common code shape → context-gated. (The former bare `\b[A-Z]{2}\d{7}\b` generic-
-  // passport rule was REMOVED: fully shadowed by the first alternative here, and it
-  // false-positived on any 2-letter+7-digit code.)
+  // Identity card / passport — 2-letters+7-digits is a very common code shape → context-gated.
   nid(gate("carta d'identità|carta identita|identity card|passport|passaporto", String.raw`[A-Z]{2}\s?\d{7}|\d{7}[A-Z]{2}|[A-Z]{2}\d{5}[A-Z]{2}`)),
   // Poland — PESEL (encodes a valid date + weighted checksum).
   nid(
@@ -141,12 +114,9 @@ export const EUROPE_RULES: RedactionRule[] = [
   // Sweden — personnummer / organisationsnummer are bare digit runs → gated.
   nid(gate("personnummer|personal number|födelsenummer", String.raw`\d{6,8}[-+]?\d{4}`)),
   cid(gate("organisationsnummer|orgnr|org nr|företagsnummer", String.raw`\d{6}[-]?\d{4}`)),
-  // United Kingdom — NHS (mod-11), driving licence, vehicle registration.
-  // The SPACED/dashed 3-3-4 form is distinctive → fires on the checksum alone; a
-  // BARE 10-digit run is NOT (Unix timestamps, Stripe/DB ids… satisfy the weak
-  // mod-11 ~1 time in 11), so require a separator OR an "nhs" context word. Without
-  // this a JSON `"created": 2520525167` got redacted and CORRUPTED the model's date
-  // math — irreversibly, since the model re-derives the date from the (fake) number.
+  // United Kingdom — NHS (mod-11), driving licence, vehicle registration. The SPACED/dashed
+  // 3-3-4 form fires on the checksum alone; a BARE 10-digit run is NOT distinctive (a Unix
+  // timestamp passes the weak mod-11 ~1/11), so it requires a separator OR an "nhs" word.
   nid(re(String.raw`\b([0-9]{3})[- ]([0-9]{3})[- ]([0-9]{4})\b`), ukNhsValid),
   nid(gate("nhs|national health|nhs number|nhs no", String.raw`\d{10}\b`), ukNhsValid),
   nid(

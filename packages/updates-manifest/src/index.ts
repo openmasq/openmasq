@@ -1,15 +1,6 @@
 /**
- * Le FORMAT des manifestes de mise à jour du bureau — une seule maison.
- *
- * Il vivait dans `apps/updates/src/lib/desktopArch.ts` (le serveur du flux), et
- * `apps/desktop` l'atteignait par une CLI, faute de pouvoir importer une app sœur. Le
- * split d'août 2026 a coupé ce lien : les deux apps sont désormais dans des DÉPÔTS
- * différents, et le `release.yml` du bureau échouait sur un chemin qui n'existait plus.
- *
- * D'où ce paquet, ici plutôt que là-bas : le dépôt infra consomme celui-ci par
- * sous-module, jamais l'inverse. Placer la maison du côté consommé est le seul sens qui
- * laisse les DEUX y accéder — le producteur des manifestes (`apps/desktop`) comme le
- * serveur qui les recompose (`apps/updates`).
+ * Le FORMAT des manifestes de mise à jour du bureau — une seule maison, partagée par le
+ * producteur (`apps/desktop`) et le serveur du flux qui les recompose (rule 9).
  */
 export type DesktopArch = 'arm64' | 'x64';
 

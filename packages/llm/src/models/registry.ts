@@ -167,7 +167,7 @@ export function findModel(id: string): ModelInfo | undefined {
 
 /** Snapshot of the STATIC OpenRouter ids, frozen at module init — the ONLY OpenRouter
  *  ids the gateway serves on the platform's key (its `PLATFORM_MODELS` allow-list mirrors
- *  this set; `apps/gateway` `platformModels.test.ts` pins the parity). Captured here
+ *  this set; `platformModels.test.ts` pins the parity). Captured here
  *  because `setDynamicModels` REPLACES the live OpenRouter entries at runtime — this
  *  snapshot is what "curated" still means afterwards. A dynamically-discovered slug is
  *  BYO-only (`isPlatformServableModel`): routing it to the gateway 400s MODEL_NOT_ALLOWED. */

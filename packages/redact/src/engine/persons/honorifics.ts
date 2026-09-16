@@ -64,12 +64,9 @@ const ROLE_WORDS = new Set([
   "professor", "secretary", "chairman", "officer",
 ]);
 
-// NAME PARTICLES — the nobiliary/patronymic joiners. A surname built on one
-// ("EL AMRANI", "VAN DER MEER", "DA SILVA", "de la Fontaine", "BEN SALAH",
-// "OULD SLIMANE") used to STOP the continuation dead: the particle is 2 chars or a
-// stopword, so `okToken` rejected it and only the FIRST NAME was redacted — the
-// identifying half shipped in clear. They are consumed as JOINERS only: a particle
-// is kept solely when a real name token follows it, so a trailing "de" can never
+// NAME PARTICLES — the nobiliary/patronymic joiners ("EL AMRANI", "VAN DER MEER", "de la
+// Fontaine"). `okToken` rejects them (2 chars or a stopword), so they are consumed as
+// JOINERS only: kept solely when a real name token follows, so a trailing "de" can never
 // end a value (and `isNamePart` still forbids aliasing one on its own).
 const NAME_PARTICLES = new Set([
   "de", "du", "des", "la", "le", "les", "d", "l",
@@ -82,17 +79,11 @@ const NAME_PARTICLES = new Set([
 export const isParticle = (tok: string): boolean =>
   NAME_PARTICLES.has(tok.replace(/[.'’]/g, "").toLowerCase());
 
-// ACADEMIC-TITLE CONTINUATIONS — the DOTTED discipline word of a German/Latin doctorate
-// ("Dr. med.", "Dr. phil.", "Dr. rer. nat.", "Dr.-Ing."). Consumed as part of the TITLE,
-// never as its name.
-//
-// ⚠️ Not merely a precision fix. Left unconsumed, "med" IS the match's first token, so the
-// detector emitted « med » AND STOPPED — the physician's real name two tokens later
-// ("Dr. med. Hendrik WALDHOFF-ARNDT") was never proposed at all. A false positive that
-// hides a miss. Both halves are pinned in `honorifics.test.ts`.
-//
-// The trailing DOT is required, exactly like `DOTTED_TITLES`: an undotted "Med"/"Ing" is
-// an ordinary capitalised word, and swallowing it would eat a real surname.
+// ACADEMIC-TITLE CONTINUATIONS — the DOTTED discipline word of a doctorate ("Dr. med.",
+// "Dr. rer. nat.", "Dr.-Ing."), consumed as part of the TITLE: left unconsumed, "med" is the
+// match's first token and the real name two tokens later is never proposed (a false
+// positive that hides a miss — `honorifics.test.ts`). The DOT is required: an undotted
+// "Ing" is an ordinary capitalised word.
 const TITLE_CONTINUATIONS = ["med", "phil", "rer", "nat", "jur", "habil", "ing", "sc"];
 
 const byLengthDesc = (a: string, b: string): number => b.length - a.length;
@@ -103,31 +94,22 @@ const RE = new RegExp(
     // …optionally followed by its DOTTED academic continuations. The hyphen arm is the
     // German "Dr.-Ing." welding, which no whitespace class would reach.
     `(?:[^\\S\\r\\n]{0,2}-?(?:${TITLE_CONTINUATIONS.sort(byLengthDesc).join("|")})\\.)*` +
-    // 1-2 spaces, never a RUN: 3+ is the COLUMN GUTTER of a form line, and crossing it
-    // read a checkbox label as a person (« ☐ Mme        Nom : … » → the person « Nom »,
-    // whose fake then replaced the word « Nom » throughout the conversation).
+    // 1-2 spaces, never a RUN: 3+ is the COLUMN GUTTER of a form line (« ☐ Mme        Nom »).
     `[^\\S\\r\\n]{1,2}` +
     // INITIALS (group 3), optional: « Mr C. Whomersley », and the anonymised court form
-    // « Mrs G. » / « Sergeant H » where the initial IS the whole name. Measured on TAB: 818
-    // of the 969 person spans the engine missed were a title + an initial — `TOKEN` needs
-    // two letters and no dot, so « C. » was never a token and the title never matched.
-    // Dotted initials may precede a surname; a BARE capital may only stand alone, and
-    // never « A » or « I ». Trailing whitespace is captured WITH the group so the name's
-    // offset arithmetic below stays what it was.
+    // « Mrs G. » where the initial IS the whole name (`TOKEN` needs two letters and no dot).
+    // Dotted initials may precede a surname; a BARE capital may only stand alone, never
+    // « A » or « I ». Trailing whitespace is captured WITH the group for the offset arithmetic.
     `((?:\\p{Lu}\\.[^\\S\\r\\n]{0,2})+|(?<![\\p{L}])[B-HJ-Z](?![\\p{L}'’.-])[^\\S\\r\\n]{0,2})?` +
     // …the name (group 4), optional so « Mrs G. » closing a sentence still matches.
     `(${TOKEN}(?:[^\\S\\r\\n]{1,2}${TOKEN}){0,4})?`,
   "giu",
 );
 
-// The honorific GLUED by OCR — « MonsieurMaxime OZERAY », « MmeVIDALENC »: zero
-// space, and the whole identity went out IN CLEAR while the spaced names in the same
-// document were masked (scanned lease, 14/08). ⚠️ A SEPARATE regex, WITHOUT the `i`
-// flag, and that's not a detail: under `iu`, \p{Lu}/\p{Ll} FOLD by case, so a
-// « lowercase→UPPERCASE » boundary in RE would constrain nothing (« FRAUEN » split
-// into FRAU+EN). Here the casing is carried by the alternation itself: titles in TITLE
-// CASE only, followed by an UPPERCASE letter — « monsieurthomas » and the all-caps
-// German plurals can't match by construction.
+// The honorific GLUED by OCR — « MonsieurMaxime OZERAY », « MmeVIDALENC ». ⚠️ A SEPARATE
+// regex WITHOUT the `i` flag: under `iu`, \p{Lu}/\p{Ll} FOLD by case, so a
+// « lowercase→UPPERCASE » boundary would constrain nothing (« FRAUEN » split into FRAU+EN).
+// The casing is carried by the alternation: TITLE-CASE titles followed by an UPPERCASE letter.
 const GLUED_TITLES = [
   "Monsieur", "Madame", "Mademoiselle", "Mme", "Mlle",
   "Maître", "Maitre", "Docteur", "Professeur", "Mr", "Mrs", "Dr", "Prof",
@@ -161,12 +143,9 @@ function okToken(tok: string, requireCased: boolean): boolean {
 /**
  * Detect person names introduced by an honorific. Returns verbatim
  * `{value, category: "NAME"}` detections — the title itself stays in clear.
- * The FIRST token decides the match; up to TWO more tokens are appended, each only
- * while Capitalized in the original ("Monsieur Julien Louis SABOURDIN" → all
- * three — a 2-token cap left the SURNAME of a "first middle LAST" civil-status
- * line in clear, and the person later re-detected from a shorter form got a
- * SECOND identity; the lowercase "madame keller demain" still yields "keller"
- * only — an uncased following word is prose). The value slices the captured text,
+ * The FIRST token decides the match; further tokens are appended only while Capitalized in
+ * the original ("Monsieur Julien Louis SABOURDIN" → all three; "madame keller demain" →
+ * "keller" only, an uncased following word is prose). The value slices the captured text,
  * so original spacing is preserved verbatim.
  */
 export function detectHonorificNames(text: string): Detection[] {
@@ -202,14 +181,10 @@ export function detectHonorificNames(text: string): Detection[] {
         continue;
       }
       if (!captured) continue;
-      // REJECTED first token ("M. et …") — resume right after it, not after the
-      // full greedy capture: the swallowed tail may hold the NEXT honorific
-      // ("M. et Mme SABOURDIN" — skipping to the capture's end orphaned "Mme").
-      //
-      // …EXCEPT when the rejected token is ITSELF a title: titles STACK ("Prof. Dr. med.
-      // habil. Sabine BRENNEKE"), so resume AT it and let it match as the title on the
-      // next pass. Resuming after it consumed the only anchor and the name was lost.
-      // Terminating: `start` is strictly greater than this match's index.
+      // REJECTED first token ("M. et …") — resume right after it, not after the greedy
+      // capture, whose tail may hold the NEXT honorific ("M. et Mme SABOURDIN"). EXCEPT when
+      // the rejected token is ITSELF a title: titles STACK ("Prof. Dr. med. habil. X"), so
+      // resume AT it. Terminating: `start` is strictly greater than this match's index.
       if (tokens[0]) {
         const inner = TITLE_WORDS.has(tokens[0].toLowerCase());
         re.lastIndex = inner ? start : start + tokens[0].length;
@@ -239,17 +214,13 @@ export function detectHonorificNames(text: string): Detection[] {
     // followed) — walk back to the last real token.
     while (keep > 1 && isParticle(tokens[keep - 1])) keep--;
     // A LOWERCASE surname may follow a KNOWN first name — French legal prose writes
-    // parties fully lowercase ("monsieur lucas ferrand, ci-après « le bailleur »"),
-    // and the cased-only continuation kept "lucas" but LEAKED "ferrand". The
-    // first-name lexicon is the gate (the gazetteer's own pairing logic): "madame
-    // keller demain" is unchanged — "keller" is not a first name, so "demain" can
-    // never be appended. ONE token only, and only when nothing cased followed.
+    // parties fully lowercase ("monsieur lucas ferrand, ci-après « le bailleur »"). The
+    // first-name lexicon is the gate: "keller" is not a first name, so "demain" is never
+    // appended. Only when nothing cased followed.
     if (
       keep === 1 &&
       keep < tokens.length &&
-      // Lowercase prose ONLY: a Capitalized first token followed by a lowercase word is
-      // ordinary text (« Dr Darnell gave evidence ») — Darnell being a first name must
-      // not make « gave » a surname. It did, and the verb left with the fake.
+      // Lowercase prose ONLY: « Dr Darnell gave evidence » must not make « gave » a surname.
       !/^\p{Lu}/u.test(tokens[0]) &&
       FIRST_NAMES.has(tokens[0].normalize("NFD").replace(/\p{M}+/gu, "").toLowerCase())
     ) {
@@ -272,13 +243,10 @@ export function detectHonorificNames(text: string): Detection[] {
     // "welby and mrs"), which would orphan its name from detection entirely.
     re.lastIndex = at + value.length;
     if (source === RE_GLUED) {
-      // GLUED form: the value INCLUDES the fused title (the whole « MonsieurMaxime
-      // OZERAY »), and that's not a display choice. The vault never rewrites a
-      // fragment inside a word (`isWordGlued` — the invariant that protects
-      // « email » from « eVoxa »), so a « Maxime » emitted alone would be DETECTED but
-      // NEVER replaced: the identity went out in clear, with a green detection to show for it.
-      // The title lost in the fake costs nothing (« Basile CAZENAVE » reads fine); restitution,
-      // on the other hand, renders the original fused down to the character.
+      // GLUED form: the value INCLUDES the fused title. The vault never rewrites a fragment
+      // inside a word (`isWordGlued`), so a « Maxime » emitted alone would be DETECTED but
+      // NEVER replaced. The title lost in the fake costs nothing; restitution renders the
+      // original fused down to the character.
       value = text.slice(m.index, at + value.length);
       at = m.index;
     }

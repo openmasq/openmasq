@@ -1,14 +1,8 @@
-// Multilingual "label → value" detector. Administrative documents and forms put
-// sensitive data as `Field : value` (`Dénomination : Karl Studio`, `Name: John
-// Welby`, `Adresse : 12 rue …`). A specialised NER model often MISSES such values
-// in dense form context, and a regex can't know a bare token is a company. But the
-// LABEL is a strong, language-scoped signal: if a line is introduced by a known
-// sensitive field name, its value is sensitive — whatever its shape.
-//
-// This is deterministic and LANGUAGE-AGNOSTIC by construction: coverage grows by
-// adding label terms per language (FR/EN/DE/ES/IT/PT/NL seeded here). Only the
-// value is emitted; the label stays in clear (it carries no PII and helps the
-// chat model understand the structure).
+// Multilingual "label → value" detector: administrative documents and forms write
+// `Field : value`, a NER often MISSES such values in dense form context, but the LABEL is a
+// strong language-scoped signal — if a line is introduced by a known sensitive field name,
+// its value is sensitive whatever its shape. Coverage grows by adding label terms per
+// language. Only the value is emitted; the label stays in clear.
 import type { Detection } from "../../types";
 import { isStopword, isGenericTerm } from "../../model/detect";
 import { LABEL_GROUPS, labelOf } from "./terms";
@@ -16,8 +10,7 @@ import { pushBarePhoneLabels } from "./phoneLabel";
 import { acceptFieldValue, cleanValue } from "./values";
 
 export { detectSelfHandles } from "./selfProse";
-// Re-export: the value guard moved to `contextFields.values.ts` (300 LOC cap),
-// the public NAME doesn't move — `labelBlocks.ts` and the tests import it from here.
+// Re-export: the value guard lives in `values.ts`; `labelBlocks.ts` and the tests import it from here.
 export { acceptFieldValue, cleanValue } from "./values";
 
 function escape(s: string): string {
@@ -40,49 +33,27 @@ export function detectLabeledFields(text: string): Detection[] {
   const seen = new Set<string>();
   for (const group of LABEL_GROUPS) {
     // A prose label's words may be joined by a space, an underscore, a dash — or the
-    // markdown-escaped underscore a renderer leaves (`swift\_bic\_code:`, verbatim in
-    // Gretel's finance documents): ONE joiner, never none (the serialised forms, bounded by
-    // their quotes, tolerate more).
+    // markdown-escaped underscore a renderer leaves (`swift\_bic\_code:`): ONE joiner.
     const alt = group.terms.map((t) => escape(t).replace(/ /g, "(?:[ _-]|\\\\_)")).join("|");
     // Label at a word boundary, then an optional PLURAL `s` and an optional short
-    // PARENTHETICAL — identity documents write "Prénom(s) :" / "Nom(s)", and OCR
-    // routinely drops the opening paren ("Prénomis):" was reported LEAKING "JULIEN
-    // LOUIS"). Two suffix branches, both `)`­-terminated: a real parenthetical
-    // (`(s)`, `(usage)` — whitespace allowed before the `(`), or the OCR orphan —
-    // 1-10 letters GLUED to the term then `)`. The orphan branch is GLUED on
-    // purpose: with a leading space it read a following WORD as part of the label
-    // ("…réciter tel quel) :" → "tel"+" quel)" = a PHONE label — the Mémoire
-    // header trap), and a term merely sitting INSIDE parens
-    // (`Karl Studio (organisation) : devis`) can never read as label+`)`.
-    // Then a colon (`:` or fullwidth `：`) — or a DOTTED LEADER of ≥4 dots, the
-    // form idiom ("Code postal ......... 44000"; ≥4 so a prose ellipsis "..."
-    // never reads as a label) — and the value: label, separator and value on the
-    // SAME line ([^\S\r\n], never \s: a colon at end-of-line must not capture the
-    // NEXT line as its "value"). Case-insensitive, Unicode.
-    // ⚠️ A QUALIFIER between the label and the colon — but for the ID group ONLY.
-    // Measured on 15/08/2026 on a real accord de principe: « Identifiant du Projet
-    // Crédit : 02799195 » didn't match, while « Identifiant : … » does — the
-    // label had to end RIGHT BEFORE the separator. But a corporate document always
-    // qualifies its identifiers (« du Projet Crédit », « client », « de facturation »).
-    // Bounded: at most 3 letter-words, each ≤ 12 characters, so the qualifier can't
-    // cross a clause; and the value still goes through `acceptFieldValue`
-    // (≥ 2 characters, a digit required for a numeric field), which excludes
-    // « Identifiant de la page : 3 ». The other groups don't move — their false-positive
+    // PARENTHETICAL — identity documents write "Prénom(s) :", and OCR routinely drops the
+    // opening paren ("Prénomis):"). The orphan branch is GLUED on purpose: with a leading
+    // space it read a following WORD as part of the label. Then a colon (or fullwidth), or a
+    // DOTTED LEADER of ≥4 dots (a prose ellipsis never reads as a label), and the value on
+    // the SAME line ([^\S\r\n], never \s: a colon at end-of-line must not capture the NEXT
+    // line). Case-insensitive, Unicode.
+    // A QUALIFIER between label and colon, for the ID group ONLY (« Identifiant du Projet
+    // Crédit : 02799195 »): at most 3 letter-words of ≤ 12 chars so it can't cross a clause,
+    // and the value still goes through `acceptFieldValue`. The other groups' false-positive
     // surface hasn't been measured.
     const qualif = group.category === "ID" ? `(?:[^\\S\\r\\n]+[\\p{L}]{1,12}){0,3}` : "";
-    // A « number » MARK after any label (« Passport Number: », « Fax Number: ») — the
-    // serialised forms tolerate it as `KEY_SUFFIX`; the prose form read the label whole and
-    // « Fax Number: 502-411-7227 » shipped in clear while « Fax: » did not (Nemotron-PII,
-    // 2026-09-07). And MARKDOWN EMPHASIS on either side of the separator: a generated
-    // document writes `- **Label:** value` or `**Label**: value`, and the asterisks sat
-    // exactly where the matcher wanted whitespace — every bold label of a markdown form
-    // missed (the same corpus: 60 % of its records are markdown).
+    // A « number » MARK after any label (« Fax Number: »), and MARKDOWN EMPHASIS on either
+    // side of the separator (`- **Label:** value`), which sat exactly where the matcher
+    // wanted whitespace.
     const re = new RegExp(
-      // Separator: colon (or fullwidth), a ≥4-dot leader — or a single `=`, the
-      // config/props idiom (`pseudo = kaelith92`). `=` was only understood in the
-      // UPPER_SNAKE env rule and the QUOTED serialised form; an unquoted lowercase
-      // assignment leaked. `==` (a comparison) is excluded by the (?!=) guard, and
-      // cleanValue strips a stray leading `=` so `a == b` can't yield "= b".
+      // Separator: colon (or fullwidth), a ≥4-dot leader, or a single `=` (the config/props
+      // idiom `pseudo = kaelith92`). `==` is excluded by the (?!=) guard, and cleanValue
+      // strips a stray leading `=`.
       `(?<![\\p{L}])(?:${alt})s?(?:[^\\S\\r\\n]*\\(\\s*[\\p{L}]{0,10}\\s*\\)|[\\p{L}]{1,10}\\))?${qualif}${NUM_MARK}${EMPH}[^\\S\\r\\n]*(?:[:：]|=(?!=)|\\.{4,})${EMPH}[^\\S\\r\\n]*([^\\n\\r]{2,120})`,
       "giu",
     );
@@ -92,15 +63,12 @@ export function detectLabeledFields(text: string): Detection[] {
     let m: RegExpExecArray | null;
     while ((m = re.exec(text)) !== null) {
       const rawValue = m[1] ?? "";
-      // Resume the scan at the START of the captured value, not after it: the value
-      // capture is greedy to end-of-line, so `Nom: MORVAN | Prénom: Julie` consumed
-      // « Prénom » inside NOM's value and the second label was never examined —
-      // every row of a header-annotated table lost its non-first fields. The cursor
-      // strictly advances (past the label + separator), so no infinite loop.
+      // Resume the scan at the START of the captured value: the capture is greedy to
+      // end-of-line and would swallow the next label of a `Nom: X | Prénom: Y` row. The
+      // cursor strictly advances, so no infinite loop.
       re.lastIndex = m.index + (m[0].length - rawValue.length);
-      // Canonicalising an ORG value, trimming a NAME, the FP gates and the CITY→PLACE
-      // promotion are all `acceptFieldValue` — shared with the vertical, serialised and
-      // BLOCK passes so no copy of the gate can drift (rule 9).
+      // Canonicalising, trimming, the FP gates and the CITY→PLACE promotion are all
+      // `acceptFieldValue`, shared with the other passes (rule 9).
       const ok = acceptFieldValue(cleanValue(rawValue), group.category, group.numeric);
       if (!ok) continue;
       const { value, category } = ok;
@@ -109,18 +77,12 @@ export function detectLabeledFields(text: string): Detection[] {
       seen.add(key);
       out.push({ value, category, start: m.index });
     }
-    // VERTICAL form — the label ALONE on its line, the value on the NEXT line
-    // ("Nom de l'étudiant\nBAGAYO" on certificates; PDF extraction stacks form
-    // cells this way). The inline rule above requires label and value on ONE line,
-    // so these shipped in clear. Precision: the label line must contain NOTHING
-    // else (qualifier words allowed only if stopword/generic — « de l'étudiant »),
-    // and the value line reuses every inline gate below.
+    // VERTICAL form — the label ALONE on its line, the value on the NEXT (PDF extraction
+    // stacks form cells this way). Precision: the label line must contain NOTHING else
+    // (qualifier words only if stopword/generic), and the value line reuses every gate.
     // ⚠️ Template literal: `\S`/`\p` MUST be double-escaped or the STRING layer eats the
-    // backslash and the class silently degrades — `[^\S\r\n]` became `[^S\r\n]` ("anything
-    // but a capital S"), which swallowed « : 2022B44821 » after the label, killed the
-    // "label ALONE on its line" guard, and tagged the FIRST WORD of the next line as the
-    // value (« Numéro Gestion : 2022B44821\nForme Juridique » → "Forme" vaulted as an ID —
-    // the RCS-receipt false positive). `contextFields.test.ts` pins the repro.
+    // backslash and `[^\S\r\n]` silently becomes "anything but a capital S", which kills the
+    // "label ALONE" guard. `contextFields.test.ts` pins the repro.
     const vre = new RegExp(
       `(?<=^|\n)[ \t]*${EMPH}(?:${alt})s?((?:[^\\S\r\n]+[\\p{L}'’]+){0,3})${EMPH}[^\\S\r\n]*[:：]?${EMPH}[ \t]*\r?\n[ \t]*([^\n\r]{2,80})`,
       "giu",
@@ -131,12 +93,9 @@ export function detectLabeledFields(text: string): Detection[] {
       if (!qualifiers.every((q) => isStopword(q) || isGenericTerm(q))) continue;
       const rawV = cleanValue(vm[2] ?? "");
       if (rawV.length > 40) continue;
-      // The value line must not itself be a LABEL line ("Nom\nPrénom\nMamadou" stacks
-      // two labels: the first's "value" is the second label) — a value carrying a colon
-      // reads as another field, not a value. The generic deny-list does NOT cover this:
-      // « Prénom » is a form word, not an institutional noun, so a two-line label stack
-      // vaulted the word "Prénom" as a person and then redacted every later occurrence
-      // of it. `labelOf` is the same test the BLOCK pass uses (one vocabulary, one rule).
+      // The value line must not itself be a LABEL line ("Nom\nPrénom\nMamadou"): a value
+      // carrying a colon reads as another field, and « Prénom » is a form word the generic
+      // deny-list does not cover. `labelOf` is the same test the BLOCK pass uses.
       if (/[:：]/.test(rawV) || labelOf(rawV)) continue;
       const okv = acceptFieldValue(rawV, group.category, group.numeric);
       if (!okv) continue;
@@ -147,22 +106,12 @@ export function detectLabeledFields(text: string): Detection[] {
       out.push({ value, category, start: vm.index });
     }
     // SERIALISED form — a QUOTED key/value pair: JSON `"prenom":"Élodie"`, YAML/TOML
-    // `ville: "Blagnac"`, a query dump `nom='Vernaux'`. An application LOG or an API
-    // payload is an ordinary thing to paste into a chat ("pourquoi cette requête
-    // échoue ?"), and it is DENSE with personal data — yet the whole record shipped in
-    // CLEAR: the inline form needs the label glued to its colon, and a JSON key wears a
-    // closing quote in between. The VALUE's own quotes are what make this safe to add —
-    // they bound the capture exactly, so no greedy run swallows the rest of the record
-    // (`"nom":"Vernaux","prenom":…`). Same gates as the inline form below, `CODE_IDENT`
-    // included: `"name": "read-data-schema"` in MCP tool metadata stays a tool id.
-    // ⚠️ The vocabulary is written as WORDS SEPARATED BY SPACES (« postal code »,
-    // « date de naissance ») whereas a serialised key is written `postal_code`,
-    // `postalCode`, `postal-code` or `postalcode`. This was THE cause of the measured ceiling:
-    // `POSTAL` stayed at 67% on tool results, not for lack of vocabulary but
-    // because no key could ever match. Replacing each space with `[\s_-]*` covers
-    // all four conventions at once — and avoids enumerating fifty variants by hand.
-    // …and the BACKSLASH: a markdown renderer escapes the key (`swift\\_bic\\_code:`), and
-    // Gretel's finance documents carry it verbatim.
+    // `ville: "Blagnac"`, a query dump `nom='Vernaux'`. A log or an API payload is DENSE with
+    // personal data, and the inline form needs the label glued to its colon. The VALUE's own
+    // quotes bound the capture exactly. Same gates as the inline form, `CODE_IDENT` included.
+    // ⚠️ The vocabulary is written as WORDS SEPARATED BY SPACES whereas a serialised key is
+    // `postal_code`, `postalCode`, `postal-code` or `postalcode`: each space becomes
+    // `[\s_-]*`, and the BACKSLASH of a markdown-escaped key (`swift\\_bic\\_code:`) too.
     const flex = (t: string) => escape(t).replace(/ /g, "[\\\\\\s_-]*");
     // `serialisedOnly` keys are admitted ONLY in this context: the quoted key/value
     // pair is the proof that « cp » denotes a postal code and nothing else.
@@ -170,23 +119,17 @@ export function detectLabeledFields(text: string): Detection[] {
       .sort((a, b) => b.length - a.length)
       .map(flex)
       .join("|");
-    // A serialised key may wear an IDENTIFIER SUFFIX the prose label never does —
-    // `Telefonnummer_id`, `Führerschein_id`, `TeacherID`, `customer-no` (measured 2026-09-07
-    // on ai4privacy, `bench/spans/`: 16 % of its records are such payloads, and every one of
-    // those keys missed). Tolerated only here, glued or `_`/`-`-joined to the term.
+    // A serialised key may wear an IDENTIFIER SUFFIX the prose label never does
+    // (`Telefonnummer_id`, `TeacherID`, `customer-no`). Tolerated only here.
     const KEY_SUFFIX = `(?:[_\\\\\\s-]?(?:id|nr|no|num|number|nummer|code))?`;
     const qre = new RegExp(
       `(?<![\\p{L}])["'\`]?(?:${qalt})s?${KEY_SUFFIX}["'\`]?[^\\S\\r\\n]*[:=][^\\S\\r\\n]*["'\`]([^"'\`\\n\\r]{2,120})["'\`]`,
       "giu",
     );
-    // …and the XML ELEMENT form — `<Username>manaka</Username>`, `<postcode>79774</postcode>`
-    // — where the tag IS the label and the closing `<` bounds the value exactly, the same
-    // proof the quotes give above. 13 % of ai4privacy's records; an API response or a
-    // config file pasted into a chat looks like this. Attributes on the tag are tolerated.
-    // ⚠️ Only `<` bounds the value — `>` is an ORDINARY character inside it. Excluding both
-    // dropped every value made of the punctuation one would like to exclude, which is to say
-    // every password: `<Password>2P~e>A</Password>` shipped in clear while the same
-    // document's `<Username>` was caught. The lazy quantifier still stops at the first `<`.
+    // …and the XML ELEMENT form — `<Username>manaka</Username>` — where the tag IS the label
+    // and the closing `<` bounds the value exactly. Attributes are tolerated.
+    // ⚠️ Only `<` bounds the value — `>` is an ORDINARY character inside it, or every
+    // password made of punctuation (`<Password>2P~e>A</Password>`) ships in clear.
     const xre = new RegExp(
       `<\\s*(?:${qalt})s?${KEY_SUFFIX}(?:\\s[^<>]{0,80})?>\\s*([^<\\n\\r]{1,120}?)\\s*<\\s*/`,
       "giu",

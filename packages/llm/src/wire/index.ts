@@ -2,7 +2,7 @@
  * The provider WIRE layer — how a provider's bytes are read, and nothing else.
  *
  * Two places in this monorepo speak the providers' streaming protocols: the desktop
- * client (`providers/` + `tools/`) and the metering gateway (`apps/gateway`).
+ * client (`providers/` + `tools/`) and the metering server.
  * They ask the same bytes different
  * questions, but there must be ONE answer to each — a meter that reads a frame
  * differently from the journal that displays it is a silent billing divergence, not a

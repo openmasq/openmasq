@@ -20,10 +20,8 @@ export function mcpCategoryLabel(id: string | undefined): string {
 
 /**
  * Group any list of category-carrying items into the CANONICAL category order
- * (`MCP_CATEGORIES`), with uncategorised items last under "Autres". Shared by the
- * desktop Settings and the admin console so the two group + order connectors the
- * SAME way. Generic over the item shape (works on `McpConnector` or a UI row VM as
- * long as it has an optional `category`). Empty groups are dropped.
+ * (`MCP_CATEGORIES`), with uncategorised items last under "Autres", so every surface
+ * groups + orders connectors the SAME way. Generic over the item shape. Empty groups are dropped.
  */
 export function groupByMcpCategory<T extends { category?: string }>(
   items: T[],

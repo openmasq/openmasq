@@ -4,12 +4,10 @@
 //   « my employee ID is EMP669456 »   « the account pin 6296 »   « Passport No. X12345678 »
 //   « bank routing number 611413578 » « an application (no. 36110/97) against Turkey »
 //
-// Same doctrine as `contextFields.numbers.ts` (which owns the account / fiscal / contract
-// number families) and the same precision bar as the rules: a bare token is never a rule on
-// its own — here the LABEL is the proof, so every family names its label words explicitly,
-// the value is ONE token, and each family says what shape that token must have. Measured on
-// 2026-09-07 (`bench/spans/`): customer/employee ids at 26 %, PINs at 8 %, routing numbers
-// at 11 %, court-case numbers at 0 % — every one written next to its label, in prose.
+// Same doctrine as `numbers.ts` (the account / fiscal / contract families) and the same
+// precision bar as the rules: a bare token is never a rule on its own — here the LABEL is
+// the proof, so every family names its label words explicitly, the value is ONE token, and
+// each family says what shape that token must have.
 import type { Detection } from "../../types";
 import { isCodeReference } from "../validators";
 
@@ -40,9 +38,8 @@ const MARK = String.raw`[\s_-]*\(?\s*(?:number|numbers|no|nos|nr|num|n[°ºo]|id
 // Linking words are ≥ 2 letters and never dash-joined: a letter or two before a dash is
 // the PREFIX of the code (« P-468633-I », « Nm-80877 »), not a word — and « a » before an
 // identifier is not how anyone writes. The dash lives in `MARK` (« ID - 123 ») only.
-// The COMMA joins the punctuation: « your credit debit card number, 4759 2348 1857 6980, »
-// and « the biometric identifier, BIO-4987253610, » are the appositive idiom of a formal
-// letter (Nemotron-PII, 2026-09-07). It cannot bridge a value: a digit run is not a word.
+// The COMMA joins the punctuation: « your card number, 4759 2348 1857 6980, » is the
+// appositive idiom of a formal letter. It cannot bridge a value: a digit run is not a word.
 // So do the closing paren and the emphasis: « Social Security Number (SSN) is 463-36-4052 »,
 // « The **SSN** 415-84-6016 » — a parenthesised acronym and a bold label are prose too.
 const LINK = String.raw`(?:[\s:#=.,()\[\]*]*[\p{L}'’]{2,12}){0,4}[\s:#=.,()\[\]*]*`;
@@ -93,17 +90,14 @@ const FAMILIES: CodeFamily[] = [
     // the ONLY thing that separates them from a page number.
     category: "SECRET",
     labels: String.raw`(?:account\s+|card\s+)?pin(?:\s+(?:code|number))?|pin-?code|puk(?:\s+code)?|cvv2?|cvc2?|(?:card\s+)?security\s+code|card\s+verification(?:\s+(?:code|value))?|verification\s+code|otp(?:\s+code)?|code\s+pin|cryptogramme(?:\s+visuel)?|c[óo]digo\s+(?:pin|de\s+seguridad|de\s+verificaci[óo]n)|codice\s+(?:pin|di\s+sicurezza|di\s+verifica)|sicherheitscode|kartenpr[üu]fnummer|pincode|pinkod|s[äa]kerhetskod`,
-    // Up to 20 digits, not 8: « Please use the pin 10733285336267 » is a credential with a
-    // badly chosen name, not a different kind of thing — and the LABEL is the gate here, so
-    // the length was never what kept a page number out.
+    // Up to 20 digits: « the pin 10733285336267 » is a credential with a badly chosen name,
+    // and the LABEL is the gate here, not the length.
     value: String.raw`\d{3,20}`,
     minDigits: 3,
   },
   {
     // The identifiers of HEALTH, LICENSING and DEVICES, in prose — « health plan beneficiary
-    // number H19385278-03 », « the certificate license number FL-78523416 was verified »,
-    // « the device identifier 7F2A1E8F-9B3D-… ». Measured 2026-09-07 on Nemotron-PII: 4 % to
-    // 58 % found, the label present every time.
+    // number H19385278-03 », « the device identifier 7F2A1E8F-9B3D-… ».
     category: "ID",
     labels: String.raw`health\s+plan\s+beneficiary(?:\s+number)?|beneficiary\s+(?:number|id)|medical\s+record(?:\s+number)?|mrn|patient\s+(?:number|id)|certificate\s+licen[cs]e\s+number|certificate\s+(?:number|no)|licen[cs]e\s+(?:number|no)|biometric\s+(?:identifier|id)|device\s+(?:identifier|id)|vehicle\s+identification\s+number|licen[cs]e\s+plate|plate\s+number|unique\s+(?:identifier|id)|n[úu]mero\s+de\s+seguro\s+social|seguro\s+social`,
     value: PREFIXED,
@@ -138,8 +132,8 @@ const FAMILIES: CodeFamily[] = [
   },
   {
     // Court and administrative CASE numbers in the ECHR / civil-law form « 36110/97 »,
-    // « nos. 43185/98 and 43186/98 » — the applicant's file, which identifies the person
-    // for anyone with access to the register. 329 of them in TAB's 127 judgments, 0 found.
+    // « nos. 43185/98 and 43186/98 » — the applicant's file identifies the person for anyone
+    // with access to the register.
     category: "ID",
     labels: String.raw`applications?|requ[êe]tes?|affaires?|cases?|dossiers?|proc[ée]dures?|recours|petitions?|appeals?`,
     needMark: true,
@@ -167,11 +161,9 @@ const PASSWORD_RE = new RegExp(
 function isPasswordShaped(v: string): boolean {
   if (!/\p{L}/u.test(v) || !/[\p{N}\p{P}\p{S}]/u.test(v)) return false;
   if (/:\/\/|^\/|@.+\.|^\*+$|^[\[({<].*[\])}>]$/u.test(v)) return false;
-  // …nor a value that REFERENCES the password instead of being it. `BSKY_APP_PASSWORD =
-  // var.bsky_app_password` says the secret is NOT in this file, and the `_` before the label
-  // is a word boundary, so the idiom reads as « password = … » exactly as prose does. The
-  // dots and underscores of a reference also satisfy the symbol test above — which is why
-  // this cannot be left to the shape. One home for the test (`validators.config.ts`).
+  // …nor a value that REFERENCES the password (`X_PASSWORD = var.x_password`): the `_` before
+  // the label is a word boundary, and a reference's dots and underscores satisfy the symbol
+  // test above. One home for the test (`validators.config.ts`).
   if (isCodeReference(v)) return false;
   return true;
 }
