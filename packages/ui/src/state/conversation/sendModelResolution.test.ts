@@ -2,9 +2,8 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 
-// Re-anchored: the send body now lives in send/sendOrchestrator.ts
-// (moved AS A WHOLE from store.ts — same code, different file).
-const STORE = readFileSync(join(__dirname, "../../send/sendOrchestrator.ts"), "utf8");
+// The send binds its conversation in `send/sendOrchestrator/turnSetup.ts`.
+const STORE = readFileSync(join(__dirname, "../../send/sendOrchestrator/turnSetup.ts"), "utf8");
 
 /**
  * WHY THIS TEST EXISTS. The send path resolved its target conversation from

@@ -6,7 +6,7 @@ import type { Messages } from "@openmasq/i18n";
  * footing as `BRAND`: hence one single home rather than a flag passed down
  * into every component that talks about a subscription (and `sold`, below, for the subscription itself).
  *
- * Without it, a build with no backend (the default open-source case; the services live in the private `infra` repository)
+ * Without it, a build with no backend (the default open-source case)
  * still offered the platform's models and said "get a subscription":
  * two false statements. With it, those same models go back to being what they
  * truly are on this machine — KEY models, for which the user's own key is the

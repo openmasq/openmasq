@@ -80,11 +80,11 @@ export function makeRedactFn(host: Host, settings: Settings, orgForced?: string[
     // `normalizeSettings` coerces both values to "local" on every load (the
     // selectors were removed from the product), so these branches were unreachable —
     // and ~40% of the file re-read for nothing. The live remote engine is the
-    // gateway's endpoint (apps/gateway), not this path. Do not reintroduce them here.
+    // platform's endpoint, not this path. Do not reintroduce them here.
     // Offline local engine (GLiNER) — redacted free-form PII in documents too,
     // with no LLM/network, mirroring the chat send pipeline.
     // ⚠️ The HOST's capability decides, exactly as on the message path
-    // (`sendOrchestrator` `useLocal`). Reading the persisted preference here instead
+    // (`sendOrchestrator/redactionSetup.ts` `useLocal`). Reading the persisted preference here instead
     // meant a legacy `redactEngine: "patterns"` blob gave the message AI detection and
     // this path regex only — silently, since `modelError` then never sets and the
     // fail-closed guard cannot fire.
