@@ -63,9 +63,8 @@ export function frame(tty: Tty, title: string, right: string, rows: string[]): s
   ];
 }
 
-/** A key, in the brand pair — the same chip the app puts a shortcut in. Eight of them have
- *  to fit an 80-column terminal, so the labels are one word and the gap is one space: a
- *  truncated key line is a key nobody knows about. */
+/** A key, in the brand pair — the same chip the app puts a shortcut in. Eight of them must
+ *  fit an 80-column terminal, so the labels are one word and the gap one space. */
 export function keyHintLine(tty: Tty, hints: KeyHint[]): string {
   const { brand, inkOnBrand } = tty.theme;
   return `  ${hints.map((h) => `${tty.pill(brand, inkOnBrand, h.key)} ${tty.dim(h.label)}`).join(" ")}`;
@@ -115,16 +114,12 @@ export function modelLabel(tty: Tty, state: ModelState, long: boolean): string {
   return tty.dim(long ? "pattern rules only — no model needed" : "rules");
 }
 
-// A row's label is an EYEBROW: uppercase, dim, one column width for all of them. The brand
-// letterspaces these; a terminal cannot, and faking it with inserted spaces would cost four
-// columns of a line that carries an URL.
+// A row's label is an EYEBROW: uppercase, dim, one column width for all. Letterspacing is
+// faked by nothing: inserted spaces would cost columns a URL needs.
 const LABEL_W = 13;
 
-/**
- * The longest variant that FITS, never a cut one. A row saying less still says something true;
- * « the model only sees substit… » says less than nothing, and the terminals people actually
- * run a proxy in are 62 columns wide as often as 120.
- */
+/** The longest variant that FITS, never a cut one: a row saying less still says something
+ *  true, and terminals are 62 columns wide as often as 120. */
 function pick(tty: Tty, width: number, ...variants: string[]): string {
   return variants.find((v) => tty.width(tty.strip(v)) <= width) ?? (variants.at(-1) as string);
 }
@@ -146,9 +141,8 @@ export function renderBanner(tty: Tty, config: ProxyConfig, d: BannerData): stri
       modelLabel(tty, d.model, false),
     )}`,
   ];
-  // ⚠️ An URL or an `export` line is USED, not read: cut, it stops working. Each gets the
-  // label's room when it fits, the frame's when it does not, and the space UNDER the card when
-  // even that is too narrow — where nothing clips it and the terminal is free to wrap.
+  // An URL or an `export` line is USED, not read: cut, it stops working. It gets the label's
+  // room when it fits, the frame's when it does not, and the space UNDER the card otherwise.
   const tail: string[] = [];
   const left = inClearPhrase(d.inClear ?? [], room - "left in clear: ".length);
   if (left) rows.push(`${label("")}${tty.fg(HUE_HEX.amber, `left in clear: ${left}`)}`);

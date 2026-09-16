@@ -20,13 +20,9 @@ export function defaultLogFile(): string {
 }
 
 /**
- * Is `command` runnable — a path that exists, or a bare name found on PATH?
- *
- * Asked BEFORE the run starts, because a tool that is not installed otherwise surfaces as
- * whatever happens to fail FIRST downstream: an MCP probe reporting « its own servers could
- * not be listed (spawnSync ENOENT) », then a servers file that was never the problem. The
- * operator reads two errors, neither of which is « that program is not on your machine ».
- * Cheap (a PATH walk, nothing spawned) and side-effect free.
+ * Is `command` runnable — a path that exists, or a bare name found on PATH? Asked BEFORE the
+ * run starts, so a tool that is not installed is reported as such rather than as whatever
+ * fails first downstream. Cheap and side-effect free.
  */
 export function onPath(command: string, env: NodeJS.ProcessEnv = process.env): boolean {
   if (!command) return false;
@@ -48,12 +44,10 @@ export const LOG_MAX_BYTES = 4 * 1024 * 1024;
 /**
  * A line writer to `file` (created with its folder), appending.
  *
- * ⚠️ **0600, and it matters where the file is.** The log carries no VALUE — counts,
- * categories, routes and timings only, and `--reveal` cannot be combined with `-- <tool>`,
- * which is the only mode that opens this writer at all. But it does describe a person's
- * activity minute by minute, and `--log` can point anywhere: the default lives in a 0700
- * `~/.openmasq`, while `--log /tmp/x.log` would land in a directory everyone can read.
- * The mode is set here so the destination cannot make it worse.
+ * ⚠️ 0600, and it matters where the file is. The log carries no VALUE — counts, categories,
+ * routes and timings only — but it describes a person's activity minute by minute, and
+ * `--log` can point at a directory everyone can read. The mode is set here so the
+ * destination cannot make it worse.
  */
 export function fileWriter(file: string): (line: string) => void {
   mkdirSync(dirname(file), { recursive: true });
@@ -93,12 +87,9 @@ export function wrappedEnv(url: string, env: NodeJS.ProcessEnv = process.env): N
 
 /**
  * Run `command` on the terminal; resolves with its exit code. `extraArgs` comes from the
- * caller — with `--mcp` it is what makes the client speak to our endpoint and no other
- * (`features/mcp/clients.ts`).
- *
- * They go FIRST, before the user's own arguments, because a client's global flags have to
- * precede its subcommand: appended, `claude mcp list` receives them as arguments to `mcp`
- * and dies with « unknown option ». Nothing the user wrote is removed or reordered.
+ * caller — with `--mcp` it is what makes the client speak to our endpoint and no other. They
+ * go FIRST, because a client's global flags must precede its subcommand; nothing the user
+ * wrote is removed or reordered.
  */
 export function runWrapped(
   command: string[],

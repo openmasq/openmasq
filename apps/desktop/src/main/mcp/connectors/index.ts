@@ -10,34 +10,20 @@ import { directAccountIdentity, accountKeyHash } from "../accountIdentity";
 import { effectiveScopes } from "./scopes";
 import { scopesForMode } from "../credMode";
 
-/**
- * Desktop-direct connector orchestration — OAuth on-device + tools in-process, NO
- * broker. Keeps the device-flow / loopback+PKCE / token / adapter logic OUT of the
- * already-large `mcp/index.ts`, which only inserts the returned `McpConnection`.
- * Dispatches the login by the connector's `auth` style (device = GitHub, pkce =
- * Google) and transparently refreshes an expiring Google token.
- */
+/** Desktop-direct connectors: OAuth on-device + tools in-process, NO broker. Dispatches
+ *  the login by the connector's `auth` style and refreshes an expiring token. */
 
 /** True when `id` is a known desktop-direct connector (`@openmasq/connectors`). */
 export function hasDirectConnector(id: string): boolean {
   return !!getConnector(id);
 }
 
-/**
- * The public (non-secret) OAuth client id for the built-in credential mode of a connector.
- * TODO: set the REAL ids. The GitHub OAuth App must have **device flow enabled**;
- * the Google client must be a **"Desktop app"** OAuth client (its "secret" is
- * non-confidential). `byo` mode reads the id/secret off the spec instead.
- */
-/** Google connectors (`google-calendar`, `google-drive`, `gmail`) share ONE
- *  "Desktop app" client — scopes are requested per-connector via incremental
- *  consent. Matches the dashless merged `gmail` id AND the `google-`/`gmail-`
- *  prefixes (kept in sync with `credGroupOf`'s `/^(gmail|google-)/`). */
+/** Google connectors share ONE "Desktop app" client (scopes per connector). Same predicate
+ *  as `credGroupOf`. */
 function isGoogle(connectorId: string): boolean {
   return /^(gmail|google-)/.test(connectorId);
 }
-/** Microsoft Graph connectors (`microsoft-*`) share ONE public "Desktop app" client
- *  — scopes are requested per-connector; only admin-consent scopes force BYO. */
+/** Microsoft connectors share ONE public client; only admin-consent scopes force BYO. */
 function isMicrosoft(connectorId: string): boolean {
   return /^microsoft-/.test(connectorId);
 }
@@ -86,8 +72,7 @@ function resolveGoogleCreds(spec: ServerSpec): { clientId: string; clientSecret:
 
 /** Run the connector's login flow and persist the resulting token set. */
 async function login(spec: ServerSpec, connector: Connector): Promise<void> {
-  // BYO-only connectors need a RESTRICTED scope (e.g. Gmail read) → the app's own
-  // client would require Google's CASA audit, so refuse the built-in mode outright.
+  // A BYO-only connector needs a RESTRICTED scope the app's own client cannot request.
   if (connector.byoOnly && spec.credMode !== "byo") {
     throw new Error("Ce connecteur nécessite vos propres clés (« Mes clés »).");
   }
@@ -102,8 +87,7 @@ async function login(spec: ServerSpec, connector: Connector): Promise<void> {
     return;
   }
   if (connector.auth === "slack") {
-    // Slack (no PKCE, HTTPS-only redirect) goes through the gateway auth-only fn.
-    // Built-in mode only: the exchange needs the app's own Slack secret, held server-side.
+    // Slack (no PKCE) goes through the relay: the exchange needs a secret held server-side.
     const token = await slackLogin({
       clientId: resolveClientId(spec),
       scopes,
@@ -113,7 +97,7 @@ async function login(spec: ServerSpec, connector: Connector): Promise<void> {
     return;
   }
   if (connector.auth === "microsoft") {
-    // Microsoft identity platform — loopback + PKCE, PUBLIC client (no secret).
+    // Microsoft: loopback + PKCE, PUBLIC client (no secret).
     const { tokens } = await microsoftLogin({ clientId: resolveClientId(spec), scopes });
     saveToken(spec.id, tokens);
     return;
@@ -133,9 +117,8 @@ async function freshToken(spec: ServerSpec, connector: Connector): Promise<strin
         `l'utilisateur de reconnecter ce connecteur (Réglages → Connecteurs). Ne réessaie pas en boucle.`,
     );
   const stale = !!set.expiresAt && set.expiresAt < Date.now() + 60_000;
-  // Both refreshes carry the recorded GRANTED scopes forward: a refresh response
-  // that omits `scope` must not silently widen the connection back to what we asked
-  // for (`scopes.ts`).
+  // Both refreshes carry the GRANTED scopes forward: a refresh omitting `scope` must not
+  // silently widen the connection (`scopes.ts`).
   if (connector.auth === "pkce" && set.refreshToken && stale) {
     const { clientId, clientSecret } = resolveGoogleCreds(spec);
     const refreshed = await refreshGoogleToken({
@@ -160,11 +143,7 @@ async function freshToken(spec: ServerSpec, connector: Connector): Promise<strin
   return set.accessToken;
 }
 
-/**
- * Build a live `McpConnection` for a desktop-direct connector. Reuses the stored
- * token; if absent and `interactive`, runs the OAuth flow and persists the token.
- * Throws when a fresh login is needed but not interactive.
- */
+/** A live `McpConnection`: the stored token, or the OAuth flow when `interactive`. */
 export async function connectorConnect(
   spec: ServerSpec,
   interactive: boolean,
@@ -182,10 +161,7 @@ export async function connectorConnect(
     await login(spec, connector);
   }
 
-  // Multi-account: best-effort label this instance with the signed-in account
-  // (email / login) on an interactive connect, replacing a provisional "Compte N".
-  // The identity ALSO becomes the `accountKey` (dedupe: re-adding the same account
-  // is refused upstream in `mcp/index.ts`).
+  // Multi-account: best-effort label + `accountKey` (dedupe upstream) on an interactive connect.
   let label = spec.label;
   if (interactive) {
     try {
@@ -199,12 +175,8 @@ export async function connectorConnect(
     }
   }
 
-  // What this connection may actually do — read from the TOKEN when the server told
-  // us (granular consent can narrow what we asked for), else the credential mode's
-  // requested list. `run.ts` lists only the tools those scopes cover, so a tool the
-  // token can't serve is never offered to the model at all (e.g. Gmail 1-clic in built-in
-  // mode grants send only → search/list are hidden). Read AFTER `login`, so a first
-  // connect sees the scopes it just recorded. See `./scopes.ts`.
+  // The GRANTED scopes (from the token when the server said, else the requested list):
+  // `run.ts` lists only the tools they cover. Read AFTER `login`. See `./scopes.ts`.
   const grantedScopes = effectiveScopes(
     loadToken(spec.id)?.scopes,
     scopesForMode(connector.scopes, spec.credMode),
@@ -220,13 +192,9 @@ export async function connectorConnect(
 }
 
 /**
- * An authenticated JSON GET for an ALREADY-connected desktop-direct connector instance — the
- * same token path (refresh included) and the same SSRF floor as the tools, without
- * going through a tool built for a model.
- *
- * This is what lets the « Dossiers » panel list a Drive: a typed list where
- * the tool renders prose. The token never leaves here, and the caller only chooses
- * the URL — which it builds itself from a validated id (`cloudfs/providers.ts`).
+ * An authenticated JSON GET for a connected instance: same token path and SSRF floor as
+ * the tools, for the « Dossiers » panel. The token never leaves here; the caller builds
+ * the URL from a validated id (`cloudfs/providers.ts`).
  */
 export async function directFetchJson<T>(specId: string, url: string): Promise<T> {
   const spec = getServer(specId);

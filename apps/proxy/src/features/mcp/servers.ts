@@ -23,13 +23,9 @@ export interface HttpSpec {
   url: string;
   /** Holds `Authorization` — same rule as `env`. */
   headers: Record<string, string>;
-  /**
-   * A PRE-REGISTERED OAuth client, for a provider that will not register one for us. Most
-   * remote MCP servers do (RFC 7591) and need none of this; Google's endpoints point at
-   * `accounts.google.com`, which publishes no registration endpoint at all, so the client
-   * has to come from its console. Present ⇒ `auth.ts` seeds it and the SDK skips
-   * registration. Absent ⇒ the dynamic path, unchanged.
-   */
+  /** A PRE-REGISTERED OAuth client, for a provider that will not register one for us
+   *  (RFC 7591 is the norm; Google's endpoints publish no registration endpoint). Present ⇒
+   *  `auth.ts` seeds it and the SDK skips registration. */
   clientId?: string;
   /** Only for a confidential client. Absent ⇒ a public client, PKCE alone (RFC 8252). */
   clientSecret?: string;
@@ -63,12 +59,8 @@ function strings(v: unknown, where: string): Record<string, string> {
   return out;
 }
 
-/**
- * Refuse a credentials file that others can read. ONE home for that test: the servers file
- * the user typed an API key into and the OAuth store beside it are the same promise, so they
- * get the same guard (`@openmasq/mcp/node`, where the at-rest family lives). Its header
- * carries the Windows reasoning and the `OPENMASQ_PROXY_KEY` escape in full.
- */
+/** Refuse a credentials file that others can read. ONE home for that test: the servers file
+ *  and the OAuth store beside it get the same guard (`@openmasq/mcp/node`). */
 export const assertPrivate = assertOwnerOnly;
 
 /** Parse the `mcpServers` map. Unknown shapes are refused rather than skipped: a server the

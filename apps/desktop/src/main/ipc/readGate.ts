@@ -4,12 +4,10 @@ import { tmpdir } from "node:os";
 import { resolve, sep } from "path";
 import { BRAND } from "@openmasq/branding";
 
-// ── files:read confinement (audit H-1) ──────────────────────────────────────
-// The renderer may only read a path the USER granted this session (picked via the
-// native dialog / E2E fixture) or one inside our own userData / OS temp dir — never
-// an arbitrary absolute path, which a renderer XSS would use to exfiltrate keys.enc /
-// the vault DB / ~/.ssh, defeating the at-rest encryption. Module-level state so a
-// `files:pick` grant and the later `files:read` check share the SAME Set.
+// ── files:read confinement ───────────────────────────────────────────────────
+// The renderer may only read a path the USER granted this session, or one inside our own
+// userData / temp dir, never an arbitrary path (an XSS would exfiltrate the keys, the vault,
+// ~/.ssh). Module-level state so the grant and the later check share the SAME Set.
 const readGrants = new Set<string>();
 const normPath = (p: string): string => {
   try {
@@ -28,10 +26,8 @@ export function grantRead(p: string): void {
 let userDataRoot: string | null = null;
 let tmpRoot: string | null = null;
 let secretRead: { files: Set<string>; dirs: string[] } | null = null;
-// The at-rest SECRET files/dirs inside userData (audit H-1): even though the whole
-// userData is a read root, these must NEVER be readable over `files:read` — a renderer
-// XSS would otherwise exfiltrate the (dev-plaintext / no-keyring) API keys, DB key, auth
-// session, sync passphrase, and the per-account vault DBs. Denied unconditionally.
+// The at-rest SECRETS inside userData are denied unconditionally, even though userData is a
+// read root (dev-plaintext keys, the DB key, the session, the vault DBs).
 function secretReadPaths(): { files: Set<string>; dirs: string[] } {
   if (secretRead) return secretRead;
   const ud = app.getPath("userData");
@@ -55,11 +51,8 @@ function isReadAllowed(p: string): boolean {
   if (readGrants.has(n)) return true;
   userDataRoot ??= normPath(app.getPath("userData"));
   if (n === userDataRoot || n.startsWith(userDataRoot + sep)) return true;
-  // OS tmpdir: allow ONLY the app's OWN temp files (audit L4). The app writes exports /
-  // attachments / model caches there under the brand slug prefix (`<slug>-export-*`,
-  // `<slug>-<id>-*`, `<slug>-ner`, `<slug>-tesseract`), so a renderer path can't read an
-  // ARBITRARY OS temp file (another app's dumped secrets/tokens) via this root. A
-  // user-picked temp file is still allowed — it goes through `readGrants` above.
+  // OS tmpdir: ONLY the app's OWN temp files (the brand slug prefix), never another app's
+  // dumped secrets. A user-picked temp file goes through `readGrants` above.
   tmpRoot ??= normPath(tmpdir());
   if (n.startsWith(tmpRoot + sep)) {
     const firstSeg = n.slice(tmpRoot.length + 1).split(sep)[0] ?? "";

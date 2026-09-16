@@ -31,13 +31,8 @@ const optNum = (a: Record<string, unknown>, k: string): number | undefined =>
 
 export type ToolOp = (g: Grant, a: Record<string, unknown>) => Promise<string>;
 
-/**
- * The ONE bounded recursive walk, shared by `search_files` and `find_files` — the two
- * rules that make it safe must exist once, not once per caller: **symlinks are never
- * followed** (a link out of the grant would escape it) and the traversal is capped by
- * `MAX_RESULTS` + `MAX_DEPTH` so a deep or huge tree can neither hang nor OOM.
- * An unreadable directory is skipped, not fatal.
- */
+/** The ONE bounded recursive walk: symlinks are never followed (a link out of the grant
+ *  would escape it), capped by `MAX_RESULTS` + `MAX_DEPTH`; an unreadable dir is skipped. */
 async function walkTree(
   root: string,
   keep: (name: string) => boolean,
@@ -80,9 +75,8 @@ async function headBytes(path: string): Promise<Uint8Array> {
   }
 }
 
-/** Lines of a file, streamed. Each line keeps a trailing `\r` when the file is CRLF, so
- *  `join("\n")` reconstructs the ORIGINAL bytes — a paged read that silently normalised
- *  line endings would hand the model text whose `oldText` can never match on `edit_file`. */
+/** Lines of a file, streamed. A trailing `\r` is kept, so `join("\n")` reconstructs the
+ *  ORIGINAL bytes and an `edit_file` `oldText` can match. */
 async function* lineStream(path: string): AsyncGenerator<string> {
   let carry = "";
   for await (const chunk of createReadStream(path, { encoding: "utf8" })) {
@@ -94,13 +88,9 @@ async function* lineStream(path: string): AsyncGenerator<string> {
 }
 
 /**
- * Write through a temporary file in the SAME directory, then `rename` over the target.
- *
- * `rename` within one filesystem is atomic, so a reader — or a crash, or a full disk —
- * sees either the old file or the new one, never the truncated middle. A direct
- * `writeFile` truncates first and fills after: interrupt it and the user's file is
- * destroyed with no copy anywhere. The temp file is derived from the already-resolved
- * target so it stays inside the granted directory, and it is removed on any failure.
+ * Write through a temp file in the SAME directory, then `rename` (atomic): a crash or a
+ * full disk leaves the old file or the new one, never a truncated middle. The temp file
+ * stays inside the granted directory and is removed on failure.
  */
 export async function atomicWrite(
   path: string,
@@ -118,8 +108,7 @@ export async function atomicWrite(
   }
 }
 
-/** `stat` of an existing FILE, or null. A missing file is a legitimate "creating it" case
- *  on the write path, never an error here. */
+/** `stat` of an existing FILE, or null (a missing file is the "creating it" case). */
 async function statFile(path: string): Promise<{ mtimeMs: number; size: number; mode: number } | null> {
   try {
     const st = await stat(path);
@@ -129,15 +118,8 @@ async function statFile(path: string): Promise<{ mtimeMs: number; size: number; 
   }
 }
 
-/**
- * Enforce `expectedRevision` before replacing a file's contents.
- *
- * OPT-IN by design: a model that never passes one behaves exactly as before, so this
- * introduces no new refusal. When it does pass one, a mismatch REFUSES rather than
- * overwrites — the file changed between the read and the write (the user editing in their
- * own editor while the model was thinking) and the `content` was composed against text
- * that no longer exists.
- */
+/** Enforce `expectedRevision` (OPT-IN): a mismatch REFUSES rather than overwrites a file
+ *  the user edited between the read and the write. */
 function assertRevision(current: { mtimeMs: number; size: number } | null, expected: string | undefined): void {
   if (!expected) return;
   const actual = current ? revisionOf(current) : "(absent)";
@@ -157,17 +139,15 @@ export const TOOL_OPS: Record<string, ToolOp> = {
     const p = g.resolve(str(a, "path"));
     const st = await stat(p);
     if (!st.isFile()) throw new Error("ce chemin n'est pas un fichier");
-    // A PDF read as utf8 returns mojibake, and nothing errors: the model gets tens of
-    // thousands of unusable characters, after seconds of local NER spent redacting
-    // them. Refuse, and NAME the tool that works (`binaryGuard.ts`).
+    // A binary read as utf8 is mojibake nothing errors on: refuse and NAME the tool that
+    // works (`binaryGuard.ts`).
     const verdict = readVerdict(p, await headBytes(p));
     if (verdict.kind !== "text") throw new Error(verdict.message);
     const revision = revisionOf(st);
     const offset = optNum(a, "offset");
     const limit = optNum(a, "limit");
 
-    // Whole-file read: unchanged, still refused above the cap — but the refusal now names
-    // the way out instead of being a dead end.
+    // Whole-file read, refused above the cap with the way out named.
     if (offset === undefined && limit === undefined) {
       if (st.size > MAX_READ)
         throw new Error(
@@ -179,8 +159,7 @@ export const TOOL_OPS: Record<string, ToolOp> = {
     // Paged read: memory is bounded by the SLICE, so any file size stays reachable.
     const slice = await takeLines(lineStream(p), offset ?? 1, Math.min(limit ?? MAX_LINES, MAX_LINES), MAX_READ);
     if (!slice.from) return `[révision ${revision}] (aucune ligne à partir de ${offset ?? 1})`;
-    // Saying where the slice STOPS is not cosmetic: a truncation the model can't see reads
-    // to it as the whole file, and it answers about a document it only partly received.
+    // Where the slice STOPS: a truncation the model can't see reads as the whole file.
     const more = slice.reachedEnd
       ? "fin du fichier"
       : `suite à partir de la ligne ${slice.to + 1}${slice.cappedByBytes ? " (tranche plafonnée en octets)" : ""}`;
@@ -205,8 +184,7 @@ export const TOOL_OPS: Record<string, ToolOp> = {
     assertRevision(st, optStr(a, "expectedRevision"));
 
     const before = await readFile(p, "utf8");
-    // `applyEdit` throws on EVERY ambiguity (absent, multiple, empty, no-op): the file is
-    // not touched unless exactly one interpretation of the edit exists.
+    // `applyEdit` throws on EVERY ambiguity: exactly one interpretation, or nothing.
     const { content, occurrences } = applyEdit(before, str(a, "oldText"), str(a, "newText"), a.replaceAll === true);
     if (Buffer.byteLength(content, "utf8") > MAX_WRITE) throw new Error("résultat trop volumineux");
     await atomicWrite(p, content, st.mode & 0o777);
@@ -239,10 +217,9 @@ export const TOOL_OPS: Record<string, ToolOp> = {
     try {
       await rename(source, destination);
     } catch (e) {
-      // `rename` cannot cross filesystems (EXDEV) — an external disk, a network mount.
-      // Fall back for FILES only: copy, then unlink. A directory is refused rather than
-      // handled with a recursive copy+remove, which would put a recursive DELETE in this
-      // worker; the model has no delete primitive and must keep none (`surfaces.test.ts`).
+      // EXDEV (another volume): copy + unlink for FILES only. A directory is refused: a
+      // recursive copy+remove would put a recursive DELETE in this worker, and the model
+      // has no delete primitive (`surfaces.test.ts`).
       if ((e as NodeJS.ErrnoException)?.code !== "EXDEV") throw e;
       const st = await stat(source);
       if (!st.isFile()) throw new Error("déplacement entre volumes non pris en charge pour un dossier");
@@ -274,11 +251,8 @@ export const TOOL_OPS: Record<string, ToolOp> = {
     return out.paths.join("\n") + (out.truncated ? `\n… (tronqué à ${MAX_RESULTS})` : "");
   },
 
-  /** The CANDIDATES for a semantic search — the walk only. Ranking needs the on-device
-   *  embedder, which lives in MAIN (`./findFiles.ts`); a plain-Node worker can't reach
-   *  it, so `connection.ts` post-processes this list exactly like it pre-empts
-   *  `read_document`. Every entry is kept: filtering here would decide relevance with
-   *  the one tool that has no idea what the user meant. */
+  /** The CANDIDATES for a semantic search, the walk only: ranking needs the embedder in
+   *  MAIN (`./findFiles.ts`, post-processed by `connection.ts`). Every entry is kept. */
   async find_files(g, a) {
     const root = optStr(a, "path");
     const roots = root ? [g.resolve(root)] : g.roots;
@@ -293,8 +267,7 @@ export const TOOL_OPS: Record<string, ToolOp> = {
     return paths.join("\n") + (truncated ? `\n${FIND_TRUNCATED_MARKER}` : "");
   },
 
-  /** Word — the body is patched surgically and every other part of the package is copied
-   *  through untouched (`docxOps.ts`). Writes ride the same atomic rename as the rest. */
+  /** Word: the body patched surgically, the rest of the package untouched (`docxOps.ts`). */
   read_document: (g, a) => DOCX_OPS.read_document(g, a, atomicWrite),
   edit_document: (g, a) => DOCX_OPS.edit_document(g, a, atomicWrite),
 };

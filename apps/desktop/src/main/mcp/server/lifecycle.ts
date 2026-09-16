@@ -8,9 +8,8 @@ import { infoFor } from "./info";
 import { mcpDisconnect } from "./registry";
 import type { McpServerInfo } from "./types";
 
-// SECURITY (audit M-4): directories the user actually chose via the native
-// `mcp:pick-dir` dialog this session. `mcpAddStdio` accepts a stdio path grant ONLY
-// if it's in here, so a compromised renderer can't self-grant an arbitrary folder.
+// Directories the user chose via the native `mcp:pick-dir` dialog this session: a stdio
+// path grant is accepted ONLY from here, so a renderer can't self-grant a folder.
 const pickedDirs = new Set<string>();
 /** Record a directory the native picker returned (called by the `mcp:pick-dir` IPC). */
 export function notePickedDir(dir: string): void {
@@ -20,12 +19,8 @@ function isPickedDir(dir: string): boolean {
   return pickedDirs.has(resolve(dir));
 }
 
-/**
- * Register a local (stdio) server from the vetted catalog. SECURITY: the renderer
- * passes a catalog id (not a command) + declared env values; we encrypt the env
- * and store a spec that only references the catalog entry. Rejects unknown ids and
- * missing required env so a half-configured server is never spawned.
- */
+/** Register a local (stdio) server from the vetted catalog: a catalog id (never a
+ *  command) + declared env, encrypted. A half-configured server is never spawned. */
 export function mcpAddStdio(
   catalogId: string,
   env: Record<string, string>,
@@ -44,11 +39,8 @@ export function mcpAddStdio(
   // Validate path grants in main (absolute, existing directory) before storing.
   const { errors } = resolveParams(entry, params);
   if (errors.length) return err(errors.join(", "));
-  // SECURITY (audit M-4): a path grant must have been chosen via the native
-  // `mcp:pick-dir` dialog THIS session — so a renderer (e.g. via injected model
-  // content) can't self-grant an arbitrary directory like `{root:"/Users/<you>"}`.
-  // Only gates NEW adds; persisted specs reconnect on relaunch through the connect
-  // path (not here), so a restart with an empty session set never blocks them.
+  // A path grant must come from THIS session's native picker. Only gates NEW adds:
+  // persisted specs reconnect through the connect path.
   for (const field of entry.params ?? []) {
     const raw = params[field.key];
     const values = Array.isArray(raw) ? raw : raw != null ? [raw] : [];
@@ -66,22 +58,10 @@ export function mcpAddStdio(
 }
 
 /**
- * Change the granted DIRECTORIES of an already-connected local server — "Add a
- * folder" / "Remove" on the connector's card, without disconnecting it.
- *
- * Why this exists: the folder list was only assembled at CONNECT time. To add
- * one, you had to disconnect the connector and re-grant all the others —
- * a full revocation for one addition, which nobody does willingly. The
- * path therefore goes through the exact same gates:
- *
- *  - an ADDED folder must come from THIS session's native picker (`isPickedDir`,
- *    audit M-4) — a compromised renderer can't grant itself `/Users/<you>`;
- *  - a KEPT folder (already in the spec) doesn't need to be re-chosen: it was granted
- *    once, and asking again on every edit would push toward re-granting everything at once;
- *  - `resolveParams` re-validates everything in main (absolute, existing folder);
- *  - the live connection is REBUILT behind it (`reconnect`), otherwise a removed
- *    folder would stay readable by the model until the next launch — a removal that
- *    removes nothing is worse than no button at all.
+ * Change the granted DIRECTORIES of a connected local server, through the same gates: an
+ * ADDED folder comes from THIS session's picker, a KEPT one needs no re-consent,
+ * `resolveParams` re-validates, and the live connection is REBUILT (a removal that
+ * removes nothing is worse than no button).
  */
 export async function mcpSetStdioDirs(
   id: string,
@@ -114,32 +94,18 @@ export async function mcpSetStdioDirs(
   if (errors.length) return err(errors.join(", "));
 
   addServer({ ...spec, params });
-  // Reconnection is injected by the caller to keep this module out of `connect.ts`'s
-  // graph — order matters: the persisted spec first, the live connection
-  // next, otherwise a failed reconnect would leave the old perimeter in place.
-  //
-  // ⚠️ CONTRACT: `reconnect` must DESTROY the live connection before redoing it. A
-  // plain `mcpConnect` does nothing on an already-connected connector, and the
-  // filesystem worker only re-reads its roots on fork — the new folder would stay invisible.
+  // Injected to keep this module out of `connect.ts`'s graph. ⚠️ CONTRACT: `reconnect`
+  // DESTROYS the live connection first (a plain connect is a no-op on a connected id, and
+  // the filesystem worker only reads its roots on fork).
   await reconnect(id);
   return infoFor(getServer(id) ?? { ...spec, params });
 }
 
 /**
- * Register a USER-ADDED remote MCP server (Réglages → MCP → "Ajouter un serveur").
- * Unlike every other entry this one is NOT vetted by the app, so main does the deciding:
- *
- * - the **id is minted here** (`customSpec.ts`), never taken from the renderer — a
- *   renderer-chosen `notion` would overwrite that connector's spec and re-point its
- *   card, tool routes and OAuth state at the typed host;
- * - the name/scheme rules are `validateCustomServer` (https only, no inline credentials);
- * - the SSRF guard runs **at ADD time**, not only at connect: a spec pointing at the LAN
- *   or a cloud-metadata address is never persisted in the first place. Fail closed —
- *   including on a DNS failure, where we refuse rather than store an unchecked host.
- *
- * Everything downstream is unchanged: the tool-dispatch write gate still confirms every
- * mutating call on main's un-spoofable window, and results still come back through the
- * conversation vault.
+ * Register a USER-ADDED remote server, the one entry the app hasn't vetted, so main decides:
+ * the id is MINTED here (a renderer-chosen one would hijack a connector's spec), https only
+ * with no inline credentials (`validateCustomServer`), SSRF guard at ADD time (fail closed,
+ * a DNS failure included). Downstream gates are unchanged.
  */
 export async function mcpAddCustom(input: {
   name?: string;
@@ -151,8 +117,7 @@ export async function mcpAddCustom(input: {
   });
   const check = validateCustomServer(input);
   if (!check.ok) return err(check.error);
-  // The org-policy hole this closes: the policy names a connector ID, a member adds the
-  // same service by URL. Matched on the HOST, which is all a custom spec carries.
+  // The policy names an id, a member adds the same service by URL: matched on the HOST.
   if (isConnectorUrlBlocked(check.draft.url)) {
     return err("Ce service est bloqué par votre organisation.");
   }
@@ -177,8 +142,7 @@ export async function mcpAddCustom(input: {
 }
 
 export function mcpAdd(spec: ServerSpec, apiKey?: string): void {
-  // A header-auth API key (Fireflies) is a credential → stored ENCRYPTED, never on
-  // the plaintext ServerSpec. Its presence drives the Bearer-header connect path.
+  // A header-auth API key is stored ENCRYPTED, never on the plaintext ServerSpec.
   if (apiKey && apiKey.trim()) saveApiKey(spec.id, apiKey.trim());
   addServer(spec);
 }

@@ -36,16 +36,10 @@ export interface MaskerSet {
   /** The model, once loaded, reaches every masker. */
   setDetect(detect: DetectLocal): void;
   /**
-   * Re-point the per-server maskers at a NEW policy, without rebuilding the set.
-   *
-   * ⚠️ Re-pointed, never rebuilt — the same reason the `l` key re-points the global options
-   * (`lib/dials.ts`). A masker reads its options at request time, so mutating them applies to
-   * the next call and to nothing in flight; handing out a NEW masker instead would leave any
-   * request already inside the old one writing to a vault the next one does not know, and a
-   * value would come back with a fake nothing can reverse.
-   *
-   * Returns the ids whose masking actually moved, so a caller can say what changed rather
-   * than announce a reload that did nothing.
+   * Re-point the per-server maskers at a NEW policy, without rebuilding the set. A masker
+   * reads its options at request time, so mutating them applies to the next call and to
+   * nothing in flight; a NEW masker would leave an in-flight request writing to a vault the
+   * next one does not know. Returns the ids whose masking actually moved.
    */
   repoint(policy: McpPolicy): string[];
 }
@@ -61,8 +55,7 @@ export function createMaskerSet(config: ProxyConfig, policy: McpPolicy = {}): Ma
   };
   const own = new Map<string, { opts: MaskerOptions; masker: Masker; level: RedactionLevel }>();
   /** One server's options, from its policy entry and the run's own. The ONE place that
-   *  composition is written — `repoint` must compose exactly as the first build did, or a
-   *  reload would quietly mean something different from a start. */
+   *  composition is written — `repoint` must compose exactly as the first build did. */
   function optsFor(p: ServerPolicy): { opts: MaskerOptions; level: RedactionLevel } {
     const level = p.level ?? config.level;
     return {

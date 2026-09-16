@@ -1,43 +1,20 @@
 import type { McpServerInfo } from "./types";
 
 /*
- * Targeted retry of a remote connector's (HTTP/OAuth) SILENT reconnect.
- *
- * Why: at startup (and on every account switch), `mcpReconnectStored`
- * reconnects ALL connectors in parallel, best-effort, in ONE attempt
- * each. An HTTP connector then does an OAuth refresh + a JSON-RPC handshake;
- * under load (several instances, or simply a slow network), some
- * fail on a transient timeout — and stay absent until the
- * user reconnects them by hand. The e2e bench measured it: notion/airtable
- * (remote) not reconnected where gmail/calendar (on-device OAuth) held.
- *
- * The subtlety: do NOT retry a PERMANENT failure (expired authorization, server
- * with no OAuth registration, refused key) — retrying would change nothing and would lengthen
- * startup. Only the transient (network/timeout/handshake) is retried.
+ * Targeted retry of a remote connector's SILENT reconnect: under load a transient
+ * timeout would leave it absent until the user reconnects by hand. A PERMANENT failure
+ * (expired authorization, no OAuth registration, refused key) is NOT retried.
  */
 
-// A failure retrying which would change nothing: the user must re-authorize, or the
-// server doesn't support the flow — surface it right away, don't loop.
-//
-// ⚠️ The list must speak the PROVIDERS' language, not ours. It used to carry only
-// our own phrasings (« authorization required/failed »), so much so that ALL the
-// ways a server announces a dead authorization passed for transient:
-// `invalid_grant` (the standard OAuth2 code), « Refresh token is invalid. » (Vercel),
-// « Token has been expired or revoked. » (Google), a bare 401/403. Every expired
-// connector therefore paid for 3 doomed attempts + the backoff, on EVERY startup and
-// every account switch — exactly what this filter exists to avoid (15/08).
-// A dead token doesn't come back to life by retrying: only the user can re-authorize.
 /**
- * The error a SILENT remote reconnect reports when the SDK's token refresh never reached
- * the authorization server (`ConnectOutcome.networkError`). The SDK swallows a network
- * failure there and falls through to a NEW authorization, which in silent mode reads
- * « authorization required » — a PERMANENT verdict for a token that is perfectly
- * valid. Worded so `PERMANENT_RE` cannot match it (no « token », no « authorization »,
- * no status code): a laptop waking up on no network is retried, then left silent, never
- * put on the « connexions perdues » banner. `reconnectRetry.test.ts`.
+ * The error reported when the SDK's token refresh never reached the server: the SDK
+ * would fall through to a NEW authorization, a PERMANENT verdict for a valid token.
+ * Worded so `PERMANENT_RE` cannot match it (`reconnectRetry.test.ts`).
  */
 export const REFRESH_NETWORK_ERROR = "network failure while renewing the session";
 
+// ⚠️ Speaks the PROVIDERS' language, not only ours: `invalid_grant`, « expired or
+// revoked », a bare 401/403 all announce a dead authorization, which no retry revives.
 const PERMANENT_RE =
   /authorization required|authorization failed|dynamic client registration|clé api refusée|url refusée|unknown server|no url|invalid[_ ]grant|refresh token|expired or revoked|token (?:has )?(?:is )?(?:been )?(?:expired|revoked|invalid)|\b401\b|\b403\b|unauthorized|forbidden|invalid[_ ]client/i;
 
@@ -49,12 +26,8 @@ export function isTransientConnectError(error: string | undefined): boolean {
 
 const delay = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
 
-/**
- * Attempts the reconnect, and retries on a TRANSIENT failure with an exponential
- * backoff. Stops as soon as `isConnected()` is true, or on a permanent failure,
- * or after `tries` attempts. Best-effort: never throws (the caller is already
- * inside an `allSettled`).
- */
+/** Retries on a TRANSIENT failure with exponential backoff; stops when connected, on a
+ *  permanent failure, or after `tries`. Never throws. */
 export async function reconnectRemoteWithRetry(
   connectOnce: () => Promise<McpServerInfo>,
   isConnected: () => boolean,
@@ -67,8 +40,7 @@ export async function reconnectRemoteWithRetry(
     try {
       last = await connectOnce();
     } catch {
-      // connectServer almost never throws (it RETURNS the error), but an unexpected
-      // throw is treated as transient: retried as long as attempts remain.
+      // An unexpected throw is treated as transient.
       if (i < tries - 1) await delay(baseDelayMs * 2 ** i);
       continue;
     }
@@ -76,22 +48,14 @@ export async function reconnectRemoteWithRetry(
     if (!isTransientConnectError(last.error)) return last; // permanent → no point insisting
     if (i < tries - 1) await delay(baseDelayMs * 2 ** i);
   }
-  // The LAST verdict is returned to the caller: it's the caller who decides whether the failure
-  // deserves to be SHOWN (a dead authorization at startup used to be visible nowhere).
+  // The LAST verdict: the caller decides whether the failure deserves to be SHOWN.
   return last;
 }
 
 /**
- * Should this SILENT reconnect failure light up the "reconnection
- * needed" banner?
- *
- * A connect's error is only the RETURN value of the call: `infoFor` doesn't carry it,
- * so neither does `mcp:list`. A connector whose token had expired therefore simply came
- * back ABSENT at startup — no banner, nothing on its card — and the user
- * only found out by clicking "Connect" on their own (15/08 log, Vercel).
- *
- * ⚠️ Only on a PERMANENT failure. Offline at launch would otherwise announce everything as "needs
- * reconnecting" when only the network is missing — and that fixes itself.
+ * Should this SILENT failure light up the banner? A connect's error is only the RETURN
+ * value (`mcp:list` doesn't carry it), so without this a dead token was visible nowhere.
+ * ⚠️ Only on a PERMANENT failure: offline at launch fixes itself.
  */
 export function shouldFlagForReconnect(
   last: McpServerInfo | undefined,

@@ -32,13 +32,10 @@ import type { McpServerInfo } from "./types";
 import { BRAND, brandUrl } from "@openmasq/branding";
 
 /**
- * If this connector uses the exec-meta pattern (PostHog — its ~280 tools sit behind
- * one `exec {command}` CLI), DECORATE the connection so the high-value sub-tools are
- * exposed DIRECTLY (`wrapExecMeta`) — small models fail the CLI and loop. The catalog
- * `execMeta.include` is the prefix allow-list; the long tail stays behind raw `exec`.
- * No-op for every other connector, and fail-safe (a decoration failure degrades to
- * the raw connection inside `wrapExecMeta`). Nothing about the write gate / redaction
- * changes: a translated call is an ORDINARY callTool through the same pipeline.
+ * A connector using the exec-meta pattern (hundreds of tools behind one `exec {command}`)
+ * is DECORATED so the high-value sub-tools are exposed DIRECTLY (small models fail the
+ * CLI and loop). The catalog `execMeta.include` is the prefix allow-list. Fail-safe, and a
+ * translated call is an ORDINARY callTool through the same gates.
  */
 function maybeWrapExecMeta(id: string, server: McpConnection): McpConnection {
   const include = findConnector(connectorIdFromInstance(id))?.execMeta?.include;
@@ -46,13 +43,9 @@ function maybeWrapExecMeta(id: string, server: McpConnection): McpConnection {
   return wrapExecMeta(server, { include: (n) => include.some((p) => n.startsWith(p)) });
 }
 
-// Identity presented to a connector's OAuth consent screen via Dynamic Client
-// Registration (RFC 7591). Providers render `client_name`/`logo_uri` and a stable
-// `software_id` lets them recognise the app instead of labelling it an anonymous
-// "self-hosted" client — though a provider MAY still hard-label unverified DCR
-// clients regardless (only a provider-verified app fully removes that). The
-// `client_name` is deliberately just the brand (not per-connector) so the consent
-// screen reads the brand name alone, never "<brand> (…)".
+// Identity presented to a connector's consent screen via Dynamic Client Registration
+// (RFC 7591); a stable `software_id` lets providers recognise the app. `client_name` is
+// just the brand, never per-connector.
 const OAUTH_CLIENT = {
   name: BRAND.name,
   clientUri: brandUrl("app"),
@@ -63,10 +56,8 @@ const OAUTH_CLIENT = {
 const OAUTH_TIMEOUT_MS = 5 * 60 * 1000;
 
 /**
- * Connect a REMOTE (http) connector: SSRF-guard the URL, then either a static
- * Bearer-header API-key connect, or the OAuth loopback + system-browser consent flow.
- * The stdio/local-oauth/browser kinds are dispatched BEFORE this (see `connectServer`);
- * this is only the remote-http path. Fails closed on an internal/private host.
+ * Connect a REMOTE (http) connector: SSRF-guard the URL, then a static Bearer API key or
+ * the OAuth loopback + system-browser consent flow. Fails closed on a private host.
  */
 export async function connectRemoteHttp(
   spec: ServerSpec,
@@ -77,18 +68,15 @@ export async function connectRemoteHttp(
     return { ...infoFor(spec), error: "no URL configured" };
   }
 
-  // SSRF guard (audit M3): a remote MCP `url` is renderer-supplied (`mcp:add` /
-  // `mcp:add-account-remote`), so before main opens an HTTP/SSE JSON-RPC connection to it
-  // — or attaches an OAuth bearer — reject an internal/LAN/cloud-metadata/loopback host.
-  // Fail closed. (Local servers use the stdio/in-process path, not a remote http URL.)
+  // SSRF guard: the `url` is renderer-supplied, so before a connection or a bearer, reject
+  // an internal host. Fail closed.
   try {
     await assertPublicUrl(spec.url, "mcp-connect");
   } catch (err) {
     return { ...infoFor(spec), error: `URL refusée (hôte interne ou privé): ${(err as Error).message}` };
   }
 
-  // Header-auth API-key connectors (e.g. Fireflies): no OAuth/loopback — connect
-  // with a static `Authorization: Bearer <key>` header (the key is stored encrypted).
+  // Header-auth API-key connectors: a static bearer (stored encrypted), no OAuth.
   const apiKey = loadApiKey(id);
   if (apiKey) {
     const server = new HttpMcpServer({
@@ -110,8 +98,7 @@ export async function connectRemoteHttp(
 
   const loop = await startLoopback(loadPort(id), focusMainWindow);
   try {
-    // Remember the bound port so the next connect reuses the same redirect URI
-    // (the registered OAuth client is pinned to it).
+    // The registered OAuth client is pinned to the redirect URI: keep the port.
     savePort(id, loop.port);
     const provider = makeOAuthProvider({
       redirectUrl: loop.redirectUrl,
@@ -123,24 +110,17 @@ export async function connectRemoteHttp(
       softwareVersion: app.getVersion(),
       state: loadOAuth(id),
       persist: (state) => saveOAuth(id, state),
-      // Open consent in the SYSTEM BROWSER, not an embedded Electron window: many
-      // provider login pages offer "Continuer avec Google" (or another SSO IdP), and
-      // Google blocks OAuth in embedded webviews (`disallowed_useragent` →
-      // "navigateur non sécurisé"). The whole chain (provider login → SSO → redirect)
-      // must stay in ONE browser session or the pending authorization request is
-      // lost, so it can't be split; the 127.0.0.1 loopback catches the redirect from
-      // the system browser. A silent (startup) reconnect never prompts. (Trade-off:
-      // on macOS a provider URL that is a universal link CAN be grabbed by that
-      // vendor's installed desktop app — rare, and the lesser evil vs. Google
-      // refusing every SSO login in the webview.)
+      // Consent opens in the SYSTEM BROWSER: Google blocks OAuth in embedded webviews, and
+      // the whole login → SSO → redirect chain must stay in ONE browser session. The
+      // loopback catches the redirect. A silent reconnect never prompts. Trade-off: a
+      // universal link CAN be grabbed by that vendor's installed desktop app.
       openAuthorization: (url) => {
         if (!interactive) return;
         const s = url.toString();
-        // Scheme-gated (audit M3): a malicious server's discovered `authorization_endpoint`
-        // must not hand `file://`/a custom protocol to the OS via raw shell.openExternal.
+        // Scheme-gated: a malicious server's `authorization_endpoint` must not hand
+        // `file://` or a custom protocol to the OS.
         safeOpenExternal(s);
-        // Surface the (http(s)-only) authorize URL to the renderer's "Copier le lien"; the
-        // scheme guard above is what bounds what we open AND emit — a bad scheme does neither.
+        // The http(s)-only URL for the renderer's "Copier le lien".
         const cid = connectId();
         if (cid && /^https?:/i.test(s)) emitMcpOauthUrl(cid, s);
       },
@@ -149,10 +129,8 @@ export async function connectRemoteHttp(
 
     let outcome = await server.connect();
     if (!outcome.authorized) {
-      // Silent reconnect: don't wait for a login that will never come. A refresh the
-      // NETWORK swallowed is not a lost authorization — say so, so the retry keeps it
-      // off the banner (`REFRESH_NETWORK_ERROR`); the cause is a socket code, never a
-      // token or a URL, and digits are dropped so no status code can sneak in.
+      // Silent reconnect: never wait for a login. A refresh the NETWORK swallowed is not a
+      // lost authorization (`REFRESH_NETWORK_ERROR`); digits dropped so no status sneaks in.
       if (!interactive) {
         await server.close().catch(() => {});
         const error = outcome.networkError
@@ -166,18 +144,14 @@ export async function connectRemoteHttp(
     }
     if (!outcome.authorized) throw new Error("authorization failed");
 
-    // Firecrawl-style servers allow an ANONYMOUS initialize (200, no 401), so the
-    // SDK's 401-triggered login never fires — connect() succeeds WITHOUT a token,
-    // silently anonymous. When the server ALSO advertises OAuth, OFFER the choice
-    // (act as the signed-in user, with real credits/scope, vs anonymous) rather
-    // than deciding for the user. Only when interactive + no token yet.
+    // A server allowing an ANONYMOUS initialize never triggers the SDK's login. When it
+    // ALSO advertises OAuth, OFFER the choice (signed-in vs anonymous) rather than decide.
     if (interactive && !(await provider.tokens()) && (await server.supportsOAuth())) {
-      // Ask the renderer (styled in-app modal). No asker (e.g. e2e) ⇒ anonymous.
+      // No asker (e2e) ⇒ anonymous.
       const asker = getAuthChoiceAsker();
       const choice = asker ? await asker({ id, name: spec.name }) : "anonymous";
       if (choice === "account") {
-        // Chosen authenticated: drive the login. Errors propagate (surfaced to the
-        // UI) rather than silently falling back — the user asked to sign in.
+        // Errors propagate rather than silently falling back: the user asked to sign in.
         const res = await server.authenticate();
         if (res === "REDIRECT") {
           const code = await loop.waitForCode(OAUTH_TIMEOUT_MS);
@@ -189,23 +163,18 @@ export async function connectRemoteHttp(
 
     connected.set(id, maybeWrapExecMeta(id, server));
     if (needsReconnect.delete(id)) emitNeedsReconnect();
-    // Best-effort: stamp this account's stable identity (for multi-account dedupe)
-    // + a real label, from the provider's "current account" endpoint. Never blocks.
+    // Best-effort: this account's stable identity (dedupe) + a real label.
     await maybeStoreRemoteIdentity(id, spec);
     await refreshRoutes();
     return infoFor(getServer(id) ?? spec);
   } catch (err) {
-    // An SDK `OAuthError` built from a bare `{error:"invalid_grant"}` (no description)
-    // has an EMPTY message and only `errorCode` — without the fallback the verdict was
-    // "", which `shouldFlagForReconnect` reads as « no error », so a dead token stayed
-    // absent from the banner.
+    // An SDK `OAuthError` from a bare `{error:"invalid_grant"}` has an EMPTY message and
+    // only `errorCode`; "" would read as « no error » to `shouldFlagForReconnect`.
     const raw =
       (err instanceof Error && err.message) ||
       (typeof (err as { errorCode?: unknown })?.errorCode === "string" && (err as { errorCode: string }).errorCode) ||
       String(err);
-    // Some hosted MCP servers (GitHub, Slack…) don't implement OAuth dynamic
-    // client registration, so the one-click connector flow can't auto-register.
-    // Surface an actionable message instead of the SDK's raw error.
+    // A server without dynamic client registration: an actionable message.
     const error = /dynamic client registration/i.test(raw)
       ? "Ce serveur refuse l'inscription OAuth automatique : pas de connexion en un clic. Utilisez son équivalent (jeton) dans « Serveurs locaux »."
       : raw;

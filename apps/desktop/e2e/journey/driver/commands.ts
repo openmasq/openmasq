@@ -27,13 +27,9 @@ interface DaemonState {
 const daemonState: DaemonState = { session: null, readErrors: 0, readMain: 0, readWire: 0, readWireLog: 0, shotCount: 0 };
 
 /**
- * What the provider calls carried since the last call.
- *
- * Two sources, and they don't say the same thing. The JOURNAL (`wire.jsonl`) exists in
- * ALL modes, including against a real provider: it's what the app DECIDED
- * to send. The HTTP BODIES only exist with the local fake destination, but that's what
- * actually went out on the wire. Looking for a leak: the body when it exists, the journal
- * otherwise — and the journal is the only proof available in real mode.
+ * What the provider calls carried since the last call. Two sources: the JOURNAL (all
+ * modes, what the app DECIDED to send) and the HTTP BODIES (fake destination only, what
+ * actually went out). Looking for a leak: the body when it exists, the journal otherwise.
  */
 function wireSinceLastCall(): { wire: unknown[]; corpsHttp: string[] } {
   let wire: unknown[] = [];
@@ -84,13 +80,11 @@ const COMMANDS: Record<string, (a: Record<string, unknown>) => Promise<Reply>> =
     daemonState.readErrors = daemonState.readMain = daemonState.readWire = daemonState.readWireLog = 0;
     daemonState.session = await startApp(a as StartOptions);
     if (daemonState.session.attache) {
-      // ⚠️ We don't ERASE the journal of an app we didn't launch: it keeps it
-      // open, and deleting the inode would write into the void — not a single proof left,
-      // with no error at all. So we skip what precedes it, instead of destroying it.
+      // Never ERASE the journal of an app we didn't launch (it holds the inode open and
+      // would write into the void): skip what precedes.
       daemonState.readWireLog = sizeOr0(WIRE_LOG);
     } else {
-      // The wire journal is CUMULATIVE on disk: without a reset, the first read
-      // of a new session would return everything the previous one sent.
+      // The wire journal is CUMULATIVE on disk.
       rmSync(WIRE_LOG, { force: true });
       rmSync(TOOLCALL_LOG, { force: true });
     }
@@ -144,13 +138,8 @@ const COMMANDS: Record<string, (a: Record<string, unknown>) => Promise<Reply>> =
     return { ok: true, renderer, mainWindow };
   },
 
-  /**
-   * The REAL arguments received by MCP tools — rule 11 in the outbound direction.
-   * FIXTURE connectors write a JSONL; the REAL ones go through the dispatch
-   * path and come out as `[mcp:raw]` on the main process's output. Both are
-   * returned together: it's the same question, and the agent shouldn't have to know
-   * which of the two plumbing paths was in play.
-   */
+  /** The REAL arguments received by MCP tools (rule 11 outbound): the fixtures' JSONL and
+   *  the real connectors' `[mcp:raw]` lines, together. */
   async toolcalls() {
     const s = alive();
     const fixtures = existsSync(TOOLCALL_LOG)
@@ -163,21 +152,13 @@ const COMMANDS: Record<string, (a: Record<string, unknown>) => Promise<Reply>> =
     return { ok: true, appels: fixtures, realCalls };
   },
 
-  /**
-   * Is real mode ACTUALLY available? Signed-in account, connected connectors, settings.
-   *
-   * ⚠️ To call right after a `start` in real profile, BEFORE playing anything: a
-   * sign-in screen and an empty screen look alike on a screenshot, and "I thought I was
-   * signed in" produces a report that makes a simulated session look real —
-   * the one lie an autonomous agent has no right to tell.
-   */
+  /** Is real mode ACTUALLY available? Call right after `start` in real profile: a sign-in
+   *  screen and an empty screen look alike on a screenshot. */
   async sante() {
     const s = alive();
     const pageState = (await s.page.evaluate(call(EXPR_HEALTH))) as Record<string, unknown>;
     const cx = (pageState.connecteurs ?? []) as { connecte: boolean }[];
-    // The mode is returned with the answer: without it, a "connecte: false" reads like a
-    // failure when in disposable profile it's the NORMAL state (the seeded session isn't a
-    // real account — the Supabase client drops it on the first refresh).
+    // The mode rides the answer: in disposable profile "connecte: false" is NORMAL.
     return {
       ok: true,
       profil: s.opts.profil ?? "jetable",
@@ -188,14 +169,8 @@ const COMMANDS: Record<string, (a: Record<string, unknown>) => Promise<Reply>> =
     };
   },
 
-  /**
-   * Attach a REAL file by its DROP-off path — bytes → `File` → `DataTransfer` →
-   * `drop` event on the zone. It's the exact user gesture (`DropZone`'s "bytes,
-   * never a path" route), and the only one automatable in real profile: the
-   * native picker can't be driven, and its stub (`OPENMASQ_E2E_ATTACH`) is only armed
-   * in disposable mode — arming it in real mode would give the harness a right the user
-   * hasn't granted. The chip appears immediately; extraction/OCR follows (poll `look`).
-   */
+  /** Attach a REAL file as a `drop` event (bytes, never a path): the exact user gesture,
+   *  and the only one automatable in real profile (the picker stub is disposable-only). */
   async drop(a) {
     const s = alive();
     const filePath = String(a.chemin ?? "");
@@ -214,8 +189,7 @@ const COMMANDS: Record<string, (a: Record<string, unknown>) => Promise<Reply>> =
         for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
         const dt = new DataTransfer();
         dt.items.add(new File([bytes], name, { type: mime }));
-        // The target can be any child: React listens on the wrapper, and
-        // the event BUBBLES. The composer is the stable node closest to the real gesture.
+        // Any child works (the event BUBBLES); the composer is the stable node.
         const target = document.querySelector(".chat") ?? document.body;
         target.dispatchEvent(new DragEvent("drop", { bubbles: true, cancelable: true, dataTransfer: dt }));
       },

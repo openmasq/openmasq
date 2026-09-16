@@ -16,25 +16,18 @@ import { isBlankUrl, isSafeAgentUrl, loadGuarded, navUrlBlocked } from "./loadGu
 import { CONSENT_DISMISS_JS } from "./consentDismiss"; import { BRAND } from "@openmasq/branding";
 
 // ── Isolated agent-browser process (MULTI-TAB) ───────────────────────────────
-// SECURITY: the model drives a browser over CDP, but CDP is process-global — in
-// the MAIN app process it would also expose the React UI page (which holds
-// `window.openmasq` = full IPC). So the agent browser runs in THIS separate
-// Electron process (the SAME app binary re-spawned with OPENMASQ_AGENT_BROWSER=1),
-// hosting ONLY agent pages. Its CDP endpoint therefore exposes only agent tabs —
-// none is the app UI, so multi-tab is safe: every tab is untrusted web content with
-// NO IPC access. The MAIN app never opens CDP.
+// SECURITY: CDP is process-global, and in the MAIN process it would expose the React UI
+// page (`window.openmasq` = full IPC). So the agent browser is THIS separate Electron
+// process (the same binary re-spawned with OPENMASQ_AGENT_BROWSER=1) hosting ONLY agent
+// pages: every CDP target is untrusted web content with NO IPC. Main never opens CDP.
 //
-// TABS: a `BaseWindow` (no webContents of its own → no stray CDP target) holds one
-// `WebContentsView` per tab. Only the active view is visible (others kept ALIVE +
-// hidden → instant switch, no reload). Each view's webContents is automatically a
-// CDP target, so @playwright/mcp can list/select/act across tabs. The per-webContents
-// security guards (navigation SSRF, popups→new tab, ⌘K intercept, page reporting) are
-// attached to EVERY tab; the device-permission + download denials live on the shared
-// default session.
+// A `BaseWindow` (no webContents of its own → no stray CDP target) holds one
+// `WebContentsView` per tab; only the active one is attached, the others stay alive. The
+// per-webContents guards (navigation SSRF, popups→new tab, ⌘K intercept, reporting) attach
+// to EVERY tab; permission + download denials live on the shared default session.
 //
-// Control channel: newline-delimited JSON on stdin (navigate / tab-new / tab-select /
-// tab-close / show / hide / bounds). The child reports its tab list on stdout as
-// `AGENT_TABS {json}` (+ `AGENT_SHORTCUT`, `AGENT_PIPE_READY`/`AGENT_CDP`).
+// Control channel: newline-delimited JSON on stdin; the child reports on stdout
+// (`AGENT_TABS {json}`, `AGENT_SHORTCUT`, `AGENT_PIPE_READY`/`AGENT_CDP`).
 
 export function isAgentBrowserProcess(): boolean {
   return process.env.OPENMASQ_AGENT_BROWSER === "1";
@@ -51,13 +44,12 @@ function chromeUserAgent(): string {
   return `Mozilla/5.0 (${platform}) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/${major}.0.0.0 Safari/537.36`;
 }
 
-// Anti-fingerprinting kill switch — the stealth patches are cosmetic + fail-open, but if
-// one ever breaks a site, `OPENMASQ_AGENT_NO_STEALTH=1` reverts to a plain agent browser.
+// Anti-fingerprinting kill switch: the stealth patches are cosmetic + fail-open;
+// `OPENMASQ_AGENT_NO_STEALTH=1` reverts to a plain agent browser.
 const STEALTH_ON = process.env.OPENMASQ_AGENT_NO_STEALTH !== "1";
 
-// The Chrome major + platform, ONE source shared by the UA string, the Sec-CH-UA request
-// header (below) and the JS `navigator.userAgentData` brands (preload/browserStealth.ts) —
-// a mismatch between any of these is itself a bot tell, so they must agree.
+// ONE source for the UA string, the Sec-CH-UA header and the JS `navigator.userAgentData`
+// brands (preload/browserStealth.ts): a mismatch between them is itself a bot tell.
 const CHROME_MAJOR = (process.versions.chrome || "").split(".")[0] || "126";
 const CH_PLATFORM =
   process.platform === "darwin" ? '"macOS"' : process.platform === "win32" ? '"Windows"' : '"Linux"';
@@ -71,11 +63,9 @@ function acceptLanguage(): string {
   return l.includes("-") ? `${l},${l.split("-")[0]};q=0.9,en;q=0.8` : `${l};q=0.9,en;q=0.8`;
 }
 
-
-// BROAD Google-host match — used ONLY to rewrite outbound request headers (UA →
-// Firefox, drop Sec-CH-UA). A false positive is harmless: it just sends a wrong UA
-// on a host the page already talks to; no security impact. `google.evil.com` does
-// NOT match (label before the TLD must be "google", preceded by start-or-dot).
+// BROAD Google-host match, used ONLY to rewrite outbound request headers. A false
+// positive is harmless (a wrong UA on a host the page already talks to).
+// `google.evil.com` does NOT match.
 function isGoogleHost(url: string): boolean {
   let host: string;
   try {
@@ -86,10 +76,9 @@ function isGoogleHost(url: string): boolean {
   return host === "google.com" || /(^|\.)google\.[a-z]{2,3}(\.[a-z]{2,3})?$/.test(host);
 }
 
-// NARROW match — the federated sign-in ORIGIN only (accounts.google.com / ccTLD).
-// This is the ONLY thing that gets a contextIsolation:false view, so it is kept as
-// tight as possible: an attacker can't host content on accounts.google.com, so that
-// weaker-isolation view only ever runs Google's OWN page — never attacker content.
+// NARROW match: the federated sign-in ORIGIN only. This is the ONLY thing that gets a
+// contextIsolation:false view, so the weaker-isolation view only ever runs Google's OWN
+// page, never attacker content.
 function isGoogleAuthUrl(url: string): boolean {
   let host: string;
   try {
@@ -150,12 +139,9 @@ export function runAgentBrowserMain(): void {
   let seq = 1;
   let activeSeq = 0; // bumped each time a tab becomes active → the LRU ordering key
 
-  // AUTOMATION gets a DEDICATED tab. The model drives over CDP; `agentTabId` is the tab it
-  // works in, kept SEPARATE from the tab the user is looking at so both proceed in parallel —
-  // the user navigating never clobbers the model's tab (it spins them a new one instead), and
-  // switching the visible tab never moves the model. `driving` mirrors the renderer's
-  // "automating" (forwarded over stdin); `agentTabId` is pinned when driving starts and
-  // re-pointed whenever a CDP (non-user) navigation lands on a different tab.
+  // The model works in a DEDICATED tab (`agentTabId`), separate from the one the user looks
+  // at, so both proceed in parallel. `driving` mirrors the renderer's "automating";
+  // `agentTabId` is pinned when driving starts and re-pointed on a CDP navigation.
   let driving = false;
   let agentTabId: string | null = null;
 
@@ -164,11 +150,8 @@ export function runAgentBrowserMain(): void {
     const t = tabs.find((x) => x.id === id);
     if (t) t.lastActive = ++activeSeq;
   };
-  // Memory backstop: cap the number of LIVE agent-browser WebContentsViews — each is a full
-  // Chromium renderer (100-300 MB), and the inactive ones stay ALIVE for instant switch/CDP.
-  // On exceeding the (generous) cap, CLOSE the LEAST-recently-active tab (never the active
-  // one). It only fires on extreme tab sprawl; the model/user re-read the tab list, so a
-  // closed rarely-used tab is recoverable (re-navigated on demand).
+  // Memory backstop: each live view is a full Chromium renderer. Past the cap, close the
+  // LEAST-recently-active tab (never the active one).
   const MAX_LIVE_TABS = 12;
   const evictLruTabs = (): void => {
     while (tabs.length > MAX_LIVE_TABS) {
@@ -180,10 +163,8 @@ export function runAgentBrowserMain(): void {
     }
   };
 
-  // Report the full tab list (id / url / title / active) so the panel mirrors the REAL
-  // tabs — opened by the user, by a page's `window.open`, or by the model over CDP.
-  // DEBOUNCED: a chatty SPA fires many did-navigate-in-page/title-updated events; coalesce
-  // them into one stdout line + one renderer re-render per burst.
+  // Report the tab list so the panel mirrors the REAL tabs (user, `window.open`, CDP).
+  // DEBOUNCED: a chatty SPA fires many events per burst.
   let reportTimer: NodeJS.Timeout | null = null;
   const reportTabs = (): void => {
     if (reportTimer) return;
@@ -212,10 +193,8 @@ export function runAgentBrowserMain(): void {
     }, 80);
   };
 
-  // Only the ACTIVE view is ATTACHED to the window (sized to fill); the others are
-  // DETACHED but their webContents stay ALIVE (state/DOM preserved → instant re-attach,
-  // no reload; still a CDP target the model can drive). This is what makes the switch
-  // instant and correct (no 0×0 phantom views fighting the z-order / repainting).
+  // Only the ACTIVE view is attached to the window; the others are detached but alive
+  // (DOM preserved, still a CDP target). No 0×0 phantom views fighting the z-order.
   const layout = (): void => {
     if (!win) return;
     const activeView = activeId ? tabView(activeId) : undefined;
@@ -272,18 +251,11 @@ export function runAgentBrowserMain(): void {
       e.preventDefault();
       return;
     }
-    // Async re-resolution + public-IP check on EVERY navigation/redirect (a public page
-    // 302-ing to a host that RESOLVES private). FAIL-CLOSED (audit M1): stop the load on
-    // ANY verification failure — private/internal address OR an unexpected resolution
-    // error — not only on a "Refused …" message (the old test let an unexpected throw sail
-    // through). NOTE: this cannot fully close the DNS-REBINDING TOCTOU — Chromium
-    // re-resolves the host itself at connect, and Electron's public API exposes no
-    // per-navigation resolver pin, so a record that is public at THIS check but private at
-    // Chromium's connect is stopped only after the fact. The robust fix (route the agent
-    // session through a first-party loopback CONNECT proxy that resolves + pins the IP,
-    // like `safeFetch`) is tracked as follow-up (needs browser e2e); this is the maximal
-    // in-process mitigation. The tool-path model navigations are additionally gated by
-    // `assertPublicUrl` in `mcp/index.ts` before the URL is ever issued.
+    // Async re-resolution + public-IP check on EVERY navigation/redirect. FAIL-CLOSED: the
+    // load stops on ANY verification failure, a private address OR an unexpected error.
+    // RESIDUAL: Chromium re-resolves the host itself at connect and exposes no per-
+    // navigation resolver pin, so a DNS-rebinding record is stopped only after the fact;
+    // the full fix is a first-party loopback CONNECT proxy that pins the IP.
     void assertPublicUrl(url, "browser").catch(() => {
       if (!view.webContents.isDestroyed()) {
         view.webContents.stop();
@@ -292,15 +264,13 @@ export function runAgentBrowserMain(): void {
     });
   };
 
-  // Best-effort COOKIE/CONSENT-banner dismissal (the reported Boursorama loop: a weak model
-  // hovering « Tout accepter » without ever clicking, for many turns). The page-world snippet
-  // + its safety rationale live in `consentDismiss.ts` (unit-tested). Runs via
-  // `executeJavaScript` in the ISOLATED agent process and FAILS OPEN. One attempt + one retry.
+  // Best-effort cookie/consent-banner dismissal so a weak model doesn't hover the banner
+  // for turns. The snippet + its safety rationale live in `consentDismiss.ts`. FAILS OPEN.
   const dismissConsent = (wc: WebContents, attempt = 0): void => {
     if (wc.isDestroyed()) return;
     wc.executeJavaScript(CONSENT_DISMISS_JS, true)
       .then((clicked: unknown) => {
-        // Consent widgets often inject a beat AFTER load settles — one delayed retry if nothing hit.
+        // Consent widgets often inject AFTER load settles: one delayed retry.
         if (!clicked && attempt < 1 && !wc.isDestroyed()) setTimeout(() => dismissConsent(wc, attempt + 1), 1000);
       })
       .catch(() => {}); // fail OPEN — never break the page
@@ -310,37 +280,30 @@ export function runAgentBrowserMain(): void {
     // A page opening a new window/tab (`window.open`, target=_blank) → a REAL new tab,
     // not a denied popup nor a stray OS window.
     wc.setWindowOpenHandler((details) => {
-      // A tab the MODEL or a page opens is ALWAYS added in the BACKGROUND — it must never
-      // steal the tab the user is currently looking at (they can pilot one tab while the
-      // model works in another). It appears in the rail; the user switches to it if they
-      // want. Only an explicit panel `tab-new`/`navigate` (a user action) activates a tab.
+      // A tab the MODEL or a page opens is added in the BACKGROUND: it must never steal
+      // the tab the user is looking at. Only a panel `tab-new`/`navigate` activates a tab.
       if (isSafeAgentUrl(details.url)) createTab(details.url, false);
       return { action: "deny" };
     });
     const guard = guardNavigation(view);
     wc.on("will-navigate", guard);
     wc.on("will-redirect", guard);
-    // A new document may have a DIFFERENT (or no) icon — drop the stale one so a page
-    // without a favicon doesn't keep showing the previous site's. It repopulates when
-    // `page-favicon-updated` fires for the new page.
+    // A new document may have a different (or no) icon: drop the stale one.
     wc.on("did-navigate", () => {
       const tab = tabs.find((t) => t.view === view);
       if (tab) {
         tab.faviconUrl = undefined;
         tab.faviconData = undefined;
         tab.consentTried = false; // a new page → allow one fresh consent-dismiss attempt
-        // Attribute this navigation. A USER-issued one consumes its flag; otherwise it came
-        // from the MODEL over CDP — while it's driving, that marks THIS tab as the model's,
-        // so a later user navigation on it opens a new user tab instead of clobbering it.
+        // A USER-issued navigation consumes its flag; otherwise it came from the MODEL over
+        // CDP and, while driving, marks THIS tab as the model's.
         if (tab.userNav) tab.userNav = false;
         else if (driving) agentTabId = tab.id;
       }
       reportTabs();
     });
-    // The page DECLARED its favicon(s) — UNTRUSTED URLs (arbitrary web content). Fetch
-    // the first http(s) one OUT OF BAND through the hardened path (`fetchFaviconDataUrl`:
-    // SSRF-guarded, size-capped, RASTER-only → a `data:` URL), cache it on the tab and
-    // re-report. A data:/svg/other URL is skipped → the rail keeps its letter fallback.
+    // Page-declared favicon URLs are UNTRUSTED: fetch the first http(s) one through the
+    // hardened path (`fetchFaviconDataUrl`: SSRF-guarded, size-capped, raster-only).
     wc.on("page-favicon-updated", (_e, favicons: string[]) => {
       const tab = tabs.find((t) => t.view === view);
       if (!tab) return;
@@ -348,8 +311,7 @@ export function runAgentBrowserMain(): void {
       if (!iconUrl || iconUrl === tab.faviconUrl) return; // none, or already have/fetching this one
       tab.faviconUrl = iconUrl;
       void fetchFaviconDataUrl(iconUrl).then((data) => {
-        // The tab may have navigated/closed or its icon changed mid-fetch — only apply
-        // if this is still the current icon request for a live tab.
+        // Only apply if this is still the current icon request for a live tab.
         const t = tabs.find((x) => x.id === tab.id);
         if (!t || t.faviconUrl !== iconUrl) return;
         t.faviconData = data ?? undefined;
@@ -362,10 +324,8 @@ export function runAgentBrowserMain(): void {
     wc.on("did-start-loading", reportTabs);
     wc.on("did-stop-loading", () => {
       reportTabs();
-      // Best-effort: clear a cookie/consent wall ONCE per page load so a weak model isn't
-      // stuck hovering it. Fails open; scoped to known consent widgets (see dismissConsent).
-      // ONLY on a real http(s) page — never about:blank / non-web (no consent there, and it
-      // must not run on the startup tab while @playwright/mcp is still enumerating targets).
+      // Consent dismissal ONCE per page load, ONLY on a real http(s) page: it must not run
+      // on the startup tab while @playwright/mcp is still enumerating targets.
       const tab = tabs.find((t) => t.view === view);
       if (tab && !tab.consentTried && /^https?:/i.test(wc.getURL())) {
         tab.consentTried = true;
@@ -384,19 +344,12 @@ export function runAgentBrowserMain(): void {
 
   function createTab(url: string, activate = true): string {
     if (!win) return "";
-    // Federated Google sign-in (a "Se connecter avec Google" popup / new tab) needs
-    // contextIsolation OFF so LOGIN_PRELOAD can delete navigator.userAgentData in the
-    // page's MAIN world — Google reads it in JS and a Chrome-brand value coming from an
-    // embedded Chromium is the exact "not a real browser" tell. This is the ONE narrow
-    // case; every normal tab keeps full isolation.
-    // ATTACK SURFACE — deliberately bounded to ~zero delta vs. an isolated tab:
-    //  • Only accounts.google.* ever reaches this branch (isGoogleAuthUrl checks the
-    //    INITIAL url), and nobody but Google can serve content there → the weaker-
-    //    isolation view only ever runs Google's OWN page, never attacker content.
-    //  • sandbox stays ON, nodeIntegration OFF, and LOGIN_PRELOAD exposes NO
-    //    ipcRenderer / Node / contextBridge — the page gains NO capability; it is still
-    //    untrusted web content with no IPC, exactly like every other tab.
-    //  • The same SSRF / popup / navigation guards attach below (attachGuards).
+    // Federated Google sign-in needs contextIsolation OFF so LOGIN_PRELOAD can delete
+    // navigator.userAgentData in the page's MAIN world (Google reads it in JS). The ONE
+    // narrow case, bounded to ~zero delta vs. an isolated tab: only accounts.google.*
+    // reaches this branch and nobody else serves content there; sandbox stays ON,
+    // nodeIntegration OFF, the preload exposes NO ipcRenderer/Node/contextBridge; the
+    // same guards attach below.
     const login = isGoogleAuthUrl(url);
     const view = new WebContentsView({
       webPreferences: login
@@ -412,9 +365,7 @@ export function runAgentBrowserMain(): void {
             contextIsolation: true,
             nodeIntegration: false,
             sandbox: true,
-            // The stealth preload runs SANDBOXED + ISOLATED and reaches the page only via
-            // `webFrame.executeJavaScript` — no ipcRenderer/Node/contextBridge, no relaxed
-            // boundary (browser CLAUDE.md "cosmetic only"). Omitted under the kill switch.
+            // Sandboxed + isolated; reaches the page only via `webFrame.executeJavaScript`.
             ...(STEALTH_ON ? { preload: STEALTH_PRELOAD } : {}),
           },
     });
@@ -422,29 +373,25 @@ export function runAgentBrowserMain(): void {
     attachGuards(view.webContents, view);
     // New tabs start "recently active" so a fresh background tab is never the LRU victim.
     tabs.push({ id, view, lastActive: ++activeSeq });
-    // First tab is always shown; otherwise `activate` decides (a background tab the model
-    // opened while the user is driving doesn't take over the view).
+    // First tab is always shown; otherwise `activate` decides.
     if (activate || activeId === null) {
       activeId = id;
       touchActive(id);
       layout(); // attaches this (now-active) view to the window
     }
-    // The tab exists either way (as before); WHAT it loads goes through the sink guard, so
-    // an internal address opens an empty tab instead of a page. `will-navigate` never fires
-    // for this call — see `loadGuarded`.
+    // WHAT it loads goes through the sink guard (`will-navigate` never fires for this
+    // call — see `loadGuarded`), so an internal address opens an empty tab.
     void loadGuarded(view.webContents, url);
     reportTabs();
     evictLruTabs(); // enforce the live-tab cap (rarely fires)
     return id;
   }
 
-  // A USER navigation from the panel (URL bar, bookmark, link-open). While the model is
-  // driving, a user navigation that would land on the model's DEDICATED tab opens a NEW
-  // foreground user tab instead — so the human browses in parallel and never clobbers the
-  // page the model is working on. Otherwise it loads in the target tab as before.
+  // A USER navigation from the panel. While the model is driving, one that would land on
+  // the model's tab opens a NEW foreground user tab instead.
   const navigate = (url: string, tabId?: string): void => {
-    // Sync floor first, so a refused URL never even picks a target tab; the DNS re-check
-    // runs inside `loadGuarded` (or inside `createTab`'s, on the branches below).
+    // Sync floor first, so a refused URL never picks a target tab; the DNS re-check runs
+    // inside `loadGuarded`.
     if (!isBlankUrl(url) && navUrlBlocked(url)) return;
     const targetId = tabId ?? activeId ?? null;
     if (driving && targetId && targetId === agentTabId) {
@@ -453,8 +400,8 @@ export function runAgentBrowserMain(): void {
     }
     const tab = targetId ? tabs.find((t) => t.id === targetId) : undefined;
     if (tab) {
-      // The attribution flag is set only once the load is ALLOWED — a refused navigation
-      // must not leave the next `did-navigate` misattributed to the user.
+      // Set only once the load is ALLOWED, or a refused navigation misattributes the next
+      // `did-navigate` to the user.
       void loadGuarded(tab.view.webContents, url, () => {
         tab.userNav = true; // attribute the coming did-navigate to the USER, not the model
       });
@@ -476,34 +423,24 @@ export function runAgentBrowserMain(): void {
       backgroundColor: "#f4f4f2",
     });
     win.on("resize", layout);
-    // Report this window's OS focus so the parent knows the app is still frontmost when the
-    // user clicks INTO the browser (the main window blurs, but the app didn't lose focus).
-    // Without it, the parent would hide the alwaysOnTop overlay the moment it's interacted with.
+    // OS focus of this window, so the parent knows the app is still frontmost when the
+    // user clicks INTO the browser (and doesn't hide the alwaysOnTop overlay).
     win.on("focus", () => process.stdout.write("AGENT_FOCUS 1\n"));
     win.on("blur", () => process.stdout.write("AGENT_FOCUS 0\n"));
 
-    // Device permissions + downloads: deny on the SHARED default session (all tab views
-    // use it — the default context @playwright/mcp attaches to), so it covers every tab.
+    // Device permissions + downloads: denied on the SHARED default session (every tab).
     const ses = session.defaultSession;
     ses.setPermissionRequestHandler((_wc, _perm, done) => done(false));
     ses.setPermissionCheckHandler(() => false);
     ses.on("will-download", (e) => e.preventDefault());
 
-    // ── Google sign-in de-fingerprinting (mirrors mcp/authWindow.ts) ─────────────
-    // Google refuses OAuth from anything it detects as an embedded/automated Chromium
-    // ("disallowed_useragent" → "ce navigateur n'est peut-être pas sécurisé"). For
-    // GOOGLE HOSTS ONLY we present a Firefox identity (Firefox emits no Sec-CH-UA
-    // client hints), so the federated "Se connecter avec Google" on a SaaS the user
-    // drives here (Canva…) is accepted. Scoped to Google → all other browsing keeps
-    // the real Chrome UA; header-only → no view's process isolation is touched. The
-    // matching JS-side fix (removing navigator.userAgentData) rides on LOGIN_PRELOAD,
-    // attached only to the narrow accounts.google.* login view (see createTab).
+    // Google refuses OAuth from an embedded/automated Chromium ("disallowed_useragent").
+    // For GOOGLE HOSTS ONLY we present a Firefox identity (no Sec-CH-UA); header-only, so
+    // no view's isolation is touched. The JS side rides on LOGIN_PRELOAD (createTab).
     const acceptLang = acceptLanguage();
     ses.webRequest.onBeforeSendHeaders((details, callback) => {
       const headers = details.requestHeaders;
       if (isGoogleHost(details.url)) {
-        // Google: present a Firefox identity (no Sec-CH-UA at all) so federated sign-in
-        // isn't refused as an embedded Chromium.
         for (const key of Object.keys(headers)) {
           if (key.toLowerCase().startsWith("sec-ch-ua")) delete headers[key];
         }
@@ -512,9 +449,8 @@ export function runAgentBrowserMain(): void {
         return;
       }
       if (STEALTH_ON) {
-        // Everywhere else: overwrite the Client Hints with clean Chrome-branded values
-        // (Electron otherwise leaks an "Electron" brand → the CH disagree with the UA, a
-        // classic bot tell), and pin a coherent Accept-Language to the host locale.
+        // Everywhere else: Chrome-branded Client Hints (Electron otherwise leaks an
+        // "Electron" brand that disagrees with the UA) and a coherent Accept-Language.
         for (const key of Object.keys(headers)) {
           if (key.toLowerCase().startsWith("sec-ch-ua")) delete headers[key];
         }
@@ -560,15 +496,12 @@ export function runAgentBrowserMain(): void {
     } catch {
       return;
     }
-    // A command can race the shutdown teardown: the parent quits us via stdin end,
-    // but a buffered bounds/show/hide/navigate line may still arrive after the window
-    // is destroyed. `win` is then a non-null but destroyed reference, so any win.*
-    // call throws "Object has been destroyed" (uncaught) — bail if it's gone.
+    // A buffered command can arrive after the window is destroyed; any win.* call would
+    // then throw.
     if (!win || win.isDestroyed()) return;
     switch (msg.cmd) {
-      // navigate / tab-* / back / forward arrive ONLY from the panel (the human) — the model
-      // drives over CDP, never this pipe. A user `navigate`/`tab-new` explicitly activates
-      // its tab (unlike a model/page `window.open`, which stays in the background).
+      // navigate / tab-* / back / forward arrive ONLY from the panel (the human); the model
+      // drives over CDP, never this pipe.
       case "navigate":
         if (msg.url) navigate(msg.url, msg.tabId);
         break;
@@ -581,9 +514,8 @@ export function runAgentBrowserMain(): void {
       case "tab-close":
         if (msg.tabId) closeTab(msg.tabId);
         break;
-      // Session-history navigation on the ACTIVE tab — strictly weaker than `navigate`
-      // (every history entry already passed the will-navigate/redirect SSRF guards when
-      // it first loaded, and redirects on the way back are re-guarded like any load).
+      // Session-history navigation: every entry already passed the SSRF guards when it
+      // first loaded, and redirects on the way back are re-guarded like any load.
       case "back":
       case "forward": {
         const view = activeId ? tabView(activeId) : undefined;
@@ -594,9 +526,8 @@ export function runAgentBrowserMain(): void {
         }
         break;
       }
-      // The renderer's "automating" state (forwarded from main). Pin the model's dedicated
-      // tab to whatever is current when driving starts — its first CDP action lands there;
-      // a later CDP nav to a different tab re-points it (see did-navigate).
+      // The renderer's "automating" state. Pin the model's tab to the current one when
+      // driving starts; a later CDP nav re-points it (see did-navigate).
       case "driving":
         driving = msg.on === true;
         if (driving && !agentTabId) agentTabId = activeId;
@@ -624,21 +555,14 @@ export function runAgentBrowserMain(): void {
     /* Keep running headless if hidden; the parent quits us via stdin end. */
   });
 
-  // Robustness + diagnostics for the "agent window flashes open/closed" symptom:
-  // that is THIS child spawning then dying in a loop (the parent's browser-heal
-  // respawns it each time it goes down). A background error must NOT hard-kill the
-  // browser — mirror the main app's report-only policy so an uncaught throw can't
-  // crash the child (which would look exactly like the flash). All lines go to
-  // stderr (inherited by the parent terminal), never a URL/title/secret, so they
-  // are safe to leave on: run the app from a terminal and read the `[agent-child]`
-  // lines to see WHY the browser goes down.
+  // A background error must NOT kill the child (the parent would respawn it in a loop).
+  // Report-only, on stderr, never a URL/title/secret.
   process.on("uncaughtException", (e) =>
     console.error("[agent-child] uncaughtException (kept alive):", e instanceof Error ? e.stack : e),
   );
   process.on("unhandledRejection", (e) =>
     console.error("[agent-child] unhandledRejection (kept alive):", e instanceof Error ? e.stack : e),
   );
-  // A GPU/renderer crash of a tab view (a plausible flash cause on some hardware).
   app.on("render-process-gone", (_e, _wc, details) =>
     console.error("[agent-child] render-process-gone:", details.reason, details.exitCode),
   );

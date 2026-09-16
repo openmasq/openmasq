@@ -1,19 +1,14 @@
 // The key to `/mcp`. That endpoint re-exposes every connected service's tools and runs them
-// with the credentials this process holds — it ACTS on the user's accounts, where `/console`
-// only shows what was masked. It is the surface that most needs a key, and it is the one that
-// had none: anything that could reach the port could list the tools and call them, and a
-// READ is not stopped by the write gate.
+// with the credentials this process holds — it ACTS on the user's accounts, and a READ is not
+// stopped by the write gate, so anything that reaches the port needs a key.
 //
-// The token is PERSISTED, not minted per run, and that is deliberate. A client we configure
-// ourselves gets its endpoint written fresh every time, but one that declares it ONCE (Gemini
-// is told `gemini mcp add … <url>/mcp`) keeps that declaration across runs; a rotating token
-// would break it on the next start and teach the user to work around the lock.
-//
-// It lives where the credentials it fronts already live — `~/.openmasq`, 0600 in a 0700
-// directory — so reaching the endpoint is no easier than reading the store behind it. That is
-// the bar it is meant to set: it does not defend against a process already running as this
-// user (nothing here does), it defends against everything that merely reaches the PORT — a
-// page in a browser above all, which can open a loopback URL but cannot read a file.
+// The token is PERSISTED, not minted per run: a client that declares the endpoint ONCE
+// (`gemini mcp add … <url>/mcp`) keeps that declaration across runs, and a rotating token
+// would teach the user to work around the lock. It lives where the credentials it fronts
+// already live — `~/.openmasq`, 0600 in a 0700 directory — so reaching the endpoint is no
+// easier than reading the store behind it. It defends against everything that merely
+// reaches the PORT (a page in a browser above all), not against a process already running
+// as this user.
 import { chmodSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { randomBytes, timingSafeEqual } from "node:crypto";
 import { join } from "node:path";

@@ -1,13 +1,11 @@
-// What the console is fed. The `Reporter` already sees every model request and every MCP
-// tool call — this turns that into a stream a browser can read, and it is the ONLY place
-// that decides what a page is allowed to know.
+// What the console is fed: the `Reporter` sees every model request and every MCP tool
+// call; this turns that into a stream a browser can read, and it is the ONLY place that
+// decides what a page is allowed to know.
 //
-// ⚠️ **The reveal decision lives here, not in the page.** A terminal shows a real value on
-// the operator's own screen; an HTTP endpoint is reachable by every process on the machine,
-// and a page can be screenshotted, extended and left open. So the real value is only ever
-// put on the wire when the run was started with `--reveal`; otherwise a subscriber gets the
-// substitute — what the model saw — and the counts. A page cannot ask for more than the run
-// granted, because the server never sends it.
+// ⚠️ The reveal decision lives here, not in the page. An HTTP endpoint is reachable by every
+// process on the machine, so the real value goes on the wire only when the run was started
+// with `--reveal`; otherwise a subscriber gets the substitute and the counts. A page cannot
+// ask for more than the run granted, because the server never sends it.
 import { categoriesForLevel, REDACTION_CATEGORIES, type RedactionLevel } from "@openmasq/catalog";
 import { MCP_CATEGORIES, MCP_CONNECTORS, MCP_LOGO_IMAGES, MCP_LOGOS } from "@openmasq/catalog/mcp";
 import { getMessages } from "@openmasq/i18n";
@@ -20,17 +18,14 @@ import {
 import type { RequestEvent } from "../../lib/ui/index.js";
 
 export interface ConsoleItem {
-  /** The redaction SECTION's slug (`identite`, `financier`…) — which is also the name of the
-   *  design token that colours it. The engine speaks in fine categories (`email`, `iban`),
-   *  the palette in the nine sections, and `CATEGORY_SECTION` is the one home of that
-   *  mapping: deriving it here means the page never guesses a colour. */
+  /** The redaction SECTION's slug (`identite`, `financier`…), also the design token that
+   *  colours it. `CATEGORY_SECTION` is the one home of the category → section mapping. */
   cat: string;
   /** What the model saw. */
   fake: string;
   /** The real value — present ONLY under `--reveal`. */
   real?: string;
-  /** The fine category's own label (`E-mail`, `IBAN`), for the per-value view. Taken from
-   *  `@openmasq/catalog`, which owns the labels — never invented here. */
+  /** The fine category's own label (`E-mail`, `IBAN`), from `@openmasq/catalog`. */
   type: string;
   /** How many times this value occurred in the call. */
   n: number;
@@ -63,9 +58,8 @@ const MAX_BACKLOG = 500;
 
 /**
  * A section label (`Identité`) → the token slug the design system uses (`identite`).
- * Deterministic and reversible by eye, which is what lets `console.test.ts` check that every
- * section the product declares lands on an id the page actually paints — a new section would
- * otherwise fall silently into the grey "systeme" bucket.
+ * Deterministic, so `console.test.ts` can check that every section the product declares
+ * lands on an id the page paints instead of the grey "systeme" bucket.
  */
 export const sectionSlug = (label: string): string =>
   label
@@ -83,13 +77,9 @@ const fineOf = (match: RedactionMatch): ReturnType<typeof redactionCategory> =>
   redactionCategory(match.category ?? match.type ?? "");
 
 /** The console is in English — the CLI's language — so its labels come from the product's
- *  English catalogue (`@openmasq/i18n`), the same words the app's rules screen shows in that
- *  language. Never a table of its own: a category added upstream arrives translated or,
- *  failing that, under the catalogue's source label, but never invented here. */
+ *  English catalogue (`@openmasq/i18n`). Never a table of its own. */
 const EN = getMessages("en").redactionCatalog;
-/** The app's OWN names for the two sides of the crossing. Read, never retyped: the
- *  console shows one of them permanently, and a reader who also uses the app must meet
- *  the same words for the same thing (rule 9). */
+/** The app's OWN names for the two sides of the crossing. Read, never retyped (rule 9). */
 const SIDES = getMessages("en").modals.transparency;
 const enCategory = (key: string) =>
   (EN.categories as Record<string, { label: string; detail?: string } | undefined>)[key];
@@ -110,15 +100,13 @@ const clock = (at: number): string => {
   return `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
 };
 
-/** One match → one item, minus the real value unless the run revealed. De-duplicated by
- *  value: a path repeated forty times in one prompt would otherwise be forty rows. */
+/** One match → one item, minus the real value unless the run revealed. De-duplicated by value. */
 function itemsOf(matches: RedactionMatch[], reveal: boolean): ConsoleItem[] {
   const seen = new Map<string, ConsoleItem>();
   for (const m of matches) {
     if (!m.placeholder) continue;
     const already = seen.get(m.value);
-    // Folded rather than dropped: the per-value view counts occurrences, and a path repeated
-    // forty times in one prompt is ONE value seen forty times, not forty rows.
+    // Folded rather than dropped: the per-value view counts occurrences.
     if (already) {
       already.n += 1;
       continue;
@@ -169,21 +157,16 @@ export function createConsoleBus(reveal: boolean, now: () => number = Date.now):
   };
 }
 
-/** The sections the page paints, in the product's own order, with the product's own labels.
- *  Sent on connect so the page carries no list of its own — the kit's hard-coded eight left
- *  `Système` unlabelled the moment a file path was masked. */
+/** The sections the page paints, in the product's own order and labels. Sent on connect so
+ *  the page carries no list of its own. */
 export const sections = (): { id: string; label: string }[] =>
   REDACTION_SECTIONS.map((fr) => ({ id: sectionSlug(fr), label: enSection(fr) }));
 
 /**
- * WHICH SIDE of the crossing this page shows — and it only ever shows one.
- *
- * A mark colours the redacted SPAN of whatever is being displayed, which is the same rule on
- * both sides and therefore looks opposite: the app's composer and chat show what you wrote,
- * so the mark sits on the REAL value about to be replaced, while this page is a log of what
- * left, so the mark sits on the SUBSTITUTE. The app's transparency panel puts the two columns
- * side by side and is where those names come from; here there is one column and it has to say
- * which. Sent rather than typed, so a rewording upstream reaches this page.
+ * WHICH SIDE of the crossing this page shows. A mark colours the redacted SPAN of what is
+ * displayed: the app's composer shows what you wrote (mark on the REAL value), this page is
+ * a log of what left (mark on the SUBSTITUTE). Sent rather than typed, so a rewording
+ * upstream reaches this page.
  */
 export const sideShown = (): { here: string; there: string } => ({
   here: SIDES.modelReceived,
@@ -191,18 +174,13 @@ export const sideShown = (): { here: string; there: string } => ({
 });
 
 /**
- * The MCP connector CATALOG — the same list the desktop app shows, so the console's MCP panel
- * lists every service that CAN be connected, not only the ones live on this run. One home for
- * the list (`@openmasq/catalog`), sent on connect so the page carries none of its own. Display
- * metadata only — id, name, category, the design-system hue (`tone`) its tile is painted in,
- * and the brand MARK; never a credential.
+ * The MCP connector CATALOG — the same list the desktop app shows, so the console lists
+ * every service that CAN be connected. One home (`@openmasq/catalog/mcp`), sent on connect.
+ * Display metadata only — id, name, category, hue, brand MARK — never a credential.
  *
- * The mark travels WITH the list because the page may fetch nothing from anywhere (`../../
- * CLAUDE.md`: a privacy console that phoned a CDN would be its own counter-example). Two
- * shapes, both self-contained: `logo` is a 24×24 single path plus its official hex, `img` a
- * `data:` PNG for the brands that publish no monochrome glyph. A connector with neither —
- * the local filesystem server, a custom one — keeps the coloured letter tile, which is what
- * the desktop does too. Both come from `@openmasq/catalog/mcp`, the one home of the list.
+ * The mark travels WITH the list because the page fetches nothing from anywhere: `logo` is a
+ * 24×24 single path plus its official hex, `img` a `data:` PNG for brands that publish no
+ * monochrome glyph. A connector with neither keeps the coloured letter tile, like the desktop.
  */
 export const connectorCatalog = (): {
   categories: { id: string; label: string }[];
@@ -231,13 +209,10 @@ export const connectorCatalog = (): {
 });
 
 /**
- * The masking RULES the page may show: the product's own sections, each with the categories
- * the catalogue puts in it, their labels and the sentence the app shows beside them. The
- * STRUCTURE only — what is on right now is `activeCategories`, small enough to re-read while
- * the run's level changes under the `l` key.
- *
- * Sent rather than known: the page has no list of its own (`sections` says why), and a
- * catalogue entry added upstream must reach this panel without an edit here.
+ * The masking RULES the page may show: the product's sections, each with its categories,
+ * labels and the sentence the app shows beside them. STRUCTURE only — what is on right now
+ * is `activeCategories`, re-read while the run's level changes under the `l` key. Sent
+ * rather than known: the page has no list of its own.
  */
 export const rules = (): {
   id: string;
@@ -256,9 +231,8 @@ export const rules = (): {
 
 /**
  * Which categories this run actually masks: the level's own arithmetic
- * (`categoriesForLevel`), minus what `--disable` turned off. The SAME two inputs the masker
- * reads — never a second reading of the rules, which is how a panel ends up claiming a
- * category the engine is not looking for.
+ * (`categoriesForLevel`), minus what `--disable` turned off — the SAME two inputs the
+ * masker reads, never a second reading of the rules.
  */
 export const activeCategories = (level: RedactionLevel, disabled: readonly string[]): string[] => {
   const on = categoriesForLevel(level);
@@ -269,9 +243,8 @@ export const activeCategories = (level: RedactionLevel, disabled: readonly strin
 
 /**
  * The reporter, teed to the page. The terminal keeps printing exactly what it printed; each
- * request line is also published on the bus. One wrapper rather than a second reporter,
- * because the two must never disagree about what happened — the page is a WINDOW onto the
- * log, not a second account of it.
+ * request line is also published on the bus. One wrapper, not a second reporter: the page is
+ * a WINDOW onto the log, not a second account of it.
  */
 export function teeToConsole<R extends { request(e: RequestEvent): void }>(
   reporter: R,

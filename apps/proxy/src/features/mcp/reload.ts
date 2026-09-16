@@ -1,23 +1,19 @@
 // A connection made through openmasq takes effect in the RUNNING proxy, not at the next
-// start. `mcp login notion`, `mcp add`, `mcp remove` and an edit of the servers file all land
-// in `~/.openmasq` (`mcp.json`, the credential store); this watches that directory and, on a
-// change, resolves the server list again exactly as start-up did — the same precedence, the
-// same policy — and hands the upstream what differs. Only what differs: a server whose entry
-// and credentials did not move keeps its connection and any call in flight.
+// start: `mcp login`, `mcp add`, `mcp remove` and an edit of the servers file all land in
+// `~/.openmasq`; this watches that directory and, on a change, resolves the server list
+// again exactly as start-up did and hands the upstream what differs. Only what differs: a
+// server whose entry and credentials did not move keeps its connection and its calls in flight.
 //
 // The wrapped client's own servers stay switched off for the run (exclusivity is decided
-// once, at start), so a server signed in here replaces the adopted one in place: the agent
-// keeps the tool, and it now runs through openmasq's own credential. The agent learns of the
-// change by `notifications/tools/list_changed` (`routes.ts`), which is how a tool appears
-// or disappears mid-session without a restart.
+// once), so a server signed in here replaces the adopted one in place. The agent learns of
+// the change by `notifications/tools/list_changed` (`routes.ts`).
 import { type FSWatcher, watch } from "node:fs";
 import { basename } from "node:path";
 import type { ServerSpec } from "./servers.js";
 
 /** The files whose change means "the servers, their credentials, or how they are masked
- *  moved". `proxy.json` is here for its `mcp` section ALONE — see `policyReload.ts`: nothing
- *  else in that file is re-read while the proxy runs, because a port or a host cannot move
- *  under a listening server and a masking level can. */
+ *  moved". `proxy.json` is here for its `mcp` section ALONE (`policyReload.ts`): a port
+ *  cannot move under a listening server, a masking level can. */
 export const WATCHED = new Set(["mcp.json", "mcp-auth.enc", "proxy.json"]);
 
 export interface ReloadDeps {
@@ -100,11 +96,10 @@ export function watchIntegrations(initial: ServerSpec[], deps: ReloadDeps): Relo
         seen.set(s.id, fp);
       }
       for (const id of [...seen.keys()]) if (!specs.some((s) => s.id === id)) seen.delete(id);
-      // ⚠️ A STDIO server is a COMMAND, and connecting to it means SPAWNING that command. A
-      // file in the state directory is not a human, so a stdio entry that appeared — or whose
-      // command changed — is declared here and started at the next START, never launched by
-      // the watcher on its own. What reloads live is everything that runs no process: a remote
-      // server, and the credentials of one (`mcp login`, the case this watcher exists for).
+      // A STDIO server is a COMMAND, and connecting to it means SPAWNING it. A file in the
+      // state directory is not a human, so a stdio entry that appeared or changed is declared
+      // here and started at the next START, never launched by the watcher. What reloads live
+      // runs no process: a remote server, and the credentials of one.
       const held = specs.filter(
         (s) => s.transport === "stdio" && (!started.has(s.id) || changed.has(s.id)),
       );
@@ -117,9 +112,8 @@ export function watchIntegrations(initial: ServerSpec[], deps: ReloadDeps): Relo
         );
       }
       const runnable = specs.filter((s) => !held.some((h) => h.id === s.id));
-      // Masking first, and on its OWN: it reconnects nothing, so it must still apply when
-      // the servers themselves did not move — which is the common case, since the file that
-      // carries a level is not the file that carries a server.
+      // Masking first, and on its OWN: it reconnects nothing, so it must apply even when the
+      // servers did not move — the common case.
       if (deps.remask) {
         const remasked = deps.remask();
         if (remasked.length) deps.note(`masking updated: ${remasked.join(", ")}`, "ok");

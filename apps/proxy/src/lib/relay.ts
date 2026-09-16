@@ -60,10 +60,9 @@ export interface RelayOptions {
   strip?: string[];
 }
 
-/** The upstream path: what the client asked for, minus the prefixes that address US and not
- *  the vendor — the per-client `/s/<session>` (a wrapped tool's whole base URL) and a
- *  `/openai`|`/anthropic`|`/gemini` family selector. Both are how the caller reaches THIS
- *  proxy; neither exists upstream, so forwarding either verbatim is a 404 at the vendor. */
+/** The upstream path: what the client asked for, minus the prefixes that address US — the
+ *  per-client `/s/<session>` and a `/openai`|`/anthropic`|`/gemini` family selector. Neither
+ *  exists upstream. */
 export function upstreamPath(req: Request): string {
   return (
     req.originalUrl
@@ -109,8 +108,7 @@ export async function relay(
   });
   deps.reporter.request({
     method: req.method,
-    // Without the `/s/<session>` prefix: the session has its own column, and repeating it
-    // in every route makes the log harder to read, not more precise.
+    // Without the `/s/<session>` prefix: the session has its own column.
     path: path.split("?")[0].replace(/^\/s\/[^/]+/, ""),
     family: o.family,
     status: up.status,
@@ -137,23 +135,19 @@ export async function relay(
     // The vault's KEYS are the fakes — what the model saw — never the real values.
     deps.reporter.fakes(Object.keys(locals.vault));
     const rw = o.stream(locals.vault, fns);
-    // ⚠️ `pipeline`, never a chain of `.pipe()`. A `.pipe()` does not forward errors, so an
-    // upstream that DIES MID-STREAM — a laptop losing wifi, a provider dropping the
-    // connection — emitted `error` on a Readable nobody listened to, and Node turned that
-    // into an uncaught exception: the proxy exited, taking the wrapped tool with it. The
-    // one thing this process must not do is disappear while it is somebody's only way to
-    // reach a model. `pipeline` propagates the error, destroys every stream in the chain,
-    // and hands it here.
+    // `pipeline`, never a chain of `.pipe()`: `.pipe()` does not forward errors, so an
+    // upstream that dies MID-STREAM would emit `error` on a Readable nobody listens to and
+    // take the process down — and this process is somebody's only way to reach a model.
+    // `pipeline` propagates the error, destroys every stream in the chain, and hands it here.
     pipeline(
       Readable.fromWeb(up.body as import("node:stream/web").ReadableStream),
       new SseTransform(rw.rewrite, rw.end),
       res,
       (err) => {
         if (!err) return;
-        // The headers went out long ago, so there is no status left to change: the client
-        // sees a truncated stream, which is what actually happened and what it can retry.
-        // Said on the operator's screen, because a silent truncation looks like an answer
-        // that simply stopped.
+        // The headers went out long ago: the client sees a truncated stream, which is what
+        // happened and what it can retry. Said on the operator's screen, because a silent
+        // truncation looks like an answer that simply stopped.
         deps.reporter.note?.(`upstream stream ended early: ${errText(err)}`, "warn");
         res.end();
       },

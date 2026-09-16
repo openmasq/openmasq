@@ -63,9 +63,7 @@ export interface ReporterOptions extends TtyOptions {
 /** How long the masked total stays accented after it moves. One repaint, then it settles. */
 const FLASH_MS = 900;
 
-/** The card is REVEALED, not dropped: it lands line by line, within the budget below whatever
- *  its length — a card carrying the integrations rows would otherwise crawl. It follows an
- *  opening sequence that took its time, and a block appearing whole after it reads as a glitch. */
+/** The card is REVEALED line by line within the budget below, whatever its length. */
 const REVEAL_MS = 520;
 
 export function createReporter(o: ReporterOptions = {}): Reporter {
@@ -79,9 +77,8 @@ export function createReporter(o: ReporterOptions = {}): Reporter {
   // rebuilt from scratch on every repaint.
   const recent: string[] = [];
   let maskedAt = 0;
-  // Which host each family goes to. Learned from the card the reporter printed rather than
-  // threaded through every call site: the config that answers it is the same one, and a
-  // reporter that never printed a card (a log file) simply names the family instead.
+  // Which host each family goes to: learned from the card the reporter printed; a reporter
+  // that never printed a card (a log file) names the family instead.
   let upstreams: Record<string, string> = {};
   const live = o.live && !o.json && !o.write;
   const bar = createStatusBar(
@@ -238,9 +235,7 @@ function hostsOf(config: ProxyConfig): Record<string, string> {
 
 /**
  * The reveal toggle a reporter may be given. A reporter whose output is a FILE gets a toggle
- * that is off and stays off — a log is copied, backed up and grepped, and `--reveal` with a
- * wrapped tool is allowed only because the console page is the screen then, never the file.
- * One decision, here, rather than a condition at each construction site.
+ * that is off and stays off — a log is copied, backed up and grepped. One decision, here.
  */
 export function revealFor(reveal: { on: boolean }, out: { toFile: boolean }): { on: boolean } {
   return out.toFile ? { on: false } : reveal;

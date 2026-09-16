@@ -1,16 +1,9 @@
-// How the proxy learns which MCP servers the wrapped client already has. It feeds BOTH
-// halves of the feature — the exclusivity flags (`clients.ts`) and the adoption that keeps
-// the session's integrations (`adopt.ts`) — and the two have different failure rules, which
-// is why this returns an outcome rather than a list:
-//
-//   • a client whose exclusivity NAMES each server (Codex) needs a COMPLETE answer: one we
-//     failed to enumerate is one that stays connected behind our back, so a probe that fails
-//     is `failed`, and the caller drops exclusivity instead of half-applying it;
-//   • a client with a real allow-list (Gemini CLI) only needs to find OURS, so an unreadable
-//     file of theirs is simply nothing found.
-//
-// Nothing here writes: a declaration is read, a probe is the client's own read-only
-// subcommand.
+// How the proxy learns which MCP servers the wrapped client already has. It feeds the
+// exclusivity flags (`clients.ts`) and the adoption (`adopt.ts`), whose failure rules differ,
+// hence an outcome rather than a list: a client whose exclusivity NAMES each server (Codex)
+// needs a COMPLETE answer, so a failed probe is `failed` and the caller drops exclusivity
+// instead of half-applying it; a client with a real allow-list (Gemini CLI) only needs to
+// find OURS, so an unreadable file is simply nothing found. Nothing here writes.
 import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { pick, type AgentClient, type OwnServer } from "./clients/index.js";
@@ -58,11 +51,9 @@ export function probeRun(command: string, args: string[], env?: Record<string, s
 }
 
 /**
- * The client's own servers, minus the one that IS us. Gemini CLI's exclusivity works over
- * what the user declared, so OUR endpoint sits in the very list we then take servers over
- * from — and adopting it would have the proxy connect to itself, re-exposing its own tools
- * under a second prefix on every start. `exclusive()` still sees the full list: it has to
- * find that entry, which is how it learns the name to allow.
+ * The client's own servers, minus the one that IS us: adopting our own endpoint would have
+ * the proxy connect to itself. `exclusive()` still sees the full list — it has to find that
+ * entry to learn the name to allow.
  */
 export function notOurs(own: OwnServer[], endpoint: string): OwnServer[] {
   // Compared WITHOUT the query string: our endpoint carries its token there, and a client

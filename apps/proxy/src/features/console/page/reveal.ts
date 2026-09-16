@@ -1,15 +1,8 @@
-// WHO MAY SEE A REAL VALUE, on the page and in what leaves it as a file.
-//
-// This is a privacy boundary, and until now it lived as three lines inside an 800-line
-// `<script>` in an asset — unreachable by any test. It is the first thing to come out
-// (`../page/CLAUDE.md` for the order), because it is the one piece of page logic whose
-// failure is a leak rather than a glitch.
-//
-// TWO conditions, and both are required. `sent` is what the RUN decided: with
-// `--no-console-reveal` the server never puts an original on the wire, so the page has
-// nothing to show whatever its buttons say. `shown` is what the READER decided with the
-// toggle. Neither implies the other, and an export must honour the pair exactly as the
-// screen does — a file is the one copy that outlives the tab.
+// WHO MAY SEE A REAL VALUE, on the page and in what leaves it as a file — a privacy boundary,
+// kept as a testable module. TWO conditions, both required: `sent` is what the RUN decided
+// (`--no-console-reveal` ⇒ the server never puts an original on the wire), `shown` is what
+// the READER decided with the toggle. An export must honour the pair exactly as the screen
+// does — a file is the one copy that outlives the tab.
 
 /** An item as the bus sends it: the substitute always, the original only under reveal. */
 export interface WireItem {
@@ -30,11 +23,8 @@ export interface WireEvent {
 export const mayReveal = (sent: boolean, shown: boolean): boolean =>
   sent === true && shown === true;
 
-/**
- * One event, prepared to leave the page. A deep copy, so stripping never reaches back into
- * the live log the screen is still drawing from — the first version mutated in place and the
- * row went blank behind the download.
- */
+/** One event, prepared to leave the page. A deep copy, so stripping never reaches back into
+ *  the live log the screen is still drawing from. */
 export function exportableEvent(raw: WireEvent | null | undefined, allowed: boolean): WireEvent {
   if (!raw) return {};
   const out = structuredClone(raw) as WireEvent;

@@ -1,29 +1,12 @@
 /**
- * The SELF-HOSTED STACK — the third environment, `"custom"`, whose addresses are
- * NOT baked at build time but entered by the user (Settings → Versions).
- *
- * ⚠️ This is a DELIBERATE exception to `index.ts`'s "a name, never a URL" guard,
- * and it exists only in a build that requested it: `OPENMASQ_ALLOW_CUSTOM_STACK=1`
- * (`scripts/buildDefines.ts`). The official binary never sets this variable — a
- * `custom` pointer is read back there as production (`main/environment.ts`). A fork
- * that builds itself to be pointed at ITS OWN stack sets it, and accepts what that opens up:
- *
- * - What gets persisted is then indeed an address. What bounds it: **https
- *   mandatory** (http only to the local loopback — a plaintext token on a LAN
- *   is a read token), no credentials in the URL, no query or fragment; the
- *   Supabase pair go TOGETHER; validation lives HERE (pure, tested) and replays in
- *   MAIN on every write, never only in the screen (rule 7).
- * - Writing it requires a **NATIVE confirmation** (`dialog.showMessageBox`, in the
- *   privileged process) — which a compromised renderer can't click.
- * - The `custom` environment opens its **OWN** `userData` **profile** (`main/profile.ts`),
- *   like staging: a hijack would only reach an empty profile, never production's
- *   coffre and keys.
- * - The renderer's CSP is widened to ONLY the declared origins, by main, at load
- *   time (`main/customStackCsp.ts`) — never a wildcard.
- *
- * Accepted residual, stated here because it's true: in a build that allows it, a renderer
- * XSS can PROPOSE an address; it can't get it accepted without a human
- * click on a native dialog, and what it would get is a fresh profile.
+ * The SELF-HOSTED STACK: the `"custom"` environment whose addresses are entered by the
+ * user. A DELIBERATE exception to "a name, never a URL", existing only in a build that
+ * set `OPENMASQ_ALLOW_CUSTOM_STACK=1` (the official binary reads a `custom` pointer as
+ * production). What bounds it: https mandatory (http only on loopback), no credentials,
+ * query or fragment, the auth pair TOGETHER, validation HERE (pure) and replayed in MAIN
+ * on every write (rule 7); a NATIVE confirmation a renderer can't click; its OWN
+ * `userData` profile (a hijack reaches an empty profile); the CSP widened to ONLY the
+ * declared origins. RESIDUAL: an XSS can PROPOSE an address, never get it accepted.
  */
 import type { EnvUrls } from "./index";
 
@@ -31,11 +14,11 @@ import type { EnvUrls } from "./index";
 export const CUSTOM_STACK_ALLOWED: boolean = process.env.OPENMASQ_ALLOW_CUSTOM_STACK === "1";
 
 export interface CustomStack {
-  /** The API (`apps/backend`). Required — it's the whole point of the stack. */
+  /** The API. Required: the whole point of the stack. */
   backend: string;
-  /** The gateway (`apps/gateway`). Empty ⇒ neither cloud redaction nor included models. */
+  /** The gateway. Empty ⇒ neither cloud redaction nor included models. */
   gateway: string;
-  /** The auth project (Supabase/GoTrue) and its PUBLISHABLE key — together or not at all. */
+  /** The auth project and its PUBLISHABLE key: together or not at all. */
   supabaseUrl: string;
   supabaseAnonKey: string;
 }
@@ -73,11 +56,7 @@ function checkUrl(raw: string): { ok: true; url: string } | { ok: false; reason:
   return { ok: true, url: `${u.origin}${u.pathname.replace(/\/+$/, "")}` };
 }
 
-/**
- * Validate what arrives from the renderer (or from disk). Each field is trimmed; a missing
- * field counts as empty. Fail-closed: the slightest doubt is a named refusal, never an
- * "we'll see how it goes".
- */
+/** Validate what arrives from the renderer or from disk. Fail-closed: a named refusal. */
 export function validateCustomStack(raw: unknown): CustomStackVerdict {
   if (!raw || typeof raw !== "object") return { ok: false, reason: "not_object" };
   const r = raw as Record<string, unknown>;
@@ -95,8 +74,7 @@ export function validateCustomStack(raw: unknown): CustomStackVerdict {
     if (!v.ok) return { ok: false, reason: v.reason, field };
     out[field] = v.url;
   }
-  // The Supabase pair go TOGETHER: a URL without a key (or the reverse) is an auth that
-  // fails halfway instead of not existing — the same rule as the baked table.
+  // The auth pair go TOGETHER: half a pair is an auth that fails halfway.
   if (!!out.supabaseUrl !== !!out.supabaseAnonKey) {
     return { ok: false, reason: "supabase_pair", field: out.supabaseUrl ? "supabaseAnonKey" : "supabaseUrl" };
   }
@@ -114,8 +92,8 @@ export function customEnvUrls(stack: CustomStack): EnvUrls {
   };
 }
 
-/** The ORIGINS to add to the renderer's `connect-src` — exactly the ones declared
- *  (+ `wss://` for Supabase realtime), never a wildcard. Deduplicated, ordered. */
+/** The ORIGINS for the renderer's `connect-src`: exactly the declared ones (+ `wss://` for
+ *  auth realtime), never a wildcard. */
 export function customCspOrigins(stack: CustomStack): string[] {
   const out = new Set<string>();
   for (const raw of [stack.backend, stack.gateway, stack.supabaseUrl]) {
@@ -137,11 +115,7 @@ export function customCspOrigins(stack: CustomStack): string[] {
   return [...out];
 }
 
-/**
- * Widen the `connect-src` of `index.html`'s static CSP to the given origins.
- * Touches ONLY this directive, and only if it exists: a page with no CSP
- * receives nothing (it didn't need any), and no other directive moves.
- */
+/** Widen ONLY the `connect-src` directive of the static CSP, and only if it exists. */
 export function patchCspConnectSrc(html: string, origins: string[]): string {
   if (origins.length === 0) return html;
   return html.replace(/connect-src ([^;"]*)/, (_m, rest: string) => `connect-src ${rest.trim()} ${origins.join(" ")}`);

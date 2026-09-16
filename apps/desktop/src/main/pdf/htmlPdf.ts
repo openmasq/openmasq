@@ -19,54 +19,30 @@ import {
 } from "./pdfSkeleton";
 
 /**
- * HTML→PDF for a model-authored DOCUMENT (the ```document card's « Télécharger → PDF »).
- * Chromium's own layout engine is the only typesetter in the product that gives real
- * brand typography, full Unicode, page-breaking and REAL tables — the client-side pdf-lib
- * exporter (`@openmasq/ui` `documentPdf.ts`, still the fallback when this host slot is
- * absent) is capped at WinAnsi + the 14 standard fonts, and fpdf2 in the Python sandbox
- * has one font weight.
+ * HTML→PDF for a model-authored DOCUMENT: Chromium's layout engine gives real typography,
+ * Unicode, page-breaking and tables the client-side exporter (the fallback) cannot.
  *
- * ⚠️ THREAT MODEL (root rule 7). The HTML is composed in the RENDERER — untrusted — and
- * carries the user's REAL un-redacted data (that is the promise: the model saw only
- * placeholders, the user's own document holds the true values). So this is a page built
- * from model-influenced content, holding secrets, rendered by a real browser engine. The
- * containment, all of it enumerated and pinned in `pdfSkeleton.test.ts`:
- *
- *  - **Its own renderer PROCESS, out of main** — like the agent browser and the Python
- *    jail, and for the same reason: never lay out untrusted content in the privileged
- *    process. It has no preload, so `window.openmasq` does not exist there.
- *  - **`javascript: false`** — a print document needs no script, so the scripting surface
- *    is switched off outright rather than fenced.
- *  - **A dedicated in-memory session** whose `webRequest` CANCELS every request that is
- *    not the one document or an inert `data:` URI, and whose response carries
- *    {@link PDF_CSP} (`default-src 'none'`). Network egress from this page is impossible,
- *    which is what keeps a real value in the document from being beaconed out.
- *  - **Nothing touches the disk.** The document is served from MEMORY over a custom
- *    scheme; writing it to a temp file would leave plaintext PII outside the encrypted
- *    store. The PDF bytes go straight back over IPC.
- *  - **Navigation is refused** (`will-navigate`, window-open denied): the initial load is
- *    the page's whole life.
- *  - **Fail closed**: any load/print error or the {@link PDF_RENDER_TIMEOUT_MS} budget
- *    rejects, the window is destroyed, and the caller falls back to pdf-lib. No partial
- *    PDF is ever returned.
- *
- * Nothing here is logged — not the HTML, not the title (both are real user data).
+ * ⚠️ THREAT MODEL (rule 7): the HTML is composed in the untrusted RENDERER and carries the
+ * user's REAL un-redacted data. Containment, enumerated and pinned in `pdfSkeleton.test.ts`:
+ * its own renderer PROCESS with no preload; `javascript: false`; a dedicated in-memory
+ * session that CANCELS every request but the one document (+ inert `data:`) under
+ * {@link PDF_CSP}, so egress is impossible; nothing touches the disk (served from MEMORY,
+ * bytes back over IPC); navigation refused; fail closed on error or timeout, no partial PDF.
+ * Nothing is logged: the HTML and the title are real user data.
  */
 
-/** The document currently being printed, served by the protocol handler. Guarded by
- *  {@link queue}: exactly one render is in flight, so a single slot is safe. */
+/** The document being printed, served by the protocol handler. One render in flight
+ *  ({@link queue}), so a single slot is safe. */
 let current: Buffer | null = null;
 let printSession: Session | null = null;
-/** Renders are serialised — each one spawns a renderer process; a burst of clicks must
- *  not spawn a burst of them. `pending` bounds the queue behind that (fail closed). */
+/** Renders are serialised (each spawns a renderer process); `pending` bounds the queue. */
 let queue: Promise<unknown> = Promise.resolve();
 let pending = 0;
 /** `undefined` = not resolved yet, `null` = no bundled font on this install. */
 let fontB64: string | null | undefined;
 
-/** The bundled, sha256-pinned OFL brand font — the SAME file the matplotlib theme and the
- *  `<slug>_pdf` helper use (rule 9: it ships once, in the Python runtime's `fonts/`).
- *  Absent (a dev tree with no baked runtime) ⇒ the print CSS falls back to a system sans. */
+/** The bundled brand font, the SAME file the Python runtime ships (rule 9). Absent ⇒ a
+ *  system sans. */
 async function brandFontBase64(): Promise<string | null> {
   if (fontB64 !== undefined) return fontB64;
   fontB64 = null;
@@ -88,8 +64,8 @@ async function brandFontBase64(): Promise<string | null> {
   return fontB64;
 }
 
-/** The isolated session, created once: in-memory (no `persist:`), no cache, serving the
- *  one document from memory and cancelling every other request. */
+/** The isolated session, created once: in-memory, no cache, one document, every other
+ *  request cancelled. */
 function ensureSession(): Session {
   if (printSession) return printSession;
   const ses = session.fromPartition(`${PDF_SCHEME}-print`, { cache: false });
@@ -149,8 +125,7 @@ async function renderOne(req: PdfRenderRequest): Promise<Uint8Array> {
   }
 }
 
-/** Serialised entry point. One render at a time, a BOUNDED queue behind it (a renderer
- *  XSS must not be able to pile up main-side payloads), and a failure never poisons it. */
+/** Serialised entry point: one render at a time, a BOUNDED queue, a failure never poisons it. */
 export function renderHtmlToPdf(req: PdfRenderRequest): Promise<Uint8Array> {
   if (!canAdmitRender(pending)) return Promise.reject(new Error("trop de rendus en attente"));
   pending++;

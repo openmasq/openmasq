@@ -3,21 +3,12 @@ import type { McpConnection, McpTool, McpToolCall, McpToolResult } from "@openma
 import { devOnly } from "../security/devOnly";
 
 /**
- * E2E-ONLY fixture MCP connections (inert in production). When the app is launched
- * with `OPENMASQ_E2E=1` AND `OPENMASQ_E2E_MCP_FIXTURES=<path.json>`, `connect.ts`
- * registers these in-memory connections alongside the real ones, so a workflow e2e
- * can exercise the FULL agentic pipeline (tool offer → model tool-call → arg
- * un-redaction → result re-redaction → write gate) against canned results instead
- * of real accounts. Security posture (rule 7):
- *  - Gated on TWO env vars set at process launch — a renderer cannot set main's env,
- *    so a compromised renderer cannot summon fixture tools.
- *  - NOTHING here weakens a gate: fixture write-tools still hit the main
- *    write-confirmation window, and results ride the normal redaction pipeline.
- *  - Connections are memory-only: never persisted to the MCP store, dropped by
- *    `mcpCloseAll` like any other connection.
- * The optional `OPENMASQ_E2E_TOOLCALL_LOG` records each call's REAL (un-redacted)
- * arguments — that is the point (asserting rule 11's outward leg) — treat the file
- * like the wire log: test artefact, real PII, never committed.
+ * E2E-ONLY fixture MCP connections, inert in production: with `OPENMASQ_E2E=1` AND
+ * `OPENMASQ_E2E_MCP_FIXTURES=<path.json>` at launch, in-memory connections serve canned
+ * results so a workflow e2e exercises the FULL agentic pipeline. Rule 7: gated on env a
+ * renderer cannot set; NOTHING weakens a gate; memory-only, never persisted.
+ * `OPENMASQ_E2E_TOOLCALL_LOG` records each call's REAL arguments (rule 11's outward leg):
+ * a test artefact holding real PII, never committed.
  */
 
 interface FixtureTool {
@@ -36,8 +27,7 @@ export interface FixtureServer {
   tools: FixtureTool[];
 }
 
-/** Parse + validate the fixture file's JSON. Throws with a precise message on a bad
- *  shape — an e2e mis-set fixture must fail LOUD, not register zero tools. */
+/** Parse + validate the fixture file. Throws: a mis-set fixture fails LOUD. */
 export function parseFixtureServers(json: string): FixtureServer[] {
   const raw = JSON.parse(json) as { servers?: unknown };
   if (!raw || !Array.isArray(raw.servers)) throw new Error("fixtures: `servers` array missing");
@@ -55,9 +45,8 @@ export function parseFixtureServers(json: string): FixtureServer[] {
   });
 }
 
-/** One in-memory MCP connection serving a fixture server's canned tools. `logCall`
- *  receives the REAL args after the redacting client un-redacted them — injected so
- *  the pure core stays fs-free in unit tests. */
+/** One in-memory connection serving canned tools. `logCall` (injected, fs-free core)
+ *  receives the REAL args. */
 export function makeFixtureConnection(
   server: FixtureServer,
   logCall?: (entry: { server: string; tool: string; arguments: unknown }) => void,
@@ -66,8 +55,7 @@ export function makeFixtureConnection(
   return {
     id: server.id,
     async listTools(): Promise<McpTool[]> {
-      // BARE names on purpose: main's `refreshRoutes` namespaces the model-facing
-      // name as `${serverId}__${name}` itself (a pre-namespaced name would double up).
+      // BARE names: `refreshRoutes` namespaces them itself.
       return server.tools.map((t) => ({
         name: t.name,
         description: t.description,
@@ -77,8 +65,7 @@ export function makeFixtureConnection(
       }));
     },
     async callTool(call: McpToolCall): Promise<McpToolResult> {
-      // The routed call arrives with the REAL tool name (routes strip the namespace),
-      // but tolerate the namespaced form so the connection also works standalone.
+      // The routed call carries the REAL name; tolerate the namespaced form standalone.
       const bare = call.name.startsWith(`${server.id}__`)
         ? call.name.slice(server.id.length + 2)
         : call.name;
@@ -95,10 +82,7 @@ export function makeFixtureConnection(
   };
 }
 
-/** The `mcpReconnectStored` entry point: registers one connection per fixture server
- *  into the live map, ONLY under the double env gate (launch-time — a renderer cannot
- *  set main's env). No-op in production; a broken fixture file logs LOUD instead of
- *  silently registering zero tools. */
+/** Registers one connection per fixture server, ONLY under the double env gate. */
 export function maybeRegisterE2eFixtureConnections(
   connected: Map<string, McpConnection>,
 ): void {
@@ -114,17 +98,10 @@ export function maybeRegisterE2eFixtureConnections(
 }
 
 /**
- * E2E-only SUBSET of the account's stored connectors to reconnect
- * (`OPENMASQ_E2E_MCP_ONLY=slack,posthog`). Purpose: a real-connector test that
- * needs Slack shouldn't pay for — nor be destabilised by — 450 offered tools; a
- * ~20-tool catalog is faster, cheaper and far more deterministic, which is what
- * makes iterating on agentic-loop guidance practical.
- *
- * Direction of travel is FAIL-SAFE (it only ever reconnects FEWER connectors) and
- * it is double-gated on launch-time env (`OPENMASQ_E2E` — a renderer cannot set
- * main's env), like the fixture hook. `null` ⇒ no restriction (production).
- * `id` matches the STORED server id, so a multi-account instance (`gmail--2`)
- * matches on its connector prefix too. Pure — pinned by `e2eFixtures.test.ts`.
+ * E2E-only SUBSET of the stored connectors to reconnect (`OPENMASQ_E2E_MCP_ONLY=a,b`): a
+ * small tool catalog is faster and more deterministic. FAIL-SAFE (only ever FEWER), double
+ * env-gated, identity in production. Matches a multi-account instance on its connector
+ * prefix. Pinned by `e2eFixtures.test.ts`.
  */
 export function e2eFilterServers<T extends { id: string }>(servers: T[]): T[] {
   const keep = e2eConnectorFilter();
@@ -142,17 +119,15 @@ export function e2eConnectorFilter(): ((id: string) => boolean) | null {
       .filter(Boolean),
   );
   if (!allowed.size) return null;
-  // `browser` stays reachable only if named explicitly — it is a heavy connector.
+  // `browser` only if named explicitly.
   return (id: string) => allowed.has(id.toLowerCase()) || allowed.has(id.split("--")[0]!.toLowerCase());
 }
 
-/** Read the fixture file and build one connection per declared server, appending
- *  each call to `OPENMASQ_E2E_TOOLCALL_LOG` (jsonl) when set. Caller is `connect.ts`
- *  under the env gate; throws on an unreadable/invalid file (fail loud). */
+/** One connection per declared server, each call appended to the jsonl log when set.
+ *  Throws on an unreadable/invalid file. */
 export function loadE2eFixtureConnections(path: string): McpConnection[] {
   const servers = parseFixtureServers(readFileSync(path, "utf8"));
-  // Writes the REAL, un-redacted tool arguments — the same capability as
-  // OPENMASQ_MCP_RAW_LOG, and gated the same way.
+  // REAL, un-redacted arguments: the same capability and gate as OPENMASQ_MCP_RAW_LOG.
   const logPath = devOnly(process.env.OPENMASQ_E2E_TOOLCALL_LOG);
   const logCall = logPath
     ? (entry: { server: string; tool: string; arguments: unknown }) => {

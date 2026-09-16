@@ -1,23 +1,12 @@
 import { ipcMain, type IpcMainInvokeEvent } from "electron";
 
 /**
- * `handle(channel, shape, fn)` — the ONE way this process accepts a call from the
- * renderer.
- *
- * ⚠️ **A parameter's TypeScript annotation is compile-time fiction at this boundary.**
- * `ipcMain.handle("keys:set", (_e, id: string, value: string) => …)` reads as if `id`
- * were a string, but the renderer is untrusted (root rule 7): a renderer XSS calls
- * `window.openmasq.keys.set({}, [])` directly and `setKey` receives an object. Every
- * handler in this process had that hole, uniformly, because nothing checked.
- *
- * So the shape is declared as VALUES, which exist at runtime, and a mismatch REJECTS
- * before the handler body runs — fail closed, the secure default. The rejection names
- * the channel, the argument index and the expected type, and **never the value**: an
- * argument here can be a provider key.
- *
- * This is a floor, not a schema language. It stops the wrong KIND of thing reaching a
- * privileged function; the capability gates (`readGate`, `withKey`, `fs/uiGate`) still
- * decide what a well-formed call is allowed to touch. Pinned by `handle.test.ts`.
+ * `handle(channel, shape, fn)`: the ONE way this process accepts a renderer call.
+ * ⚠️ A parameter's TypeScript annotation is compile-time fiction at this boundary (rule 7:
+ * an XSS calls the channel with any value), so the shape is declared as VALUES and a
+ * mismatch REJECTS before the body runs. The rejection names channel, index and expected
+ * type, NEVER the value (it can be a provider key). A floor, not a schema language: the
+ * capability gates decide what a well-formed call may touch. Pinned by `handle.test.ts`.
  */
 
 export interface Check<T> {
@@ -83,8 +72,7 @@ export function handle<const A extends readonly Check<unknown>[]>(
         throw err;
       }
     }
-    // Extra arguments are dropped rather than forwarded: a caller that passes more
-    // than the channel declares is not a caller this handler was written for.
+    // Extra arguments are dropped rather than forwarded.
     return fn(event, ...(raw.slice(0, shape.length) as Values<A>));
   });
 }

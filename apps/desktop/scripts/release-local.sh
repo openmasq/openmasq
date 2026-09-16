@@ -42,7 +42,7 @@ fi
 set -a; source "$ROOT/.env"; set +a
 export CSC_LINK="$MAC_CSC_LINK" CSC_KEY_PASSWORD="$MAC_CSC_KEY_PASSWORD"
 export R2_SECRET_ACCESS_KEY="${R2_SECRET_ACCESS_KEY:-$R2_SECRET_KEY_ID}"
-# The infra no longer lives in this repository: both secrets come from the environment.
+# The publishing services are not in this repository: both secrets come from the environment.
 UPDATES_ADMIN_TOKEN="${OPENMASQ_UPDATES_ADMIN_TOKEN:-}"
 ANALYTICS_APP_KEY="${OPENMASQ_ANALYTICS_APP_KEY:-}"
 [ -n "$UPDATES_ADMIN_TOKEN" ] || { echo "✗ OPENMASQ_UPDATES_ADMIN_TOKEN manquant (export-le avant de lancer)"; exit 1; }
@@ -103,7 +103,7 @@ echo "→ ulimit -n effectif : $(ulimit -n)"
 # ── Publication: artifacts first, Worker registration last ───────────────────
 export UPDATES_URL UPDATES_ADMIN_TOKEN
 export AWS_REQUEST_CHECKSUM_CALCULATION=when_required AWS_RESPONSE_CHECKSUM_VALIDATION=when_required
-bash "$ROOT/apps/updates/scripts/publish-desktop.sh" --release-dir "$DESKTOP/release" --channel "$CHANNEL"
+bash "$DESKTOP/scripts/publish-desktop.sh" --release-dir "$DESKTOP/release" --channel "$CHANNEL"
 
 echo "✓ $VERSION publiée sur $CHANNEL — vérification :"
 curl -fsS "$UPDATES_URL/desktop/$CHANNEL/latest-mac.yml" | head -2

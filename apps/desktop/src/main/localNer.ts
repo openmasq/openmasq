@@ -1,18 +1,8 @@
-// Offline local PII detection (BERT NER via transformers.js) for the "IA locale (hors-ligne)"
-// redaction engine. Exposed as the `redact:detect-local` IPC (→ preload `detectLocalPii` →
-// `Host.detectLocalPii`); returns the same verbatim `Detection[]` the LLM detector produces.
-//
-// The heavy inference (onnxruntime-node, SECONDS of synchronous CPU on a big snapshot) runs
-// in a **utilityProcess worker** (`ner/worker.ts` → `nerWorker.js`), NOT the main process —
-// a big page/document snapshot no longer freezes the main event loop (IPC / the agent-browser
-// overlay). This file is the CLIENT: it forks the worker lazily, relays detect requests, and
-// **preserves the FAIL-CLOSED guarantee** — a worker crash / spawn failure / timeout REJECTS
-// (never a silent [] that would leak un-redacted free-form PII), and the renderer degrades to
-// the pattern rules with a warning. The whole worker (hundreds of MB of weights + onnxruntime
-// session) is KILLED after 10 min idle to free the RAM; the next call re-forks (weights cached
-// on disk). Model dirs are computed HERE (the electron `app` API works in main) and passed to
-// the worker via env — the desktop bundle loads 100% offline; there is NO download fallback
-// (see the `modelsDir` note below and ner/worker.ts — the app never fetches at runtime).
+// Offline local PII detection (BERT NER) — the CLIENT of the `ner/worker.ts` utilityProcess,
+// where the seconds of synchronous inference run OFF the main event loop. FAIL-CLOSED: a
+// worker crash / spawn failure / timeout REJECTS, never a silent [] that would leak
+// un-redacted PII. The worker (hundreds of MB) is KILLED after idle; the next call re-forks.
+// Model dirs are computed HERE and passed via env; the app never fetches at runtime.
 import { existsSync } from "node:fs";
 import { join } from "node:path";
 import { app, utilityProcess, type UtilityProcess } from "electron";
@@ -26,20 +16,10 @@ export interface DetectLocalPayload {
 }
 
 /**
- * The bundled models dir — **the ONLY source; the app never downloads** (see ner/worker.ts).
- *
- * SAME system in DEV as in prod (mirrors `runtime/ocrAssets.ts` for docTR): packaged ⇒
- * `${resourcesPath}/ner-models` (electron-builder `extraResources`); dev ⇒ the bake output
- * `apps/desktop/build/ner-models`, resolved from `__dirname` (= `out/main`). Dev used to
- * return "" here and rely on the worker's runtime DOWNLOAD — that fallback is gone, so
- * without this `pnpm dev` would have no local NER at all, however many times you baked.
- * Missing dir ⇒ "" ⇒ the engine is UNAVAILABLE, which BLOCKS the send (`sendGuards.ts`
- * `redactEngineUnavailable` → `RedactionUnavailableError`). Run `pnpm bake:ner`.
- * Never a fetch.
- *
- * ⚠️ It does NOT "degrade to the regex rules" — this comment used to say so, and that is
- * the exact fail-open root rule 7 forbids (regex-only on free-form PII leaks names and
- * orgs). Don't restore the sentence, and don't add the fallback it describes.
+ * The bundled models dir, the ONLY source (the app never downloads): packaged ⇒
+ * `${resourcesPath}/ner-models`; dev ⇒ the bake output under `build/` (`pnpm bake:ner`).
+ * Missing ⇒ "" ⇒ the engine is UNAVAILABLE, which BLOCKS the send (`sendGuards.ts`).
+ * ⚠️ It does NOT degrade to the regex rules: that is the fail-open rule 7 forbids.
  */
 const bundledNerDir = (): string => {
   const dir = app.isPackaged
@@ -58,16 +38,13 @@ interface Pending {
   timer: ReturnType<typeof setTimeout>;
 }
 
-// Cleanup backstop only — the renderer bounds a detection well before this (≤45 s:
-// `send/redactTimeout.ts`, applied by `makeRedactFn` AND by `raceRedactionWork` on the
-// send's local passes — this second half MISSED a time for a while, and this backstop
-// was then the only bound: bubble stuck for 5 min, dead Stop button). This just reaps a
-// pending entry if the worker ever wedged without exiting.
+// Cleanup backstop only: the renderer bounds a detection well before this
+// (`send/redactTimeout.ts`). Reaps a pending entry if the worker wedged without exiting.
 const DETECT_TIMEOUT_MS = 5 * 60 * 1000;
 // Kill the worker (a large RAM floor: weights + onnxruntime session) after this idle.
 const IDLE_MS = 10 * 60 * 1000;
-/** Stderr queue of the PACKAGED worker (bounded) — the only trace of a native load
- *  failure; read back only in the report of an abnormal death. */
+/** Bounded stderr ring of the PACKAGED worker: the only trace of a native load failure,
+ *  read back only in the report of an abnormal death. */
 const STDERR_RING_MAX = 2000;
 let stderrRing = "";
 
@@ -104,17 +81,10 @@ function ensureChild(): UtilityProcess {
   const worker = join(__dirname, "nerWorker.js"); // emitted by electron-vite (main entry)
   const c = utilityProcess.fork(worker, [], {
     serviceName: `${BRAND.slug}-ner`,
-    // MINIMAL env — only the model dirs. NEVER leak provider/app secrets into the worker.
-    // The BUNDLED dir is the only model source — there is no download cache and no HF
-    // revision to forward, because the worker never fetches (see ner/worker.ts loadPredict).
+    // MINIMAL env: only the model dir. NEVER a provider/app secret.
     env: { NER_BUNDLED_DIR: BUNDLED },
-    // DEV: inherit — a hard model-LOAD crash (onnxruntime native / import failure) is
-    // visible in the `pnpm dev` terminal. PACKAGED: "pipe" + the bounded ring below —
-    // stderr is the ONLY trace of a native load failure for a user
-    // (13/08 audit: on "ignore", the real error died in the pipe and the NER bug
-    // stayed undiagnosable). Safe by invariant: the worker NEVER writes `text`
-    // (the real PII) to stderr — see ner/CLAUDE.md; the ring is only read back in a
-    // report of an abnormal death, never printed.
+    // DEV: inherit, so a load crash is visible in the terminal. PACKAGED: "pipe" + the
+    // ring. Safe by invariant: the worker NEVER writes `text` to stderr (ner/CLAUDE.md).
     stdio: app.isPackaged ? "pipe" : "inherit",
   });
   if (app.isPackaged) {
@@ -129,17 +99,13 @@ function ensureChild(): UtilityProcess {
     pending.delete(msg.id);
     if (msg.ok) p.resolve(msg.detections);
     else {
-      // DEV DIAGNOSTIC: surface the worker's REAL error (model load / integrity / inference)
-      // instead of the renderer's generic "couldn't load". No PII (it's an error
-      // string, not the input text). TODO: remove once the NER load bug is diagnosed.
+      // DEV: the worker's REAL error (no PII: an error string, not the input text).
       if (!app.isPackaged) console.error("[local-ner] detection failed:", msg.error);
       p.reject(new Error(msg.error));
     }
   });
   c.on("exit", (code) => {
-    // An UNEXPECTED death only: idle eviction (`killChild` detaches `child`
-    // BEFORE killing) and the app closing are not crashes. The report carries the
-    // worker's NAME + the code + the stderr queue (never the text — the worker's invariant).
+    // An UNEXPECTED death only (idle eviction detaches `child` BEFORE killing).
     if (child === c && !isAppQuitting()) {
       reportMainError(
         "ner",
@@ -147,8 +113,7 @@ function ensureChild(): UtilityProcess {
         new Error(`local-ner mort (code ${code})${stderrRing ? ` — stderr: ${stderrRing.slice(-400)}` : ""}`),
       );
     }
-    // FAIL-CLOSED: a crashed/exited worker rejects every pending detection, so the renderer
-    // fails closed instead of proceeding as if no PII was found.
+    // FAIL-CLOSED: every pending detection rejects.
     child = null;
     rejectAll(new Error("le moteur de détection locale s'est arrêté"));
   });
@@ -157,28 +122,20 @@ function ensureChild(): UtilityProcess {
 }
 
 /**
- * BEST-EFFORT warm-up of the engine (fork + sha256 of the weights + onnxruntime session:
- * several seconds on a weak machine — the "first redaction that doesn't respond").
- * The renderer already warms up on mount (`state/effects/usePlatformEffects.ts`), but only
- * once: after idle eviction (IDLE_MS), the next send would re-pay the whole cold cost
- * again. Called on `browser-window-focus`: the user comes back ⇒ we warm up BEFORE
- * they type. No-op if the worker is already alive, and NEVER a guarantee — the send keeps
- * its fail-closed path and surfaces the real error if the model doesn't load (rule 7:
- * a failure here hides nothing, it only forgoes the warm-up head start).
+ * BEST-EFFORT warm-up (fork + weights + session: seconds on a weak machine), called on
+ * window focus so the cold cost is paid BEFORE the user types. NEVER a guarantee: the send
+ * keeps its fail-closed path and surfaces the real error.
  */
 export function warmLocalNer(): void {
-  if (!BUNDLED) return; // engine unavailable: nothing to warm up, the send will say so
+  if (!BUNDLED) return; // engine unavailable: the send will say so
   if (child) return; // already warm or currently loading
   detectLocalPii({ text: "bonjour" }).catch(() => {
-    /* best-effort — the send will surface the real error, that one will */
+    /* best-effort */
   });
 }
 
-/**
- * Detect free-form PII in `payload.text` using the offline BERT NER model, in the worker.
- * REJECTS if the model can't load / the worker dies / it times out — the renderer catches
- * that and fails closed. A successful run with no findings resolves to `[]`.
- */
+/** REJECTS if the model can't load / the worker dies / it times out (the renderer fails
+ *  closed); a successful run with no findings resolves to `[]`. */
 export async function detectLocalPii(payload: DetectLocalPayload): Promise<Detection[]> {
   if (idleTimer) {
     clearTimeout(idleTimer);

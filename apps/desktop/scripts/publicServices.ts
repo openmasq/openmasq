@@ -1,63 +1,37 @@
 /**
- * The public services a build reaches BY DEFAULT — and the only ones.
+ * The public services a build reaches BY DEFAULT, and the only ones. The repository ships
+ * with no API (`buildDefines.ts`, the `OPENMASQ_BILLING` gate); what remains is small,
+ * public by nature, and needed for the product to be USABLE as installed:
  *
- * The repository ships with no backend: no accounts API, no gateway, no sync, no
- * organizations, nothing sold (`buildDefines.ts`, the `OPENMASQ_BILLING` gate). What
- * remains reachable by default is small, public by nature, and needed for the product to
- * be USABLE as installed — so a build from the sources gets it too, without a CI:
- *
- * - the Supabase project (sign-in by magic link / Google): the URL and the PUBLISHABLE
- *   key are client credentials, designed to ship inside every client;
+ * - sign-in: the URL and PUBLISHABLE key are client credentials, made to ship in clients;
  * - the Slack relay (`https://auth.<domain>`): the code→token exchange Slack forbids on
- *   the device — without it the Slack connector is « non configuré » even with own keys;
+ *   the device;
  * - the analytics relay (`https://analytics.<domain>/e`): anonymous counters behind an
- *   explicit consent, the release notes the app shows, and the `hide-*` flags;
- * - the releases feed (`https://updates.<domain>`): what Settings → Versions lists, and
- *   what a PACKAGED app updates from (a dev instance never updates — `updates/index.ts`);
- * - the Sentry project (crash reports): a DSN only lets a client SEND events to one
- *   project, and what an event may carry is decided once in `src/sentry/policy.ts`
- *   (an allow-list rebuilt from scratch — never a vault value, a key, or a message);
- * - the desktop-direct connector OAuth clients (GitHub device flow, Slack via the auth
- *   relay, Microsoft multi-tenant): a client ID names an app, it authenticates nothing —
- *   every distributed binary already carries it in clear, so committing it hides no
- *   secret. What it DOES decide is whose app a build's consent screens belong to
- *   (product decision, 02/09/2026): GitHub / Slack / Microsoft work from a plain
- *   `git pull`, on the publisher's apps. « Mes clés » mode remains, and a fork that
- *   ships under its own identity sets its own ids — or empties them (`X=`) to get
- *   « non configuré » rather than the brand's consent screen. The Google client stays
- *   env-only: its flow also wants the client secret, and that one is an account's.
+ *   explicit consent, and the release notes;
+ * - the releases feed (`https://updates.<domain>`): only a PACKAGED app updates;
+ * - crash reporting: a DSN only lets a client SEND; what an event may carry is decided in
+ *   `src/sentry/policy.ts`;
+ * - the connector OAuth client ids (GitHub, Slack, Microsoft): an id names an app and
+ *   authenticates nothing; a fork sets its own or EMPTIES it (`X=`) to get « non
+ *   configuré ». Google stays env-only: its flow also wants the client secret.
  *
- * **`pnpm dev` gets the SAME defaults** (product decision, 01/09/2026): a developer's
- * instance signs in on the common Supabase, counts in the common analytics (stamped
- * `env:"development"`, refused by the sink on a loopback host) and lists the common
- * releases. **Sentry is the exception (03/09/2026): only a DISTRIBUTED binary reports**
- * (packaged AND a CI-baked channel) — the DSN is baked, the gate is `src/sentry/gate.ts`,
- * and `OPENMASQ_SENTRY_DEV=1` is the one-machine valve. A package built OUTSIDE the CI
- * (no channel baked) reports NO error anywhere — neither Sentry nor `$exception` — and
- * only its USAGE to analytics (`tier:"usage"` — `@openmasq/ui` `analytics/tier.ts`),
- * every event stamped `env:"local"`: its code may differ from any release. Sign-in is
- * untouched by any of this: the Supabase session authenticates the analytics relay
- * request whatever the tier, and identifies nothing in it. There is NO local value by
- * default: a local stack is an explicit choice, made in a gitignored
- * `.env.development.local` (`apps/desktop/.env.development` says how).
+ * `pnpm dev` gets the SAME defaults (events stamped `env:"development"`). Crash reporting
+ * is the exception: only a DISTRIBUTED binary reports (`src/sentry/gate.ts`;
+ * `OPENMASQ_SENTRY_DEV=1` is the valve). A package built OUTSIDE CI reports usage only,
+ * stamped `env:"local"`. A local stack is an explicit choice (`.env.development.local`).
  *
- * ⚠️ Two things this file does NOT do, on purpose:
- * - it never names a BILLING-gated address (backend, gateway) — those stay empty unless a
- *   CI opens the gate: `publicServices.test.ts` pins that the map cannot grow that way;
- * - it never overrides a variable that IS set — including one set EMPTY. `OPENMASQ_AUTH_URL=`
- *   is how a fork opts out of a relay it does not want to depend on; only `undefined`
- *   receives the default.
+ * ⚠️ This file never names a BILLING-gated address (`publicServices.test.ts` pins it), and
+ * never overrides a variable that IS set, including one set EMPTY.
  */
-/** The Supabase project behind sign-in. Project-specific: cannot derive from the brand. */
+/** The auth project behind sign-in. Project-specific: cannot derive from the brand. */
 const SUPABASE_URL = "https://anounuyspkizsptfberu.supabase.co";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_Sq6ZFX8-uKLht3ZhiVwccg_sO6E72Pz";
 
-/** The Sentry project (`openmasq` org, `electron` project, EU region — `BRAND.sentryHost`
- *  names the org). Project-specific like Supabase: read from the project's client keys. */
+/** The crash-reporting DSN. Project-specific, like sign-in. */
 const SENTRY_DSN =
   "https://d71bded67c98ccd36507d2ecd2894d2b@o4511977640558592.ingest.de.sentry.io/4511977659367504";
 
-/** Desktop-direct connector OAuth clients — app IDENTIFIERS, not credentials (header). */
+/** Connector OAuth clients: app IDENTIFIERS, not credentials (header). */
 const GITHUB_CLIENT_ID = "Ov23liV0bczEMOMvB4y3";
 const SLACK_CLIENT_ID = "11932971970983.11933393357959";
 const MICROSOFT_CLIENT_ID = "c82277bc-dcca-4677-b3bd-9f343480d592";
@@ -91,11 +65,7 @@ export function publicServiceDefaults(brandDomain: string): Record<PublicService
   };
 }
 
-/**
- * Fill the UNSET public-service variables in `env`, in place, and return what was
- * applied. Dev or build alike (header). A variable already present — even as `""` — is
- * left exactly as it is.
- */
+/** Fill the UNSET variables in place and return what was applied. `""` is left as is. */
 export function applyPublicServiceDefaults(
   env: NodeJS.ProcessEnv,
   opts: { brandDomain: string },

@@ -127,18 +127,13 @@ export function parseConfig(
   for (const u of [config.openai, config.anthropic, config.gemini])
     if (!/^https?:\/\//.test(u)) throw new Error(`Upstream must be an http(s) origin: ${u}`);
   // --reveal puts real personal data on screen. It is allowed on an operator's terminal and
-  // nowhere else: not in a machine-read stream, and not behind a tool that takes the terminal
-  // (its lines would go to the log FILE, which is copied, backed up and grepped).
+  // nowhere else: not in a machine-read stream, and not behind a tool that owns the terminal
+  // (its lines go to the log FILE, which is copied, backed up and grepped).
   if (config.reveal && config.json)
     throw new Error("--reveal cannot be used with --json: values must not enter a machine log.");
-  // A wrapped tool owns the terminal, so the request lines go to the log FILE — where a
-  // revealed value would be written down, copied and backed up. A same-terminal bar was tried
-  // and removed: a scroll region does not change what the child believes the screen is (a
-  // child under a 1..34 region of 40 rows still reports `40 100`), so a repainting tool paints
-  // straight through it. The one screen that CAN show a value during a wrapped run is the
-  // console page — loopback, a token per run — so `--console` lifts the refusal, and the
-  // value then goes to that page ONLY: the file reporter is built without reveal
-  // (`server.ts`, `revealFor`), whatever the flag says.
+  // The one screen that CAN show a value during a wrapped run is the console page —
+  // loopback, a token per run — so `--console` lifts the refusal, and the value goes to that
+  // page ONLY: the file reporter is built without reveal (`server.ts`, `revealFor`).
   if (config.reveal && config.command.length && !config.console)
     throw new Error(
       "--reveal cannot be used with `-- <tool>` alone: the tool owns the terminal, so the lines\n" +

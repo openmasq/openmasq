@@ -1,10 +1,7 @@
-// What a remote MCP server actually requires, asked of the server itself. The wizard uses it
-// so it only demands a client id from the providers that have no way of issuing one: most
-// remote servers register a client on the fly (RFC 7591) and need nothing from the user,
-// while Google's endpoints point at `accounts.google.com`, which has no registration
-// endpoint at all — measured, not assumed.
-//
-// Every request here is a plain public GET of metadata. Nothing is sent, nothing is stored.
+// What a remote MCP server actually requires, asked of the server itself, so the wizard only
+// demands a client id from the providers that have no way of issuing one (RFC 7591 is the
+// norm; Google's endpoints have no registration endpoint). Every request here is a plain
+// public GET of metadata. Nothing is sent, nothing is stored.
 
 export interface Probe {
   /** The server answered as an MCP endpoint at all. */
@@ -23,18 +20,11 @@ const TIMEOUT_MS = 8000;
 
 /**
  * A metadata hop we are willing to make. The chain below follows a URL the QUERIED SERVER
- * chose (`authorization_servers` is its answer, not our input), so an unfriendly endpoint can
- * name any address it likes and have this process fetch it — a request from inside the
- * machine, to wherever it points. Two bounds, both refusals rather than repairs:
- *
- *   • HTTPS only — an authorization server is https by definition, and http invites a
- *     downgrade to something on the local network;
- *   • never a LITERAL address, and never a name that resolves to nothing but this machine.
- *     A public authorization server is a NAME; a bare IP (`169.254.169.254`, `10.0.0.5`,
- *     `[::1]`) is the shape of an internal target and has no business in this chain.
- *
- * A resolved-name rebinding is beyond what a metadata probe can defend (it would need the
- * resolution pinned through the fetch); what is closed here is the direct pivot.
+ * chose, so an unfriendly endpoint could have this process fetch any address from inside the
+ * machine. Two bounds, both refusals: HTTPS only (http invites a downgrade to the local
+ * network), and never a LITERAL address nor a name that resolves only to this machine — a
+ * public authorization server is a NAME. A resolved-name rebinding is beyond a metadata
+ * probe; what is closed here is the direct pivot.
  */
 export function probeUrlAllowed(url: string): boolean {
   let u: URL;

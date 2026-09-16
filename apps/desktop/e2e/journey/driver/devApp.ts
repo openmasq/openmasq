@@ -6,32 +6,18 @@ import { tailLog } from "./tailLog";
 import { BRAND } from "@openmasq/branding";
 
 /**
- * The DEV app — `electron-vite dev`, driven via CDP.
- *
- * ⚠️ **This is the only mode that talks to the LOCAL environment, and it's not a setting:
- * it's a consequence.** The renderer's URLs (`appEnv.ts`) come from `import.meta.env`,
- * so they're BAKED at build time; the runtime switch, meanwhile, only accepts an
- * ENUMERATED name (`src/environments/`: production | staging — deliberately, a free URL in a
- * switch would amount to arbitrary egress). A built binary therefore CANNOT be pointed at
- * localhost after the fact: the only path is the dev server, which applies
- * `.env.development` at serve time. The same mode gives the dev CSP for free
- * (a Vite plugin injects `http://localhost:*` into it), which a build would otherwise force you to patch by
- * hand in `out/renderer/index.html` — and that patch is lost on the next rebuild.
- *
- * Why CDP rather than `electron.launch`: it's `electron-vite` that launches Electron
- * (it compiles main/preload in dev mode and serves the renderer), so Playwright can only
- * ATTACH. The driver loses nothing by it — no command needs the Electron handle,
- * they all go through the page — and we gain not rebuilding anything between two sessions.
+ * The DEV app (`electron-vite dev`), driven via CDP. The only mode that talks to a LOCAL
+ * environment, as a consequence: URLs are BAKED at build time and the runtime switch takes
+ * an ENUMERATED name only, so a built binary cannot be pointed at localhost; the dev server
+ * applies `.env.development` and the dev CSP. CDP rather than `electron.launch` because
+ * `electron-vite` is what launches Electron: Playwright can only ATTACH.
  */
 export interface DevApp {
   page: Page;
-  /** TRUE if we attached to an app we didn't launch (see `attacheOuSpawn`).
-   *  The agent MUST say so in its report: the environment is that of the person
-   *  who launched the app, not the one the driver would have set up. */
+  /** TRUE if we attached to an app we didn't launch: the report MUST say so, the
+   *  environment is the launcher's. */
   attache: boolean;
-  /** What the main process writes (`[mcp:raw]` on stdout, exceptions on stderr).
-   *  Replays what was written BEFORE the subscription: startup talks while the
-   *  driver is still waiting for the CDP port. */
+  /** What the main process writes; replays what was written BEFORE the subscription. */
   onLog: (note: (d: unknown) => void) => void;
   close: () => Promise<void>;
 }
@@ -40,9 +26,7 @@ export interface DevApp {
 const TAIL_LINES = 40;
 
 const BIN = resolve(DESKTOP_DIR, "../../node_modules/.bin/electron-vite");
-/** The INSTALLED app (mode `installed`) — the packaged binary, as a user
- *  has it on their machine. Overridable via `OPENMASQ_INSTALLED_APP` (another path,
- *  another machine). */
+/** The INSTALLED app (mode `installed`); `OPENMASQ_INSTALLED_APP` overrides the path. */
 const INSTALLED_BIN =
   process.env.OPENMASQ_INSTALLED_APP ?? `/Applications/${BRAND.name}.app/Contents/MacOS/${BRAND.name}`;
 /** Fixed CDP port: only one driver session at a time (one daemon, one app). */
@@ -60,8 +44,7 @@ async function waitForCdp(port: number, endAt: number, dead: () => string | null
     } catch {
       /* not there yet */
     }
-    // A child already dead will never open the port: waiting the full 180 s only
-    // moves the operator further from the cause, which was just written to stderr.
+    // A dead child will never open the port: fail now, the cause is on stderr.
     const end = dead();
     if (end) throw new Error(`l'app s'est arrêtée avant d'ouvrir son port CDP (${end})`);
     if (Date.now() > endAt) throw new Error("electron-vite dev n'a pas ouvert son port CDP");
@@ -70,14 +53,9 @@ async function waitForCdp(port: number, endAt: number, dead: () => string | null
 }
 
 /**
- * The APP's window among the CDP targets. In dev it's the page served by the
- * local server; packaged, the renderer lives at `file://…/index.html`. A `devtools://` or
- * `about:blank` page can exist alongside it — hence a filter by ORIGIN, allow-listed.
- *
- * ⚠️ The filter must say NOTHING about the end of the URL. An earlier version required a
- * last character that wasn't `/`, so the dev server's root (`http://localhost:5173/`,
- * the form Chromium NORMALIZES to) never matched: the driver would wait 180 s
- * then announce "no app window" in front of a perfectly open app.
+ * The APP's window among the CDP targets (dev server or `file://`), filtered by ORIGIN
+ * since `devtools://` or `about:blank` pages coexist. ⚠️ Says NOTHING about the end of the
+ * URL: Chromium normalizes the dev root to a trailing `/`.
  */
 const APP_ORIGIN = /^(https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?(\/|$)|file:\/\/)/;
 
@@ -93,7 +71,7 @@ async function waitForPage(browser: Browser, endAt: number): Promise<Page> {
   }
 }
 
-/** Does the CDP port answer ALREADY? A single attempt — we don't want to wait here. */
+/** Does the CDP port answer ALREADY? A single attempt. */
 async function portOpen(port: number): Promise<boolean> {
   try {
     const r = await fetch(`http://127.0.0.1:${port}/json/version`, {
@@ -106,19 +84,10 @@ async function portOpen(port: number): Promise<boolean> {
 }
 
 /**
- * ATTACH to an already-launched app, rather than launching it.
- *
- * ⚠️ **This isn't a shortcut: on a machine where the agent session is itself
- * confined, it's the ONLY path.** Chromium creates a sandbox per renderer / GPU /
- * network service, and macOS refuses `sandbox_apply` to a process already under seatbelt: an
- * app launched FROM a confined session opens its CDP port then dies with no renderer
- * (`GPU process exit_code=6`). Launched from a normal terminal, it keeps its confinement
- * INTACT — nothing is taken away from it, only WHO brought it into being changes.
- *
- * What attached mode costs, and what you need to know: the driver holds no pipe, so
- * the main process's output (`[mcp:raw]`, exceptions) only reaches it through
- * `.journey/main.log` — hence the redirection in the launch command. And `close()`
- * kills NOTHING: we don't close someone else's app.
+ * ATTACH to an already-launched app. On a machine where the agent session is itself
+ * confined it is the ONLY path: macOS refuses a nested `sandbox_apply`, so an app launched
+ * FROM a confined session dies with no renderer. Attached, the driver holds no pipe (main's
+ * output reaches it through `.journey/main.log`) and `close()` kills NOTHING.
  */
 async function attachFile(): Promise<DevApp> {
   const browser = await chromium.connectOverCDP(`http://127.0.0.1:${CDP_PORT}`);
@@ -137,15 +106,11 @@ async function attachFile(): Promise<DevApp> {
 
 export async function startDevApp(
   env: Record<string, string>,
-  /** `installed`: drive the PACKAGED binary (INSTALLED_BIN) rather than the dev
-   *  server — the app as a user has it installed, signing chains and
-   *  runtime included. Chromium flags (including the CDP port) remain accepted by a
-   *  packaged build; only the NODE inspector is fused off. */
+  /** `installed`: the PACKAGED binary. Chromium flags (the CDP port) stay accepted; only
+   *  the NODE inspector is fused off. */
   mode: "dev" | "installed" = "dev",
 ): Promise<DevApp> {
-  // An app is already there on the port: attach to it. Spawning on top would give a second
-  // Electron that fails on the taken port — and that has already led to diagnosing "port
-  // in use" where the cause was something else entirely.
+  // An app already on the port: attach, never spawn a second Electron on a taken port.
   if (await portOpen(CDP_PORT)) return attachFile();
   const [bin, args] =
     mode === "installed"
@@ -154,16 +119,12 @@ export async function startDevApp(
   const child: ChildProcess = spawn(bin, args, {
     cwd: DESKTOP_DIR,
     env: { ...env, ...(mode === "installed" ? {} : { NODE_ENV: "development" }) },
-    // SEPARATE process group: `electron-vite` launches Electron as a CHILD, so killing
-    // the only known PID would leave the app alive (and the CDP port taken on the next start).
+    // SEPARATE process group: `electron-vite` launches Electron as a CHILD.
     detached: true,
     stdio: ["ignore", "pipe", "pipe"],
   });
-  // ⚠️ Wire up the streams RIGHT AWAY, not after attaching. What the app says while dying
-  // ("sandbox initialization failed", a missing native module, a port already in use) comes out
-  // BEFORE the CDP port exists: subscribed after the fact, the operator only saw
-  // "socket hang up" and looked for the cause in the wrong place. With nobody reading the
-  // pipes, they'd also fill up until blocking the child.
+  // ⚠️ Wire the streams RIGHT AWAY: what the app says while dying comes out BEFORE the
+  // CDP port exists, and unread pipes fill up until they block the child.
   const tail: string[] = [];
   const subscribers: Array<(d: unknown) => void> = [];
   const captureOutput = (d: unknown) => {
@@ -185,9 +146,7 @@ export async function startDevApp(
     browser = await chromium.connectOverCDP(await waitForCdp(CDP_PORT, endAt, () => dead));
     page = await waitForPage(browser, endAt);
   } catch (e) {
-    // Kill the group: a child left alive keeps the CDP port, and the next attempt
-    // fails "differently" — which leads to diagnosing a port-in-use issue instead of the
-    // real cause.
+    // Kill the group: a child left alive keeps the CDP port and masks the next failure.
     await browser?.close().catch(() => {});
     try {
       if (child.pid) process.kill(-child.pid, "SIGTERM");
@@ -205,8 +164,7 @@ export async function startDevApp(
       subscribers.push(note);
     },
     close: async () => {
-      // Detach BEFORE killing: closing the CDP browser doesn't close the app, and killing
-      // the app while Playwright is talking to it produces an error that masks the real one.
+      // Detach BEFORE killing, or Playwright's error masks the real one.
       await browser?.close().catch(() => {});
       try {
         if (child.pid) process.kill(-child.pid, "SIGTERM");

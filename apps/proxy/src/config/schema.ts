@@ -66,25 +66,20 @@ export interface ProxyConfig {
   /** Wrapping a client with `--mcp`: take over the MCP servers IT declares, so making our
    *  endpoint its only one does not cost it the integrations it already had. */
   mcpAdopt: boolean;
-  /** Play the opening sequence. It is one second, on the alternate screen, and it is the one
-   *  moment the screen belongs to the proxy when a tool is being wrapped. Off for a machine
+  /** Play the opening sequence (one second, alternate screen). Off for a machine
    *  (`--json`, `--quiet`, a pipe, CI) whatever this says. */
   splash: boolean;
-  /** Which ground the terminal paints on: it decides the brand block and the footer bar, the
-   *  two places that carry a background of their own (`lib/ui/palette.ts`). `auto` asks the
-   *  terminal (`COLORFGBG`) and falls back to dark. */
+  /** Which ground the terminal paints on (`lib/ui/palette.ts`). `auto` asks the terminal
+   *  (`COLORFGBG`) and falls back to dark. */
   theme: ThemeChoice;
-  /** Open the live console in the system browser as soon as it is served — the wrapped tool
-   *  takes the screen the moment it starts, and the URL on the card goes with it. Implies
-   *  `console`. */
+  /** Open the live console in the system browser as soon as it is served. Implies `console`. */
   open: boolean;
   /** Serve the live console at /console. A token is minted per run and printed on the card;
    *  loopback alone is not an access control (`features/console/routes.ts` says why). */
   console: boolean;
-  /** The console page carries the real value beside each substitute — ON by default: that
-   *  page is the operator's own screen, loopback and a token per run, and it is what a wrapped
-   *  run is watched on. `--no-console-reveal` sends substitutes only, whatever the page asks.
-   *  The TERMINAL's `reveal` stays opt-in: a scrollback is kept, copied and logged. */
+  /** The console page carries the real value beside each substitute — ON by default (the
+   *  operator's own screen, loopback, a token per run). `--no-console-reveal` sends
+   *  substitutes only. The TERMINAL's `reveal` stays opt-in: a scrollback is kept and logged. */
   consoleReveal: boolean;
 }
 

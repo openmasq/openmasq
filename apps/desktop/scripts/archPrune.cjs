@@ -1,20 +1,13 @@
-// What ONE macOS arch's app has nothing to embed from the OTHER — and the proof, at build time,
-// that it still has an ONNX engine left.
+// Per platform + arch: what the packaged app must NOT embed from the others, and the proof
+// at build time that its ONNX engine is still there.
 //
-// ⛔ WHY HERE AND NOT IN `electron-builder.cjs`'s `files`. The patterns there are indeed
-// expanded per arch (`FileMatcher.normalizePattern` passes EVERY pattern through the `macroExpander`,
-// so `${arch}` works), but there is no "the other arch" macro. The natural
-// workaround — exclude both, re-include one's own — is a TRAP: for `node_modules`,
-// `getNodeModuleFileMatcher` only keeps NEGATIVE patterns ("grab only excludes", its own
-// comment says), so the catch-up pattern is silently dropped and the app ships with NO
-// native binary at all. Dead on launch, green build.
+// ⛔ HERE, not in `electron-builder.cjs` `files`: there is no "the other arch" macro, and
+// "exclude both, re-include one's own" is a TRAP (the node_modules matcher keeps only
+// NEGATIVE patterns, so the app ships with NO native binary: dead on launch, green build).
+// `afterPack` knows `context.arch` and runs BEFORE signing.
 //
-// `afterPack`, on the other hand, receives `context.arch`: it knows which machine we're talking about. And it runs
-// BEFORE signing (see `afterPack.cjs`), so deleting here invalidates no signature.
-//
-// ⚠️ This file doesn't ONLY slim things down: it verifies (rule 7, fail CLOSED). An .app whose
-// ONNX engine is missing does not redact; since the send path fails closed, the app would send
-// NOTHING. This must not be discovered at the user's, so its absence breaks the BUILD.
+// ⚠️ It VERIFIES too (rule 7, fail CLOSED): an .app without its ONNX engine does not redact,
+// and the send path fails closed, so it would send NOTHING. Its absence breaks the BUILD.
 "use strict";
 const { existsSync, readdirSync, rmSync, statSync } = require("node:fs");
 const path = require("node:path");
@@ -25,11 +18,8 @@ const OTHER = { arm64: "x64", x64: "arm64" };
 /** The platform whose prebuilts have NO business in the app we are building. */
 const FOREIGN_PLATFORM = { darwin: "win32", win32: "darwin" };
 
-/**
- * The families of prebuilts published as "platform" packages, which
- * `supportedArchitectures` (root package.json) installs ALL of. The suffix varies
- * (`win32-x64-msvc`, `darwin-arm64`, …), so we cut by name PREFIX.
- */
+/** Prebuilts published as "platform" packages, ALL installed by `supportedArchitectures`
+ *  (root package.json). The suffix varies, so we cut by name PREFIX. */
 const PLATFORM_PACKAGES = [
   { parent: "@libsql", prefix: (p) => `${p}-` },
   { parent: "@napi-rs", prefix: (p) => `canvas-${p}-` },
@@ -43,30 +33,20 @@ function engineBins(platform) {
 }
 
 /**
- * What we remove, and what must remain, for a given platform + arch.
+ * What we remove, and what must remain: the other ARCH (mac ships both from one runner)
+ * and the other PLATFORM (a platform `files:` key in electron-builder would ship all of
+ * `apps/desktop/`, see its `mac:` block). Pure, pinned by `archPrune.test.ts`.
  *
- * ⚠️ This plan carries TWO sorts, and the second only joined the first after a leak:
- *   • the other ARCH (mac ships arm64 AND x64 from a single runner);
- *   • the other PLATFORM — that used to live in electron-builder's `mac.files`/`win.files`,
- *     and those keys were shipping all of `apps/desktop/` into the app along the way (the `mac:`
- *     block in `electron-builder.cjs` tells the mechanism). Deleting here does the same
- *     job without touching the matcher that decides the app's contents.
- *
- * Pure (no disk access) so it can be pinned by `archPrune.test.ts`: it's the table that
- * decides, and a wrong table is exactly the kind of thing a build doesn't say.
- *
- * `drop[].rel` is a path RELATIVE to `node_modules`; with `ext`, only files of
- * that extension are removed (the folder and its JS remain). `drop[].parent` + `prefix`
- * removes every folder of `parent` whose name starts with `prefix`.
- * `keep[].any` is a LIST of possible locations — one is enough. Two names coexist:
- * `ort-native`/`ort-wasm` are `@openmasq/ort`'s aliases (the package that chooses the engine
- * at runtime), `onnxruntime-node` is the name that came before that package.
+ * `drop[].rel` is relative to `node_modules`; with `ext`, only files of that extension go
+ * (the JS remains). `parent` + `prefix` removes every folder of `parent` so named.
+ * `keep[].any` is a LIST of possible locations (one is enough): `ort-native`/`ort-wasm` are
+ * `@openmasq/ort`'s aliases, `onnxruntime-node` the underlying name.
  */
 function prunePlan(platform, arch) {
   const foreign = FOREIGN_PLATFORM[platform];
   if (!foreign) throw new Error(`archPrune: plateforme inconnue : ${platform}`);
 
-  // The OTHER PLATFORM, first — same list on both sides, read as a mirror.
+  // The OTHER PLATFORM, first: the same list on both sides, read as a mirror.
   const foreignPlatform = [
     ...PLATFORM_PACKAGES.map(({ parent, prefix }) => ({ parent, prefix: prefix(foreign) })),
     ...engineBins(foreign).map((rel) => ({ rel })),
@@ -77,10 +57,7 @@ function prunePlan(platform, arch) {
   return { drop: [...foreignPlatform, ...mac.drop], keep: mac.keep };
 }
 
-/**
- * Windows ships ONLY x64 (`win.target`): the `win32-arm64` prebuilts installed by
- * `supportedArchitectures` are code that can't run, re-shipped on every update.
- */
+/** Windows ships ONLY x64 (`win.target`): the `win32-arm64` prebuilts can't run there. */
 function winArchDrop() {
   return [
     { parent: "@libsql", prefix: "win32-arm64-" },
@@ -110,9 +87,7 @@ function macPlan(arch) {
   const other = OTHER[arch];
   if (!other) throw new Error(`archPrune: arche mac inconnue : ${arch}`);
 
-  // The other arch's prebuilts. `supportedArchitectures` (root package.json)
-  // installs BOTH of them — that's what makes the cross build possible, and it's also what
-  // would ship them into both .apps if nobody cut them.
+  // The other arch's prebuilts, installed for the cross build.
   const drop = [
     { rel: `@libsql/darwin-${other}` },
     { rel: `@napi-rs/canvas-darwin-${other}` },
@@ -121,14 +96,12 @@ function macPlan(arch) {
   ];
 
   if (arch === "arm64") {
-    // WASM is only useful where no native binding exists. On arm64 there is one, so
-    // these ~125 MB would never be loaded — but they would be downloaded on EVERY
-    // update. We only remove the binaries: the JS stays, so a hypothetical fallback
-    // would fail loudly instead of half-working.
+    // arm64 has a native binding: the WASM would never load. Only the binaries go; the
+    // JS stays, so a hypothetical fallback fails loudly instead of half-working.
     drop.push({ rel: "ort-wasm/dist", ext: ".wasm" });
   } else {
-    // There is NO native `darwin/x64` binding at all (that's the whole reason for `@openmasq/ort`).
-    // The bytes present under `bin/` are therefore arm64: unusable here, and misleading.
+    // NO native `darwin/x64` binding exists (the reason for `@openmasq/ort`): whatever sits
+    // under `bin/` is arm64, unusable and misleading.
     drop.push({ rel: "ort-native/bin" }, { rel: "onnxruntime-node/bin" });
   }
 
@@ -183,8 +156,7 @@ function hasFileWithExt(dir, ext) {
 function applyPlan(nodeModules, plan) {
   let freed = 0;
   for (const { rel, ext, parent, prefix } of plan.drop) {
-    // Cuts by PREFIX: platform packages have no fixed name
-    // (`win32-x64-msvc`, `darwin-arm64`, `sharp-libvips-win32-ia32`…).
+    // By PREFIX: platform packages have no fixed name.
     if (parent) {
       const dir = path.join(nodeModules, parent);
       if (!existsSync(dir)) continue;
@@ -240,10 +212,7 @@ function packagedNodeModules(appOutDir, productFilename, platform = "darwin") {
   );
 }
 
-/**
- * `afterPack`'s entry point: remove the other platform AND the other arch, then
- * prove that the target's engine is still there.
- */
+/** `afterPack`'s entry point: prune, then prove the target's engine is still there. */
 function pruneForeignArch({ appOutDir, arch, productFilename, platform = "darwin" }) {
   const plan = prunePlan(platform, arch);
   const nodeModules = packagedNodeModules(appOutDir, productFilename, platform);

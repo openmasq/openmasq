@@ -5,24 +5,18 @@ import { parse, stringify } from "yaml";
 import type { AgentClient } from "./types.js";
 
 /**
- * Hermes Agent (Nous Research). Its model base URL and its MCP servers BOTH live in one place
- * only — `$HERMES_HOME/config.yaml` (`model.base_url`, `mcp_servers`); no env var redirects
- * either (verified in `hermes_cli/config.py`). Its single per-run lever is `HERMES_HOME`,
- * which relocates config AND the memory/skills/credentials with it.
+ * Hermes Agent (Nous Research). Its model base URL and its MCP servers both live in
+ * `$HERMES_HOME/config.yaml`, and no env var redirects either; its single per-run lever is
+ * `HERMES_HOME`, which relocates config AND memory/skills/credentials together.
  *
- * So exclusivity is a MIRRORED home: config.yaml is derived from the USER'S OWN (every setting
- * kept — provider, model, key, headers), with ONLY two changes — `model.base_url` redirected
- * to the proxy, and `mcp_servers` replaced by our endpoint alone (exclusive by construction).
- * Everything else in the home — `.env`, `memories/`, `skills/`, the code — is SYMLINKED back
- * from the real one. No secret is read out, the real `~/.hermes` is never written, the run
- * keeps its memory AND its own credentials. On quit the temp home is removed; unlinking a
- * symlink never touches its target.
+ * So exclusivity is a MIRRORED home: config.yaml is derived from the USER'S OWN with only two
+ * changes — `model.base_url` redirected to the proxy, `mcp_servers` replaced by our endpoint
+ * alone. Everything else in the home is SYMLINKED back from the real one: no secret is read
+ * out, the real `~/.hermes` is never written. On quit the temp home is removed.
  *
- * ⚠️ Works with WHATEVER provider is connected, because it keeps the user's provider and only
- * redirects the base URL to the WIRE that provider speaks: Anthropic (`/v1/messages`) and
- * Gemini reach the proxy at its root, an OpenAI-compatible provider at `/v1`. The proxy relays
- * each wire to its own upstream with the caller's own auth — the key is never touched.
- * Verified live end to end (OpenAI wire, fake upstream); the Anthropic wire is the same relay.
+ * Works with WHATEVER provider is connected: the base URL is redirected to the WIRE that
+ * provider speaks (Anthropic and Gemini at the proxy's root, OpenAI-compatible at `/v1`),
+ * and the proxy relays each wire to its own upstream with the caller's own auth.
  */
 
 /** Which base URL the proxy exposes for the wire this provider/model speaks. Anthropic posts
@@ -37,10 +31,8 @@ export function wireBaseUrl(root: string, provider: unknown, model: unknown): st
 
 /**
  * The config.yaml handed to Hermes: the user's own, with the model's base URL redirected to
- * the proxy and OUR endpoint as the only MCP server. Everything else the user set is kept
- * (provider, default model, api_key/auth, headers, custom_providers…). Pure — tested without a
- * filesystem. `root` is `http://host:port` (no path). Comments are dropped (the temp config is
- * ephemeral; the real one keeps them).
+ * the proxy and OUR endpoint as the only MCP server. Pure. `root` is `http://host:port`.
+ * Comments are dropped (the temp config is ephemeral).
  */
 export function hermesConfigFrom(userYaml: string, root: string): string {
   const doc = (parse(userYaml) ?? {}) as Record<string, unknown>;
@@ -73,9 +65,8 @@ export const HERMES: AgentClient = {
     } catch {
       return { blocked: "~/.hermes/config.yaml could not be read as YAML" };
     }
-    // Mirror EVERY entry of the real home except config.yaml — its memory, skills, sessions,
-    // its `.env` and auth store, its own code/bin — so the run is the user's Hermes in every
-    // way but the one file we own. Verified live: `hermes` runs from such a home.
+    // Mirror EVERY entry of the real home except config.yaml, so the run is the user's Hermes
+    // in every way but the one file we own.
     const links = readdirSync(home)
       .filter((name) => name !== "config.yaml")
       .map((name) => ({ path: join(dir, name), target: join(home, name) }));

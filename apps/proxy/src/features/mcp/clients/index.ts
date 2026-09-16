@@ -1,19 +1,13 @@
 // What each agent client needs so that OUR endpoint is the ONLY MCP it speaks to, and where
 // it declares the servers we take over. Without the first half the feature is theatre: an
-// agent that keeps its own MCP connections reaches Gmail directly, with its own credential,
-// and nothing on that path is masked.
+// agent that keeps its own MCP connections reaches the service directly, unmasked.
 //
-// Nothing here EDITS a user's configuration. Exclusivity is asked for on the command line (or
-// in a file of ours the client is pointed at for one run), so quitting the proxy restores the
-// client exactly as it was. One file per client, because the differences ARE the subject: a
-// switch of its own (Claude Code), a per-server override (Codex, Copilot CLI), an allow-list
-// over what the user declared (Gemini CLI), a merged config file (opencode).
-//
-// A client that offers none of those is deliberately absent — `start.ts` then says out loud
-// that its own tool calls do not pass through the mask. Absent today, each checked: Cursor CLI
-// (no MCP flag at all) and Antigravity (none on its CLI either). And a variable that relocates
-// the client's home (`CODEX_HOME`, `GEMINI_CLI_HOME`, `COPILOT_HOME`) is never the answer: it
-// moves the credentials along with the settings.
+// Nothing here EDITS a user's configuration: exclusivity is asked for on the command line
+// (or in a file of ours the client is pointed at for one run), so quitting restores the
+// client exactly. One file per client, because the differences ARE the subject. A client
+// that offers no such lever is deliberately absent — `start.ts` then says out loud that its
+// tool calls do not pass through the mask. A variable that relocates the client's HOME is
+// never the answer: it moves the credentials along with the settings.
 import { homedir } from "node:os";
 import { basename } from "node:path";
 import { CLAUDE } from "./claude.js";

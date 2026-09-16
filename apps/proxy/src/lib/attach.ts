@@ -1,14 +1,10 @@
-// Several wrapped clients, one proxy. Starting a second `openmasq-proxy -- claude` used to
-// die on `EADDRINUSE`; now it looks first, and joins the one already running.
+// Several wrapped clients, one proxy: a second `openmasq-proxy -- <tool>` looks first and
+// joins the one already running. The join is thin — it starts NO server and holds NO vault;
+// it asks the running proxy who it is, mints a session name, and runs the tool with base
+// URLs pointing at `/s/<session>`. Everything that masks stays in one process.
 //
-// The join is deliberately thin: the second wrapper starts NO server and holds NO vault. It
-// asks the running proxy who it is, mints a session name, and runs the tool with base URLs
-// pointing at `/s/<session>`. Everything that masks stays in one process, which is what
-// keeps one console showing every client.
-//
-// ⚠️ It joins only a proxy that IDENTIFIES ITSELF as one. Something else listening on 8787
-// is not a thing to hand an API key to, so an unrecognised answer is a refusal, not a
-// hopeful attempt.
+// ⚠️ It joins only a proxy that IDENTIFIES ITSELF as one: something else listening on the
+// port is not a thing to hand an API key to, so an unrecognised answer is a refusal.
 import { randomBytes } from "node:crypto";
 import { createServer } from "node:net";
 import { basename } from "node:path";
@@ -35,18 +31,14 @@ export interface Running {
   pid?: number;
 }
 
-/** A short, readable name for one client: `claude-a3f9`. Readable because it is what the
- *  console shows in its Session column, and `session-2` tells nobody anything. */
+/** A short, readable name for one client: `claude-a3f9` — what the console's Session column shows. */
 export function sessionName(command: string): string {
   const tool = basename(command)
     .replace(/\.(cmd|exe|bat)$/i, "")
     .replace(/[^a-z0-9-]/gi, "");
-  // ⚠️ The suffix is not decoration. This name is also the ADDRESS of the session's vault —
-  // `/s/<name>` is the whole base URL a wrapped tool is given, and `x-openmasq-session` names
-  // the same thing — so whoever can say it can have the vault that maps fakes back to real
-  // values. Two random bytes were four hex characters: enumerable in a moment by anything
-  // that can reach the port. Nine bytes make the readable prefix a label and the suffix a
-  // capability, which is what it always was.
+  // The suffix is a CAPABILITY, not decoration: this name is the ADDRESS of the session's
+  // vault (`/s/<name>`, `x-openmasq-session`), so whoever can say it can have the vault that
+  // maps fakes back to real values. Nine random bytes; four hex characters were enumerable.
   return `${(tool || "tool").toLowerCase()}-${randomBytes(9).toString("base64url")}`;
 }
 
@@ -83,22 +75,17 @@ export async function findRunning(
 /**
  * Join a proxy already listening at `url`, and run `command` against it. Returns its exit
  * code, or `undefined` when there was nothing to join — the caller then starts its own.
- *
- * Deliberately the whole join, not just the lookup: the decision, the session name, the
- * line the operator reads and the child are one story, and splitting them across two files
- * is how the "did we actually join?" question stops having one answer.
+ * The decision, the session name, the line the operator reads and the child are ONE story.
  */
 export interface JoinDeps {
   find?: typeof findRunning;
   run?: (command: string[], url: string, extra: string[]) => Promise<number>;
   note?: (text: string) => void;
   /** The opening sequence, played for THIS proxy's masking rather than our own flags.
-   *  Skipped when the running build does not report them: an opening that guessed would
-   *  claim something nobody checked. */
+   *  Skipped when the running build does not report them. */
   open?: (running: Running) => Promise<void>;
   /** Start-only flags the user passed that a JOIN cannot honour (`--console`, `--reveal`):
-   *  they configure a NEW server, and this invocation started none. Warned, not swallowed —
-   *  a `--console` that silently does nothing is why "rien n'arrive" in the console. */
+   *  they configure a NEW server. Warned, not swallowed. */
   startOnly?: string[];
   /** The running proxy's live-view address, from the link it published (`console/link.ts`):
    *  the same user, the same 0600 file — the joiner may read what it may open. */
@@ -109,8 +96,7 @@ export interface JoinDeps {
   /** The run's theme, for the card. */
   theme?: ThemeChoice;
   /** `--console`/`--open`: the operator wants a live view. A running proxy that serves none
-   *  cannot give one, so the join is DECLINED and the caller starts its own, on another port
-   *  (`"own"`). Joining silently would be the "nothing opens" report. */
+   *  cannot give one, so the join is DECLINED and the caller starts its own (`"own"`). */
   wantsConsole?: boolean;
 }
 
@@ -121,8 +107,7 @@ export async function joinRunning(
 ): Promise<number | "own" | undefined> {
   const running = await (deps.find ?? findRunning)(url);
   if (!running) return undefined;
-  // Asked for a live view, and this proxy has none to give (it runs without one, or it is an
-  // older build that published no link): not a join. The caller starts a proxy that has one.
+  // Asked for a live view, and this proxy has none to give: not a join.
   const early = running.console === false ? undefined : (deps.link ?? readConsoleLink)();
   if (deps.wantsConsole && !early) return "own";
   if (deps.open && running.level && running.disabled) await deps.open(running);
@@ -131,14 +116,11 @@ export async function joinRunning(
     reveal: { on: false },
     ...(deps.theme ? { theme: deps.theme } : {}),
   });
-  // The live view belongs to the proxy that started the server, and it published its
-  // address for exactly this reader (`console/link.ts`): the card carries it, so this
-  // terminal is not the one place the URL cannot be found — and `--open` opens it.
+  // The live view (and its token) belong to the proxy that STARTED the server; it published
+  // its address for exactly this reader (`console/link.ts`), so the card carries it.
   const link = running.console === false ? undefined : (deps.link ?? readConsoleLink)();
-  // The console (and its token) belong to whichever proxy actually STARTED the server; a join
-  // holds none, so these flags never took effect. Said on the card, not swallowed.
-  // `--console` and `--open` are honoured by the link when there is one; with none, they are
-  // what the joiner cannot do, and the card says how to get a proxy that can.
+  // `--console`/`--open` are honoured by the link when there is one; with none, the card
+  // says how to get a proxy that can.
   const ignored = (deps.startOnly ?? []).filter(
     (f) => !((f === "--console" || f === "--open") && link),
   );
@@ -172,9 +154,8 @@ export async function joinRunning(
   return await (deps.run ?? runWrapped)(command, sessionUrl(url, session), []);
 }
 
-/** What a JOIN is told about this run: the flags it cannot honour (they start a server —
- *  said rather than swallowed, the "rien n'arrive" report), and the opening sequence played
- *  for the proxy being joined rather than for our own flags. */
+/** What a JOIN is told about this run: the flags it cannot honour, and the opening sequence
+ *  played for the proxy being joined. */
 export function joinOptions(
   config: ProxyConfig,
   openIfWanted: (c: ProxyConfig) => Promise<void>,

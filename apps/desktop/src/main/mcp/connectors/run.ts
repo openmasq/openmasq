@@ -11,22 +11,15 @@ import { assertPublicUrl } from "../../net/net";
 import { emitNeedsReconnect, needsReconnect } from "../server/registry";
 import { BRAND } from "@openmasq/branding";
 
-/** SSRF floor for authenticated connector fetches (audit M8). The redirect defenses
- *  (`redirect:"error"` on JSON; cross-origin `Authorization` stripping on text) only
- *  cover REDIRECTS — hop 0 was unguarded, so a tool that interpolates a model-supplied
- *  value into the request HOST could reach an internal address AND leak the OAuth bearer
- *  there. Enforce a PUBLIC-host floor on the initial URL — reject localhost/`.local`/
- *  private/CGNAT/link-local/metadata targets (and an unparseable URL) — BEFORE the bearer
- *  is attached. Provider APIs (googleapis.com, api.github.com, graph.microsoft.com…)
- *  resolve public → pass. Wraps `assertPublicUrl` so a resolution error surfaces as a
- *  clear refusal rather than the raw cause. */
+/** SSRF floor on hop 0 of an authenticated connector fetch, BEFORE the bearer is attached:
+ *  a tool interpolating a model-supplied value into the HOST must not reach an internal
+ *  address with the OAuth token. The redirect defenses only cover later hops. */
 async function assertConnectorTarget(url: string): Promise<void> {
   try {
     await assertPublicUrl(url, "connector");
   } catch (e) {
-    // A DNS/network outage is not an SSRF refusal: both BLOCK (fail closed),
-    // but the label must state the real cause — "unreachable" is a transport class
-    // (retryable) on the loop's side, whereas a refusal remains a dead end.
+    // Both BLOCK (fail closed), but an outage is a retryable transport class for the
+    // loop, whereas a refusal is a dead end.
     if ((e as NodeJS.ErrnoException)?.code === "EDNS_UNRESOLVED") {
       throw new Error(`Réseau ou DNS injoignable pour ce connecteur — réessaie dans un instant.`);
     }
@@ -36,20 +29,9 @@ async function assertConnectorTarget(url: string): Promise<void> {
 }
 
 /**
- * Wrap a `@openmasq/connectors` `Connector` as an `McpConnection` so a
- * desktop-direct connector plugs into the SAME routing (`connected` map,
- * `refreshRoutes`, `mcpCallTool`) and redaction as the SDK-backed servers — the
- * tools just run IN-PROCESS here against a fresh access token (no broker/network).
+ * A short, SAFE reason CODE from a provider error body (`error.status` or a `reason`
+ * token): ONLY enum-like tokens, NEVER the free-text message, which could echo PII.
  */
-
-/**
- * Pull a short, SAFE reason CODE out of a provider error body so a tool can give a
- * precise hint (API-disabled vs scope-missing vs bad-token) instead of a bare
- * status. Google REST errors carry `error.status` (e.g. PERMISSION_DENIED) plus a
- * `reason` token under `errors[]`/`details[]` (e.g. `SERVICE_DISABLED`,
- * `ACCESS_TOKEN_SCOPE_INSUFFICIENT`, `accessNotConfigured`). We surface ONLY those
- * enum-like tokens — NEVER the free-text message, which could echo request data
- * (PII). Bounded + best-effort (a non-JSON body yields nothing). */
 function upstreamReason(body: string): string | undefined {
   try {
     const j = JSON.parse(body) as {
@@ -65,8 +47,7 @@ function upstreamReason(body: string): string | undefined {
       e.errors?.find((x) => x.reason)?.reason ??
       e.details?.find((x) => x.reason)?.reason ??
       e.status;
-    // Guard: only pass through a bare enum token (letters/underscores), never a
-    // sentence — belt-and-suspenders so no free-text (potential PII) leaks out.
+    // A bare enum token only, never a sentence.
     return reason && /^[A-Za-z_]+$/.test(reason) ? reason : undefined;
   } catch {
     return undefined;
@@ -74,23 +55,15 @@ function upstreamReason(body: string): string | undefined {
 }
 
 /**
- * `Upstream request failed (403): SERVICE_DISABLED` — status + safe reason code, and
- * that is ALL the model or a hint may ever read.
- *
- * `detail` carries the provider's own `error.message` — the one field that says WHAT
- * was wrong ("Missing required parameter: timeMin"). It was previously thrown away, so
- * a 400 reached the user as an unexplainable failure: the app guessed "the model
- * malformed the call", the model guessed "connection problem", and neither could be
- * checked. It is free provider text and MAY quote a real value, so it has exactly one
- * destination — the per-account ENCRYPTED debug journal — and never `content`.
+ * `message` (status + safe reason code) is ALL the model may ever read. `detail` is the
+ * provider's own free-text `error.message`, which MAY quote a real value: its one
+ * destination is the per-account ENCRYPTED debug journal, never `content`.
  */
 class UpstreamError extends Error {
   constructor(
     message: string,
     readonly detail?: string,
-    /** The HTTP STATUS, kept so the caller can ACT on it — a 401 isn't a
-     *  failure but a connector STATE (see `callTool`). The message, on the other hand, remains the only
-     *  thing the model reads. */
+    /** Kept so the caller can ACT on it: a 401 is a connector STATE (see `callTool`). */
     readonly status?: number,
   ) {
     super(message);
@@ -99,12 +72,8 @@ class UpstreamError extends Error {
 }
 
 function upstreamError(status: number, body: string, label?: string): UpstreamError {
-  // ⚠️ 401 = the provider REFUSES the stored token. It's a state, not a failure: retrying
-  // will always fail, and "Upstream request failed (401)" tells nobody what to do —
-  // the model could only repeat it, the connection stayed displayed as valid, and the
-  // "Retry" button relaunched a turn already lost (observed 15/08 on GitHub).
-  // So the SAME actionable message as the "token absent" path is returned: who, where, and
-  // the instruction not to loop.
+  // 401 = the provider REFUSES the stored token: a state, not a failure. The SAME
+  // actionable message as the "token absent" path: who, where, don't loop.
   if (status === 401) {
     return new UpstreamError(
       `Connexion refusée par le fournisseur (401) pour « ${label ?? "ce connecteur"} » — le ` +
@@ -133,20 +102,17 @@ function upstreamDetail(body: string): string | undefined {
   }
 }
 
-/** Authenticated JSON fetch injected into each tool. Never echoes the provider
- *  body (which can carry PII) — only a status + safe reason CODE on failure. */
+/** Authenticated JSON fetch injected into each tool. Never echoes the provider body. */
 export function bearerFetchJson(accessToken: string, label?: string): ConnectorToolCtx["fetchJson"] {
   return async function fetchJson<T>(url: string, init: RequestInit = {}): Promise<T> {
-    await assertConnectorTarget(url); // SSRF floor on hop 0 (audit M8)
+    await assertConnectorTarget(url);
     const res = await fetch(url, {
       ...init,
-      // SECURITY (audit): never follow a redirect on an authenticated JSON API call —
-      // an API endpoint that 30x's cross-origin must not carry the OAuth bearer along
-      // (mirrors accountIdentity.callJson). REST APIs answer 2xx/4xx directly.
+      // Never follow a redirect on an authenticated JSON call: a cross-origin 30x must
+      // not carry the bearer along. REST APIs answer directly.
       redirect: "error",
       headers: {
-        // Provider-neutral defaults; a tool overrides via `init.headers` (e.g.
-        // GitHub's `application/vnd.github+json`). Bearer + UA always applied.
+        // Provider-neutral defaults; a tool overrides via `init.headers`.
         Accept: "application/json",
         "User-Agent": BRAND.name,
         ...(init.headers ?? {}),
@@ -156,20 +122,15 @@ export function bearerFetchJson(accessToken: string, label?: string): ConnectorT
     if (!res.ok) {
       throw upstreamError(res.status, await res.text().catch(() => ""), label);
     }
-    // ⚠️ **AN EMPTY BODY IS AN EMPTY SUCCESS, NOT A PARSE ERROR.** A write that
-    // succeeds very often answers with NO body — Graph `POST /me/sendMail` returns an empty
-    // `202 Accepted`, a `DELETE` returns `204`. `res.json()` used to throw « Unexpected end of JSON input »
-    // there, and everything downstream was wrong: the tool reported back as a FAILURE while the mail had
-    // actually been sent, the model retried the same call — so a SECOND mail went out — then told
-    // the user the send hadn't worked (observed 18/08 on Outlook).
-    // A real side effect presented as a failure is worse than a failure: it repeats itself.
+    // ⚠️ AN EMPTY BODY IS AN EMPTY SUCCESS, NOT A PARSE ERROR: a successful write often
+    // answers `202`/`204` with no body, and a real side effect presented as a failure
+    // repeats itself (the model retries the send).
     const text = await res.text();
     if (!text.trim()) return undefined as T;
     try {
       return JSON.parse(text) as T;
     } catch {
-      // A 2xx with an unreadable body remains an anomaly — but it's NAMED, instead of letting
-      // a `SyntaxError` surface that nobody can connect to what happened.
+      // A 2xx with an unreadable body is an anomaly, NAMED rather than a bare SyntaxError.
       throw new UpstreamError(
         `Réponse illisible du fournisseur (${res.status})${label ? ` pour « ${label} »` : ""} : ` +
           `l'appel a abouti mais son contenu n'est pas du JSON.`,
@@ -183,11 +144,9 @@ export function bearerFetchJson(accessToken: string, label?: string): ConnectorT
 /** Authenticated fetch returning the RAW body text (Drive export / alt=media). */
 function bearerFetchText(accessToken: string, label?: string): ConnectorToolCtx["fetchText"] {
   return async function fetchText(url: string, init: RequestInit = {}): Promise<string> {
-    await assertConnectorTarget(url); // SSRF floor on hop 0 (audit M8)
-    // NB: redirects are followed here (unlike fetchJson) — media/export downloads
-    // (Drive `alt=media`, signed googleusercontent URLs) legitimately 30x. The fetch
-    // runtime strips the `Authorization` header on a CROSS-ORIGIN redirect, so the
-    // bearer isn't forwarded off the API host.
+    await assertConnectorTarget(url);
+    // Redirects ARE followed here (media/export downloads legitimately 30x); the fetch
+    // runtime strips `Authorization` on a cross-origin redirect.
     const res = await fetch(url, {
       ...init,
       headers: {
@@ -208,19 +167,13 @@ export function makeConnectorConnection(opts: {
   connector: Connector;
   /** Resolve the current access token (throws if unavailable). */
   getToken: () => Promise<string>;
-  /** OAuth scopes actually granted for THIS connection (the connector's scopes for
-   *  the active credential mode). A tool declaring a `scope` is only listed when
-   *  that scope is present — e.g. Gmail's read tools appear only in "mes clés" mode,
-   *  never in the 1-clic send-only mode. */
+  /** A tool declaring a `scope` is only listed when that scope was granted. */
   grantedScopes: string[];
-  /** Multi-account: the account this instance is signed into (email / "Compte N").
-   *  Appended to each tool's description so the model can pick the right account
-   *  when the same connector is connected with several accounts. */
+  /** Multi-account: appended to each tool's description so the model picks the right one. */
   accountLabel?: string;
 }): McpConnection {
   const { id, connector, getToken, grantedScopes, accountLabel } = opts;
-  // The account discriminator the MODEL sees is MASKED (email local-part stripped) —
-  // the model must never receive the user's full address, only enough to route.
+  // The MODEL sees a MASKED discriminator: never the user's full address.
   const modelLabel = maskAccountLabel(accountLabel);
   return {
     id,
@@ -246,26 +199,14 @@ export function makeConnectorConnection(opts: {
           fetchJson: bearerFetchJson(accessToken, connector.name ?? id),
           fetchText: bearerFetchText(accessToken, connector.name ?? id),
         });
-        // A call that PASSES proves the token is good again: that's what closes the
-        // banner set below. Deliberately self-healing — reconnecting it takes a
-        // different path than the remote transport (`connectDirectServer`), and making the
-        // banner's dismissal depend on that path would leave it lit on a connector that's
-        // become healthy again.
+        // A call that PASSES proves the token is good again and closes the banner set below.
         if (needsReconnect.delete(id)) emitNeedsReconnect();
         return result;
       } catch (err) {
-        // The connector's OWN actionable message when it has one — applied HERE so a
-        // tool added later cannot forget it (`Connector.errorHint`). `detail` carries
-        // the provider's real explanation for the local journal ONLY; it never enters
-        // `content`, which is the one thing the model reads.
-        // ⚠️ A 401 is a connector STATE, not a call failure: the provider
-        // refuses the stored token, so ALL its tools will fail until a reconnection.
-        // A DIRECT connector runs in-process — it has no transport to drop,
-        // so nothing signaled it: the "reconnexion nécessaire" banner only
-        // lifted for REMOTE connectors, and the user here only saw a
-        // tool failing, connector displayed green (observed 15/08 on GitHub). So it's
-        // flagged at the source. 401 ALONE: a 403 is a missing right or scope, and
-        // asking for a reconnection over that would send the user through a pointless round trip.
+        // The connector's OWN actionable message, applied HERE so a later tool cannot
+        // forget it. `detail` goes to the local journal ONLY, never `content`.
+        // A 401 is a connector STATE (a DIRECT connector has no transport to drop, so
+        // it is flagged at the source). 401 ALONE: a 403 is a missing right or scope.
         if (err instanceof UpstreamError && err.status === 401 && !needsReconnect.has(id)) {
           needsReconnect.add(id);
           emitNeedsReconnect();

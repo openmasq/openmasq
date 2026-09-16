@@ -31,28 +31,21 @@ export function parseCodexList(stdout: string): OwnServer[] {
 }
 
 /**
- * Codex. Its configuration is TOML, spread over `~/.codex/config.toml` and a project's own
- * `.codex/config.toml`, so its servers are not read out of a file here — they are ASKED of
- * the binary (`codex mcp list --json`), the one resolver that sees everything Codex loads.
+ * Codex. Its configuration is TOML spread over several files, so its servers are ASKED of
+ * the binary (`codex mcp list --json`), the one resolver that sees everything it loads.
  *
- * There is no single switch, but `-c` overrides do the job exactly: one
- * `mcp_servers.<id>.enabled=false` per server it has, plus ours as an inline table. Measured
- * on 0.149.1: a whole-table override MERGES (ours is added, theirs stay), which is why the
- * disabling is per server and why an id we cannot address blocks rather than half-applies.
+ * There is no single switch, but `-c` overrides do the job: one
+ * `mcp_servers.<id>.enabled=false` per server it has, plus ours as an inline table. A
+ * whole-table override MERGES, which is why the disabling is per server and why an id we
+ * cannot address blocks rather than half-applies.
  *
- * ⚠️ One server is in NO list: `codex_apps`, the built-in that carries ChatGPT's apps (document
- * control, plugin management, safety settings — `get_trusted_contact` among them) to the
- * model with the user's ChatGPT account. `codex mcp list --json` answers « no servers » while
- * a real session lists a dozen `mcp__codex_apps__*` tools. It is a feature flag, `apps`,
- * stable and on by default; `features.apps=false` removes it — measured in a session:
- * the tool list came back as `mcp__openmasq__crm__lookup_contact` and nothing else.
+ * ⚠️ One server is in NO list: `codex_apps`, the built-in that carries ChatGPT's apps to the
+ * model with the user's account — `codex mcp list --json` does not show it. It is the feature
+ * flag `apps`, on by default; `features.apps=false` removes it.
  *
- * Verified end to end on a real account: the model called our tool and printed a contact
- * whose name, e-mail and phone were the vault's fakes, not the upstream's.
  * `codex exec` refuses an MCP call under its default `approval_policy = never`; the setting
- * that lets OUR tools through without the sandbox bypass is
- * `-c 'mcp_servers.openmasq.default_tools_approval_mode="approve"'` — the user's call, so it
- * is documented, not passed: the proxy's own write gate is the one that stays.
+ * that lets OUR tools through is `default_tools_approval_mode="approve"` — the user's call,
+ * so it is documented, not passed: the proxy's own write gate is the one that stays.
  */
 export const CODEX: AgentClient = {
   id: "codex",

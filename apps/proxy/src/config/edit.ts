@@ -69,12 +69,9 @@ export function initConfig(path: string, deps: Say & Partial<Files>): number {
   return 0;
 }
 
-/** The editors tried when the user named none, in order. A desktop editor gets `--wait`,
- *  so the command returns when the tab is CLOSED — that return is when the file is checked.
- *  Then the terminal ones, friendliest first; `vi` last, because it is always there.
- *  On macOS a desktop editor is often installed WITHOUT its shell command (`code` is a
- *  separate « Install 'code' command » step), so its bundle's own CLI is tried right after
- *  the name: the binary the shell command would have pointed at anyway. */
+/** The editors tried when the user named none. A desktop editor gets `--wait`, so the
+ *  command returns when the tab is CLOSED — when the file is checked. On macOS a desktop
+ *  editor is often installed WITHOUT its shell command, so its bundle's own CLI is tried too. */
 export const EDITORS: readonly { cmd: string; args: string[]; mac?: string }[] = [
   {
     cmd: "cursor",
@@ -119,9 +116,8 @@ export function editorCommand(
   return [platform === "win32" ? "notepad" : "vi"];
 }
 
-/** `$EDITOR` as the USER set it. npm exports its own `editor` default (`vi`, `notepad`) as
- *  `EDITOR` into everything it runs — `npx …`, `npm run …` — so under those, a bare `vi`
- *  nobody typed would beat every editor installed. Under npm, that one value is not a choice. */
+/** `$EDITOR` as the USER set it: npm exports its own default (`vi`, `notepad`) as `EDITOR`
+ *  into everything it runs, and under npm that value is not a choice. */
 function userEditor(env: NodeJS.ProcessEnv): string | undefined {
   const underNpm = !!env.npm_execpath || !!env.npm_lifecycle_event;
   const npmDefault = env.EDITOR === "vi" || env.EDITOR === "notepad";

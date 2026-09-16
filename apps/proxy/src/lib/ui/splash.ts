@@ -1,14 +1,8 @@
-// The opening sequence: a second and a half, the whole terminal, then the terminal back as it
-// was. It exists because of an invariant, not for decoration: a wrapped tool OWNS the screen
-// (`CLAUDE.md`), so the card is painted over the moment the tool starts and the operator never
-// sees what they just started. This runs BEFORE that, on the ALTERNATE screen — which the
-// terminal restores on exit, so nothing of the user's scrollback is spent.
-//
-// What it shows is the app's own loader: the redaction mark travelling a ring (`ring.ts`,
-// the walk imported from the engine) around the name, which writes itself inside it. Then the
-// ring closes and the proxy starts. Nothing else — an opening that filled the screen with
-// colour was tried and removed: nine hues MEAN nine categories, and a field of them means
-// nothing at all.
+// The opening sequence: a second and a half on the ALTERNATE screen, then the terminal back
+// as it was. It exists because a wrapped tool OWNS the screen: the card is painted over the
+// moment the tool starts, so this runs BEFORE, and spends nothing of the user's scrollback.
+// It shows the app's own loader: the redaction mark travelling a ring (`ring.ts`) around the
+// name. Nothing else — nine hues MEAN nine categories, a field of them means nothing.
 import type { ProxyConfig } from "../../config/config.js";
 import { disabledKindsFor } from "../masker.js";
 import { inClearPhrase } from "./kinds.js";
@@ -69,9 +63,8 @@ export function splashFrame(
   );
   if (!letters) drawn[Math.floor(box.rows / 2)] = word(tty, box.cols * cw);
 
-  // The box is centred on its own width; the two lines under it are centred on the SCREEN and
-  // get its whole width — a claim clipped to the box would be a sentence about where personal
-  // data goes, cut in half.
+  // The box is centred on its own width; the two lines under it are centred on the SCREEN —
+  // a claim clipped to the box would be a sentence about where personal data goes, cut in half.
   const margin = " ".repeat(Math.max(0, Math.floor((tty.columns - box.cols * cw) / 2)));
   const said = t >= CLAIM_AT ? claim(tty, view, Math.max(20, tty.columns - 4)) : [];
   const lines = [
@@ -108,13 +101,10 @@ function word(tty: Tty, width: number): string {
 }
 
 /**
- * What this run does, in two lines, under the name.
- *
- * ⚠️ The second one is the sequence's only claim, and the only thing here that can be WRONG.
- * At `standard` — the default — names and companies are never looked for; an opening that let
- * the reader believe otherwise would be the overstatement rule 8 forbids. So the kinds come
- * from `disabledKindsFor`, they are NAMED, and when the line cannot hold them all it counts
- * the rest instead of quietly dropping them.
+ * What this run does, in two lines, under the name. ⚠️ The second one is the sequence's only
+ * claim, and the only thing here that can be WRONG: at `standard` names and companies are
+ * never looked for. So the kinds come from `disabledKindsFor`, they are NAMED, and when the
+ * line cannot hold them all it counts the rest instead of dropping them (rule 8).
  */
 function claim(tty: Tty, view: SplashView, width: number): string[] {
   const head = tty.dim(`masking this session  ·  level ${view.level}`);

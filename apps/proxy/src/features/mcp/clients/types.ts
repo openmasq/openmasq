@@ -1,5 +1,4 @@
-// The shape every agent client is described in. One file, so the five descriptions next to
-// it read as five stories rather than five variations on a signature.
+// The shape every agent client is described in.
 
 /** Where a client declares its own MCP servers: a file, and the path to the map inside it. */
 export interface Declaration {
@@ -30,13 +29,10 @@ export type Exclusivity =
       env?: Record<string, string>;
       /** A config file in the CLIENT's own shape, written under `ctx.dir` before it starts. */
       write?: { path: string; content: string };
-      /** Symlinks to create under `ctx.dir` before the client starts. For a client whose only
-       *  lever is a HOME variable that isolates config AND data AND credentials together
-       *  (Hermes): config is OURS (the `write` above), and what must survive — the memory, the
-       *  skills, the `.env` holding the model key — is LINKED back from the real home rather
-       *  than copied, so no secret is read and the real home is never touched. A dangling link
-       *  (the source does not exist) is harmless. Removed with `ctx.dir` on quit; unlinking a
-       *  symlink never touches its target. */
+      /** Symlinks to create under `ctx.dir` before the client starts — for a client whose only
+       *  lever is a HOME variable isolating config, data AND credentials together (Hermes):
+       *  config is OURS (`write`), what must survive is LINKED back from the real home, never
+       *  copied. A dangling link is harmless; unlinking a symlink never touches its target. */
       links?: { path: string; target: string }[];
     }
   /** Possible for this client, but not in the state its configuration is in. `why` is
@@ -70,10 +66,9 @@ export interface AgentClient {
   probe?: { args: string[]; parse(stdout: string): OwnServer[] };
   /**
    * Run the probe a SECOND time, under the flags and environment we just computed, and name
-   * the servers that survived anyway. Not a formality: for a client whose config layers can
-   * outrank ours (a project file beats what opencode reads from `OPENCODE_CONFIG`), this is
-   * the difference between claiming exclusivity and having it. Absent ⇒ the client's answer
-   * does not reflect a session's flags, and `start.ts` says so rather than pretending.
+   * the servers that survived anyway: for a client whose config layers can outrank ours, this
+   * is the difference between claiming exclusivity and having it. Absent ⇒ `start.ts` says
+   * so rather than pretending.
    */
   recheck?(stdout: string, ourId: string): string[];
 }

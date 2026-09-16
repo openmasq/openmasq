@@ -7,25 +7,17 @@ import { logUpdate } from "./log";
 const { autoUpdater } = electronUpdater;
 
 /**
- * The AUTOMATIC install of a downloaded build — when the app is in the background or
- * the user is away. The "update ready" modal remains the nominal path;
- * this is the catch-up for the app that's never restarted (open for days, the
- * update waiting for a click that never came).
- *
- * FAIL-CLOSED everywhere: at the slightest doubt we do NOT restart — a missed restart
- * at worst misses an install window (the next tick catches it), whereas a
- * restart during an agentic turn or on an unsent draft destroys
- * work (drafts are memory-only, ON PURPOSE — see `state/CLAUDE.md`).
- * Hence `shouldAutoInstall`'s four guards AND the renderer probe: main asks
- * "are you quiescent?" at decision time (a turn in flight? a draft somewhere?) and
- * treats no answer as "busy".
+ * The AUTOMATIC install of a downloaded build when the app is in the background or the
+ * user is away: the catch-up for the app that's never restarted. FAIL-CLOSED everywhere:
+ * a missed restart costs an install window, a restart during a turn or on an unsent draft
+ * destroys work (drafts are memory-only on purpose). Hence the four guards AND the
+ * renderer probe, where no answer means "busy".
  */
 const AUTO_POLL_MS = 60_000;
 /** The user is AWAY: no system input for 10 min (powerMonitor). */
 export const AUTO_IDLE_AWAY_S = 10 * 60;
-/** The app has been in the BACKGROUND for a while: blurred without interruption for 30 min.
- *  Longer than the away threshold: the user may be working ALONGSIDE, and the relaunch
- *  after install steals the foreground — we don't pay that price for a 5-minute detour. */
+/** Blurred without interruption for 30 min. Longer than the away threshold: the relaunch
+ *  steals the foreground from a user working ALONGSIDE. */
 export const AUTO_BLURRED_MS = 30 * 60_000;
 /** The renderer probe answers quickly or not at all (busy/dead renderer ⇒ busy). */
 const QUIESCENCE_TIMEOUT_MS = 3_000;
@@ -77,11 +69,8 @@ function askRendererBusy(win: BrowserWindow): Promise<boolean | null> {
   });
 }
 
-/**
- * Arms the timer. `mainBusy` is injected (the `chat:*` streams map lives in
- * `index.ts`); the "staged" state is listened to right here: `update-downloaded` arms it,
- * a post-download `error` disarms it (the install failed, `poll.ts` retries).
- */
+/** Arms the timer. `mainBusy` is injected; "staged" is listened to here (`update-downloaded`
+ *  arms it, a post-download `error` disarms it). */
 export function startAutoInstall(
   getWin: () => BrowserWindow | null,
   probes: { mainBusy: () => boolean },
@@ -113,8 +102,7 @@ export function startAutoInstall(
       idleS: powerMonitor.getSystemIdleTime(),
       blurredMs: Date.now() - blurredSince,
       mainBusy: probes.mainBusy(),
-      // Asked LAST, only once everything else is already met — no pinging the
-      // renderer every minute for nothing.
+      // Asked LAST, once everything else is met.
       rendererBusy: null,
     };
     if (!shouldAutoInstall({ ...signals, rendererBusy: false })) return;

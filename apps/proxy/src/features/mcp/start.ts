@@ -1,10 +1,8 @@
 // Everything `--mcp` sets up before the proxy listens: which servers this run has, the
 // connections to them, the bridge that masks their traffic, and — when a known client is
-// being wrapped — the flags that make OUR endpoint its only MCP.
-//
-// It is startup work on purpose: an agent that lists tools on its first call must not wait
-// on a login, and a servers file that cannot be read is an error the operator sees rather
-// than a silent absence of tools.
+// being wrapped — the flags that make OUR endpoint its only MCP. Startup work on purpose:
+// an agent that lists tools on its first call must not wait on a login, and an unreadable
+// servers file is an error the operator sees rather than a silent absence of tools.
 import { mkdtempSync, rmSync, symlinkSync, writeFileSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
@@ -80,11 +78,8 @@ function recheck(client: AgentClient, command: string, env?: Record<string, stri
 
 export async function startIntegrations(deps: StartDeps): Promise<Integrations> {
   const { config } = deps;
-  // Is there anything to wrap? Asked BEFORE the probe, because a tool that is not installed
-  // otherwise surfaces as whatever fails first below — « its own servers could not be listed
-  // (spawnSync ENOENT) », then a servers file that was never the problem. Two errors, neither
-  // saying the program is not there. (Without `--mcp` nothing runs here, and `runWrapped`'s
-  // own « cannot start <tool> » is already the right message.)
+  // Is there anything to wrap? Asked BEFORE the probe, so a tool that is not installed is
+  // reported as such rather than as whatever fails first below.
   if (deps.wrapping && !onPath(config.command[0])) {
     console.error(
       `${config.command[0]}: not found on your PATH — there is nothing to wrap.\n` +
@@ -92,9 +87,8 @@ export async function startIntegrations(deps: StartDeps): Promise<Integrations> 
     );
     process.exit(2);
   }
-  // With `-- <client>`, the point is that OUR endpoint becomes its ONLY MCP: an agent that
-  // keeps its own connections reaches the service directly, with its own credential, and
-  // nothing on that path is masked. `clients.ts` knows how to ask each client for that.
+  // With `-- <client>`, OUR endpoint must become its ONLY MCP: an agent that keeps its own
+  // connections reaches the service directly, unmasked. `clients.ts` knows how to ask each client.
   const client = deps.wrapping ? detectClient(config.command[0]) : undefined;
   if (!config.mcp) return NONE;
 
@@ -110,8 +104,7 @@ export async function startIntegrations(deps: StartDeps): Promise<Integrations> 
     if (tempDir) rmSync(tempDir, { recursive: true, force: true });
   };
 
-  // Exclusivity is decided BEFORE anything connects, because it decides adoption too: taking
-  // a client's servers over while it still reaches them itself buys nobody anything.
+  // Exclusivity is decided BEFORE anything connects, because it decides adoption too.
   let exclusiveArgs: string[] = [];
   /** Set only once the client HAS been made exclusive — the flags can legitimately be empty
    *  (opencode's whole lever is an environment variable), so their count proves nothing. */
@@ -181,9 +174,7 @@ export async function startIntegrations(deps: StartDeps): Promise<Integrations> 
   }
 
   // ONE resolution, run at start and again on every change of `~/.openmasq` (`reload.ts`):
-  // the same precedence and the same policy both times, so a login made mid-run lands
-  // exactly where a restart would have put it. `quiet` keeps the reload from re-narrating
-  // the adoption lines the card already carries.
+  // same precedence, same policy, so a login made mid-run lands where a restart would put it.
   const resolve = (quiet = false) =>
     resolveSpecs({
       configPath: config.mcpConfig,
@@ -207,8 +198,7 @@ export async function startIntegrations(deps: StartDeps): Promise<Integrations> 
     process.exit(5);
   }
 
-  // A client we cannot switch off is NAMED, because the user would otherwise believe its
-  // tool calls are masked. Saying it is the whole mitigation available here.
+  // A client we cannot switch off is NAMED: saying it is the whole mitigation available here.
   if (deps.wrapping && !client)
     deps.note(
       `${config.command[0]} is not one of ${CLIENT_IDS.join(", ")}: its OWN MCP servers stay on, ` +
@@ -219,10 +209,9 @@ export async function startIntegrations(deps: StartDeps): Promise<Integrations> 
 
   const servers: string[] = [];
   const done = deps.spinner(`connecting ${specs.length} MCP server(s)…`);
-  // The tokens `mcp login` stored. Silent: a startup reconnect refreshes from the file and
-  // never opens a consent page — nobody asked for one, and it would steal the screen. The
-  // store is opened PER connection: it reads the file once, and a login made in another
-  // process while this one runs must be seen by the reconnect that follows it.
+  // The tokens `mcp login` stored. Silent: a startup reconnect never opens a consent page.
+  // The store is opened PER connection, so a login made in another process is seen by the
+  // reconnect that follows it.
   const upstream = await connectUpstream(specs, {
     oauth: (spec) => {
       const store = createStore();

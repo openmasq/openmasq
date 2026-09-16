@@ -63,12 +63,9 @@ async function onDownloaded(
     });
     return;
   }
-  // ⚠️ NO MORE SYSTEM MODAL HERE. An OS dialog used to announce "<brand>
-  // x.y.z is ready to install" in English, without saying what the version brings, and
-  // stole focus mid-sentence. It's now the RENDERER that announces it:
-  // it has the release note (Contentful) and knows how to wait — the window closes,
-  // a button in the right rail reopens it. Main keeps the only action only it
-  // can perform, `updates:install`.
+  // No system modal here: the RENDERER announces the downloaded version (it has the release
+  // note, is bilingual, and can wait — a button in the right rail reopens it). Main keeps
+  // the only action only it can perform, `updates:install`.
   //
   // The status is therefore the ONLY output of this path: not emitting it would make the
   // update invisible, since nothing else speaks anymore.

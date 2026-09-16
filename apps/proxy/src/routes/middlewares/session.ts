@@ -17,13 +17,10 @@ import { sessionIdFrom, VaultSessions } from "../../lib/sessions.js";
 const SHARED_SESSION = "\u0000proxy";
 
 /**
- * `ownSession` is the wrapped client's own session — and it is what an UNNAMED request falls
- * back to, which is the whole of « one agent, one vault ». That client's model calls arrive
- * under `/s/<session>` (the base URL it was handed), while its tool calls arrive at `/mcp`,
- * which names nothing: a generic shared id made those two channels two DIFFERENT vaults, so a
- * value masked in a tool result got a fake the reply could not restore and the user read the
- * fake. Falling back to the client's own session puts both on one vault, and a SECOND client
- * naming its own session still gets its own (`session.test.ts`).
+ * `ownSession` is the wrapped client's own session, and what an UNNAMED request falls back to
+ * — the whole of « one agent, one vault »: its model calls arrive under `/s/<session>`, its
+ * tool calls at `/mcp`, which names nothing; two different vaults would mint a fake the reply
+ * cannot restore. A SECOND client naming its own session still gets its own (`session.test.ts`).
  */
 export function sessionMiddleware(config: ProxyConfig, ownSession?: string) {
   const sessions = new VaultSessions(config.sessionTtlMs);

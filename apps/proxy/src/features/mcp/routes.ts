@@ -117,13 +117,9 @@ function buildServer(deps: McpRouteDeps, locals: Locals, reportedAt: () => numbe
 
 /**
  * The router `app.ts` mounts AT `/mcp`, with its own JSON parser: a JSON-RPC batch is an
- * ARRAY, which the model-facing `parseJsonObject` refuses on purpose (a body it cannot read
- * is a body it cannot mask). Two parsers, each strict about its own wire.
- *
- * Stateless: one transport per request, torn down on close — the same shape as the broker's
- * endpoint, for the same reason (no cross-request state to confuse two callers). The one
- * thing kept across requests is the set of GET streams still open: that is the channel a
- * server-initiated notification travels on, and `tools/list_changed` needs it.
+ * ARRAY, which the model-facing `parseJsonObject` refuses on purpose. Stateless: one
+ * transport per request, torn down on close. The one thing kept across requests is the set
+ * of GET streams still open — the channel `tools/list_changed` travels on.
  */
 /** The token may travel in the query (every client carries a URL verbatim) or in a header,
  *  for a caller that would rather not put it in a URL. */

@@ -37,12 +37,10 @@ export interface Masker {
 
 /**
  * The vendors' own vocabulary, kept in clear whatever the level. A coding agent's system
- * prompt names its maker and its model on every call (« You are Claude Code », « Anthropic »,
- * `claude-opus-…`); the on-device model reads « Claude » as a first name and « Anthropic » as
- * a company, and the model was being told it is « Célestin » from « Corvanics » — measured on
- * a real session, thirteen substitutions for a two-word prompt, four of them the user's.
- * None of these is anybody's data. `keep` matches the WHOLE value, so « Claude Dupont » is
- * still a person; only the bare word passes, which is the residual this accepts.
+ * prompt names its maker and its model on every call; the on-device model reads « Claude »
+ * as a first name and « Anthropic » as a company. None of these is anybody's data. `keep`
+ * matches the WHOLE value, so « Claude Dupont » is still a person; only the bare word passes,
+ * which is the residual this accepts.
  */
 export const VENDOR_TERMS: readonly string[] = [
   "Anthropic",
@@ -132,9 +130,8 @@ export function createMasker(opts: MaskerOptions): Masker {
 export function tally(matches: RedactionMatch[]): Record<string, number> {
   const out: Record<string, number> = {};
   for (const m of matches) {
-    // Normalise to the engine's category BEFORE counting: the raw labels of two detectors
-    // can fold onto one (ORG and COMPANY), and a tally that keeps them apart shows the same
-    // category twice — in the request line and, cumulatively, in the footer.
+    // Normalise to the engine's category BEFORE counting: the raw labels of two detectors can
+    // fold onto one (ORG and COMPANY).
     const k = redactionCategory(m.category ?? m.type).toUpperCase();
     out[k] = (out[k] ?? 0) + 1;
   }

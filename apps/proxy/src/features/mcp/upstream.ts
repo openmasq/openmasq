@@ -12,9 +12,8 @@ import type { HttpSpec, ServerSpec } from "./servers.js";
 
 /**
  * Why a server would not connect, in terms the operator can act on. The common case after a
- * take-over is this one: the client authorised the remote itself and keeps the OAuth token in
- * its own store, so the URL alone gets us a 401. That token is not ours to reuse — the server
- * has to be authorised through the proxy, or declared with a credential of its own.
+ * take-over: the client authorised the remote itself and keeps the OAuth token in its own
+ * store, so the URL alone gets a 401. That token is not ours to reuse.
  */
 export function whyDown(err: unknown, id = ""): string {
   const msg = err instanceof Error ? err.message : String(err);
@@ -70,9 +69,8 @@ export interface ConnectOptions extends UpstreamEvents {
   connect?: (spec: ServerSpec, onClose: (id: string) => void) => Promise<McpConnection>;
   /**
    * The stored OAuth material for a remote server, when it has any. Silent by design: this
-   * runs at startup, and a proxy that opened a consent page on its own would hijack the
-   * screen of whoever just typed a command. No tokens ⇒ no provider ⇒ the connection fails
-   * with `not signed in`, which is the honest outcome and names the command that fixes it.
+   * runs at startup, and a consent page opened on its own would hijack the screen. No tokens
+   * ⇒ the connection fails with `not signed in`, which names the command that fixes it.
    */
   oauth?: (spec: HttpSpec) => OAuthClientProvider | undefined;
 }

@@ -1,17 +1,10 @@
-// APPLYING a masking change the live view asked for: gate it, write it, apply it.
+// APPLYING a masking change the live view asked for: gate it, write it, apply it — in that
+// order. The gate runs FIRST (`maskingGate.ts`), so a refusal leaves the file untouched. The
+// file is written SECOND: it is what survives the run. The maskers are re-pointed LAST and
+// directly rather than left to the debounced watcher, so "done" is true when the page says it.
 //
-// Three steps and an order that matters. The gate runs FIRST (`maskingGate.ts`), so a
-// refusal leaves the file untouched — a change nobody approved must not be on disk waiting
-// for the next restart to pick it up. The file is written SECOND, because it is what
-// survives the run and what the operator can read. The maskers are re-pointed LAST and
-// directly, rather than being left to the watcher: the watcher is debounced, and a page that
-// said "done" while the next call still masked the old way would be lying for a third of a
-// second.
-//
-// ⚠️ The file is REWRITTEN AROUND the `mcp` section, never regenerated. `proxy.json` is the
-// operator's own file: its `run` block, its `clients` block, its key order and anything a
-// future version adds are none of this function's business, and a page that flattened them
-// would be a worse bug than the one it fixed.
+// ⚠️ The file is REWRITTEN AROUND the `mcp` section, never regenerated: `proxy.json` is the
+// operator's own file, and its other blocks are none of this function's business.
 import { readFileSync, writeFileSync } from "node:fs";
 import type { RedactionLevel } from "@openmasq/catalog";
 import { LEVELS } from "../../config/schema.js";
@@ -33,10 +26,9 @@ export interface ApplyDeps {
 
 export type ApplyResult = { ok: true; moved: string[] } | { ok: false; why: string };
 
-/** What the page may ask for. `level` is a STRING here, not a `RedactionLevel`: it arrives
- *  from a browser, and narrowing it is this module's job — see `apply`, which refuses an
- *  unknown one rather than letting it read as "follow the default", which would be a
- *  loosening nobody asked for. `null` is how a picker says "follow the default" on purpose. */
+/** What the page may ask for. `level` is a STRING here: it arrives from a browser, and
+ *  `apply` refuses an unknown one rather than letting it read as "follow the default".
+ *  `null` is how a picker says "follow the default" on purpose. */
 export interface MaskingRequest {
   level?: string | null;
   disable?: string[];

@@ -58,8 +58,7 @@ async function main(): Promise<void> {
   let portNote = "";
 
   // Already one running? Join it rather than dying on EADDRINUSE (`lib/attach.ts`) — unless
-  // the operator asked for a live view that proxy cannot give: then this run is its own, on
-  // the next free port, and the tool is pointed at THAT one.
+  // the operator asked for a live view that proxy cannot give: then this run is its own.
   if (wrapping) {
     const code = await joinRunning(url0, config.command, joinOptions(config, openIfWanted));
     if (code === "own") {
@@ -70,9 +69,8 @@ async function main(): Promise<void> {
     } else if (code !== undefined) process.exit(code);
   }
 
-  // The opening sequence, before anything is loaded: when a tool is being wrapped this is the
-  // only moment the screen is ours, and it states what the proxy does rather than that it
-  // started (`lib/ui/splash.ts`). It gives the terminal back exactly as it found it.
+  // The opening sequence, before anything is loaded: when a tool is being wrapped this is
+  // the only moment the screen is ours (`lib/ui/splash.ts`). The terminal is given back as found.
   await openIfWanted(config);
 
   const reveal = { on: config.reveal };
@@ -95,11 +93,9 @@ async function main(): Promise<void> {
   });
   const screen = logFile ? createReporter({ reveal, theme: config.theme }) : reporter;
 
-  // The live console, when asked for. It reads the SAME events the terminal prints, so a
-  // wrapped run — where the tool owns the screen — is watchable from a browser tab. The
-  // token is minted here because `server.ts` is what prints it.
-  // The page reveals by default (`schema.ts` says why the terminal does not); `--no-console-
-  // reveal` is the one way to a page of substitutes only.
+  // The live console, when asked for: the SAME events the terminal prints, watchable from a
+  // browser tab while the tool owns the screen. The token is minted here because this file
+  // prints it. The page reveals by default (`schema.ts`); `--no-console-reveal` opts out.
   const bus = config.console ? createConsoleBus(config.consoleReveal) : undefined;
   const consoleToken = bus ? randomBytes(16).toString("base64url") : "";
   const feed = teeToConsole(reporter, bus);
@@ -165,9 +161,8 @@ async function main(): Promise<void> {
   });
   const { upstream, bridge } = integrations;
 
-  // Named BEFORE the app: it is the session the wrapped client's model calls arrive under,
-  // and the one an UNNAMED request (its tool calls, at `/mcp`) falls back to — one vault for
-  // the two channels (`routes/middlewares/session.ts`).
+  // Named BEFORE the app: the session the wrapped client's model calls arrive under, and the
+  // one an UNNAMED request (its tool calls, at `/mcp`) falls back to — one vault for both channels.
   const ownSession = wrapping ? sessionName(config.command[0]) : "";
 
   const app = createApp({

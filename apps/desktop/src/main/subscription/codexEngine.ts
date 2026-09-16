@@ -1,68 +1,34 @@
 /**
- * The CODEX-specific part (`codex exec`) of the subscription engine — the user's
- * ChatGPT subscription, served by THEIR OWN official CLI. Loop: `spawnStream.ts`;
- * events: `codexStream.ts`. Everything below is MEASURED on 26/08/2026 against CLI 0.149.1.
+ * The CODEX-specific part (`codex exec`) of the subscription engine: the user's own
+ * official CLI. Loop: `spawnStream.ts`; events: `codexStream.ts`.
  *
- * ## The flags, and why those
+ * ## The flags
+ * - `--json`: JSONL on stdout. `--ephemeral`: NO session file on disk.
+ * - `--ignore-user-config`: the user's config (model, MCP servers) is NOT loaded, and auth
+ *   still works: the counterpart of claude's `--safe-mode`. `--ignore-rules`,
+ *   `--skip-git-repo-check`: the dedicated cwd is neutral.
+ * - `-s read-only`: nothing is written to the cwd.
+ * - `--disable shell_tool`: THE flag that matters. Without it `read-only` still EXECUTES
+ *   commands through a LOGIN shell, so it can read any readable file into context.
  *
- * Of the three CLIs wired in, Codex is the one that best tools isolation — each
- * flag below has been verified at runtime:
+ * ⚠️ `codex exec` READS STDIN even with the prompt as an argument: without
+ * `stdio[0] = "ignore"` the turn never returns. The generic loop ignores stdin; don't "fix" it.
+ * ⚠️ `web_search` CANNOT be disabled. It runs SERVER-SIDE on the REDACTED text, to the same
+ * recipient as the prompt: not a new egress class (rule 11).
+ * ⚠️ No deltas: the text arrives as one COMPLETE message. The CLI's limitation.
  *
- * - `--json`: JSONL on stdout (the stream `codexStream.ts` reads).
- * - `--ephemeral`: NO session file written to disk. An OpenMasq conversation
- *   must not leave a trace in the CLI's personal history.
- * - `--ignore-user-config`: the user's `config.toml` is NOT loaded — so
- *   neither their model, MCP servers, nor settings. ⚠️ Its docs state « auth still
- *   uses CODEX_HOME »: the subscription keeps working, exactly the
- *   counterpart of claude's `--safe-mode` (isolation WITHOUT breaking auth).
- * - `--ignore-rules`: no user or project `.rules` (execpolicy).
- * - `--skip-git-repo-check`: the dedicated cwd is not a git repo, and doesn't need to be.
- * - `-s read-only`: read-only sandbox. MEASURED: a file-creation request
- *   is refused, nothing is written to the cwd.
- * - `--disable shell_tool`: **the flag that matters**. Without it, `-s read-only` still
- *   lets the model EXECUTE commands (measured: `/bin/zsh -lc ls`, a LOGIN
- *   shell that sources the user's rc files) — so it can read any readable
- *   file and bring it back into context. With it, the CLI answers « I don't have access
- *   to a terminal command » and no `command_execution` appears in the stream.
- *   `browser_use`/`computer_use` are cut the same way, as a precaution.
- *
- * ⚠️ **`codex exec` READS STDIN even when the prompt is passed as an argument** (« Reading
- * additional input from stdin… »): without `stdio[0] = "ignore"`, the process waits
- * forever — the turn never returns. It's this CLI's trap #1; the generic
- * loop ignores stdin by construction — don't "fix" this detail.
- *
- * ⚠️ **`web_search` stays active** and CANNOT be disabled (`tools.web_search=false`
- * measured to have no effect, no matching feature). It runs SERVER-SIDE: it only
- * carries the turn's REDACTED text, to the same recipient as the prompt — not
- * a new egress class (rule 11), but worth knowing.
- *
- * ⚠️ **No deltas**: the text arrives as a COMPLETE `agent_message` (measured: 16 s of
- * silence then 2,213 characters). The reply therefore appears as one block, like an
- * unstreamed turn — that's this CLI's limitation, not a wiring defect.
- *
- * ## The model
- *
- * With a ChatGPT account, the CLI accepts ONLY the account's default model: an
- * explicit `-m gpt-5.3-codex` measured returns a 400 « model is not supported when using Codex with
- * a ChatGPT account ». So no `-m` is ever passed — a single catalog entry.
+ * No `-m`: with a ChatGPT account the CLI accepts ONLY the account's default model.
  */
 import type { StreamDone } from "@openmasq/llm";
 import { promptWithSystem } from "./bridge";
 import { interpretCodexEvent } from "./codexStream";
 import { streamCliProcess } from "./spawnStream";
 
-/** The capabilities cut for chat use (`--disable` features), ONE list for the
- *  text turn as for the tooled turn (rule 9). Three families:
- *  execute (`shell_tool`, `unified_exec` — 0.149's other execution path),
- *  drive the machine (`browser_use*`, `computer_use`), and **grant itself more access**
- *  (`apps`, `plugins`, `plugin_sharing`, `remote_plugin`, `tool_suggest`,
- *  `skill_mcp_dependency_install`). This last family is the one 0.149.1
- *  reaches for spontaneously: measured, when asked about its Dropbox the model tries to INSTALL
- *  a codex connector instead of calling the turn's tool — an access that would escape the
- *  app's vault (rule 11) and its write gate. So it fails before it can exist.
- *  ⚠️ DO NOT add `code_mode_host` to it: measured, the CLI's tool router goes
- *  through it and cutting it makes EVERY MCP tool call fail (« code-mode host is
- *  disabled »), including the bridge's own. */
+/** The capabilities cut (`--disable`), ONE list for the text and tooled turns (rule 9).
+ *  Three families: execute, drive the machine, and GRANT ITSELF MORE ACCESS (installing a
+ *  connector would escape the app's vault and write gate, rule 11).
+ *  ⚠️ NEVER add `code_mode_host`: the CLI's tool router goes through it, and cutting it
+ *  fails EVERY MCP tool call, the bridge's included. */
 export const CODEX_DISABLED_FEATURES = [
   "shell_tool",
   "unified_exec",
@@ -78,9 +44,7 @@ export const CODEX_DISABLED_FEATURES = [
   "skill_mcp_dependency_install",
 ] as const;
 
-/** `codex exec` has NO system field: it is prefixed to the prompt, clearly separated.
- *  The wording lives in `bridge.ts` (`promptWithSystem`) — shared with the other CLI
- *  without a system field — and this name stays for its two call sites. */
+/** `codex exec` has NO system field: it is prefixed to the prompt (`bridge.ts`). */
 export const codexPrompt = promptWithSystem;
 
 export interface CodexTurnOptions {
@@ -95,8 +59,7 @@ export interface CodexTurnOptions {
 
 export function buildCodexArgs(opts: {
   prompt: string;
-  /** The TOOLED turn's `-c mcp_servers.…` override (`codexToolsTurn.ts`). Absent for the
-   *  text turn: without it, and with `--ignore-user-config`, the CLI has NO MCP server at all. */
+  /** The TOOLED turn's `-c mcp_servers.…` override; absent ⇒ NO MCP server at all. */
   mcpServerConfig?: string;
 }): string[] {
   return [

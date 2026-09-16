@@ -1,31 +1,15 @@
-// CAN THE PAGE CHANGE THE MASKING — and the answer is: it depends which way.
+// CAN THE PAGE CHANGE THE MASKING — it depends which way.
 //
-// The console is reached by a URL carrying a token, and that URL lands in browser history,
-// on a shared screen, in `~/.openmasq/console.url`. The rule until now was that such a token
-// authorises READING the log and nothing else, so every control in the configuration panel
-// was inert.
+// The console is reached by a URL carrying a token that lands in browser history and in
+// `~/.openmasq/console.url`. Reading the log shows what has ALREADY crossed; lowering a level
+// makes real data leave to a third party from then on. That is an escalation from "sees" to
+// "causes", and the gate stands in it. So the gate is ASYMMETRIC: tightening applies straight
+// away (it can only reduce exposure); loosening asks for a `y` on the TERMINAL and refuses
+// without one. Which of the two a change is comes from `loosensMasking` (`@openmasq/catalog`),
+// which compares the category SETS, not the level names.
 //
-// It cannot simply become live. The argument is NOT that the token is secret — the page
-// already shows real values, so whoever holds it already sees local data. The argument is
-// that the two directions are not the same act: reading the log shows what has ALREADY
-// crossed, while lowering a level makes real data leave to a third party from then on. That
-// is an escalation from "sees" to "causes", and it is the one a gate has to stand in.
-//
-// So the gate is ASYMMETRIC:
-//
-//   tightening — masks more — applies straight away. It can only reduce exposure, and
-//                making protection hard to add is its own kind of bug.
-//   loosening  — masks less — asks for a `y` on the TERMINAL, where the operator is, and
-//                refuses without one.
-//
-// Which of the two a change is, is not read off the level name: `loosensMasking`
-// (`@openmasq/catalog`) compares the category SETS, so staying at `strict` while adding one
-// category to `disable` is caught for what it is.
-//
-// ⚠️ NO TTY MEANS NO, exactly as the MCP write gate decided (`../mcp/confirm.ts`, whose
-// keystroke reader this borrows so two readers never fight over stdin). A proxy under a
-// service manager, in CI, or behind `-- <tool>` has nobody to ask; a prompt nobody answers
-// must not fall open.
+// ⚠️ NO TTY MEANS NO, as for the MCP write gate (`../mcp/confirm.ts`, whose keystroke reader
+// this borrows so two readers never fight over stdin): a prompt nobody answers must not fall open.
 import { type ConnectorMasking, loosensMasking, type RedactionLevel } from "@openmasq/catalog";
 import { readKeyFrom } from "../mcp/confirm.js";
 

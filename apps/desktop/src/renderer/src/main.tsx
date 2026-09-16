@@ -17,8 +17,7 @@ import {
 } from "./sync";
 import { billingHost } from "./billing";
 import { feedbackHost, mailtoFeedbackHost } from "./feedback";
-// THE renderer's environment reader — only one place reads `import.meta.env`,
-// and that's where the runtime environment switch will go through (see `./appEnv`).
+// THE renderer's environment reader (`./appEnv`).
 import {
   ADMIN_URL,
   BACKEND_CONFIGURED,
@@ -29,27 +28,21 @@ import {
   REDACT_FN_URL,
 } from "./appEnv";
 
-// Crash reporting, the platform-access verdict, the analytics sink and the four
-// channels that feed it — one subject, one file (`./telemetry`). FIRST, because an
-// error during renderer bootstrap is precisely the one you can't reproduce.
+// Telemetry FIRST: an error during bootstrap is the one you can't reproduce.
 initRendererTelemetry();
 
-// The desktop platform implementation of the UI's Host interface: it simply
-// forwards to the Electron preload bridge (window.openmasq). A mobile shell
-// would provide its own Host here instead.
+// The desktop implementation of the UI's Host: forwards to the preload bridge
+// (window.openmasq). Every optional slot is GUARDED on the bridge method's existence,
+// so an un-restarted dev preload (it doesn't hot-reload) degrades instead of throwing.
 const host: Host = {
   startChat: (payload, handlers) => window.openmasq.startChat(payload, handlers),
   app: {
     versions: () => window.openmasq.app.versions(),
   },
-  // Guarded so an un-restarted dev preload (no `media` namespace) degrades to
-  // recording directly rather than throwing.
   media: window.openmasq.media
     ? { ensureMicAccess: () => window.openmasq.media.ensureMicAccess() }
     : undefined,
-  // System notification when a reply arrives out of view. Guarded like
-  // `media`: an un-restarted preload (dev) must degrade to "no banner", and the
-  // setting disappears on its own along with the slot.
+  // System notification when a reply arrives out of view.
   notify: window.openmasq.notify
     ? {
         supported: () => window.openmasq.notify.supported(),
@@ -58,42 +51,32 @@ const host: Host = {
       }
     : undefined,
   claudeSkills: undefined, // ⛔ Claude Code import DISABLED — the switch, see CLAUDE.md
-  // OpenGraph link-unfurl (opt-in via Settings.linkPreviews). Guarded like `media`.
+  // Link-unfurl (opt-in via Settings.linkPreviews); the opt-in is forwarded to main.
   links: window.openmasq.links
     ? {
         preview: (url) => window.openmasq.links.preview(url),
-        // Forward the opt-in to main (audit M4). Optional-chained so an un-restarted
-        // preload (no `setEnabled`) degrades gracefully rather than throwing.
         setEnabled: (on) => window.openmasq.links.setEnabled?.(on) ?? Promise.resolve(),
       }
     : undefined,
-  // Sandboxed Python (code interpreter). Guarded so an un-restarted dev preload
-  // (no `python` namespace) degrades to no code interpreter rather than throwing.
   python: window.openmasq.python
     ? { run: (code, onProgress) => window.openmasq.python.run(code, onProgress) }
     : undefined,
-  // HTML→PDF for a generated document (isolated, script-less, network-less window in
-  // main). Guarded so an un-restarted dev preload degrades to the pdf-lib exporter.
+  // Absent ⇒ the pdf-lib exporter.
   pdf: window.openmasq.pdf
     ? { renderHtml: (doc) => window.openmasq.pdf.renderHtml(doc) }
     : undefined,
-  // Batch web reader (`web_fetch_many`). Guarded so an un-restarted preload (no `web`
-  // namespace) degrades to no batch reader rather than throwing.
   web: window.openmasq.web
     ? { fetchMany: (urls) => window.openmasq.web.fetchMany(urls) }
     : undefined,
-  // Live OpenRouter model catalogue. Guarded so an un-restarted preload (no `models`
-  // namespace) degrades to the static registry rather than throwing.
+  // Absent ⇒ the static registry.
   models: window.openmasq.models
     ? {
         listOpenRouter: () => window.openmasq.models.listOpenRouter(),
         listLocal: (u) => window.openmasq.models.listLocal?.(u) ?? Promise.resolve([]),
       }
     : undefined,
-  // Auto-update controls (electron-updater ↔ the apps/updates Worker feed).
-  // ⚠️ Two conditions: a feed provided at build time (otherwise there's NOTHING to query — no
-  // update card, no version history, no notes) and an up-to-date preload
-  // (a non-restarted dev degrades instead of throwing).
+  // Auto-update controls. Two conditions: a feed provided at build time (otherwise
+  // there is NOTHING to query) and an up-to-date preload.
   updates:
     UPDATES_CONFIGURED && window.openmasq.updates
       ? {
@@ -110,8 +93,7 @@ const host: Host = {
           switchTo: (arg) => window.openmasq.updates.switchTo(arg),
           install: () => window.openmasq.updates.install(),
           onStatus: (cb) => window.openmasq.updates.onStatus(cb),
-          // Guarded like the rest: an un-restarted preload without the probe degrades to
-          // "never auto-install" (main fail-closes on silence), never a throw.
+          // Absent ⇒ "never auto-install" (main fail-closes on silence).
           ...(window.openmasq.updates.onQuiescenceAsk
             ? {
                 onQuiescenceAsk: (cb: (askId: string) => void) =>
@@ -130,16 +112,14 @@ const host: Host = {
     saveConversation: (conv) => window.openmasq.db.saveConversation(conv),
     deleteConversation: (id) => window.openmasq.db.deleteConversation(id),
     saveSettings: (settings) => window.openmasq.db.saveSettings(settings),
-    // Guarded: an un-restarted preload predating the debug-journal persistence must
-    // degrade to the memory-only ring, never throw on a missing bridge method.
+    // Absent ⇒ the memory-only ring.
     ...(window.openmasq.db.saveDebugJournal
       ? {
           saveDebugJournal: (json: string) => window.openmasq.db.saveDebugJournal(json),
           loadDebugJournal: () => window.openmasq.db.loadDebugJournal(),
         }
       : {}),
-    // Same guard: an un-restarted preload predating the egress journal simply doesn't
-    // draw the section (`host.db.listEgress` absent), rather than throwing.
+    // Absent ⇒ the egress section isn't drawn.
     ...(window.openmasq.db.listEgress
       ? { listEgress: (limit?: number) => window.openmasq.db.listEgress(limit) }
       : {}),
@@ -157,8 +137,7 @@ const host: Host = {
   memoryIndex: {
     sync: (cards) => window.openmasq.memoryIndex.sync(cards),
     edges: (k) => window.openmasq.memoryIndex.edges(k),
-    // Guarded: an un-restarted preload predating `query` would make every memory_search
-    // throw — absence must degrade to the lexical search, never break it.
+    // Absent ⇒ the lexical search.
     ...(window.openmasq.memoryIndex.query
       ? { query: (text: string, k?: number) => window.openmasq.memoryIndex.query(text, k) }
       : {}),
@@ -168,15 +147,14 @@ const host: Host = {
     pick: () => window.openmasq.files.pick(),
     pickPaths: () => window.openmasq.files.pickPaths(),
     extract: (paths, onProgress) => window.openmasq.files.extract(paths, onProgress),
-    // Guarded on the bridge's existence: an un-restarted preload degrades (no "Read
-    // all") instead of throwing.
+    // Absent ⇒ no "Read all".
     extractAll: window.openmasq.files.extractAll
       ? (paths, onProgress) => window.openmasq.files.extractAll(paths, onProgress)
       : undefined,
     read: (path) => window.openmasq.files.read(path),
     extractBytes: (data, name, mime, onProgress) =>
       window.openmasq.files.extractBytes(data, name, mime, onProgress),
-    // Feature-detected: an un-restarted preload simply yields no picker hint.
+    // Absent ⇒ no picker hint.
     pathForFile: window.openmasq.files.pathForFile
       ? (file: File) => window.openmasq.files.pathForFile!(file)
       : undefined,
@@ -184,16 +162,14 @@ const host: Host = {
     fetchUrl: (url) => window.openmasq.files.fetchUrl(url),
   },
   complete: (payload) => window.openmasq.complete(payload),
-  // Present only when the preload exposes it — an un-restarted preload predating
-  // this method leaves the local engine unavailable (the store falls back to the
-  // pattern rules) rather than assigning a method that returns undefined.
+  // Absent ⇒ the local engine is unavailable (the store falls back to the pattern rules).
   detectLocalPii: window.openmasq.detectLocalPii
     ? (payload) => window.openmasq.detectLocalPii!(payload)
     : undefined,
   probeLocalEndpoint: window.openmasq.probeLocalEndpoint
     ? (baseUrl) => window.openmasq.probeLocalEndpoint!(baseUrl)
     : undefined,
-  // Same un-restarted-preload guard: absent ⇒ `claude-cli` isn't offered (fail-closed).
+  // Absent ⇒ `claude-cli` isn't offered (fail-closed).
   probeClaudeCli: window.openmasq.probeClaudeCli
     ? () => window.openmasq.probeClaudeCli!()
     : undefined,
@@ -208,28 +184,23 @@ const host: Host = {
     ? (cli, on) => window.openmasq.setSubscriptionEnabled!(cli, on)
     : undefined,
   completeTools: (payload) => window.openmasq.completeTools(payload) as any,
-  // STREAMING tool turn (assistant text token-by-token). Optional-chained: an
-  // un-restarted dev preload without it → the agentic loop falls back to the
-  // non-streaming completeTools automatically.
+  // STREAMING tool turn; absent ⇒ the agentic loop falls back to completeTools.
   streamChatTools: window.openmasq.streamChatTools
     ? (payload, handlers) => window.openmasq.streamChatTools!(payload as any, handlers)
     : undefined,
-  // Optional-chained: a preload that predates this method (e.g. an un-restarted
-  // dev window — preload doesn't hot-reload) makes Stop a no-op instead of throwing.
+  // Absent ⇒ Stop is a no-op.
   cancelTools: (requestId) => window.openmasq.cancelTools?.(requestId),
   mcp: {
-    // Desktop main enforces its own un-spoofable write-confirmation window on every
-    // mutating non-browser tool — the renderer's plain-write card would double-prompt.
+    // Main enforces its own un-spoofable write-confirmation window; the renderer's
+    // plain-write card would double-prompt.
     mainWriteGate: true,
     list: () => window.openmasq.mcp.list(),
-    // The E2E-synced integrations DIRECTORY (other devices' connectors, config
-    // only) — renderer-side sync client, not a preload namespace.
+    // The E2E-synced integrations DIRECTORY (config only), a renderer-side sync client.
     syncedIntegrations: () => pullSyncedIntegrations(),
     catalog: () => window.openmasq.mcp.catalog(),
     broker: () => window.openmasq.mcp.broker(),
     add: (spec) => window.openmasq.mcp.add(spec),
-    // Feature-detected: an un-restarted preload has no `addCustom`, and the UI must
-    // then show no "Ajouter un serveur" affordance rather than a dead button.
+    // Absent ⇒ no "Ajouter un serveur" affordance rather than a dead button.
     addCustom: window.openmasq.mcp.addCustom
       ? (input) => window.openmasq.mcp.addCustom!(input)
       : undefined,
@@ -256,8 +227,7 @@ const host: Host = {
     disableBrowser: window.openmasq.mcp.disableBrowser
       ? () => window.openmasq.mcp.disableBrowser!()
       : undefined,
-    // Optional-chained: an un-restarted dev preload without it → MCP stays global (the
-    // pre-fix behaviour) rather than crashing; a restarted preload gets per-account scoping.
+    // Absent ⇒ MCP stays global rather than per-account.
     setUser: window.openmasq.mcp.setUser
       ? (userId) => window.openmasq.mcp.setUser!(userId)
       : undefined,
@@ -269,13 +239,11 @@ const host: Host = {
       : undefined,
     listTools: () => window.openmasq.mcp.listTools(),
     callTool: (call) => window.openmasq.mcp.callTool(call),
-    // Optional-chained: an un-restarted preload without it → the toggle hides and every
-    // write keeps prompting (fail-closed).
+    // Absent ⇒ the toggle hides and every write keeps prompting (fail-closed).
     setWriteAutoApprove: window.openmasq.mcp.setWriteAutoApprove
       ? (enable) => window.openmasq.mcp.setWriteAutoApprove!(enable)
       : undefined,
-    // Optional-chained: an un-restarted dev preload without it → no live refresh
-    // (the UI still works, just needs a manual reopen to reflect a reconnect).
+    // Absent ⇒ no live refresh.
     onChanged: window.openmasq.mcp.onChanged
       ? (cb) => window.openmasq.mcp.onChanged!(cb)
       : undefined,
@@ -285,18 +253,14 @@ const host: Host = {
     onOauthUrl: window.openmasq.mcp.onOauthUrl
       ? (cb) => window.openmasq.mcp.onOauthUrl!(cb)
       : undefined,
-    // Optional-chained: absent on an un-restarted preload → main falls back to
-    // anonymous access (no modal), so connecting still works.
+    // Absent ⇒ main falls back to anonymous access (no modal).
     onAuthChoice: window.openmasq.mcp.onAuthChoice
       ? (handler) => window.openmasq.mcp.onAuthChoice!(handler)
       : undefined,
   },
-  // Live view/control of the agent-browser window (the split-screen panel).
-  // Optional-chained so an un-restarted preload without it just hides the split
-  // toggle instead of throwing. `setBounds` takes a VIEWPORT rect and is
-  // translated to SCREEN coordinates here — `window.screenX/Y` is the renderer
-  // content-area's screen origin (points = CSS px on macOS), so the isolated
-  // top-level agent window lands exactly over the panel's viewport region.
+  // The agent-browser window (the split-screen panel). `setBounds` takes a VIEWPORT rect,
+  // translated to SCREEN coordinates here (`window.screenX/Y` is the content-area's
+  // screen origin), so the top-level agent window lands exactly over the panel.
   browser: window.openmasq.browser
     ? {
         status: () => window.openmasq.browser!.status(),
@@ -330,13 +294,10 @@ const host: Host = {
             width: Math.round(r.width),
             height: Math.round(r.height),
           }),
-        // Guarded: an un-restarted preload without `setDriving` degrades to no halo.
         setDriving:
           typeof window.openmasq.browser.setDriving === "function"
             ? (on: boolean) => window.openmasq.browser!.setDriving!(on)
             : undefined,
-        // Guarded so an un-restarted preload (older `browser` namespace without
-        // `onTabs`) degrades gracefully rather than throwing on subscribe.
         onTabs:
           typeof window.openmasq.browser.onTabs === "function"
             ? (cb) => window.openmasq.browser!.onTabs!(cb)
@@ -348,12 +309,9 @@ const host: Host = {
       }
     : undefined,
   keys: {
-    // Re-scope the encrypted key store to the signed-in account — the store's userId effect
-    // calls this ALONGSIDE db/mcp setUser. Missing it left `currentUid` unresolved in main:
-    // keys held in memory only, never persisted, legacy `keys.enc` never adopted.
-    // Two riders, one gesture: `setOrgCacheUser` (org policy doesn't inherit) and
-    // the SYNC PASSPHRASE, which used to be DEVICE-scoped — the next account inherited the
-    // previous one's E2E key (`main/store/CLAUDE.md`). `?.`: an un-restarted dev preload degrades.
+    // Re-scope the encrypted key store to the signed-in account, alongside db/mcp
+    // setUser. Two riders, one gesture: the org cache and the SYNC PASSPHRASE, both
+    // account-scoped so the next account inherits nothing (`main/store/CLAUDE.md`).
     setUser: (userId) => (
       setOrgCacheUser(userId),
       void window.openmasq.sync?.setUser?.(userId),
@@ -363,27 +321,22 @@ const host: Host = {
     set: (id, value) => window.openmasq.keys.set(id, value),
     clear: (id) => window.openmasq.keys.clear(id),
     importLegacy: (map) => window.openmasq.keys.importLegacy(map),
-    // Optional: an un-restarted preload may not carry it.
     ...(window.openmasq.keys.setOrgByoAllowed
       ? { setOrgByoAllowed: (a: boolean | null) => window.openmasq.keys.setOrgByoAllowed!(a) }
       : {}),
-    // Guarded: an un-restarted preload predating the PKCE flow must hide the affordance
-    // rather than reject on a missing bridge method.
+    // Absent ⇒ the affordance is hidden.
     ...(window.openmasq.keys.connectOpenRouter
       ? { connectOpenRouter: () => window.openmasq.keys.connectOpenRouter() }
       : {}),
   },
-  // Absent when no Supabase project is supplied at build time: the login gate
-  // is skipped (`useAuth` enabled:false) and the app runs entirely locally — never
-  // an auth client pointed at a default project (see `auth.ts` AUTH_CONFIGURED).
+  // Absent when no auth server is supplied at build time: the login gate is skipped and
+  // the app runs entirely locally, never an auth client pointed at a default project.
   auth: AUTH_CONFIGURED ? authHost : undefined,
-  // The whole sync stack is REMOTE (devices, envelopes, org log): without a backend
-  // the slot doesn't exist, so no "Your devices" tab, no ⌘K entry, no
-  // passphrase card — rather than a screen with no one to talk to.
+  // The whole sync stack is REMOTE: without an API the slot doesn't exist, rather than a
+  // screen with no one to talk to.
   sync: BACKEND_CONFIGURED ? syncHost : undefined,
-  // Organization authorization (membership/role + allow-lists), read from the
-  // sync backend; absent = solo app. `openAdmin` opens the web admin console in
-  // the system browser (window.open → shell.openExternal, main's handler).
+  // Organization authorization, read from the API; absent = solo app. `openAdmin` opens
+  // the admin site in the system browser (window.open → main's handler).
   org: SYNC_ENABLED
     ? {
         getProfile: getOrgProfile,
@@ -392,35 +345,25 @@ const host: Host = {
     : undefined,
   // Org SHARES (coffre/skills → org/team/person, under approval).
   orgShares: SYNC_ENABLED ? orgSharesHost : undefined,
-  // Individual billing (backend + Stripe) — ONLY in a build that SELLS: this slot makes the Payment tab and every upsell exist.
+  // Individual billing, ONLY in a build that SELLS: this slot makes the Payment tab exist.
   billing: SYNC_ENABLED && BILLING_SOLD ? billingHost : undefined,
-  // "Your feedback" — the backend, or the user's mail client (the modal reads `kind`).
+  // "Your feedback": the API, or the user's mail client (the modal reads `kind`).
   feedback: SYNC_ENABLED ? feedbackHost : mailtoFeedbackHost,
-  // The gateway (apps/gateway) — cloud redaction AND inference for included models.
-  // ABSENT when the build doesn't supply its address: the redaction engine remains
-  // the machine's own (already the default) and the models served by the platform
-  // become unavailable instead of failing on send (`platformServed`).
+  // The gateway: cloud redaction AND inference for included models. ABSENT ⇒ the
+  // platform-served models become unavailable instead of failing on send.
   ...(GATEWAY_CONFIGURED ? { redactFnUrl: REDACT_FN_URL, inferenceUrl: REDACT_FN_URL } : {}),
-  // Release notes (Settings → Versions → "What's new"), served by the same
-  // service as the analytics relay (`/release-notes`, read-only Contentful proxy).
-  // Address derived ONCE in `appEnv`; absent ⇒ the panel says "unavailable"
-  // and the version list stays there regardless.
+  // Release notes (Settings → Versions); absent ⇒ the panel says "unavailable".
   ...(RELEASE_NOTES_URL ? { releaseNotesUrl: RELEASE_NOTES_URL } : {}),
 };
 
-// macOS runs the window with `titleBarStyle: "hiddenInset"` (main/index.ts): the
-// close/minimise/zoom "traffic lights" FLOAT over our top-left content, exactly where the
-// brand mark sits. Stamp the OS on <html> so `@openmasq/ui` can inset the rail + sidebar
-// below them — in CSS, and ONLY on the platform that has them (Windows/Linux draw a real
-// title bar, so reserving the space there would just waste it). The UI package must stay
-// platform-agnostic, so the sniff belongs here, in the desktop renderer.
+// macOS traffic lights FLOAT over our top-left content (`hiddenInset`): stamp the OS on
+// <html> so the UI insets the rail in CSS, ONLY on the platform that has them. The UI
+// package stays platform-agnostic, so the sniff lives here.
 if (navigator.userAgent.includes("Macintosh")) {
   document.documentElement.dataset.os = "mac";
 }
 
-// Theme <html> from the persisted device settings BEFORE the first render, so the
-// AppIntro splash paints straight in the right theme — without this it renders once in
-// the default (green) theme and snaps to blue on the store's post-mount effect (the flash).
+// Theme <html> BEFORE the first render, so the splash paints in the right theme.
 applyPersistedTheme();
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
@@ -431,10 +374,8 @@ ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   </React.StrictMode>,
 );
 
-// Fade out + remove the pre-React boot splash (index.html) once the app has painted
-// its first frame. A double rAF lands after React's initial commit + paint, so the
-// handoff to the in-app AppIntro is seamless — no flash of empty shell, no splash
-// lingering over the mounted UI.
+// Remove the pre-React boot splash after the first paint (a double rAF lands after
+// React's initial commit + paint).
 requestAnimationFrame(() =>
   requestAnimationFrame(() => {
     const splash = document.getElementById("boot-splash");

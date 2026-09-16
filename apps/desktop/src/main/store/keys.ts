@@ -6,21 +6,11 @@ import { BRAND } from "@openmasq/branding";
 import { assertPlaintextAllowed } from "./atRestPolicy";
 
 /**
- * Encrypted at-rest store for provider API keys. Keyed by id (a `ProviderId`, or the
- * special `"redactModel"`). Values are encrypted with Electron `safeStorage` (OS keychain
- * / DPAPI) and base64-stored; falls back to base64 plaintext with a warning when encryption
- * is unavailable (e.g. a Linux box with no keyring). Mirrors `mcp/persist.ts`.
- *
- * Keys live ONLY in the main process: the renderer never reads them back, and the provider
- * key is injected here at call time (see `index.ts`), never carried in the renderer or
- * written to localStorage in clear.
- *
- * **PER-ACCOUNT (privacy isolation, mirrors the DB + MCP stores).** A shared machine must
- * NEVER let account B use account A's provider keys. `setKeysUser(uid)` scopes the store to
- * `${userData}/accounts/keys-<uid>.enc`; signed out / unresolved ⇒ an in-memory EMPTY store
- * that is never persisted. The renderer's store calls `keys:set-user` on sign-in / account
- * switch / sign-out ALONGSIDE `db:set-user` / `mcp:set-user`, so a key entered by one account
- * is unreachable by another (and injected into a provider call only for its owner).
+ * Encrypted at-rest store for provider API keys, keyed by id (a `ProviderId` or
+ * `"redactModel"`). Keys live ONLY in main: the renderer never reads one back, the key is
+ * injected at call time. PER-ACCOUNT (`accounts/keys-<uid>.enc` via `setKeysUser`, called
+ * alongside `db:set-user` / `mcp:set-user`): B never uses A's keys. Signed out / unresolved
+ * ⇒ an in-memory EMPTY store, never persisted.
  */
 type KeyMap = Record<string, string>;
 
@@ -33,20 +23,12 @@ const legacyFile = () => join(app.getPath("userData"), "keys.enc"); // pre-isola
 const accountsDir = () => join(app.getPath("userData"), "accounts");
 const legacyMarker = () => join(app.getPath("userData"), `.${BRAND.slug}-legacy-keys-adopted`);
 
-/**
- * SECURITY (audit M10 — path traversal): the `uid` arrives from the RENDERER over the
- * `keys:set-user` IPC and is interpolated into a filesystem path (`keys-<uid>.enc`), so a
- * crafted value (`../../evil`) could escape `accounts/` and write an encrypted blob to an
- * arbitrary location / point the active scope at unintended files. Sanitize to the SAME
- * charset the sibling per-account DB store uses (`db.ts` `setDbUser`): keep only
- * `[A-Za-z0-9_-]`, so no separator / `.` can survive. Returns "" for an all-illegal uid,
- * which callers treat as signed-out (fail closed — never persist to a derived path).
- */
+/** The `uid` arrives from the RENDERER and is interpolated into a path: keep only
+ *  `[A-Za-z0-9_-]` (same charset as the DB store). "" ⇒ signed-out (fail closed). */
 export function safeUid(uid: string): string {
   return uid.replace(/[^a-zA-Z0-9_-]/g, "");
 }
-// `currentUid` only ever holds a sanitized uid (see `setKeysUser`), so `scopedFile` is
-// always fed a safe segment; sanitize again as defence-in-depth against any future caller.
+// `currentUid` is already sanitized; sanitized again as defence-in-depth.
 const scopedFile = (uid: string) => join(accountsDir(), `keys-${safeUid(uid)}.enc`);
 
 /** The active account's key file, or null when signed out / unresolved (no persistence). */
@@ -62,16 +44,13 @@ function read(): KeyMap {
   try {
     buf = Buffer.from(readFileSync(path, "utf8"), "base64");
   } catch (e) {
-    // No file yet (first run for this account) → an empty store is correct AND cacheable.
-    // Any OTHER read error is treated as transient (don't poison the cache).
+    // No file yet → empty AND cacheable. Any OTHER error is transient (don't poison the cache).
     if ((e as NodeJS.ErrnoException).code === "ENOENT") return (cache = {});
     return {};
   }
   const map = decodeEncryptedBlob(buf);
-  // File PRESENT but undecryptable this session (encrypted + keychain briefly unavailable):
-  // do NOT cache {} — that blanks every key for the whole session and hides the intact file.
-  // Return empty transiently so a later read recovers the keys once the keychain unlocks
-  // (no restart, no re-entry) — the fix for the "keys gone after restart" report.
+  // PRESENT but undecryptable this session (keychain briefly unavailable): do NOT cache {},
+  // so a later read recovers the keys once the keychain unlocks.
   if (!map) return {};
   return (cache = map);
 }
@@ -82,11 +61,8 @@ function write(map: KeyMap): void {
     cache = map; // signed out / unresolved → in-memory only, never persisted
     return;
   }
-  // The strict at-rest refusal runs BEFORE the try: inside it, the catch below swallowed the
-  // throw while `cache` had already been assigned, so `setKey` returned success and
-  // `configuredKeys()` listed a key that exists nowhere on disk — exactly what
-  // `atRestPolicy.ts` forbids ("fail where it happens, not persist a readable one and report
-  // success").
+  // The strict at-rest refusal runs BEFORE the try, so a refused write never reaches the
+  // cache and reports success (`atRestPolicy.ts`).
   const canEncrypt = encryptionAvailable();
   if (!canEncrypt) assertPlaintextAllowed("provider API keys");
   try {
@@ -105,11 +81,9 @@ function write(map: KeyMap): void {
 }
 
 /**
- * One-time LEGACY adoption (mirrors the DB/MCP legacy adoption): the pre-isolation shared
- * `keys.enc` is moved into the FIRST account that signs in after the upgrade — its owner, who
- * would otherwise land on an empty key store — then a marker blocks every OTHER account from
- * inheriting it. The legacy file is DELETED after the copy so the shared secret never lingers
- * on disk. (Encrypted bytes copy verbatim — same machine keychain decrypts them.)
+ * One-time LEGACY adoption (same shape as the DB/MCP stores): the shared `keys.enc` goes to
+ * the FIRST account that signs in, a marker blocks every OTHER account, and the shared file
+ * is DELETED so the secret never lingers.
  */
 function maybeAdoptLegacy(uid: string): void {
   try {
@@ -135,9 +109,7 @@ function maybeAdoptLegacy(uid: string): void {
 /** Re-scope the key store to `uid` (sign-in / account switch); `null` = signed out.
  *  Resets the cache so the previous account's keys are NEVER served after a switch. */
 export function setKeysUser(uid: string | null): void {
-  // Sanitize BEFORE it ever reaches a path (audit M10). A non-null uid that sanitizes to
-  // empty (an all-illegal value from a compromised renderer) is treated as SIGNED OUT — an
-  // in-memory empty store that never persists — rather than writing to a derived path.
+  // An all-illegal uid ⇒ SIGNED OUT (in-memory, never persisted), not a derived path.
   const safe = uid == null ? null : safeUid(uid) || null;
   currentUid = safe;
   cache = null;
@@ -181,11 +153,7 @@ export function importKeys(map: KeyMap): void {
   if (changed) write(next);
 }
 
-/**
- * Defensive backstop: replace any stored key value in `text` with a placeholder,
- * applied in main just before the provider fetch so a key the user pasted into a
- * prompt never leaves the machine (beyond the renderer's regex redaction).
- */
+/** Backstop applied just before the provider fetch: a pasted stored key never leaves. */
 export function scrubKeys(text: string): string {
   let out = text;
   for (const value of Object.values(read())) {

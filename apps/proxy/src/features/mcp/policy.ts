@@ -30,11 +30,9 @@ export type Side = "openmasq" | "client" | "off";
 export const SIDES: readonly Side[] = ["openmasq", "client", "off"];
 
 /**
- * ⚠️ The MASKING half is `@openmasq/catalog`'s `ConnectorMasking`, not a shape of our own:
- * the desktop's panes edit the same three fields, and a per-connector level that means one
- * thing here and another there is the bug rule 9 exists to prevent. What this file adds is
- * the two keys that are the PROXY's alone — which side provides a server, and how its writes
- * are gated. Neither is masking, so neither is shared.
+ * The MASKING half is `@openmasq/catalog`'s `ConnectorMasking`, not a shape of our own: the
+ * desktop's panes edit the same three fields (rule 9). This file adds only the two keys that
+ * are the PROXY's alone — which side provides a server, and how its writes are gated.
  */
 export interface ServerPolicy extends ConnectorMasking {
   source?: Side;

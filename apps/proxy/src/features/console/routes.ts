@@ -1,10 +1,8 @@
 // `/console` — the page, and the stream that fills it. Two GETs, both behind a token.
 //
-// ⚠️ **Loopback is not an access control.** Every process on this machine can reach
-// 127.0.0.1, and a browser page can be opened by anything that can open a URL. The terminal
-// had the operator in front of it; an HTTP endpoint has whoever asks. So a token is minted
-// per run, printed on the start-up card, and required on both routes — without it the
-// console is a 404, not a 401: an endpoint that admits it exists invites guessing.
+// ⚠️ Loopback is not an access control: every process on this machine can reach 127.0.0.1.
+// So a token is minted per run, printed on the start-up card, and required on both routes —
+// without it the console is a 404, not a 401: an endpoint that admits it exists invites guessing.
 import { BRAND } from "@openmasq/branding";
 import { getMessages } from "@openmasq/i18n";
 import express, { Router, type Request, type Response } from "express";
@@ -35,17 +33,13 @@ export interface ConsoleRouteDeps {
   /** Each server's level RIGHT NOW, read at connect time — a level moves while a page is
    *  open, and `own` is what tells an override apart from the run's default. */
   mcpLevels?: () => Record<string, { level: string; own: boolean }>;
-  /**
-   * Apply a masking change the page asked for. ABSENT ⇒ the panel stays read-only and the
-   * route answers 404 like any other unknown path — which is the honest default: a run
-   * without a terminal has nobody to confirm a loosening, so it is given no way to ask.
-   */
+  /** Apply a masking change the page asked for. ABSENT ⇒ the panel stays read-only and the
+   *  route answers 404: a run without a terminal has nobody to confirm a loosening. */
   applyMasking?: (connector: string, next: MaskingRequest) => Promise<ApplyResult>;
 }
 
 /** Narrow by hand, because this arrives from a browser. Anything unexpected is refused
- *  outright rather than coerced — a level that silently became `undefined` would read as
- *  "follow the default", which is a loosening nobody asked for. */
+ *  outright rather than coerced — a level that became `undefined` would read as a loosening. */
 function maskingRequest(raw: unknown): MaskingRequest | undefined {
   // Read from the RAW body, like every other POST this proxy takes
   // (`routes/middlewares/jsonBody.ts`): `express.json()` is not the shape that works here.
@@ -114,10 +108,8 @@ export default function consoleRouter(deps: ConsoleRouteDeps): Router {
   });
 
   // The one route that CHANGES something. Same token, same 404, and the gate behind it
-  // (`maskingGate.ts`) is what makes a URL in a browser history unable to lower protection
-  // on its own.
-  // A small, explicit body limit: this route takes a level and two short lists, and nothing
-  // else on this app parses a body for the console.
+  // (`maskingGate.ts`) keeps a URL in a browser history from lowering protection on its own.
+  // A small, explicit body limit: this route takes a level and two short lists.
   router.post(
     "/masking/:connector",
     express.raw({ type: () => true, limit: "8kb" }),
@@ -155,9 +147,8 @@ export default function consoleRouter(deps: ConsoleRouteDeps): Router {
       res.write(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`);
     };
     send("hello", {
-      // The page holds no list of its own: the nine sections, their labels and their token
-      // ids all come from the product (`events.ts` `sections()`), so a tenth would appear
-      // without an edit here or a stale label there.
+      // The page holds no list of its own: sections, labels and token ids come from the
+      // product (`events.ts` `sections()`).
       sections: sections(),
       side: sideShown(),
       // The MCP connector catalog (the desktop app's own list) so the MCP panel shows every
@@ -169,9 +160,8 @@ export default function consoleRouter(deps: ConsoleRouteDeps): Router {
       level: deps.config.level,
       mode: deps.config.mode,
       masking: activeCategories(deps.config.level, deps.config.disabledKinds),
-      // Each level with its own count and the APP's own words for it (`privacyLevels`, the
-      // settings cards' copy in English): the panel says what moving to it would cost without
-      // a browser replaying the arithmetic — or a sentence someone wrote about it once, here.
+      // Each level with its own count and the APP's own words for it (`privacyLevels`), so
+      // the panel says what moving to it would cost without replaying the arithmetic.
       levels: (["standard", "renforce", "strict"] as const).map((id) => {
         const copy = getMessages("en").privacyLevels[id];
         return {

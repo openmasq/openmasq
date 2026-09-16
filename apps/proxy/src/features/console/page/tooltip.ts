@@ -1,24 +1,13 @@
-// THE TOOLTIP, for the console — the app's, without the app.
-//
-// The desktop labels its glyph-only controls with the native `title` attribute and then
-// renders those labels itself (`packages/ui` `TooltipLayer`), because the browser's own
-// bubble arrives after about a second, in OS chrome that ignores the theme, and in some
-// contexts never. The console had the same problem and the same `title` attributes, so it
-// gets the same treatment rather than a second idea of what a tooltip is.
-//
-// ⚠️ The ARITHMETIC is not re-implemented here: `placeTooltip` comes from `@openmasq/ui`
-// (`./tooltip`, a source-condition export the page's bundler reads straight). All three of
-// its failure modes are silent — a bubble half off-screen still "renders" — so the one place
-// they are tested is the one place they are computed. What IS local is the plumbing: React
-// hooks on one side, a delegated listener on the other.
-//
-// Delegated, like the app's, for the same reason: the labels already exist on the controls,
-// already say the right thing. This takes them and draws them properly.
+// THE TOOLTIP, for the console — the app's, without the app. The desktop labels its
+// glyph-only controls with the native `title` attribute and renders those labels itself
+// (`packages/ui` `TooltipLayer`), because the browser's own bubble is slow, unthemed and
+// sometimes absent. Same treatment here. The ARITHMETIC is not re-implemented: `placeTooltip`
+// comes from `@openmasq/ui`, the one place it is tested. What IS local is the plumbing: a
+// delegated listener, so the labels already on the controls are what gets drawn.
 import { placeTooltip, tooltipLabelOf } from "@openmasq/ui/tooltip";
 
-/** Pointer rest before the bubble appears. The app's number, for the app's reason: long
- *  enough that sweeping across a row of glyph buttons stays quiet, short enough to answer
- *  someone who stopped BECAUSE they don't recognise the icon. */
+/** Pointer rest before the bubble appears — the app's number: long enough that sweeping
+ *  across a row of glyph buttons stays quiet, short enough to answer a stopped pointer. */
 const OPEN_DELAY_MS = 400;
 
 /** The native bubble must go while ours is up, or both appear. Put back on leave — the DOM a
@@ -37,14 +26,9 @@ export interface TooltipLayer {
  * any `title` it had taken — a page that is torn down must not leave a control mute.
  */
 /**
- * Mount as soon as there is a body to mount INTO.
- *
- * ⚠️ The bundle is loaded from `<head>`, so at module evaluation `document.body` is still
- * null. Appending to it there threw — and because the bundle is an IIFE assigned to a global,
- * a throw inside it means the global is never assigned at all: the page then found no API,
- * every call site fell to its degraded path, and the masking panel redrew on every poll
- * because the "did anything change" watch it could not reach answers yes by default. One
- * missing null check, two symptoms, neither of them looking like a tooltip.
+ * Mount as soon as there is a body to mount INTO. The bundle is loaded from `<head>`, so at
+ * module evaluation `document.body` is still null — and because the bundle is an IIFE
+ * assigned to a global, a throw there means the page finds no API at all.
  */
 export function mountTooltipsWhenReady(doc: Document = document): void {
   if (doc.body) {

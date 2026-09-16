@@ -5,14 +5,9 @@ import { decodeEncryptedBlob, encryptionAvailable } from "./safeStore";
 import { assertPlaintextAllowed } from "./atRestPolicy";
 
 /**
- * Encrypted at-rest store for the SUPABASE AUTH SESSION (access + refresh tokens),
- * in `${userData}/auth.enc` — so the refresh token (persistent account access) is
- * NOT left sitting in plaintext localStorage. Encrypted with Electron `safeStorage`
- * (base64, 0600); falls back to base64 plaintext with a warning when encryption is
- * unavailable (Linux without a keyring). Mirrors `keys.ts`.
- *
- * A generic string key→value map: Supabase's storage adapter passes its OWN keys
- * (`sb-<ref>-auth-token`, the PKCE code-verifier, …), each persisted here.
+ * Encrypted at-rest store for the AUTH SESSION (access + refresh tokens): a refresh token
+ * is persistent account access and must not sit in plaintext localStorage. Mirrors
+ * `keys.ts`. A generic key→value map: the auth client's storage adapter brings its OWN keys.
  */
 type Store = Record<string, string>;
 
@@ -25,25 +20,20 @@ function read(): Store {
   try {
     buf = Buffer.from(readFileSync(file(), "utf8"), "base64");
   } catch (e) {
-    // No session stored yet → empty is correct AND cacheable. Any other read error is
-    // treated as transient (don't poison the cache).
+    // No session yet → empty AND cacheable. Any other error is transient.
     if ((e as NodeJS.ErrnoException).code === "ENOENT") return (cache = {});
     return {};
   }
   const map = decodeEncryptedBlob(buf);
-  // PRESENT but undecryptable this session (encrypted + keychain briefly unavailable): do
-  // NOT cache {} — that drops the Supabase session and forces a needless re-login while the
-  // file is intact on disk. Return empty transiently so it recovers once the keychain unlocks
-  // (audit B2 read side, mirrors keys.ts).
+  // PRESENT but undecryptable this session: do NOT cache {} (a needless re-login while the
+  // file is intact); recover once the keychain unlocks.
   if (!map) return {};
   return (cache = map);
 }
 
 function write(map: Store): void {
-  // Strict at-rest refuses BEFORE the try: inside it the catch swallowed the throw while
-  // `cache` was already assigned, so the session read back as stored for the rest of the
-  // session while nothing (or worse, cleartext) was on disk. `atRestPolicy.ts`: a caller that
-  // cannot write a secret must fail where it happens, never report success.
+  // Strict at-rest refuses BEFORE the try, so a refused write never reports success
+  // (`atRestPolicy.ts`).
   const canEncrypt = encryptionAvailable();
   if (!canEncrypt) assertPlaintextAllowed("Supabase session (access + refresh token)");
   try {
