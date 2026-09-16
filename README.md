@@ -297,7 +297,9 @@ overrides go there.
 ```bash
 pnpm test              # unit tests — free, run them constantly
 pnpm test:changed      # only what the change graph touches
-pnpm test:redact       # the redaction engine alone (~4 s)
+pnpm test:redact       # the redaction engine alone (~20 s)
+pnpm test:pure         # every pure package, no isolation (~20 s)
+pnpm test:apps         # ui + desktop, isolated
 pnpm typecheck
 pnpm build
 pnpm verify            # the full local gate suite
@@ -622,7 +624,9 @@ lesquelles y mettre.
 ```bash
 pnpm test              # tests unitaires — gratuits, à lancer sans cesse
 pnpm test:changed      # seulement ce que le graphe de changement touche
-pnpm test:redact       # le moteur de masquage seul (~4 s)
+pnpm test:redact       # le moteur de masquage seul (~20 s)
+pnpm test:pure         # tous les paquets purs, sans isolation (~20 s)
+pnpm test:apps         # ui + desktop, isolés
 pnpm typecheck
 pnpm build
 pnpm verify            # toute la série de contrôles, en local

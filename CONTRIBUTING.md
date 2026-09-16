@@ -42,7 +42,9 @@ gitignored `.env.development.local`.
 ```bash
 pnpm test:changed      # after each burst of edits — walks the graph from the diff
 pnpm test:related <f>  # target files (no `--`, pnpm swallows it)
-pnpm test:redact       # the redaction engine alone (~4 s)
+pnpm test:redact       # the redaction engine alone (~20 s)
+pnpm test:pure         # every pure package, no isolation (~20 s)
+pnpm test:apps         # ui + desktop, isolated
 pnpm check:lint        # Biome lint (gated in CI and at pre-commit)
 pnpm format            # Biome format — apply it to the code you WRITE
 pnpm verify            # the full gate suite, to pass before opening a PR
@@ -155,7 +157,9 @@ surcharges mettre dans votre `.env.development.local` ignoré par git.
 ```bash
 pnpm test:changed      # après chaque salve d'édits — remonte le graphe depuis le diff
 pnpm test:related <f>  # cibler des fichiers (pas de `--`, pnpm l'avale)
-pnpm test:redact       # le moteur de masquage seul (~4 s)
+pnpm test:redact       # le moteur de masquage seul (~20 s)
+pnpm test:pure         # tous les paquets purs, sans isolation (~20 s)
+pnpm test:apps         # ui + desktop, isolés
 pnpm check:lint        # lint Biome (tenu en CI et au pre-commit)
 pnpm format            # format Biome — à appliquer au code que vous ÉCRIVEZ
 pnpm verify            # toute la série de portes, à passer avant d'ouvrir une PR
