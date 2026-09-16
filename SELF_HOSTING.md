@@ -182,8 +182,8 @@ feed by default (`desktop-stable`, the `publish` block of `electron-builder.cjs`
 replace itself with the next signed release. Bake `VITE_UPDATES_URL=` (empty) for a local
 package that must stay what you built — §2 says how an empty value is honoured.
 
-`apps/desktop/scripts/release-local.sh` is **not** this: it mirrors the staging deployment
-(signing, notarization, R2 upload, feed registration) and requires every CI secret.
+`apps/desktop/scripts/release-local.sh` is **not** this: it performs a full signed
+publication and requires every CI secret.
 
 ---
 
@@ -380,5 +380,5 @@ d'`electron-builder.cjs`) et se remplacerait par la prochaine version signée. B
 `VITE_UPDATES_URL=` (vide) pour un paquet local qui doit rester ce que vous avez construit —
 le §2 dit comment une valeur vide est honorée.
 
-`apps/desktop/scripts/release-local.sh` n'est **pas** cela : il reproduit le déploiement de
-staging (signature, notarisation, envoi R2, inscription au flux) et exige chaque secret de la CI.
+`apps/desktop/scripts/release-local.sh` n'est **pas** cela : il reproduit une publication
+signée complète et exige chaque secret de la CI.

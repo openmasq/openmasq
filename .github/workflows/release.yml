@@ -1,44 +1,34 @@
 name: Release
 
-# SINGLE ARTIFACT: the trigger decides the STORAGE (which channel these bytes are published on)
-# and the NUMBER — no URL at all anymore. The addresses live in the binary's baked table
-# (`apps/desktop/src/environments/`), resolved at runtime: production by default,
-# staging via the privileged toggle. A candidate is therefore the REAL software ahead of time,
-# pointed at production — and the beta→stable promotion happens without a rebuild, via the
-# Worker (`POST /admin/desktop/releases/promote`): same bytes, same number.
+# SINGLE ARTIFACT: the trigger decides the STORAGE (which channel these bytes are published
+# on) and the NUMBER — no URL. The addresses live in the binary's baked table
+# (`apps/desktop/src/environments/`), resolved at runtime. A candidate is therefore the REAL
+# software ahead of time, and the beta→stable promotion happens without a rebuild, through the
+# update feed: same bytes, same number.
 #
 # ⚠️ The BAKED channel (VITE_UPDATES_CHANNEL) is `desktop-stable` for ANY build published by
-# tag, and it does not say where the bytes are published: it is the DEFAULT of the first launch
-# (`main/updates/config.ts`). Since promotion copies the bytes, a literal `desktop-beta`
-# traveled with them: a fresh install of the landing's "stable" .dmg would follow the beta
-# silently (observed on 14/08 — the entire fleet a candidate in spite of itself). Beta is an
-# EXPLICIT act: machine privilege `allow_self_pin` + in-app toggle — never a baked default.
-# Only the MANUAL launch (never promoted, disposable) keeps `desktop-beta`: an install from an
-# internal trial MUST follow the beta.
+# tag: it is the DEFAULT of the first launch (`main/updates/config.ts`), and since promotion
+# copies the bytes, a baked `desktop-beta` would make a fresh "stable" install follow the beta
+# silently. Beta is an EXPLICIT act (machine privilege `allow_self_pin` + in-app toggle). Only
+# the MANUAL launch (never promoted, disposable) keeps `desktop-beta`.
 #
 #   trigger                    STORAGE          BAKED CHANNEL   VERSION
 #   push -> tag beta-v*        desktop-beta     desktop-stable  <tag>  (beta-v0.5.1 -> 0.5.1)
 #   push -> tag v*             desktop-stable   desktop-stable  <tag>  (v0.5.1 -> 0.5.1, from main)
 #   workflow_dispatch          desktop-beta     desktop-beta    <pkg>-beta.<run>  (disposable)
 #
-# ⚠️ NO CHANNEL AND NO BUILD IS CALLED "staging" ANY MORE. A channel says which BUILDS an
-# install receives (beta = candidates, stable = the fleet); "staging" names an ENVIRONMENT —
-# which servers the app talks to — and that axis is decided elsewhere, at runtime, by the
-# privileged toggle (`src/environments/`). The two were never the same thing (a candidate
-# points at production like everyone else), and sharing a word made people look for the
-# wrong privilege when a switch was refused. The historical storage names
-# (`desktop-staging` / `desktop-production`) survive ONLY as aliases the Worker still
-# resolves for installs that predate the rename (`lib/desktopChannels.ts`).
+# ⚠️ NO CHANNEL AND NO BUILD IS CALLED "staging". A channel says which BUILDS an install
+# receives (beta = candidates, stable = the fleet); "staging" names an ENVIRONMENT — which
+# servers the app talks to — decided at runtime by the privileged toggle (`src/environments/`).
+# A candidate points at production like everyone else.
 #
-# ⚠️ A TAG, NEVER A BRANCH. No branch push builds the app — neither `dev`,
-# nor `main`. This is the rule set on 11/08 for ALL app deployments (desktop and
-# mobile): a release is a dated and named ACT, not the side effect of a push.
+# ⚠️ A TAG, NEVER A BRANCH. No branch push builds the app — neither `dev` nor `main`: a
+# release is a dated and named ACT, not the side effect of a push.
 #
-# ⚠️ The `v*` tag remains useful WITHOUT being the normal path: the nominal route to stable is
-# the PROMOTION of an already-proven candidate, not a rebuild. A direct `v*` tag = a
-# fresh build that never went through beta — reserved for an emergency fix, said explicitly.
-# A privileged device (allow_self_pin, ops console) sees both channels via the Worker's
-# /desktop/all-releases; the ENVIRONMENT itself is toggled inside the app (env:switch).
+# ⚠️ The `v*` tag remains useful WITHOUT being the normal path: the nominal route to stable
+# is the PROMOTION of an already-proven candidate, not a rebuild. A direct `v*` tag = a fresh
+# build that never went through beta — reserved for an emergency fix, said explicitly. The
+# ENVIRONMENT itself is toggled inside the app (env:switch).
 #
 # 💸 THIS WORKFLOW IS THE REPO'S BIGGEST EXPENSE. `macos-latest` is billed ×10 and the
 # job runs 22–24 min, i.e. ~230 minute-equivalents per build — on a free quota of
@@ -210,12 +200,11 @@ jobs:
     # And still no `always()`, on purpose — `verify` MUST have succeeded, so a skip or
     # a failure of the verification blocks the release, production tag included.
     needs: [verify, meta]
-    # ── L'ENVIRONNEMENT QUI DÉTIENT LES CLÉS ────────────────────────────────
-    # Le certificat Apple, son mot de passe, les clés R2 et le jeton d'admin du Worker
-    # ne sont plus des secrets de DÉPÔT (`modules/github` côté infra les pose sur cet
-    # environnement) : au niveau dépôt, TOUT workflow les lisait — y compris un fichier
-    # ajouté demain par une PR fusionnée. L'environnement `release` n'autorise que des
-    # TAGS (`v*`, `beta-v*`).
+    # ── THE ENVIRONMENT THAT HOLDS THE KEYS ────────────────────────────────
+    # The Apple certificate, its password, the storage keys and the feed's admin token are
+    # ENVIRONMENT secrets, not repository secrets: at repository level EVERY workflow could
+    # read them, including one added tomorrow by a merged PR. The `release` environment
+    # only admits TAGS (`v*`, `beta-v*`).
     #
     # ⚠️ L'expression est CONDITIONNELLE, et c'est ce qui garde le lancement manuel
     # utilisable : une chaîne vide = pas d'environnement. Sur un tag ⇒ `release`, les
@@ -373,15 +362,11 @@ jobs:
       - name: Ensure Electron binary
         run: test -f node_modules/electron/path.txt || node node_modules/electron/install.js
 
-      # Build ONLY the desktop bundle + its workspace deps (turbo `--filter`), NOT the
-      # whole monorepo - a desktop release needs neither apps/web nor the other apps,
-      # and building them here both wasted minutes AND coupled the release to unrelated
-      # build failures (an apps/web type error used to fail the desktop release). `...`
-      # pulls in @openmasq/desktop's dependency graph (ui/llm/redact/...) -> their dist/.
-      # Only the CHANNEL is baked into the bundle: VITE_UPDATES_CHANNEL is the DEFAULT of a
-      # fresh install (`desktop-stable` for any published build — see the header; a
-      # machine already on beta keeps its `updates.json`) — the origins, on the other hand, come
-      # from the binary's table, at runtime.
+      # Build ONLY the desktop bundle + its workspace deps (turbo `--filter`): `...` pulls in
+      # @openmasq/desktop's dependency graph (ui/llm/redact/...) → their dist/. Only the
+      # CHANNEL is baked into the bundle: VITE_UPDATES_CHANNEL is the DEFAULT of a fresh
+      # install (`desktop-stable` for any published build — see the header); the origins
+      # come from the binary's table, at runtime.
       - run: pnpm exec turbo run build --filter=@openmasq/desktop...
         env:
           # Service addresses arrive HERE, at build time, and nowhere in the repo
@@ -393,19 +378,17 @@ jobs:
           # ⚠️ `OPENMASQ_BILLING` is THE gate (`scripts/buildDefines.ts` `serviceDefines`):
           # without `"1"`, the API and the gateway are baked EMPTY even if supplied — the
           # public build then has no API accounts, no sync, no organizations, no models
-          # included, and sells nothing. All that remains is Supabase authentication, the
-          # Slack relay, analytics and the updates feed, each on its own variable. It is
-          # a repo variable (`vars`), not a literal: opening or closing it does not
-          # require a commit.
+          # included. What remains is authentication, the Slack relay, analytics and the
+          # updates feed, each on its own variable. A repo variable (`vars`), not a literal.
           OPENMASQ_BILLING: ${{ vars.OPENMASQ_BILLING }}
           OPENMASQ_BACKEND_URL: ${{ vars.OPENMASQ_BACKEND_URL }}
           OPENMASQ_BACKEND_URL_STAGING: ${{ vars.OPENMASQ_BACKEND_URL_STAGING }}
           OPENMASQ_GATEWAY_URL: ${{ vars.OPENMASQ_GATEWAY_URL }}
           OPENMASQ_GATEWAY_URL_STAGING: ${{ vars.OPENMASQ_GATEWAY_URL_STAGING }}
-          # Outside the gate — reachable in any official build: the Supabase
-          # project (client credentials, public by nature), the Slack relay (`apps/auth`, in the
-          # private `infra` repo), the Sentry DSN and the connectors' OAuth credentials
-          # (each one is the identifier of a specific provider account: env, never committed).
+          # Outside the gate — reachable in any official build: the auth project (client
+          # credentials, public by nature), the Slack relay, the crash-reporter DSN and the
+          # connectors' OAuth credentials (each the identifier of a provider account: env,
+          # never committed).
           OPENMASQ_SUPABASE_URL: ${{ vars.OPENMASQ_SUPABASE_URL }}
           OPENMASQ_SUPABASE_PUBLISHABLE_KEY: ${{ vars.OPENMASQ_SUPABASE_PUBLISHABLE_KEY }}
           OPENMASQ_AUTH_URL: ${{ vars.OPENMASQ_AUTH_URL }}
@@ -415,34 +398,25 @@ jobs:
           OPENMASQ_GOOGLE_CLIENT_ID: ${{ vars.OPENMASQ_GOOGLE_CLIENT_ID }}
           OPENMASQ_GOOGLE_CLIENT_SECRET: ${{ secrets.OPENMASQ_GOOGLE_CLIENT_SECRET }}
           OPENMASQ_MICROSOFT_CLIENT_ID: ${{ vars.OPENMASQ_MICROSOFT_CLIENT_ID }}
-          # The updates feed (Worker `apps/updates`) — the same address the
-          # publish steps push to, further down (`UPDATES_URL`). Empty ⇒ no
-          # auto-update nor Versions screen (`appEnv.ts` UPDATES_CONFIGURED).
+          # The updates feed — the same address the publish steps push to, further down
+          # (`UPDATES_URL`). Empty ⇒ no auto-update nor Versions screen (`appEnv.ts`).
           VITE_UPDATES_URL: ${{ vars.UPDATES_URL || format('https://updates.{0}', steps.brand.outputs.domain) }}
-          # The CHANNEL, on the other hand, is the default of the first launch (which BUILDS a
-          # fresh install will receive), not which API is being talked to — and its absence means "build
-          # local" for analytics, a signal we don't want to lose.
+          # The CHANNEL is the default of the first launch (which BUILDS a fresh install will
+          # receive), not which API is being talked to — and its absence means "local build"
+          # for analytics, a signal we don't want to lose.
           VITE_UPDATES_CHANNEL: ${{ needs.meta.outputs.channel }}
-          # ⚠️ THE SAME version as `-c.extraMetadata.version` further down, and that is the
-          # whole point: this bundle is built BEFORE electron-builder stamps the
-          # version, so without this line the renderer falls back to the repo's
-          # `package.json` (`0.4.1`) while the installed app is called `0.4.1-beta.123`.
-          # Two consequences measured on 11/08: PostHog's `app_version` would not budge
-          # from one update to the next (every build of the same x.y.z lumped together,
-          # adoption unmeasurable), and Sentry received TWO releases for a single app —
-          # main reads `app.getVersion()` (suffixed), the renderer reads this define. Pinned
-          # by `apps/desktop/src/sentry/policy.test.ts`.
+          # THE SAME version as `-c.extraMetadata.version` further down: this bundle is built
+          # BEFORE electron-builder stamps the version, so without this line the renderer
+          # would report the repo's `package.json` version while the installed app carries
+          # the suffixed one — two releases for one app in the crash reporter. Pinned by
+          # `apps/desktop/src/sentry/policy.test.ts`.
           VITE_APP_VERSION: ${{ needs.meta.outputs.version }}
-          # Analytics + error tracking go through the FIRST-PARTY relay (apps/analytics-fn)
-          # which holds the PostHog key server-side - so NO key is ever baked into the
-          # shipped desktop app. Deliberately no VITE_POSTHOG_KEY here (main.tsx is
-          # relay-only). Env-independent single relay; empty => analytics stays a no-op.
+          # Analytics + error tracking go through the FIRST-PARTY relay, which holds the
+          # analytics key server-side — so NO key is ever baked into the shipped desktop app.
+          # Deliberately no VITE_POSTHOG_KEY here. Empty ⇒ analytics stays a no-op.
           VITE_ANALYTICS_RELAY_URL: ${{ vars.ANALYTICS_RELAY_URL }}
-          # App-attestation HMAC key: the client signs each relay POST with it so the
-          # relay can reject traffic that is not from an official build (anti-abuse,
-          # non-identity). Empty
-          # (NO Vercel bypass: the single artifact would ship it to everyone — the
-          # `assertNoBakedBypass` guard in electron.vite.config.ts fails any CI build
+          # (NO deployment-protection bypass token: the single artifact would ship it to
+          # everyone — `assertNoBakedBypass` in electron.vite.config.ts fails any CI build
           # that carries one.)
 
       # SOURCEMAPS → Sentry. ⚠️ The version is PINNED EXACT, never a `@2` range: `pnpm dlx`
@@ -785,10 +759,8 @@ jobs:
 
   # BOTH PLATFORMS ARE PUBLISHED — what follows happens ONCE, not per leg.
   #
-  # In the matrix, the purge would run twice in parallel on the same channel (two
-  # concurrent R2 deletions targeting the same objects), and the email draft would be
-  # created twice at Resend. Neither is simple waste: these are
-  # two external side effects, not idempotent with each other.
+  # In the matrix, the purge would run twice in parallel on the same channel (two concurrent
+  # deletions targeting the same objects) — an external side effect, not idempotent.
   #
   # `needs: release` waits for the WHOLE matrix. With `fail-fast: false`, a failing
   # platform fails this job — so no purge until publishing is not
@@ -843,7 +815,5 @@ jobs:
           echo "prune HTTP $code"; cat /tmp/desktop-prune.out || true; echo
           if [ "$code" != "200" ]; then echo "::warning::desktop prune failed (HTTP $code) - skipping"; fi
 
-      # The release-notes e-mail is NOT prepared here any more: `@openmasq/emails` left with
-      # the server side (the private `infra` repository, 2026-08-31) and so did the
-      # workflow that drafts and sends it (`release-notes-email.yml`, there). This
-      # repository publishes the BUILD; announcing it is the operator's step, over there.
+      # Announcing the release (the release-notes e-mail) is the operator's step, outside this
+      # repository. This repository publishes the BUILD.

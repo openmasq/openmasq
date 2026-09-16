@@ -1,24 +1,11 @@
 #!/usr/bin/env node
-// Ratcheted 300-LOC guard (hard rule 1). Two teeth, and the second one is the reason
-// this file exists in its current shape:
-//
-//   1. a NEW source file over the cap fails — the debt cannot spread to new files;
-//   2. an ALLOWLISTED file that GROWS past its frozen value fails — the debt cannot
-//      deepen in the files that already carry it.
-//
-// Tooth 2 was missing until 2026-07-31, and the measurement that day is why it is here:
-// of the 26 frozen entries, **23 had grown and 0 had shrunk**, for +5 548 lines the gate
-// could not see. `styles.css` alone had drifted +2 144 and `store.ts` +791 — the two
-// files every session pays for and the ones concurrent sessions collide in. "A backlog,
-// not a waiver" was true of the rule and false of the tool; only a ratchet makes it true
-// of both.
+// Ratcheted 300-LOC guard (hard rule 1). Two teeth: a NEW source file over the cap fails
+// (the debt cannot spread), and an ALLOWLISTED file that GROWS past its frozen value fails
+// (the debt cannot deepen). Without the second tooth the frozen files only ever grew.
 //
 // `--update` regenerates the frozen list after a reviewed split. It REFUSES to raise a
-// value unless `--allow-growth` is also passed: shrinking is always fine, growing is a
-// deliberate act that must be visible in the commit that does it (root rule 1).
-//
-// Scope: git-tracked .ts/.tsx/.css under apps/ + packages/, excluding tests, .d.ts,
-// DB migrations and native mobile dirs (all legitimately unbounded or generated).
+// value unless `--allow-growth` is also passed: growing is a deliberate act, visible in the
+// commit that does it. Scope: `scripts/checks/locScope.mjs`.
 import { execSync } from "node:child_process";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -30,8 +17,8 @@ const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, "../..");
 const allowlistPath = join(here, "file-size-allowlist.json");
 
-// The glob below only PRE-filters; the authoritative scope is `scripts/checks/locScope.mjs`,
-// shared with the pre-commit gate — that is the one applied.
+// The glob only PRE-filters; the authoritative scope is `scripts/checks/locScope.mjs`,
+// shared with the pre-commit gate.
 function trackedSourceFiles() {
   const out = execSync(
     "git ls-files 'apps/**/*.ts' 'apps/**/*.tsx' 'apps/**/*.css' " +

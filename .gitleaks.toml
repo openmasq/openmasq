@@ -13,7 +13,6 @@ paths = [
   '''apps/desktop/e2e/fixtures/pii/.*''',
   '''packages/redact/src/__fixtures__/.*''',
   '''.*\.test\.tsx?$''',
-  '''apps/backend/docker-compose\.yml''',
   # The redaction engine's regression corpus and external benchmark: annotated SYNTHETIC
   # PII by definition (that is what the engine is measured against). Every value here is
   # invented — a real one would be a fixture bug, caught by `check:pii`, not a leak. Scoped

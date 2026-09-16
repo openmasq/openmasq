@@ -20,13 +20,11 @@ secret to pass, that is a bug in the workflow, not a setup step for the contribu
 
 | Workflow | Trigger | Needs |
 |---|---|---|
-| `release.yml` | `v*` / `beta-v*` tags | Apple signing + R2 + updates-Worker token. **Every secret-dependent step is skipped with a named notice when the secret is absent**: a fork's tag builds, boot-smokes and uploads the UNSIGNED app to the run — nothing reaches a channel (`PUBLISH` in the job env is the one decision). |
+| `release.yml` | `v*` / `beta-v*` tags | Apple signing + the publication credentials. **Every secret-dependent step is skipped with a named notice when the secret is absent**: a fork's tag builds, boot-smokes and uploads the UNSIGNED app to the run — nothing reaches a channel (`PUBLISH` in the job env is the one decision). |
 | `release-windows.yml` | manual | nothing — by design (see its header). |
 | `audit.yml` | weekly | nothing. `pnpm audit` sorted by shipped surface. |
 
-The server side — API, gateway, relays, e-mails, and the workflows that probe or announce
-them (`money-path`, `release-notes-*`) — lives in the private `infra` repository since
-2026-08-31, together with `@openmasq/emails`.
+The server side is maintained outside this repository.
 
 ## Rules the gate enforces (`pnpm check:actions`)
 
@@ -57,13 +55,11 @@ pour le contributeur.
 
 | Workflow | Déclencheur | Exige |
 |---|---|---|
-| `release.yml` | tags `v*` / `beta-v*` | La signature Apple + R2 + le jeton du Worker de mises à jour. **Chaque étape dépendante d'un secret est sautée avec un avis nommé quand le secret est absent** : le tag d'un fork construit, passe le test de démarrage et téléverse l'application NON SIGNÉE dans le run — rien n'atteint un canal (`PUBLISH` dans l'env du job est la décision unique). |
+| `release.yml` | tags `v*` / `beta-v*` | La signature Apple + les identifiants de publication. **Chaque étape dépendante d'un secret est sautée avec un avis nommé quand le secret est absent** : le tag d'un fork construit, passe le test de démarrage et téléverse l'application NON SIGNÉE dans le run — rien n'atteint un canal (`PUBLISH` dans l'env du job est la décision unique). |
 | `release-windows.yml` | manuel | rien — à dessein (voir son en-tête). |
 | `audit.yml` | hebdomadaire | rien. `pnpm audit` trié par surface livrée. |
 
-Le côté serveur — API, passerelle, relais, e-mails, et les workflows qui les sondent ou les
-annoncent (`money-path`, `release-notes-*`) — vit dans le dépôt privé `infra` depuis le
-2026-08-31, avec `@openmasq/emails`.
+Le côté serveur est maintenu en dehors de ce dépôt.
 
 ## Les règles que la porte impose (`pnpm check:actions`)
 

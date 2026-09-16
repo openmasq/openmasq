@@ -1,25 +1,15 @@
 #!/usr/bin/env node
-// CSS-family ratchet — the GATE that makes "one control, one class" an invariant held by
-// the tool rather than vigilance (same shape as `check-file-size.mjs`, root rule 1).
+// CSS-family ratchet — "one control, one class" held by the tool (same shape as
+// `check-file-size.mjs`). The design system has ONE button, one menu primitive, one card
+// shell, one chip; a hand-rolled family (`.ac-btn`, `.rail-btn`…) is a control that drifts
+// on its own. The ratchet freezes today's count of distinct CLASS NAMES containing `btn` /
+// `menu` / `card` / `chip`, per family: a NEW class fails, migrating a call site to the
+// primitive tightens it.
 //
-// The problem it solves: the design system has ONE button (`brand/controls` `Button`,
-// `IconButton`), one menu primitive (`usePopover`), one card shell, one chip — and the
-// stylesheet still carries dozens of hand-rolled families that each re-declare a button
-// (`.ac-btn`, `.kb-act`, `.rail-btn`…), a menu, a card or a chip. Each one is a control
-// that drifts on its own (a 34px pill beside a 30px ghost square). The ratchet freezes
-// TODAY's count of distinct CLASS NAMES containing `btn` / `menu` / `card` / `chip`, per
-// family: nothing fails at the present moment, but a NEW class in one of these families
-// makes it fail, and migrating a call site to the primitive (i.e. REMOVING a class)
-// tightens the ratchet.
-//
-// What it counts = distinct class selectors (`.foo-btn`, `.menu-item`) across
-// `packages/ui/src/styles.css` and `packages/ui/src/styles/**` — the resolved sheet, so
-// peeling a family into a partial changes nothing. Comments are stripped first; a
-// selector inside an at-rule (`@media`, `@keyframes`) counts like any other, since a
-// class declared only under a media query is still a class someone renders.
-//
-// `--update` re-freezes the counts DOWNWARD; raising one needs `--allow-growth` and the
-// reason in the commit — a growing allowlist is a smell, not a solution.
+// It counts distinct class selectors across `packages/ui/src/styles.css` and
+// `packages/ui/src/styles/**` — the resolved sheet, so peeling a family into a partial
+// changes nothing. Comments are stripped first; a selector under an at-rule counts like any
+// other. `--update` re-freezes DOWNWARD; raising needs `--allow-growth` and a reason in the commit.
 import { readFileSync, writeFileSync, existsSync, readdirSync, statSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join, relative } from "node:path";

@@ -1,12 +1,8 @@
 #!/usr/bin/env node
-// Proves a diff touches NOTHING but comments.
-//
-// Translating 21,000 comment lines is mechanical, but one displaced brace would go
-// unnoticed in a review that size — and these comments carry the security rationale
-// (rule 7), so the batch has to be VERIFIABLE, not merely read. The principle:
-// re-tokenise BEFORE and AFTER with the TypeScript scanner (it skips trivia, comments
-// included, and knows string literals, templates and regexes) and require the SAME
-// token sequence. For CSS/YAML, compare the non-comment lines instead.
+// Proves a diff touches NOTHING but comments: re-tokenise BEFORE and AFTER with the
+// TypeScript parser (comments are trivia; strings, templates and regexes are known) and
+// require the SAME token sequence. For CSS/YAML/JSONC, compare the non-comment lines.
+// A comments-only batch carries the security rationale (rule 7) and must be VERIFIABLE.
 //
 //   node scripts/checks/check-comments-only.mjs [<ref>]     (default: HEAD)
 import { execSync } from "node:child_process";
@@ -22,23 +18,18 @@ const changed = execSync(`git diff --name-only ${ref}`, { encoding: "utf8" })
   .filter(Boolean);
 
 /**
- * The file's TOKENS, comments excluded — via the real parser, not the raw scanner.
- *
- * ⚠️ A bare `createScanner` loop cannot do this: a template literal with a `${…}`
- * substitution needs `reScanTemplateToken` after the closing brace, and without it the
- * next backtick opens a template that runs to EOF — swallowing the rest of the file,
- * comments included, into ONE token. The checker then reported "code changed" on a
- * purely editorial diff. Parsing gives the token boundaries for free, and correctly for
- * regexes and JSX too; leaf nodes are the tokens, and `getText()` excludes the leading
- * trivia where comments live.
+ * The file's TOKENS, comments excluded — via the real parser, not the raw scanner: a bare
+ * `createScanner` loop needs `reScanTemplateToken` after a `${…}` substitution or the next
+ * backtick swallows the rest of the file into ONE token. Leaf nodes are the tokens, and
+ * `getText()` excludes the leading trivia where comments live.
  */
 const tokens = (src, file) => {
   const kind = file.endsWith("x") ? ts.ScriptKind.TSX : ts.ScriptKind.TS;
   const sf = ts.createSourceFile(file, src, ts.ScriptTarget.Latest, /* setParentNodes */ true, kind);
   const out = [];
   const walk = (n) => {
-    // ⚠️ JSDoc blocks come back as CHILD NODES, not as trivia: without this skip, every
-    // `/** … */` we translate reads as a token change and the checker cries wolf.
+    // JSDoc blocks come back as CHILD NODES, not as trivia: skip them or every `/** … */`
+    // edit reads as a token change.
     if (n.kind >= ts.SyntaxKind.FirstJSDocNode && n.kind <= ts.SyntaxKind.LastJSDocNode) return;
     const kids = n.getChildren(sf);
     if (kids.length === 0) out.push(`${n.kind}:${n.getText(sf)}`);

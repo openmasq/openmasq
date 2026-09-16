@@ -4,11 +4,8 @@ name: CI
 # (`verify.yml` — build, typecheck, gates, unit suite), the two guards specific to this
 # context (FEATURES.md drift).
 #
-# This repo no longer DEPLOYS anything: the API, the gateway, the console, the updates
-# Worker and the relays have lived in the private `infra` repo since 31/08/2026, with their
-# workflows (and the principle that chained them via `needs: [ci]`: nothing deploys without
-# a green `verify`). What remains here is verification, and the desktop release on tag
-# (`release.yml`, which keeps its own `verify`).
+# This repo deploys nothing: what remains here is verification, and the desktop release on
+# tag (`release.yml`, which keeps its own `verify`).
 on:
   pull_request:
     branches: [main, dev]
@@ -33,16 +30,11 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  # The path filter. It used to gate the backend e2e and the server deployments, which left
-  # for the private `infra` repo on 31/08/2026; today it gates the corpus benches.
-  # The `ci` job itself stays UNGATED (it IS the required status check -
-  # path-skipping a required check would leave a PR forever "waiting").
+  # The path filter gates the corpus benches. The `ci` job itself stays UNGATED (it IS the
+  # required status check — path-skipping a required check would leave a PR forever "waiting").
   changes:
     runs-on: ubuntu-latest
     outputs:
-      # No more server job here: the API, the gateway, the console, the Worker and the
-      # relays have lived in the private `infra` repo since 31/08/2026, with their
-      # workflows.
       packages: ${{ steps.f.outputs.packages }}
       corpus: ${{ steps.f.outputs.corpus }}
     steps:
@@ -70,16 +62,10 @@ jobs:
               - 'packages/catalog/**'
               - '.github/workflows/corpus.yml'
 
-  # The verification itself. The job keeps the `ci` identifier: it's the context that
-  # Terraform names in `github_required_status_checks` (the day an admin token
-  # allows setting up branch protection, it will appear as `ci / verify`).
-  # ⚠️ ALL deployments depend on it (`needs: [ci]`).
-  # The check run that `main`'s protection REQUIRES — literal context "ci". A job that
-  # calls a reusable workflow only publishes its CHILDREN ("ci / verify"), never
-  # its own name: the staging → main promotion (PR #21) stayed BLOCKED with ALL
-  # checks green, because no check was named "ci". This verdict job carries that
-  # name and synthesizes: red if a required job failed or was cancelled; a SKIPPED job
-  # (paths not touched) counts as good — it's the `changes` filter that decided that.
+  # The check run a branch protection would REQUIRE — literal context "ci". A job that calls
+  # a reusable workflow only publishes its CHILDREN ("ci / verify"), never its own name, so
+  # this verdict job carries that name and synthesizes: red if a required job failed or was
+  # cancelled; a SKIPPED job (paths not touched) counts as good — the `changes` filter decided.
   verdict:
     name: ci
     if: always()

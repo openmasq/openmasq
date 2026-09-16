@@ -1,23 +1,16 @@
-// The ANTI-"destroy is not a function" gate — the class of bug it forbids:
-// a `useEffect(() => expr)` in CONCISE ARROW form returns `expr` as the
-// cleanup. If `expr` one day starts returning something other than a function, React
-// calls it on unmount and the WHOLE app lands on the ErrorBoundary. This is not
-// theoretical: Chromium changed `scrollIntoView` to return a PROMISE, and
-// `useEffect(() => el.scrollIntoView(...))` — correct for months — took the app down on
-// every model change. Since `lib.dom` still declares `void`, typechecking CANNOT see this
-// class: the platform moves underneath the types.
+// A `useEffect(() => expr)` in CONCISE ARROW form returns `expr` as the cleanup. If the
+// platform one day makes `expr` return something other than a function, React calls it on
+// unmount and the WHOLE app lands on the ErrorBoundary — and since `lib.dom` may still
+// declare `void`, typechecking cannot see it.
 //
-// The rule: an effect is written with a BLOCK BODY, and what it returns is written
-// `return …` — an EXPLICIT return is a reviewed choice, a concise-arrow return is an
-// accident waiting to happen. The only exception: `() => () => …` (a pure cleanup, with no
-// body), whose return is a function by construction.
+// The rule: an effect has a BLOCK BODY and returns with an explicit `return …`. The only
+// exception is `() => () => …` (a pure cleanup), a function by construction.
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 const ROOTS = [
   "packages/ui/src",
   "apps/desktop/src/renderer",
-  "apps/web",
 ];
 // `useEffect(() => X` where X is neither a block `{`, nor a pure cleanup `() =>`, nor a
 // `void expr` (an explicit rejection of the return — safe by construction). The trailing `\S` anchors

@@ -1,21 +1,10 @@
 #!/usr/bin/env node
-// Runs turbo with a cache placed OUTSIDE the tree.
-//
-// By default turbo writes to `<repo>/.turbo/cache`, hence inside the tree: a re-clone (or,
-// back when the worktree convention existed, every fresh tree) started from a cold cache
-// and rebuilt the entire graph.
-// Turbo's cache keys are a hash of the CONTENT (package + task + files + dependency
-// hashes), never of the absolute path: an artefact produced in one worktree is therefore
-// valid in every other, and two diverging branches naturally have different keys.
-//
-// `turbo.json` can NOT carry this setting — it refuses an absolute `cacheDir` and points
-// explicitly at `--cache-dir` / `TURBO_CACHE_DIR`; a RELATIVE path would resolve elsewhere
-// depending on where the worktree was created. Hence this wrapper: one single home for the
-// default, inherited by pnpm, CI and every new checkout with no installation at all. A
-// `TURBO_CACHE_DIR` already present in the environment wins.
-//
-// ⚠️ The directory is never purged automatically (turbo has no GC): it grows with the
-// history of hashes. Emptying it is risk-free — at worst you rebuild.
+// Runs turbo with a cache placed OUTSIDE the tree, so a re-clone starts warm. Turbo's cache
+// keys hash CONTENT, never the absolute path, so one directory serves every checkout.
+// `turbo.json` cannot carry this setting (it refuses an absolute `cacheDir`), hence the
+// wrapper: one home for the default, inherited by pnpm, CI and every new checkout. A
+// `TURBO_CACHE_DIR` already present in the environment wins. The directory is never purged
+// (turbo has no GC); emptying it is risk-free.
 import { spawn } from "node:child_process";
 import { homedir } from "node:os";
 import { join } from "node:path";

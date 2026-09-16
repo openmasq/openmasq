@@ -12,9 +12,9 @@ version: 2
 
 updates:
   # ── GitHub Actions ────────────────────────────────────────────────────────────
-  # Prioritized, and not out of habit: an action runs with the job's secrets
-  # (signing certificates, Vercel/Neon/Cloudflare tokens). `pnpm check:actions` already
-  # requires a commit SHA — Dependakit therefore proposes a NEW SHA, never a moving tag.
+  # Prioritized: an action runs with the job's secrets (signing certificates, publication
+  # credentials). `pnpm check:actions` already requires a commit SHA — Dependabot therefore
+  # proposes a NEW SHA, never a moving tag.
   - package-ecosystem: github-actions
     directory: /
     schedule:

@@ -1,60 +1,36 @@
 name: Windows (essai à blanc)
 
-# DRY RUN of the Windows target — builds, LAUNCHES the app, and stops there.
+# DRY RUN of the Windows target — builds, LAUNCHES the app, and stops there. It publishes
+# NOTHING: no upload, no feed registration, no channel touched. It launches ON DEMAND on ANY
+# commit (tag `win-*`), with no secret at all — the preflight run BEFORE merging.
 #
-# This workflow publishes NOTHING: no R2, no registration with the updates Worker,
-# no channel touched. Since `release.yml` builds Windows in its matrix, only
-# one reason remains to keep it, and it's a good one: it launches ON DEMAND on
-# ANY commit (tag `win-*`, see `on:`), with no secret at all, whereas the release
-# only exists on `dev` and `v*` tags. This is the preflight run BEFORE merging.
+# What it answers, and that nothing else can answer from a mac: MAX_PATH (260) under
+# electron-builder's copy of the Python runtime and `asarUnpack`; whether the jail launcher
+# (`native/win-jail`) compiles and REALLY confines (`prove-jail.sh`); whether the binary
+# STARTS (`e2e:boot` + `e2e:models`); how much the installer weighs. Wheel availability is
+# checked from any runner by `crossInstall.ts`.
 #
-# What it answers, and that nothing else can answer from a mac:
-#   • MAX_PATH (260): electron-builder copies the Python runtime (tens of thousands
-#     of plotly files) and `asarUnpack: **/node_modules/**` — it's the Windows equivalent
-#     of the EMFILE we had to fix on the macOS side;
-#   • does the jail launcher (`native/win-jail`) compile, and does it REALLY confine (`prove-jail.sh`);
-#   • does the binary START? (`e2e:boot` + `e2e:models`, release.yml's two smokes);
-#   • how much the installer weighs.
+# 💸 `windows-latest` is billed ×2, so a run costs a tenth of a mac build. Still REQUESTED.
 #
-# ⚠️ A question it no longer asks: "do the wheels exist in `win_amd64`?". The
-# bake now knows how to build a runtime for a machine other than its own, so this
-# risk is also visible from a mac or linux runner (`crossInstall.ts`).
-#
-# 💸 Cost: `windows-latest` is billed ×2 (versus ×10 for `macos-latest`), so a run
-# costs about a tenth of a mac build. It's still REQUESTED — see the gate.
-#
-# ⚠️ NO SECRET is passed to this workflow, and it must never receive one: it
-# triggers from any commit on a simple tag pushed by hand. The
-# baked values are therefore public literals, and the update channel points at a name that
-# DOES NOT EXIST (`desktop-winci`) — even launched, this app cannot see a real channel.
+# ⚠️ NO SECRET is passed to this workflow, and it must never receive one: it triggers from
+# any commit on a tag pushed by hand. The baked values are public literals, and the update
+# channel points at a name that DOES NOT EXIST (`desktop-winci`).
 
 on:
   # Usable once this file is on `main` (GitHub only exposes a workflow_dispatch from
   # the default branch).
   workflow_dispatch: {}
-  # Until then — and from any commit, without going through `staging`: a `win-*` TAG.
-  #
-  # ⚠️ This used to be `branches: ["**"]` + the `[desktop-win]` marker in the commit message,
-  # read by a job `if:`. The marker cost no minutes when absent,
-  # BUT GitHub still registers a run (`skipped`) for EVERY push on EVERY branch:
-  # 50 empty lines out of the last 300 runs, enough to drown out the real reds. A
-  # tag filter, on the other hand, creates no run as long as nothing is requested — same explicit gesture, zero
-  # noise, and it works from any commit (a protected branch is not
-  # required, unlike the `workflow_dispatch` button):
+  # From any commit: a `win-*` TAG (a tag filter creates no run as long as nothing is
+  # requested, unlike a branch filter with a commit-message marker):
   #
   #     git tag -f win-essai && git push -f origin win-essai
   #
-  # (The `-f` re-triggers: GitHub emits a push for a tag UPDATE just like for a
-  # creation. `win-*` never crosses `release.yml`'s `v*` tags, which do publish.)
+  # (The `-f` re-triggers: GitHub emits a push for a tag UPDATE. `win-*` never crosses
+  # `release.yml`'s `v*` tags, which do publish.)
   #
-  # ⛔ PAUSED (14/08/2026), at the same time as `release.yml`'s Windows leg: as long as
-  # the Windows app isn't ready, no Windows runner gets paid for — neither to publish, nor
-  # to try. The tag trigger is therefore REMOVED, not the file: this preflight remains
-  # the only thing that answers MAX_PATH, the sandbox compiling, and the binary
-  # starting up, and it's the one we'll rerun first upon waking. To turn it back on,
-  # uncomment the two lines below.
-  #
-  # push:
+  # ⛔ PAUSED at the same time as `release.yml`'s Windows leg: as long as the Windows app
+  # isn't ready, no Windows runner gets paid for. The tag trigger is REMOVED, not the file:
+  # this preflight is the one to rerun first upon waking. To turn it back on, uncomment:
   #   tags: ["win-*"]
 
 concurrency:
@@ -120,8 +96,8 @@ jobs:
       - name: Ensure Electron binary
         run: test -f node_modules/electron/path.txt || node node_modules/electron/install.js
 
-      # The bundle, with PUBLIC values only (see the banner: this workflow doesn't
-      # receive any secret). The baked channel doesn't exist on the Worker's side, on purpose.
+      # The bundle, with PUBLIC values only (this workflow receives no secret). The baked
+      # channel does not exist on the feed's side, on purpose.
       - run: pnpm exec turbo run build --filter=@openmasq/desktop...
         env:
           VITE_BACKEND_URL: https://staging.${{ steps.brand.outputs.domain }}
@@ -170,9 +146,8 @@ jobs:
 
       # FULL packaging (NSIS installer + blockmap + latest.yml), not `--dir`: it's
       # the installer creation that exercises MAX_PATH and the artifact name. `--publish
-      # never` as a safety net, on top of the fact that no credential is present.
-      # The version carries `-winci.<run>`: never confusable with a real build, and never
-      # colliding with release.yml's `-staging.<run>` numbering.
+      # never` as a safety net, on top of the fact that no credential is present. The version
+      # carries `-winci.<run>`: never confusable with a real build.
       - name: Package (unsigned — essai à blanc)
         id: pack
         working-directory: apps/desktop

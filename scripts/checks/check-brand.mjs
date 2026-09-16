@@ -11,15 +11,12 @@
 // `window.*` carry those names any more.
 import { execFileSync } from "node:child_process";
 
-// No exception. The installed-base migration that used to name the old prefix is gone:
-// nothing in the tree may read, write or mention a retired name any more.
+// No exception: nothing in the tree may read, write or mention a retired name.
 const ALLOWED = new Set();
 
-// Never written in the clear: this guard scans its own file too, and the literal pattern
-// would be its only "occurrence" — it would fail itself. FIVE retired names: the
-// repository's two codenames, and the brand name abandoned before OpenMasq. The last one
-// has NO exception: it never reached a user's disk, so nothing must read it back (unlike
-// the first two, cf. `ALLOWED`).
+// Never written in the clear: this guard scans its own file too. FIVE retired names: the
+// repository's codenames and the brand name abandoned before OpenMasq (no exception for the
+// last one — it never reached a user's disk, cf. `ALLOWED`).
 const NEEDLES = [
   ["proxy", "chat"].join(""),
   ["kav", "iar"].join(""),

@@ -27,8 +27,6 @@ apps/desktop/e2e/.profile/
 apps/desktop/e2e/tofix/
 apps/desktop/test-results/
 apps/desktop/playwright-report/
-apps/web/test-results/
-apps/web/playwright-report/
 
 
 *.p12*

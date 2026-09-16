@@ -1,19 +1,9 @@
 #!/usr/bin/env node
-// Dead-code ratchet. `knip` finds files nobody imports, exports nobody reads and deps
-// nobody requires — on 230k LOC it currently finds a LOT, and a gate that is red on day
-// one is a gate everyone learns to skip. So this follows the same contract as
-// check-file-size / check-dup: the current count per category is FROZEN in
-// scripts/checks/knip-baseline.json, and the build fails only when a category GROWS.
-//
-// What it buys: dead code stops accumulating. What it does not: it will not clean what is
-// already there. Pay a line of backlog down by deleting, then `--update` to re-freeze —
-// the baseline may only shrink.
-//
-//   node scripts/checks/check-knip.mjs            # or: pnpm check:knip
-//   node scripts/checks/check-knip.mjs --update   # re-freeze after a cleanup (or a config change)
-//
-// Note: knip's per-category counts, not its identifier lists, are what is frozen. Swapping
-// one dead export for another slips through; the point is the trend, not a proof.
+// Dead-code ratchet. `knip` finds files nobody imports, exports nobody reads and deps nobody
+// requires. Same contract as check-file-size / check-dup: the count per category is FROZEN
+// in scripts/checks/knip-baseline.json and the build fails only when a category GROWS. Pay
+// backlog down by deleting, then `--update` to re-freeze — the baseline may only shrink.
+// Only per-category COUNTS are frozen: the point is the trend, not a proof.
 import { readFileSync, writeFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
@@ -46,8 +36,7 @@ const run = spawnSync(
 );
 
 // knip exits non-zero when it finds anything, which is the normal state here. Only a
-// missing/garbled report is an infrastructure failure — fail OPEN on that, like audit:gate,
-// so a tooling hiccup never blocks every PR.
+// missing/garbled report is a tooling failure — fail OPEN on that, like audit:gate.
 let report;
 try {
   report = JSON.parse(run.stdout);
@@ -87,11 +76,8 @@ for (const c of CATEGORIES) {
 if (grown.length) {
   console.error(`\n✗ Dead code grew (${grown.length} categor${grown.length === 1 ? "y" : "ies"}):`);
   for (const g of grown) console.error(`    ${g}`);
-  // ⚠️ NAME the findings, do not merely count them. "Run `pnpm exec knip`" is useless
-  // advice where this gate fails: on a runner nobody can re-run knip by hand, and the
-  // verdict can depend on the environment (a generated file present locally, absent from a
-  // clean checkout) — in which case the local command does not even reproduce the failure.
-  // A gate that says "+1" without saying WHAT sends people searching blind.
+  // NAME the findings, do not merely count them: on a runner nobody can re-run knip by hand,
+  // and the verdict can depend on the environment (a generated file present locally only).
   const grownCats = new Set(grown.map((g) => g.split(":")[0]));
   console.error(`\n  Findings for ${[...grownCats].join(", ")} (the new ones are in there):`);
   let shown = 0;
