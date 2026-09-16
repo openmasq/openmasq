@@ -5,32 +5,13 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      // Without `inputs`, turbo hashes the WHOLE package — but rule 5 requires editing the
-      // `CLAUDE.md` in the same change, so every commit invalidated the build of the
-      // package AND everything downstream of it, for a markdown `tsup` never reads
-      // (measured: one line added to `packages/redact/CLAUDE.md` cost 2 min 14 of rebuild).
-      // Tests are out too: they are not bundle entry points. They stay in `typecheck`'s
-      // `inputs` — that task checks them for real.
-      "inputs": [
-        "$TURBO_DEFAULT$",
-        "!**/*.md",
-        "!**/*.test.ts",
-        "!**/*.test.tsx"
-      ],
-      // ⚠️ An `outputs` that misses a task's artifacts makes it NON-RESTORABLE: turbo caches
-      // the log, not the result, and re-runs it in full every time (it says so — "no output
-      // files found for task …"). That was the case for the two Next apps
-      // (`ops`, `docs`; `web` moved to Vite → `dist/**`, `landing` left this monorepo
-      // on 18/08). `.next/cache/**` is excluded: it is Next's internal
-      // cache, which it manages itself and which weighs more than the output.
-      // `@openmasq/backend#build` is a `tsc --noEmit` — it genuinely has no output.
-      "outputs": ["dist/**", "out/**", ".next/**", "!.next/cache/**"],
-      // ⚠️ EVERY variable baked into the bundle belongs in this list, or two different
-      // values share one cache entry and turbo HANDS BACK a bundle built with the other —
-      // a binary talking to the wrong origin, with no step announcing it. These four were
-      // missing while `release.yml` passes them: the redaction URL (missing it = "Failed
-      // to fetch") and the staging Vercel protection bypass were the ones that could jump
-      // from one build to the next.
+      // Docs and tests are not bundle inputs: hashing them would rebuild a package (and
+      // everything downstream) for a markdown edit. Tests stay in `typecheck`'s inputs.
+      "inputs": ["$TURBO_DEFAULT$", "!**/*.md", "!**/*.test.ts", "!**/*.test.tsx"],
+      // Every artifact a task writes, or turbo cannot restore it and re-runs it every time.
+      "outputs": ["dist/**", "out/**"],
+      // Every variable BAKED into a bundle: two values sharing one cache entry would hand
+      // back a bundle built for the other.
       "env": [
         "VITE_BACKEND_URL",
         "VITE_ADMIN_URL",
@@ -39,14 +20,6 @@
         "VITE_REDACT_FN_URL",
         "VITE_BACKEND_BYPASS",
         "VITE_ANALYTICS_RELAY_URL",
-        // Baked as well (`electron.vite.config.ts` turns it into a `define`), so subject to
-        // the same rule as the URLs above. It was missing: two versions of the SAME code
-        // shared one entry, and a local build handed back the previous version's bundle —
-        // the renderer then reported to PostHog and Sentry a version that is not the one
-        // the installed app carries, precisely the mismatch
-        // `src/sentry/policy.test.ts` guards against in CI. Invisible in CI (the release
-        // job restores no turbo cache), fatal on a release made from a
-        // machine, where the cache is shared with every other build.
         "VITE_APP_VERSION"
       ]
     },
@@ -55,10 +28,14 @@
       "cache": false,
       "persistent": true
     },
+    // No `^build`: `tsconfig.workspace.json` points every `@openmasq/*` specifier at its
+    // SOURCE, so a typecheck reads the code in front of you, never a stale `dist/*.d.ts`.
     "typecheck": {
-      // `^build` is required: only `apps/desktop` aliases the packages to `src` through
-      // its `paths` (parity held by `pnpm check:alias`); everywhere else `tsc`
-      // resolves through node_modules, hence through the `dist/*.d.ts`.
+      "inputs": ["$TURBO_DEFAULT$", "!**/*.md", "../../tsconfig.workspace.json"]
+    },
+    // The two `NodeNext` apps cannot compile the packages' Bundler-style sources, so they
+    // check against `dist/*.d.ts` under a separate task that keeps the build dependency.
+    "typecheck:built": {
       "dependsOn": ["^build"],
       "inputs": ["$TURBO_DEFAULT$", "!**/*.md"]
     },

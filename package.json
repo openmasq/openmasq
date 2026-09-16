@@ -9,6 +9,7 @@
     "dev": "node scripts/tooling/turbo.mjs run dev",
     "build": "node scripts/tooling/turbo.mjs run build",
     "typecheck": "node scripts/tooling/turbo.mjs run typecheck",
+    "typecheck:built": "node scripts/tooling/turbo.mjs run typecheck:built",
     "lint": "node scripts/tooling/turbo.mjs run lint",
     "test": "vitest run",
     "test:watch": "vitest",

@@ -14,7 +14,7 @@
     "build": "node scripts/build-console.mjs && tsc -p tsconfig.json && node scripts/copy-console-assets.mjs",
     "start": "node dist/server.js",
     "bench": "tsx bench/run.ts",
-    "typecheck": "tsc --noEmit",
+    "typecheck:built": "tsc --noEmit",
     "clean": "rm -rf dist .turbo",
     "tokens": "node scripts/gen-console-tokens.mjs",
     "preview:ui": "tsx scripts/preview-ui.mts",

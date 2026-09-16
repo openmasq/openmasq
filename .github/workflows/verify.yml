@@ -114,7 +114,7 @@ jobs:
         run: pnpm build
 
       - name: Typecheck
-        run: pnpm typecheck
+        run: pnpm typecheck && pnpm typecheck:built
 
       # Lint (Biome), the whole tree: the classes of errors the typecheck cannot see —
       # a hook after a conditional return, a dead import, a cast optional chain. The

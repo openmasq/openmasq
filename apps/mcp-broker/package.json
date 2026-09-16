@@ -10,7 +10,7 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/index.js",
-    "typecheck": "tsc --noEmit",
+    "typecheck:built": "tsc --noEmit",
     "smoke": "tsx scripts/smoke.ts",
     "lint": "echo \"(no lint configured)\"",
     "clean": "rm -rf dist .turbo"
