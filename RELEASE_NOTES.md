@@ -50,6 +50,12 @@ kept in the French they were sent in, for the reason given above.
 
 ---
 
+## 0.11.2 — 2026-09-19
+> A value you mask by hand on a document is masked for the whole conversation.
+
+### Improvements & fixes
+- Masking a value by hand in a document's preview carries into the conversation, from its first message on.
+
 ## 0.11.1 — 2026-09-14
 > Your subscription comes first, and connecting it takes fewer steps.
 
