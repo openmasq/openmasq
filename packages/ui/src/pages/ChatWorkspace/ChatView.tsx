@@ -54,6 +54,7 @@ import { shouldShowRedactionIntro } from "../../privacy/redactionIntro";
 import { RedactionIntroCard } from "./RedactionIntroCard";
 import { TransparencyModal } from "../../containers/modals/TransparencyModal";
 import { reusableDocReplacements } from "./reusableDocReplacements";
+import { planSubmit } from "./submitPlan";
 import { forcedVaultPatch } from "./forcedFake";
 import { MAX_REDACT_CHARS, redactAttachment } from "./redactAttachment";
 import { stageDeferredFile } from "./deferredAttach";
@@ -1030,30 +1031,25 @@ export function ChatView({
     const askTarget = activeTarget
       ? { ...activeTarget, prompt: askTargetLaunchText(activeTarget) }
       : undefined;
-    if (usable.length > 0) {
-      clearInput();
-      setActiveTag(null);
-      setActiveSkill(null);
-        setActiveTarget(null);
-      setAttachments([]);
-      void runSend(text, usable, {
-        competence: skill,
-        askTarget,
-        docReplacements: reuseDocReplacements(usable),
-      });
-      return;
-    }
-    const plotTag = activeTag?.tag;
-    // Pre-conversation manual redactions ride the send opts; once a conversation
-    // exists they already live on it (store.forceRedact), so pass none.
-    const forcedRedactions = conversation || !pendingForced.length ? undefined : pendingForced;
+    // ONE option bag for both shapes of a send (`submitPlan.ts`, pure + tested): the
+    // pre-conversation manual redactions (`pendingForced`) ride it whether or not a
+    // document is attached — a document is the surface where one is most often made.
+    const plan = planSubmit({
+      attachments,
+      hasConversation: !!conversation,
+      pendingForced,
+      skill,
+      askTarget,
+      plotTag: activeTag?.tag,
+      reuseDocReplacements,
+    });
     clearInput();
     setActiveTag(null);
     setActiveSkill(null);
     setActiveTarget(null);
     setPendingForced([]);
     setAttachments([]);
-    void runSend(text, usable, { plotTag, competence: skill, askTarget, forcedRedactions });
+    void runSend(text, plan.files, plan.opts);
   }
 
   // The inline "Renseigner la clé" CTA on a failed bubble: open the key modal for
