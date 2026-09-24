@@ -143,3 +143,9 @@
 @import "./styles/theme/spadeDark.css";
 @import "./styles/theme/darkNotes.css";
 @import "./styles/debug/logModal.css";
+
+/* Tailwind v4 content detection skips node_modules, and the apps pull @openmasq/ui through
+   node_modules: without this line NO utility used inside a ui component (flex, min-h-0,
+   bg-brand…) is generated, and the class silently does nothing — the thread stops
+   scrolling, for one. Paths are relative to this file. `styles/tailwindSource.test.ts`. */
+@source "./**/*.{ts,tsx}";
