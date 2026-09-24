@@ -1,54 +1,39 @@
 /**
- * WHAT IS ALLOWED TO LEAVE FOR SENTRY — the decision, made once, for all three
- * processes (main + helpers, renderer, utilities).
+ * WHAT IS ALLOWED TO LEAVE IN A CRASH REPORT — decided once, for all three processes.
  *
- * ⚠️ By default, Sentry is the exact opposite of what this app promises. It captures
- * exception messages, breadcrumbs (console, network requests with their URLs, DOM
- * clicks with the element's TEXT), absolute paths — in an app where an agent
- * browser URL carries real data, where a console can print a real value,
- * and where a file path contains the user's name.
+ * ⚠️ By default the SDK captures the opposite of what this app promises (breadcrumbs with
+ * URLs and clicked text, absolute paths). So, rule 7: an ALLOW list. `scrubEvent`
+ * RECONSTRUCTS an event from only the fields enumerated here; a future SDK field carrying
+ * content is simply not copied.
  *
- * So, rule 7: **an ALLOW list, never a deny list.** `scrubEvent` doesn't "strip"
- * anything — it RECONSTRUCTS an event from only the fields enumerated here. A future SDK
- * that adds a field carrying content then has nothing to re-neutralize: it's
- * simply not copied over.
- *
- * The accepted RESIDUAL, stated plainly: the exception message and frame names are
- * FREE text — they can't be allow-listed field by field. So they go through
- * `scrubText`, which is, itself, a deny list of patterns (emails, personal paths,
- * URL queries, long digit runs) followed by a TRUNCATION. This is a mitigation,
- * not a guarantee: a message that interpolated a value of an unforeseen shape
- * would get through. The real defense is upstream — never interpolate user data into
- * an error message. `policy.test.ts` pins the covered patterns.
+ * The accepted RESIDUAL: the exception message and frame names are FREE text, so they go
+ * through `scrubText` (a deny list of patterns + truncation): a mitigation, not a
+ * guarantee. The real defense is upstream — never interpolate user data into an error
+ * message. `policy.test.ts` pins the covered patterns.
  */
 
 import { isOperationalError } from "@openmasq/analytics";
 import { scrubText } from "./scrubText";
 
-// Re-exported: `policy.ts` stays the one door to the scrubber (split out for the LOC cap).
+// Re-exported: `policy.ts` stays the one door to the scrubber.
 export { scrubText };
 
-/** The only network entry point of this file. Public by nature (a DSN only lets a client
- *  SEND to one project): the DEFAULT of every build, dev included (`scripts/publicServices.ts`),
- *  baked by `scripts/buildDefines.ts`; `OPENMASQ_SENTRY_DSN=` EMPTY ⇒ nothing initializes, nothing leaves. */
+/** Public by nature (a DSN only lets a client SEND). Default from `scripts/publicServices.ts`;
+ *  EMPTY ⇒ nothing initializes, nothing leaves. */
 export const SENTRY_DSN = process.env.OPENMASQ_SENTRY_DSN ?? "";
 
 /**
- * The ENVIRONMENT, always populated.
- *
- * ⚠️ Since the single-artifact principle, `VITE_UPDATES_CHANNEL` NO LONGER ties a build to an
- * environment: CI bakes `desktop-stable` everywhere (`release.yml` says why) and the joined
- * API is chosen at runtime. This field now only distinguishes a CI build from a local
- * one (`development` — information, not a default). Tracked residual: report the REAL
- * resolved environment; in the meantime the label states the baked channel, never a guessed env.
+ * The ENVIRONMENT, always populated. The baked channel no longer ties a build to an
+ * environment (the API is chosen at runtime): this only distinguishes a CI build from a
+ * local one, and states the baked channel, never a guessed env. Residual: report the REAL
+ * resolved environment.
  */
 export function resolveEnvironment(channel: string | undefined | null): string {
   const c = (channel ?? "").trim();
   if (!c) return "development";
   if (c.endsWith("production")) return "production";
   if (c.endsWith("staging")) return "staging";
-  // An unknown channel is reported AS IS rather than forced into "production":
-  // getting the environment wrong sends you looking for a bug where it isn't.
+  // An unknown channel is reported AS IS rather than forced into "production".
   return c;
 }
 
@@ -82,8 +67,7 @@ interface RawEvent {
 function cleanFrames(frames: unknown): CleanFrame[] {
   if (!Array.isArray(frames)) return [];
   const out: CleanFrame[] = [];
-  // The frames CLOSEST to the error are at the end of the array in Sentry: we keep
-  // the tail, which is what explains the failure.
+  // The frames CLOSEST to the error are at the end: keep the tail.
   for (const f of frames.slice(-30)) {
     const r = f as Record<string, unknown>;
     out.push({
@@ -93,17 +77,13 @@ function cleanFrames(frames: unknown): CleanFrame[] {
       ...(typeof r.colno === "number" ? { colno: r.colno } : {}),
       ...(typeof r.in_app === "boolean" ? { in_app: r.in_app } : {}),
     });
-    // ⚠️ `vars` (local variables) and `pre_context`/`context_line`/`post_context` (the SOURCE
-    // CODE around the line) are NOT copied over: these are the two fields through
-    // which a real value enters a crash report.
+    // ⚠️ `vars` and `pre_context`/`context_line`/`post_context` are NOT copied: the two
+    // fields through which a real value enters a crash report.
   }
   return out;
 }
 
-/**
- * Rebuilds the event from only the allowed fields. Returns `null` to
- * drop it — nothing is sent then.
- */
+/** Rebuilds the event from only the allowed fields; `null` drops it. */
 export function scrubEvent(event: RawEvent | null | undefined): Record<string, unknown> | null {
   if (!event) return null;
   const out: Record<string, unknown> = {};
@@ -112,8 +92,7 @@ export function scrubEvent(event: RawEvent | null | undefined): Record<string, u
     const v = event[k];
     if (typeof v === "string" || typeof v === "number") out[k] = v;
   }
-  // Only our own tags (set by `initSentry`), and only if they are
-  // scalars — a tag of unknown origin doesn't pass.
+  // Only our own tags, and only scalars.
   if (event.tags && typeof event.tags === "object") {
     const tags: Record<string, string> = {};
     for (const [k, v] of Object.entries(event.tags as Record<string, unknown>)) {
@@ -135,9 +114,8 @@ export function scrubEvent(event: RawEvent | null | undefined): Record<string, u
           type: scrubText(r.type ?? "Error"),
           value: scrubText(r.value ?? ""),
           stacktrace: { frames: cleanFrames(frames) },
-          // `mechanism.handled` is a BOOLEAN, never content — and it's what
-          // populates Sentry's "Unhandled"/crash-rate views, structurally empty
-          // without this copy-through (audit 13/08).
+          // `mechanism.handled` is a BOOLEAN, never content, and it is what populates
+          // the "Unhandled" / crash-rate views.
           ...(mech && typeof mech.handled === "boolean"
             ? { mechanism: { type: scrubText(mech.type ?? "generic"), handled: mech.handled } }
             : {}),
@@ -150,8 +128,7 @@ export function scrubEvent(event: RawEvent | null | undefined): Record<string, u
     // Neither exception nor message: nothing usable is left, so we don't send.
     return null;
   }
-  // `fingerprint`: strings that WE set (`[scope, code]`) — splits synthesized
-  // errors into distinct issues. Scalars, scrubbed, ≤ 5.
+  // `fingerprint`: strings WE set (`[scope, code]`). Scalars, scrubbed, ≤ 5.
   if (Array.isArray(event.fingerprint)) {
     const fp = (event.fingerprint as unknown[])
       .filter((f): f is string => typeof f === "string")
@@ -164,10 +141,8 @@ export function scrubEvent(event: RawEvent | null | undefined): Record<string, u
   if (user && typeof user.id === "string" && /^[0-9a-f-]{1,40}$/.test(user.id)) {
     out.user = { id: user.id };
   }
-  // `contexts` field by field, never as a block: os.name/os.version + device.arch are what
-  // distinguishes the product's two most expensive failure classes (missing VC++ on
-  // a fresh Windows, Intel .app with no ONNX engine). ⚠️ `device.name`/`device.model` (the machine's
-  // name = often the first name) NEVER pass through.
+  // `contexts` field by field, never as a block: os.name/version + device.arch locate a
+  // platform failure. ⚠️ `device.name`/`device.model` (often the user's first name) NEVER pass.
   const ctx = event.contexts as { os?: Record<string, unknown>; device?: Record<string, unknown> } | undefined;
   if (ctx && typeof ctx === "object") {
     const os: Record<string, string> = {};
@@ -180,28 +155,17 @@ export function scrubEvent(event: RawEvent | null | undefined): Record<string, u
     if (Object.keys(device).length) contexts.device = device;
     if (Object.keys(contexts).length) out.contexts = contexts;
   }
-  // ⚠️ `breadcrumbs`, `request`, `extra`, `modules`, `server_name` — and all the REST of
-  // `user`/`contexts` — are NEVER copied over. `server_name` is the machine's name
-  // (so often the user's first name); `breadcrumbs` carries visited URLs and the
-  // text of clicked elements; `contexts.device.name/model` identify the device.
+  // ⚠️ `breadcrumbs`, `request`, `extra`, `modules`, `server_name` and the REST of
+  // `user`/`contexts` are NEVER copied: they carry the machine's name, visited URLs and
+  // the text of clicked elements.
   return out;
 }
 
 /**
- * WHAT ISN'T WORTH SENDING — the other half of `beforeSend`.
- *
- * The predicate is NOT rewritten here: it's the one from `@openmasq/analytics`, already applied
- * to PostHog's `$exception` channel by `captureError`. It was custom-built — a
- * remote connector going down, an expired token refresh, an offline machine:
- * operational failures, not bugs. Sentry had never received it, and the result
- * showed in the dashboard: **1590 of 1710 events (93%) were two MCP
- * transport messages**, exactly the proportion the analytics doc had measured on
- * the other channel. A drowned crash channel is no longer useful — that's the bug.
- *
- * ⚠️ An UNCAUGHT crash is never discarded, whatever its text: that's the rule
- * of the predicate itself (`fatal`), and we pass it the information instead of re-deciding it.
- * Our two uncaught funnels are recognized by the `scope: "uncaught"` tag
- * (`main/runtime/errorReport.ts`) or by the SDK's mechanism (`handled: false`).
+ * WHAT ISN'T WORTH SENDING: the ONE predicate from `@openmasq/analytics` (operational
+ * failures — a connector down, an expired refresh, an offline machine — are not bugs, and
+ * a drowned crash channel is useless). ⚠️ An UNCAUGHT crash is never discarded: the
+ * predicate's own `fatal` rule, recognized by the `scope: "uncaught"` tag or `handled: false`.
  */
 function isUncaught(event: RawEvent): boolean {
   if (event.level === "fatal") return true;
@@ -239,10 +203,8 @@ function isOperationalNoise(event: RawEvent | null | undefined): boolean {
 }
 
 /**
- * Anti-flood cap, the Sentry counterpart of PostHog's `MAX_PER_SIGNATURE`: a reconnection
- * loop rejecting the same error 500 times burned the quota without learning anything
- * more. Per SIGNATURE (truncated type+message), per session; uncaught has a higher
- * cap — a crash loop is precisely what we want to see, but not 500 times.
+ * Anti-flood cap per SIGNATURE (truncated type+message), per session; uncaught has a
+ * higher cap (a crash loop is what we want to see, but not hundreds of times).
  */
 const MAX_PER_SIGNATURE = 5;
 const MAX_PER_SIGNATURE_UNCAUGHT = 20;
@@ -258,10 +220,8 @@ function overSignatureCap(event: RawEvent): boolean {
 }
 
 /**
- * `beforeSend`, whole and in a single place: we discard operational noise and
- * flooding, then RECONSTRUCT what's left. All three processes call it — it used to be
- * `scrubEvent` copied into each `init`, and a filter added to just one of them would only have
- * held there.
+ * `beforeSend`, whole and in a single place for all three processes: discard operational
+ * noise and flooding, then RECONSTRUCT what's left.
  */
 export function sentryBeforeSend(event: RawEvent | null | undefined): Record<string, unknown> | null {
   if (!event) return null;
@@ -270,11 +230,7 @@ export function sentryBeforeSend(event: RawEvent | null | undefined): Record<str
   return scrubEvent(event);
 }
 
-/** The tags WE set — everything else is discarded. */
-// `scope`/`code` come from `runtime/errorReport.ts`: bounded enumerations
-// ("updates", "mcp", "uncaught"…), the same kind the analytics allow
-// list already lets through. Truncated like the others.
-// `event.process`: set by the Electron SDK on a RELAYED event (renderer→main,
-// child) — without it, a renderer event arrived tagged `process: app` (main's
-// scope, applied to the relay) and the faulty process was unreadable.
+/** The tags WE set — everything else is discarded. `scope`/`code` are bounded
+ *  enumerations (`runtime/errorReport.ts`); `event.process` is set by the SDK on a RELAYED
+ *  event and names the faulty process. */
 const ALLOWED_TAGS = new Set(["process", "channel", "packaged", "build", "scope", "code", "event.process"]);

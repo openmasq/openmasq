@@ -30,7 +30,6 @@ const flag = (name: string): string | undefined => {
   const i = ARGV.indexOf(`--${name}`);
   return i >= 0 ? ARGV[i + 1] : undefined;
 };
-// laguna-xs-2.1: 9/9 real · 120 s · 55 % cache on the 2026-07-24 bench — the reference.
 const DEFAULT_MODELS = "poolside/laguna-xs-2.1,inclusionai/ling-2.6-flash,nex-agi/nex-n2-mini";
 const MODELS = (flag("models") ?? DEFAULT_MODELS).split(",").map((s) => s.trim()).filter(Boolean);
 const MODES = (flag("modes") ?? "declared").split(",").map((s) => s.trim()).filter(Boolean);

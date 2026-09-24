@@ -5,13 +5,11 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { homedir, platform, tmpdir } from "node:os";
 
-// The seatbelt profile of `pnpm claude:sandbox`. The trap that cost a whole session:
-// a `deny file-read* (subpath "/Users")` makes unreachable what it ALLOWS elsewhere,
-// because realpath(3) — which Node applies to every entry point — lstats EACH component of
-// the path. The symptom comes out as `EPERM … lstat '/Users'` on a file that IS in the
-// repository, and reads like a broken tool. Hence these tests: they judge the profile that is
-// REALLY printed (`--print-profile` is what the launch applies), not a copy of its rules.
-// macOS only — which is already true of the script itself.
+// The seatbelt profile of `pnpm claude:sandbox`. A `deny file-read* (subpath "/Users")`
+// makes unreachable what it ALLOWS elsewhere, because realpath(3) lstats EACH component of
+// a path — the symptom is `EPERM … lstat '/Users'` on a file that IS in the repository.
+// These tests judge the profile REALLY printed (`--print-profile` is what the launch
+// applies), not a copy of its rules. macOS only, like the script.
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const SCRIPT = join(HERE, "claude-sandbox.sh");
@@ -32,22 +30,16 @@ const MAC = platform() === "darwin";
 
 describe.skipIf(!MAC)("claude-sandbox — le profil seatbelt", () => {
   const profile = join(mkdtempSync(join(tmpdir(), "openmasq-sb-")), "profil.sb");
-  // ⚠️ `describe.skipIf` only skips the TESTS: the `describe` body is evaluated at
-  // COLLECTION time, no matter what. Without this condition, `--print-profile` used to run on the
-  // CI's Linux runner — where the script refuses to run (seatbelt, `sandbox-exec` and the
-  // `claude` binary are macOS facts) — and the suite FAILED at collection instead of being
-  // skipped: the whole CI red, for a test that was not meant to apply there.
+  // `describe.skipIf` only skips the TESTS: the `describe` body runs at COLLECTION time on
+  // every platform, so the macOS-only command must be guarded here too.
   if (MAC) writeFileSync(profile, printProfile());
 
   const run = (argv: string[]) => spawnSync("sandbox-exec", ["-f", profile, ...argv], { encoding: "utf8" });
   const permis = (argv: string[]) => run(argv).status === 0;
 
   it("lets Node resolve a file FROM THE REPOSITORY — the case that blocked everything", () => {
-    // realpath lstats EACH ancestor of the path (/Users, then each folder) before reaching
-    // the allowed file.
-    // Without the ancestors' metadata: EPERM, and with it the driver, vitest, tsc, the
-    // check:* gates and the pre-commit hook — everything that enters through a PATH
-    // rather than -e.
+    // realpath lstats EACH ancestor before reaching the allowed file; without the ancestors'
+    // metadata everything that enters through a PATH gets EPERM.
     const r = run([process.execPath, "-e", `require("fs").realpathSync(${JSON.stringify(join(PROJECT, "package.json"))})`]);
     expect(r.stderr).not.toMatch(/EPERM|not permitted/);
     expect(r.status).toBe(0);

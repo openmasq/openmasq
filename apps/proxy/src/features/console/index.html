@@ -1,0 +1,1530 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<!-- No remote font, no CDN: a console that shows what never left the machine must not
+     itself call one. The families below fall back to the system stack. -->
+<link rel="stylesheet" href="./tokens.css">
+<!-- The page's own decisions, bundled from `page/` so they can be typed and tested
+     (`scripts/build-console.mjs`). Loaded before the inline script, which calls into it. -->
+<script src="./app.js"></script>
+<link rel="icon" href="data:,"><!-- no favicon request: it would be relayed and logged -->
+<title>OpenMasq CLI — personal data log</title>
+<style>
+/* One page, served by `openmasq serve --inspect`. Not part of the desktop app: it is the
+   window onto what the MCP server actually forwarded, so the whole layout is a log table
+   with a recap above it. Tokens come from styles.css; the theme flips on [data-theme]. */
+*{box-sizing:border-box}
+html,body{height:100%;margin:0 }
+body{background:var(--surface-page);color:var(--text-body);font-family:var(--font-body,"Space Grotesk",system-ui,sans-serif);font-size:14px;-webkit-font-smoothing:antialiased}
+:root{--mono:"Space Mono",ui-monospace,monospace}
+/* The log row gets a floor so it can never be squeezed to nothing; the strips above it
+   compress instead (see the max-height queries below). */
+/* The log row gets a floor so it can never be squeezed to nothing; the strips above it
+   compress instead (see the max-height queries below).
+   grid-template-columns is REQUIRED: without it the single implicit column floors at the
+   min-content of the widest item (.top's nowrap flex row, 982px), overflowing the
+   container — which overflow:hidden then swallows, taking the drawer's close button and
+   the export action off-screen with no way to scroll to them. */
+.app{display:grid;grid-template-columns:minmax(0,1fr);grid-template-rows:auto auto auto minmax(190px,1fr) auto;height:100vh;overflow:hidden}
+.app>*{min-width:0}
+a{color:var(--brand)}a:hover{color:var(--brand-hover)}
+button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+
+/* ---------- top bar ---------- */
+.top{display:flex;align-items:center;gap:10px;height:52px;padding:0 14px;border-bottom:1px solid var(--border-subtle);background:var(--surface-card)}
+.mark{display:flex;align-items:center;gap:9px;padding-right:12px;margin-right:2px;border-right:1px solid var(--border-subtle);height:28px}
+.mark img{width:19px;height:19px}
+/* The mark ships as two assets with hard-coded fills (#141726 / #FFFFFF) — the dark one is
+   1.02:1 on the dark top bar. The THEME picks, at the source: no CSS filter, and the same
+   two files the landing pages already use. */
+.mark .m-dark{display:none}
+[data-theme="dark"] .mark .m-light{display:none}
+[data-theme="dark"] .mark .m-dark{display:block}
+.mark b{font-weight:700;letter-spacing:-.02em;color:var(--text-strong)}
+.mark span{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--text-muted)}
+.pill{display:inline-flex;align-items:center;gap:7px;height:30px;padding:0 11px;border-radius:8px;border:1px solid var(--border-default);font-size:12.5px;color:var(--text-body);white-space:nowrap}
+.pill:hover{border-color:var(--border-strong);color:var(--text-strong)}
+.pill svg{width:13px;height:13px;opacity:.7;flex-shrink:0}
+.pill .k{font-family:var(--mono);font-size:11px;color:var(--text-muted)}
+.pill.on{border-color:var(--brand);color:var(--brand)}
+.seg{display:flex;gap:2px;padding:2px;border-radius:9px;background:var(--surface-sunken);border:1px solid var(--border-subtle)}
+.seg button{display:inline-flex;align-items:center;gap:6px;height:26px;padding:0 11px;border-radius:7px;font-size:12.5px;color:var(--text-muted);white-space:nowrap}
+.seg button svg{width:14px;height:14px;opacity:.75;flex-shrink:0}
+.seg button.on svg{opacity:1}
+#copy-json{display:inline-flex;align-items:center;gap:5px}
+#copy-json svg{width:12px;height:12px;opacity:.7}
+.sh-sub button svg,.pill svg{flex-shrink:0}
+.seg button:hover{color:var(--text-strong)}
+.seg button.on{background:var(--surface-card);color:var(--text-strong);font-weight:600;box-shadow:0 1px 2px rgba(10,12,30,.10)}
+.c-ses{width:150px}
+.ses{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11.5px;color:var(--text-muted)}
+.ses i{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.ses.none{color:var(--text-faint)}
+.c-tok{width:190px}.c-type{width:150px}.c-cat{width:150px}
+.tok{display:inline-flex;align-items:center;gap:8px;min-width:0}
+.cat-tag{display:inline-flex;align-items:center;gap:7px;font-size:11.5px;color:var(--text-body)}
+.cat-tag i{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+/* A revealed value: plain text with a dotted rule under it — no fill, because a mark
+   would say "protected" about a value that is showing in clear. */
+.clr{font-family:var(--mono);border-bottom:1px dashed var(--border-strong);color:var(--text-strong)}
+.hid{font-family:var(--mono);color:var(--text-muted);letter-spacing:.12em}
+.key{display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding:7px 16px;border-bottom:1px solid var(--border-subtle);background:var(--surface-sunken);font-size:11.5px;color:var(--text-muted)}
+.key b{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--text-strong)}
+.key .k-i{display:inline-flex;align-items:center;gap:7px;min-width:0}
+.key .k-i .rd{font-size:11px}
+.key .k-n{margin-left:auto;text-align:right}
+@media (max-width:780px){.key .k-n{margin-left:0;text-align:left}}
+/* The tooltip's own look. The PLACEMENT is `@openmasq/ui`'s (`page/tooltip.ts` says why);
+   this is the bubble, and it carries the app's decisions verbatim: an INVERTED ground, so it
+   reads as an overlay ON the page rather than another surface OF it; `pre-line`, because a
+   label may carry its own line breaks; a max-width, because these labels are sentences and a
+   `nowrap` bubble runs off a viewport no arithmetic can rescue; and never a pointer target,
+   or moving onto it fires the trigger's mouseout and the pair flickers. */
+.tip{position:fixed;z-index:1000;max-width:min(320px,calc(100vw - 32px));padding:6px 10px;
+  border-radius:var(--radius-sm);background:var(--text-strong);color:var(--surface-card);
+  font-family:var(--font-sans);font-size:11.5px;font-weight:500;line-height:1.35;
+  text-align:center;overflow-wrap:anywhere;white-space:pre-line;box-shadow:var(--shadow-md);
+  pointer-events:none;animation:tip-in .12s ease-out}
+.tip[hidden]{display:none}
+@keyframes tip-in{from{opacity:0;transform:translateY(-2px)}to{opacity:1;transform:none}}
+.tip.above{animation-name:tip-in-up}
+@keyframes tip-in-up{from{opacity:0;transform:translateY(2px)}to{opacity:1;transform:none}}
+/* The read-only banner, and the mark that makes an inert control LOOK inert. `aria-disabled`
+   is the right thing to say to a screen reader and says nothing at all to a mouse: the cards
+   read as radios and the rows as switches, so a click that did nothing read as a broken page
+   rather than the deliberate boundary it is. Cursor + muted switch + one banner, once. */
+/* The per-connector level selector — the kit's shape. `ro` is the read-only run: the state
+   is still shown, because knowing what a connector masks matters whether or not you can
+   change it here, but nothing reads as pressable. */
+.lvsel{display:flex;gap:2px;padding:2px;border-radius:8px;background:var(--surface-sunken);flex-shrink:0}
+.srv-r.up .lvsel{background:color-mix(in oklab,var(--text-strong) 6%,transparent)}
+.lvsel button{height:21px;padding:0 7px;border-radius:6px;font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--text-muted);cursor:pointer}
+.lvsel button:hover:not(:disabled){color:var(--text-strong)}
+.lvsel button.on{background:var(--surface-card);color:var(--ink-on-blue)}
+.lvsel.ro button{cursor:default}
+.lvsel.ro button:not(.on){opacity:.5}
+.sh-toast{min-height:0;padding:0 16px;font-size:11.5px;line-height:1.5;color:var(--ink-on-blue);transition:min-height .15s}
+.sh-toast:not(:empty){min-height:28px;padding:7px 16px}
+.sh-toast.bad{color:var(--hl-red)}
+/* The collapsed row's multiplier: « 8 ×8 » = eight occurrences across eight calls. Kept
+   discreet — the number that matters is the total; the call count answers the second
+   question (was it repeated INSIDE one call, or carried by many?). */
+.cnt em{font-style:normal;font-family:var(--mono);font-size:9.5px;color:var(--text-muted);margin-left:4px}
+.ro-b{display:flex;align-items:flex-start;gap:9px;padding:9px 11px;margin-bottom:14px;
+  border:1px solid var(--border-subtle);border-radius:10px;background:var(--surface-sunken);
+  font-size:11.5px;line-height:1.45;color:var(--text-muted)}
+.ro-b svg{width:15px;height:15px;flex-shrink:0;margin-top:1px;color:var(--text-strong)}
+.tier.ro,.det.ro{cursor:default}
+.det.ro .sw{opacity:.55}
+.pair{display:flex;flex-direction:column;gap:3px;min-width:0}
+.pair .v2{font-size:11px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#reveal.on{border-color:var(--brand);color:var(--ink-on-blue)}
+#reveal.on #eye-slash{display:none}
+
+/* ---------- the journey ----------
+   The reader has ONE question: did my real value leave this machine? So the BOUNDARY is
+   the structure, not the six steps. Two zones, one crossing each way; the steps inside a
+   zone are compact rows. This replaces a 6-hop rail where every step repeated its own
+   zone badge, its own note and its own transition chip — 18 blocks to answer one thing. */
+.flow{padding:0 15px 4px}
+.zn{border:1px solid var(--border-subtle);border-radius:10px;overflow:hidden}
+.zn+.zn{margin-top:0}
+.zn-h{display:flex;align-items:center;gap:8px;padding:8px 11px;font-family:var(--mono);font-size:9.5px;font-weight:700;letter-spacing:.11em;text-transform:uppercase}
+.zn-h i{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.zn.loc{background:var(--brand-soft);border-color:transparent}
+.zn.loc .zn-h{color:var(--ink-on-blue)}
+.zn.loc .zn-h i{background:var(--brand)}
+.zn.tool{background:var(--surface-card);border-color:var(--border-default);border-style:dashed}
+.zn.tool .zn-h{color:var(--ink-on-blue)}
+.zn.tool .zn-h i{background:var(--hl-amber)}
+.zn.rem{background:var(--surface-sunken)}
+.zn.rem .zn-h{color:var(--text-muted)}
+.zn.rem .zn-h i{background:var(--text-muted)}
+.zn-b{padding:0 11px 10px;display:flex;flex-direction:column;gap:8px}
+.st{display:grid;grid-template-columns:7.5em 1fr;gap:3px 12px;align-items:baseline}
+.st .k{font-family:var(--mono);font-size:10.5px;color:var(--text-muted);text-transform:uppercase;letter-spacing:.06em}
+.st .p{font-family:var(--mono);font-size:11.5px;line-height:1.6;color:var(--text-body);word-break:break-word;min-width:0}
+@media(max-width:1100px){.st{grid-template-columns:1fr}}
+.rd{max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:inline-block;vertical-align:bottom}
+.stat.warn .v b{color:var(--hl-amber-ink,inherit)}
+.stat.warn{box-shadow:inset 3px 0 0 var(--cav-financier)}
+#pass{font-size:11.5px}
+@media(max-width:1000px){.body.has-detail{display:block}.body.has-detail .detail{position:relative;width:auto;max-width:none;max-height:52vh;overflow:auto;border-left:0;border-top:1px solid var(--border)}.body.has-detail .tablewrap{max-height:40vh;overflow:auto}}
+/* The crossing: what the engine does AT the boundary, stated once per direction. */
+.cross{display:flex;align-items:center;gap:9px;padding:9px 2px;font-family:var(--mono);font-size:10.5px;color:var(--text-body)}
+.cross svg{width:13px;height:13px;flex-shrink:0;color:var(--brand)}
+.cross b{color:var(--text-strong)}
+.cross .ln{flex:1;height:1px;background:var(--border-default);min-width:8px}
+.zn-note{padding:0 11px 10px;font-size:11.5px;line-height:1.55;color:var(--text-muted)}
+.d-items{padding:0 15px}
+.d-item{display:grid;grid-template-columns:1fr auto;gap:4px 12px;padding:11px 0;border-top:1px solid var(--border-subtle)}
+.d-item:first-child{border-top:0}
+.d-item .tk{grid-column:1;font-family:var(--mono);font-size:12.5px}
+.d-item .oc{grid-column:2;grid-row:1;font-family:var(--mono);font-size:11px;color:var(--text-muted);white-space:nowrap}
+.d-item .mt{grid-column:1/-1;display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:11.5px;color:var(--text-muted)}
+.search{flex:1;min-width:120px;display:flex;align-items:center;gap:9px;height:30px;padding:0 11px;border-radius:8px;border:1px solid transparent;background:var(--surface-sunken)}
+.search:focus-within{border-color:var(--border-focus)}
+.search svg{width:14px;height:14px;color:var(--text-muted);flex-shrink:0}
+.search input{flex:1;min-width:0;background:none;border:0;outline:0;color:var(--text-strong);font-family:var(--mono);font-size:12.5px}
+.search input::placeholder{color:var(--text-muted);font-family:"Space Grotesk",system-ui,sans-serif}
+.iconbtn{display:grid;place-items:center;width:30px;height:30px;border-radius:8px;border:1px solid var(--border-default);color:var(--text-muted)}
+.iconbtn:hover{border-color:var(--border-strong);color:var(--text-strong)}
+.iconbtn svg{width:15px;height:15px}
+/* Two roles, two classes. `.tail` is permanent and owns the geometry and type, so the
+   button keeps its size and its place in the row when tailing is paused; `.live` adds
+   ONLY the brand fill and the blink. Toggling a class that carried both left an unstyled
+   28×17 text fragment with a 0px-wide dot. */
+.tail{display:inline-flex;align-items:center;gap:7px;height:30px;padding:0 11px;border-radius:8px;border:1px solid var(--border-default);background:none;color:var(--text-muted);font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase}
+.tail:hover{border-color:var(--border-strong);color:var(--text-strong)}
+.tail i{width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
+.tail.live{border-color:transparent;background:var(--brand);color:var(--brand-contrast)}
+.tail.live i{animation:blink 1.6s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.25}}
+@media(max-width:1080px){.mark span{display:none}}
+/* .top still WANTS ~982px. Below that the two lowest-priority controls shed their
+   labels rather than pushing the row wider than the window. */
+@media(max-width:960px){#tail{font-size:10.5px}}
+
+/* ---------- recap ---------- */
+.recap{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;border-bottom:1px solid var(--border-subtle);background:var(--surface-card)}
+.stat{padding:15px 18px;border-right:1px solid var(--border-subtle);min-width:0}
+.stat .lb{display:block;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--text-muted)}
+.stat .v{display:flex;align-items:baseline;gap:8px;margin-top:7px}
+.stat .v b{font-family:var(--mono);font-size:25px;font-weight:700;letter-spacing:-.03em;color:var(--text-strong);line-height:1}
+.stat .v em{font-style:normal;font-size:12px;color:var(--text-muted)}
+.stat .v em.up{color:var(--brand)}
+.stat .sub{margin-top:6px;font-size:11.5px;color:var(--text-muted)}
+/* The category breakdown. It sits UNDER the histogram, not in the recap strip: that strip
+   scrolls horizontally below 1180px, and a 330px cell holding 823px of legend became a
+   scroller inside a scroller — 2 of 8 categories reachable, its overlay scrollbar drawn
+   across a 17px row. Here it has the full width and the legend simply wraps. */
+.cats{padding:12px 0 0;margin-top:11px;border-top:1px solid var(--border-subtle);min-width:0}
+.bar{display:flex;height:9px;border-radius:3px;overflow:hidden;background:var(--surface-sunken)}
+.bar i{display:block;height:100%}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:10px}
+.legend span{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--text-muted);white-space:nowrap}
+.legend i{width:8px;height:8px;border-radius:2px;flex-shrink:0}
+.legend b{font-family:var(--mono);font-size:11.5px;color:var(--text-strong);font-weight:700}
+/* Narrow: the four figures stay side by side (they are short) — no wrapping into a second
+   row, which doubled the strip's height and starved the log row. */
+@media(max-width:820px){.stat{padding:11px 13px}.stat .v b{font-size:20px}}
+
+
+/* ---------- histogram ---------- */
+.histo{padding:14px 18px 12px;border-bottom:1px solid var(--border-subtle);background:var(--surface-page)}
+.histo-h{display:flex;align-items:baseline;justify-content:space-between;gap:16px}
+.histo-h .lb{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--text-muted)}
+.histo-h .rt{font-family:var(--mono);font-size:11px;color:var(--text-muted)}
+/* The timeline is DERIVED from the journal it sits above (design-system `cli-logs` kit): one
+   bucket per slice of the loaded window, so clicking a bucket filters to exactly the rows it
+   counts. A fixed bucket width (not flex:1) is what makes that click a stable target — and
+   what makes the strip scroll horizontally instead of compressing sixty buckets into a smear. */
+.scx{overflow-x:auto;overflow-y:hidden;margin-top:11px;padding-bottom:2px;overscroll-behavior-x:contain}
+.bars{display:flex;align-items:flex-end;gap:2px;height:66px;width:max-content;min-width:100%}
+.bars>div{flex:0 0 24px;display:flex;flex-direction:column;justify-content:flex-end;gap:1px;height:100%;border-radius:2px;cursor:pointer;opacity:.92;position:relative}
+.bars>div:hover{opacity:1}
+.bars>div:hover::after,.bars>div.on::after{content:"";position:absolute;inset:-2px -1px;border:1px solid var(--border-strong);border-radius:3px}
+.bars>div.on::after{border-color:var(--brand);border-width:1.5px}
+.bars>div.nil{opacity:.4}
+.bars>div i{display:block;width:100%;border-radius:1px}
+.axis{display:flex;gap:2px;margin-top:7px;width:max-content;min-width:100%;font-family:var(--mono);font-size:10.5px;color:var(--text-muted)}
+.axis>span{flex:0 0 24px;white-space:nowrap}
+.axis>span.lb{overflow:visible}
+/* The scale picker: same segmented control as the view switch in the top bar. */
+.sc-seg button{height:22px;padding:0 9px;font-family:var(--mono);font-size:10.5px;letter-spacing:.02em}
+/* The active-bucket chip: the filter has to be visible and undoable where it was set. */
+.bchip{display:inline-flex;align-items:center;gap:8px;height:22px;padding:0 4px 0 9px;border-radius:7px;background:var(--brand-soft);font-family:var(--mono);font-size:10.5px;color:var(--ink-on-blue)}
+.bchip b{font-weight:700}
+.bchip button{display:grid;place-items:center;width:18px;height:18px;border-radius:5px;color:inherit}
+.bchip button:hover{background:rgba(5,6,26,.08)}
+.bchip svg{width:11px;height:11px}
+#bkt-chip:empty{display:none}
+.histo-h{gap:12px;align-items:center}
+.histo-h .rt{margin-left:auto}
+
+/* ---------- body: table + drawer ---------- */
+.body{display:grid;grid-template-columns:1fr;min-height:0}
+.body.has-detail{grid-template-columns:minmax(0,1fr) 460px}
+.tablewrap{min-width:0;overflow:auto;background:var(--surface-page)}
+table{width:100%;border-collapse:collapse;table-layout:fixed}
+thead th{position:sticky;top:0;z-index:2;text-align:left;padding:9px 14px;background:var(--surface-page);border-bottom:1px solid var(--border-default);font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--text-muted)}
+tbody td{padding:9px 14px;border-bottom:1px solid var(--border-subtle);font-family:var(--mono);font-size:12px;color:var(--text-body);vertical-align:top}
+tbody tr{cursor:pointer}
+tbody tr:hover td{background:var(--surface-sunken)}
+tbody tr.sel td{background:var(--brand-soft)}
+tbody tr.sel td:first-child{box-shadow:inset 2px 0 0 var(--brand)}
+/* --text-faint is NOT used as ink anywhere on this page: it measures 4.19:1 on
+   --surface-card (dark) and 4.55:1 on card (light), under/at AA for the 10-12px this
+   page is built from. It survives only as a 6px graphic (.lvl.pass's dot). Promoting
+   three named sites at a time is how this took four passes — the rule is the sweep. */
+.c-time{width:132px;color:var(--text-muted);white-space:nowrap}
+.c-src{width:150px}
+.c-lvl{width:104px}
+.c-cnt{width:86px;text-align:right}
+.msg{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text-body)}
+.src{display:inline-flex;align-items:center;gap:7px;color:var(--text-body);min-width:0}
+.src svg{width:12px;height:12px;opacity:.7;flex-shrink:0}
+.lvl{display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase}
+.lvl i{width:6px;height:6px;border-radius:50%;flex-shrink:0}
+.lvl.pass{color:var(--text-muted)}.lvl.pass i{background:var(--text-faint)}
+/* Brand INK, not brand FILL: --brand is #3939FA in both themes, so it cannot follow its
+   ground (3.00:1 on the dark page). --ink-on-blue is the theme-re-pointed pair —
+   #1B2E7A on light, #A9BCFF on dark. */
+.lvl.mask{color:var(--ink-on-blue)}.lvl.mask i{background:var(--brand)}
+.lvl.block{color:var(--ink-on-red)}.lvl.block i{background:var(--red-500)}
+/* A masked value in the message: the marker swipe, in its category hue. */
+.rd{display:inline-block;padding:0 5px;border-radius:3px;font-weight:700}
+.cnt{font-family:var(--mono);font-size:11.5px;color:var(--text-muted)}
+.cnt b{color:var(--text-strong)}
+
+/* ---------- drawer ---------- */
+/* min-height:0 on BOTH the row and the flex item: without it .detail takes its content
+   height (511px) and bursts the 1fr row, pushing the table off-screen. */
+.detail{display:flex;flex-direction:column;min-width:0;min-height:0;border-left:1px solid var(--border-default);background:var(--surface-card)}
+.d-top{display:flex;align-items:center;gap:10px;padding:13px 15px 0}
+.d-top .ts{flex:1;font-family:var(--mono);font-size:13px;color:var(--text-strong)}
+.d-chips{display:flex;flex-wrap:wrap;gap:7px;padding:11px 15px 13px}
+.chip{display:inline-flex;align-items:center;gap:6px;height:23px;padding:0 9px;border-radius:6px;background:var(--surface-sunken);font-family:var(--mono);font-size:11px;color:var(--text-muted)}
+.chip svg{width:11px;height:11px;opacity:.75}
+.chip b{color:var(--text-strong);font-weight:700}
+.d-tabs{display:flex;gap:2px;padding:0 9px;border-bottom:1px solid var(--border-subtle)}
+.d-tabs button{padding:9px 11px;font-size:12.5px;color:var(--text-muted);border-bottom:2px solid transparent;margin-bottom:-1px}
+.d-tabs button:hover{color:var(--text-strong)}
+.d-tabs button.on{color:var(--text-strong);border-bottom-color:var(--brand);font-weight:600}
+.d-body{flex:1;min-height:0;overflow:auto;padding:13px 0 20px}
+.d-sec{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:0 15px 10px}
+.d-sec .lb{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--text-muted)}
+.d-sec .lb svg{width:12px;height:12px}
+.d-acts{display:flex;gap:6px}
+.d-acts button{display:inline-flex;align-items:center;gap:6px;height:25px;padding:0 9px;border-radius:6px;border:1px solid var(--border-default);font-family:var(--mono);font-size:11px;color:var(--text-muted)}
+.d-acts button:hover{border-color:var(--border-strong);color:var(--text-strong)}
+/* The JSON body: gutter numbers, one row per line, masked values swiped in place. */
+.json{font-family:var(--mono);font-size:12px;line-height:1.75}
+.json .ln{display:grid;grid-template-columns:38px 1fr;gap:0}
+.json .ln:hover{background:var(--surface-sunken)}
+.json .no{text-align:right;padding-right:11px;color:var(--text-muted);user-select:none}
+.json .co{padding-right:15px;white-space:pre-wrap;word-break:break-word;color:var(--text-body)}
+.json .key{color:var(--text-strong)}
+.json .str{color:var(--ink-on-blue)}
+.json .num{color:var(--cav-financier-on,#7A4B00)}
+.json .pun{color:var(--text-muted)}
+[data-theme="dark"] .json .num{color:var(--hl-amber,#FFB85C)}
+.d-fields{padding:0 15px}
+.d-fields .fr{display:grid;grid-template-columns:8.5em 1fr;gap:8px 12px;padding:9px 0;border-top:1px solid var(--border-subtle);align-items:baseline}
+.d-fields .fr:first-child{border-top:0}
+.d-fields .fk{font-family:var(--mono);font-size:11px;color:var(--text-muted)}
+.d-fields .fv{font-family:var(--mono);font-size:12px;color:var(--text-strong);word-break:break-word}
+.empty{display:grid;place-content:center;gap:9px;padding:60px 24px;text-align:center;color:var(--text-muted)}
+.empty svg{width:26px;height:26px;margin:0 auto;opacity:.6}
+.empty b{display:block;font-family:var(--font-body,inherit);font-size:14px;font-weight:600;color:var(--text-muted)}
+.empty span{font-size:12.5px;max-width:30ch}
+/* Narrow: the drawer overlays the table instead of replacing it — hiding .tablewrap left
+   the page with no log at all, which is the one thing it exists to show. */
+@media(max-width:1100px){
+  .body.has-detail{grid-template-columns:1fr}
+  .body{position:relative}
+  .detail{position:absolute;inset:0 0 0 auto;width:min(460px,100%);z-index:5;box-shadow:-18px 0 40px rgba(10,12,30,.16)}
+}
+
+/* ---------- footer strip ---------- */
+/* On --surface-card, hence --text-muted like every other ink here. */
+.foot{display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding:8px 15px;border-top:1px solid var(--border-subtle);background:var(--surface-card);font-family:var(--mono);font-size:11px;color:var(--text-muted)}
+.foot b{color:var(--text-strong);font-weight:400}
+.foot .sp{flex:1}
+/* ---------- viewport-height compression (MUST stay last: equal specificity) ---------- */
+/* Short viewports: the log is the content, so the strips above it yield. */
+@media(max-height:760px){
+  .histo{padding:9px 18px 8px}
+  .bars{height:34px;margin-top:7px}
+  .histo .axis{display:none}
+  .stat,.cats{padding:11px 16px}
+  .stat .v{margin-top:4px}
+  .stat .v b{font-size:20px}
+  .stat .sub{display:none}
+}
+/* Rows are assigned EXPLICITLY: collapsing a strip with display:none removes it as a
+   grid item, and everything below shifts up a row — the status bar then inherits the
+   minmax(190px,1fr) log row and grows to 190px tall. */
+.top{grid-row:1}
+.recap{grid-row:2}
+.histo{grid-row:3}
+.body{grid-row:4}
+.foot{grid-row:5}
+@media(max-height:620px){
+  /* Keep the histogram, just at its smallest legible size — clipping it to 0 left a
+     27px sliver of cut-off bars, which reads as a rendering fault. */
+  .histo{padding:7px 18px 6px}
+  .histo-h .rt{display:none}
+  .bars{height:22px;margin-top:5px}
+  .cats{padding-top:9px;margin-top:8px}
+  .legend{margin-top:8px;gap:4px 13px;font-size:11px}
+}
+
+/* ---------- configuration sheet (design-system `cli-logs` kit) ----------
+   Two things the reader needs beside the log: how hard the masking bites right now, and what
+   the agent's tools go through. They are not log content, so they sit in a sheet over it
+   instead of stealing rows from it — same vocabulary as the desktop app's Confidentialité and
+   Connecteurs panes.
+   ⚠️ READ-ONLY on purpose. The page may SHOW the rules; changing them is a decision taken
+   where the operator is, on the terminal — a token in a URL (browser history, a shared
+   screen) is not an authorisation to lower masking. So the switches are `aria-disabled` and
+   every panel carries the CLI equivalent of the change, which is what the kit prescribes. */
+.scrim{position:fixed;inset:0;background:rgba(5,6,26,.44);opacity:0;pointer-events:none;transition:opacity .18s;z-index:40}
+.scrim.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;top:0;right:0;bottom:0;width:min(468px,94vw);display:flex;flex-direction:column;background:var(--surface-page);border-left:1px solid var(--border-default);box-shadow:-18px 0 48px rgba(5,6,26,.16);transform:translateX(100%);transition:transform .2s cubic-bezier(.32,.72,0,1);z-index:41}
+.sheet.on{transform:none}
+.sh-h{display:flex;align-items:center;gap:10px;height:52px;padding:0 14px;border-bottom:1px solid var(--border-subtle);background:var(--surface-card);flex-shrink:0}
+.sh-h b{font-size:14.5px;color:var(--text-strong)}
+.sh-h .seg{margin-left:auto}
+.sh-b{flex:1;overflow-y:auto;padding:16px 16px 22px}
+.sh-lb{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--text-muted);margin-bottom:11px}
+.sh-note{margin-top:12px;font-size:12px;line-height:1.55;color:var(--text-muted)}
+.cmd{display:flex;align-items:center;gap:9px;margin-top:13px;padding:10px 12px;border-radius:9px;background:var(--surface-sunken);border:1px solid var(--border-subtle);font-family:var(--mono);font-size:11.5px;color:var(--text-body);overflow-x:auto}
+.cmd span{color:var(--text-muted);flex-shrink:0}
+.cmd b{color:var(--text-strong);font-weight:400;white-space:nowrap}
+.cat-g{border:1px solid var(--border-subtle);border-radius:10px;background:var(--surface-card);overflow:hidden}
+.cat-g+.cat-g{margin-top:7px}
+.cat-hd{display:flex;align-items:center;gap:10px;width:100%;padding:11px 12px;text-align:left}
+.cat-hd i{width:9px;height:9px;border-radius:3px;flex-shrink:0}
+.cat-hd b{font-size:13px;font-weight:600;color:var(--text-strong)}
+.cat-hd em{font-style:normal;font-family:var(--mono);font-size:10.5px;color:var(--text-muted);margin-left:auto;flex-shrink:0}
+.cat-hd .cv{width:16px;height:16px;color:var(--text-muted);flex-shrink:0;transition:transform .18s}
+.cat-g.shut .cat-hd .cv{transform:rotate(180deg)}
+.cat-g.shut .cat-b{display:none}
+.cat-b{padding:0 12px 10px;display:flex;flex-direction:column;gap:1px}
+.det{display:flex;align-items:center;gap:9px;width:100%;padding:8px 2px;text-align:left;border-top:1px solid var(--border-subtle)}
+.det span.n{flex:1;min-width:0;font-size:12.5px;color:var(--text-body)}
+.det .bt{font-family:var(--mono);font-size:8.5px;font-weight:700;letter-spacing:.08em;color:var(--text-strong);border:1px solid var(--border-strong);border-radius:3px;padding:0 3px;flex-shrink:0}
+/* The switch: geometry only here, colour from state — matches the app's Switch. */
+.sw{position:relative;width:34px;height:19px;border-radius:10px;background:var(--border-default);flex-shrink:0;transition:background .16s}
+.sw::after{content:"";position:absolute;top:2px;left:2px;width:15px;height:15px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(5,6,26,.25);transition:transform .16s}
+.det[aria-pressed="true"] .sw{background:var(--brand)}
+.det[aria-pressed="true"] .sw::after{transform:translateX(15px)}
+.det[aria-disabled="true"]{cursor:default}
+.det[aria-disabled="true"] .sw{opacity:.55}
+.srv{display:flex;flex-direction:column;gap:7px}
+.srv-r{display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:10px;border:1px solid var(--border-subtle);background:var(--surface-card)}
+.srv-r.up{background:var(--brand-soft);border-color:transparent}
+.av{display:grid;place-items:center;width:30px;height:30px;border-radius:8px;background:var(--surface-sunken);font-family:var(--mono);font-size:11px;font-weight:700;color:var(--text-strong);flex-shrink:0;overflow:hidden}
+.av.mk{padding:5px}
+.av.mk svg,.av.mk img{width:100%;height:100%;display:block;object-fit:contain}
+.av.mk.ph{background:var(--surface-card);border:1px solid var(--border-subtle);padding:3px}
+.srv-r.up .av{background:var(--surface-card)}
+.srv-r .id{flex:1;min-width:0}
+.srv-r .id b{display:block;font-size:13px;font-weight:600;color:var(--text-strong)}
+.srv-r .id em{display:block;font-style:normal;font-family:var(--mono);font-size:10.5px;color:var(--text-muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* tier cards, connector status and the journey crossings — the kit's, verbatim */
+.tiers{display:flex;flex-direction:column;gap:8px;margin-bottom:6px}
+.tier{display:block;width:100%;text-align:left;padding:14px 15px 15px;border-radius:11px;border:1.5px solid var(--border-default);background:var(--surface-card);transition:border-color .16s,background .16s}
+.tier.on{border-color:var(--brand);background:var(--surface-sunken)}
+.tier .hd{display:flex;align-items:center;gap:9px;margin-bottom:8px}
+.tier .hd svg{width:17px;height:17px;color:var(--text-strong);flex-shrink:0}
+.tier .hd b{font-size:15px;font-weight:600;color:var(--text-strong)}
+.tier .hd em{font-style:normal;font-family:var(--mono);font-size:10.5px;color:var(--text-muted)}
+.tier .hd .ck{margin-left:auto;color:var(--brand);display:none}
+.tier.on .hd .ck{display:inline-flex}
+.tier .ds{display:block;font-size:12.5px;line-height:1.5;color:var(--text-body)}
+.tier .nt{display:block;margin-top:7px;font-size:12px;font-style:italic;line-height:1.5;color:var(--text-muted)}
+.sh-sub{display:flex;align-items:baseline;gap:8px;margin:22px 0 11px}
+.sh-sub .sh-lb{margin:0}
+.sh-sub em{font-style:normal;font-family:var(--mono);font-size:10.5px;color:var(--text-muted)}
+.srv-r .st2{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-on-blue);flex-shrink:0}
+.srv-r .st2 i{width:6px;height:6px;border-radius:50%;background:var(--brand)}
+.cat-h{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted);margin:14px 0 8px}
+.cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:6px}
+.cx{display:flex;align-items:center;gap:8px;min-width:0;padding:7px 9px;border-radius:9px;border:1px solid var(--border-subtle);background:var(--surface-card)}
+.cx.on{border-color:transparent;background:var(--brand-soft)}
+.cx .av{width:22px;height:22px;border-radius:6px;font-size:9.5px}
+.cx .av.mk{padding:4px}.cx .av.mk.ph{padding:2px}
+.cx-n{flex:1;min-width:0;font-size:12px;color:var(--text-strong);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cx-dot{width:6px;height:6px;border-radius:50%;background:var(--brand);flex-shrink:0}
+.det .lk{width:12px;height:12px;color:var(--text-muted);flex-shrink:0}
+.fx{display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:11.5px;color:var(--text-muted)}
+.fx .n{font-size:12.5px;font-weight:700;color:var(--text-strong)}
+.fx .ar{color:var(--text-muted);font-size:13px}
+.fx .gr{display:inline-block;padding:0 4px;border-bottom:1px dashed var(--border-strong);color:var(--text-strong);letter-spacing:.04em}
+.fx .gm{display:inline-block;width:34px;height:11px;border-radius:2px;background:var(--text-strong)}
+.fx .nil{font-size:13px;color:var(--text-muted)}
+.fx .cap{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--text-muted)}
+.foot a{text-decoration:none;border-bottom:1px solid color-mix(in oklab,var(--brand) 40%,transparent)}
+.foot a:hover{border-bottom-color:var(--brand-hover)}
+</style>
+</head>
+<body>
+
+<div class="app">
+  <!-- TOP -->
+  <div class="top">
+    <span class="mark"><!--MARK--><!--MARK-DARK--><b>OpenMasq</b><span>CLI</span></span>
+    <div class="seg" role="tablist" aria-label="View">
+      <button id="m-calls" class="on" role="tab" aria-selected="true" title="One row per request the proxy relayed — what was asked, and what was masked in it"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3L4 7l4 4"/><path d="M4 7h16"/><path d="M16 21l4-4-4-4"/><path d="M20 17H4"/></svg>Calls</button>
+      <button id="m-items" role="tab" aria-selected="false" title="One row per VALUE instead: every substitute this run minted, and the call it came from"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.66 3.58 3 8 3s8-1.34 8-3V5"/><path d="M4 11v6c0 1.66 3.58 3 8 3s8-1.34 8-3v-6"/></svg>Data</button>
+    </div>
+    <label class="search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><input id="q" placeholder="Search a call, a substitute, a category" spellcheck="false" title="Filters the rows below — the substitute, the route, the category, the session. Never a real value: one is not in a row unless you revealed it."></label>
+    <button class="tail live" id="tail" title="Following new calls: the log scrolls to each one as it arrives. Click to hold your place instead."><i></i>Direct</button>
+    <button class="pill" id="pass" aria-pressed="false" title="Show the requests that carried nothing to mask — health probes, model lists. Relayed untouched, and hidden by default so the log stays about your data."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h14M13 6l6 6-6 6"/></svg><span class="t">Transmis <b id="pass-n">0</b></span></button>
+    <button class="pill on" id="uniq" aria-pressed="true" hidden title="One row per VALUE instead of one per value per call. An agent re-sends its whole conversation every turn, so a value masked once is masked again in every later call — collapsed, the two substitutes that appeared once stop scrolling away between twenty copies of the same e-mail."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M7 12h10M10 17h4"/></svg><span class="t">Unique <b id="uniq-n"></b></span></button>
+    <button class="pill" id="reveal" aria-pressed="false" title="Show the real values beside their substitutes. They are already on this page — the proxy sent them to it — and they go no further; a download carries them only while this is on."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12Z"/><circle cx="12" cy="12" r="2.6"/><path d="M3 3l18 18" id="eye-slash"/></svg><span class="t">Real values</span></button>
+    <button class="pill" id="tier-btn" title="What this run masks, category by category, and what it leaves in clear. Read-only: the level is changed on the terminal."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6.5v5c0 4.4 3.4 8.3 8 9.5 4.6-1.2 8-5.1 8-9.5v-5L12 3Z"/></svg><span class="t" id="tier-lb">Masking</span></button>
+    <button class="pill" id="mcp-btn" title="The MCP connectors: the ones answering on this run, then the full catalogue. Read-only — connect one with `openmasq-proxy mcp add`."><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17.5h7M17.5 14v7"/></svg><span class="t" id="mcp-lb">MCP</span></button>
+    <button class="iconbtn" id="theme" title="Switch between the light and dark theme. Remembered in this browser, and nowhere else." aria-label="Switch theme"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4.5"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M18.4 5.6L17 7M7 17l-1.4 1.4"/></svg></button>
+    <button class="iconbtn" id="export" title="Export the log (JSON — the real values only while the toggle shows them)" aria-label="Export the log (JSON)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v11M7 11l5 5 5-5M5 20h14"/></svg></button>
+  </div>
+
+  <!-- RECAP -->
+  <div class="recap">
+    <div class="stat">
+      <span class="lb">Calls</span>
+      <span class="v"><b id="s-calls">0</b></span>
+    </div>
+    <div class="stat">
+      <span class="lb">Masked</span>
+      <span class="v"><b id="s-total">0</b></span>
+    </div>
+    <div class="stat">
+      <span class="lb">Blocked</span>
+      <span class="v"><b id="s-block">0</b></span>
+    </div>
+    <div class="stat" id="s-level-tile">
+      <span class="lb">Level</span>
+      <span class="v"><b id="s-level">—</b></span>
+      <span class="lb" id="s-level-note" style="text-transform:none;letter-spacing:0;margin-top:4px"></span>
+    </div>
+  </div>
+
+  <!-- HISTOGRAM -->
+  <div class="histo" id="histo" hidden>
+    <div class="histo-h"><span class="lb">Log timeline</span>
+      <div class="seg sc-seg" id="bw-seg" role="tablist" aria-label="Scale">
+        <button data-bw="1000">1s</button><button data-bw="10000" class="on">10s</button><button data-bw="60000">1m</button><button data-bw="300000">5m</button>
+      </div>
+      <span id="bkt-chip"></span>
+      <span class="rt" id="histo-rt">—</span></div>
+    <div class="scx" id="scx">
+    <div class="bars" id="bars"></div>
+      <div class="axis" id="axis"></div>
+    </div>
+    <div class="cats">
+      <div class="bar" id="cat-bar"></div>
+      <div class="legend" id="cat-legend"></div>
+    </div>
+  </div>
+
+  <!-- KEY: which side of the crossing this page shows, and what a mark means on it -->
+  <div class="key" id="key"></div>
+
+  <!-- TABLE + DRAWER -->
+  <div class="body has-detail" id="body">
+    <div class="tablewrap">
+      <table>
+        <thead><tr id="head"></tr></thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+
+    <aside class="detail" id="detail"></aside>
+  </div>
+
+  <div class="foot">
+    <span><b id="f-cmd">openmasq-proxy</b></span>
+    <span id="f-pid">pid —</span>
+    <span id="f-ver">v—</span>
+    <span class="sp"></span>
+    <span>On-device detection · the model never receives your original values</span>
+  </div>
+</div>
+<div class="scrim" id="scrim"></div>
+<aside class="sheet" id="sheet" aria-hidden="true">
+  <div class="sh-h">
+    <b title="What this run is doing. Everything here is READ-ONLY: a token in a URL is not an authorisation to lower masking, so each panel names the command that changes it instead.">Configuration</b>
+    <div class="seg" role="tablist" aria-label="Section">
+      <button id="t-tier" class="on" role="tab" title="The masking level, and every category it covers"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6.5v5c0 4.4 3.4 8.3 8 9.5 4.6-1.2 8-5.1 8-9.5v-5L12 3Z"/></svg>Masking</button>
+      <button id="t-mcp" role="tab" title="The MCP connectors, live and catalogued"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 17.5h7M17.5 14v7"/></svg>MCP</button>
+    </div>
+    <button class="iconbtn" id="sh-x" title="Close this panel (Esc)" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+  </div>
+  <div class="sh-toast" id="sh-toast"></div>
+  <div class="sh-b" id="sh-b"></div>
+</aside>
+
+
+<script>
+/* ---------------------------------------------------------------------------
+   The nine redaction sections, straight from the token file so the log, the
+   recap bar and the JSON gutter all speak the same colour language.
+   --------------------------------------------------------------------------- */
+/* The nine redaction SECTIONS. Filled from the product's own list, which the server sends
+   on connect: the kit shipped eight of them plus a fallback, so `Système` had no label and
+   rendered as a bare id. A hard-coded copy of a product list is a copy that drifts. */
+var CATS = [];
+var PID = "—";
+/* Fallback categories: "date" is not one of the nine sections. */
+var EXTRA = { date:"identifiants" };
+function cavSafe(id){ return CATS.some(function(c){return c.id===id}) ? id : (EXTRA[id]||"systeme"); }
+function cav(id){ return "var(--cav-" + id + ")"; }
+function cavOn(id){ return "var(--cav-" + id + "-on)"; }
+
+/* recap bar + legend — callable, because the counts move. */
+function recap(){
+  var tot = CATS.reduce(function(a,c){return a+c.n},0) || 1, bar="", leg="";
+  CATS.forEach(function(c){
+    bar += '<i style="width:'+(c.n/tot*100).toFixed(2)+'%;background:'+cav(c.id)+'"></i>';
+    leg += '<span><i style="background:'+cav(c.id)+'"></i>'+c.label+' <b>'+c.n+'</b></span>';
+  });
+  document.getElementById("cat-bar").innerHTML = bar;
+  document.getElementById("cat-legend").innerHTML = leg;
+}
+
+/* The timeline is rebuilt by `repaint()` from the journal (`buildBuckets`, below). */
+
+/* ---------------------------------------------------------------------------
+   Log rows. Each row is one MCP call; `items` are the sensitive values found in
+   it, and the message shows them already swiped.
+   --------------------------------------------------------------------------- */
+function rd(cat, text){
+  var c = cavSafe(cat);   /* "date" etc. are not sections — map before colouring */
+  return '<span class="rd" style="background:'+cav(c)+';color:'+cavOn(c)+'">'+text+'</span>';
+}
+var SRC_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="4" width="18" height="7" rx="2"/><rect x="3" y="14" width="18" height="6" rx="2"/></svg>';
+var LOGS = [];
+var LVL = { mask:["mask","Masked"], pass:["pass","Passed"], block:["block","Blocked"] };
+
+/* ---------------------------------------------------------------------------
+   The item model is DERIVED from each row's own markup: every .rd span already
+   carries its substitute token and its section hue, so there is one source for
+   "what was intercepted" instead of a parallel array that can drift from the
+   line the reader sees.
+   --------------------------------------------------------------------------- */
+/* The substitution table. This is the point of the inspector: the real values live on
+   THIS machine, the substitutes are what left it. Hidden until asked for. */
+var ORIG = {};
+function origOf(tok){ return ORIG[tok] || null; }
+var TYPES = { PERS:"Name", MAIL:"Email", TEL:"Phone", ADR:"Address", ORG:"Company",
+  IBAN:"IBAN", BIC:"BIC / SWIFT", MONT:"Amount", SIRET:"SIRET", SECRET:"Key / token" };
+function itemsOf(l){
+  if (l._items) return l._items;
+  var out = [], re = /<span class="rd" style="background:var\(--cav-([a-z]+)\)[^"]*">([^<]+)<\/span>/g, m;
+  while ((m = re.exec(l.msg))) {
+    var tok = m[2], pre = (tok.match(/^[A-Z]+/) || [""])[0];
+    /* The token's SHAPE wins over its prefix: PERS_02@ex.fr is an address, not a name. */
+    var type = tok.indexOf("@") > -1 ? "E-mail"
+      : /^\d{4}-\d{2}-\d{2}$/.test(tok) ? "Date"
+      : (TYPES[pre] || "Value");
+    out.push({ cat:m[1], tok:tok, type:type });
+  }
+  /* A row can stand for many occurrences of one token (the 48-row CSV): fold the
+     declared per-category totals back in so the count is not understated. */
+  var declared = {};
+  (l.items || []).forEach(function(it){ declared[it[0]] = it[1]; });
+  var perCat = {};
+  out.forEach(function(it){ perCat[it.cat] = (perCat[it.cat] || 0) + 1; });
+  out.forEach(function(it){
+    var d = declared[it.cat] || 0, seen = perCat[it.cat] || 1;
+    it.n = d > seen ? Math.round(d / seen) : 1;
+  });
+  /* A line shows the tokens it has room for; the declared per-category totals can be
+     higher. The remainder is stated as such rather than dropped — otherwise the drawer
+     contradicts the row's own item count. Inventing tokens for it would be worse. */
+  Object.keys(declared).forEach(function(cat){
+    var shown = out.filter(function(it){ return it.cat === cat })
+                   .reduce(function(a,it){ return a + it.n }, 0);
+    var rest = declared[cat] - shown;
+    if (rest > 0) out.push({ cat:cat, tok:null, type:"Not shown in the row", n:rest });
+  });
+  l._items = out;
+  return out;
+}
+function catLabel(id){
+  var c = CATS.filter(function(x){ return x.id === id })[0];
+  return c ? c.label : id;
+}
+var rev = true;         /* real values SHOWN by default — the page is the operator's own screen; the toggle hides them */
+/* Did the RUN send any? Declared here, beside `rev`, because the render functions above the
+   live block read it: under --no-console-reveal the server sends no original, so every reveal control
+   is inert and must say so rather than flip to a row of dots. */
+var canReveal = false;
+function shown(tok){
+  var o = origOf(tok);
+  /* No original means the SERVER sent none — the run was started with --no-console-reveal. Saying
+     "valeur locale" left the reader to guess; the flag is the whole answer. */
+  /* Nothing to say per value: the top button already names the flag, once. */
+  if (!o) return "";
+  return rev ? '<span class="clr">'+o+'</span>' : '<span class="hid">••••••••</span>';
+}
+/* The KEY. This page only ever shows ONE side of the crossing -- what left -- so a mark here
+   sits on the SUBSTITUTE. The app shows the other side, where the very same rule puts the
+   mark on the real value instead; reading one after the other, that looks inverted, and it is
+   not. Both names come from the app itself (`events.ts` `sideShown`), so the two surfaces
+   call the two sides by the same words. Taught by SHOWING: the sample wears the real pill and
+   the real dashed rule, not a description of them. */
+var SIDE = null;
+function renderKey(){
+  var k = document.getElementById("key");
+  if (!k || !SIDE) return;
+  k.innerHTML = '<b>' + esc(SIDE.here) + '</b>'
+    + '<span class="k-i">' + swipe("identite", "Mattéo Pons") + 'the substitute that left</span>'
+    + '<span class="k-i"><span class="clr">Jean Dupont</span>the real value — it stayed here</span>'
+    + '<span class="k-n">' + esc(SIDE.there) + ' is the other side: there a mark sits on the real value, before it is replaced.</span>';
+}
+/* The page's two other JSON views answer to the SAME rule as the download — the JSON tab and
+   the copy button. They ask `page/reveal.ts` for it rather than re-testing the pair here. */
+function exportable(raw){
+  /* No API means the rule deciding who may see a real value is not here. It is NOT re-stated
+     inline as a fallback — one home (rule 9) — so the answer is the closed one: nothing. */
+  if (!API) return {};
+  return API.exportableEvent(raw, API.mayReveal(canReveal, rev));
+}
+function swipe(cat, txt){
+  return '<span class="rd" style="background:'+cav(cat)+';color:'+cavOn(cat)+'">'+txt+'</span>';
+}
+/* The flat data log: every intercepted item, newest first, with its call. Rebuilt on each
+   arrival — the kit derived it once from a fixed array; here the array grows. */
+var DATA = [];
+function rebuildData(){
+  DATA = [];
+  LOGS.forEach(function(l, i){
+    itemsOf(l).forEach(function(it){
+      if (!it.tok) return;   /* nothing to identify it by in a per-value list */
+      DATA.push({ t:l.t, src:l.src, ses:l.ses, call:l.id, lvl:l.lvl, it:it });
+    });
+  });
+}
+
+var HEADS = {
+  calls: '<th class="c-time" title="When the proxy handled the call — this machine&apos;s local clock">Time</th><th class="c-ses" title="Which client the call came from. Each wrapped tool has its own session and its own vault: a substitute minted in one never stands for that value in another.">Session</th><th class="c-src" title="The upstream this call was relayed to — a model provider, or an MCP server">Server</th><th class="c-lvl" title="What happened: relayed, masked, refused by the write gate, or failed upstream">Action</th><th title="The route, without its query string — a provider key can travel in one">Event</th><th class="c-cnt" title="How many sensitive values were found and replaced in this call">Values</th>',
+  items: '<th class="c-time" title="When this value was first replaced">Time</th><th class="c-ses" title="The client whose vault holds this substitute">Session</th><th class="c-tok" title="What LEFT the machine in place of the value. The real one sits under it while Real values is on.">Substitute</th><th class="c-type" title="Which detector claimed it — a pattern rule, the on-device model, a labelled field">Type</th><th class="c-cat" title="The kind of data, which decides its colour and whether this level looks for it at all">Category</th><th class="c-cnt" title="How many times this same value was replaced across the run">Count</th>'
+};
+/* One stable colour per session, drawn from the section hues: several clients share this
+   console, and telling them apart at a glance is the whole point of the column. */
+var SES_HUES = ["identite","contact","organisation","financier","identifiants","localisation","reseau","secrets"];
+var sesSeen = [];
+function sesTag(id){
+  if (!id) return '<span class="ses none">—</span>';
+  var i = sesSeen.indexOf(id);
+  if (i < 0) { sesSeen.push(id); i = sesSeen.length - 1; }
+  var h = SES_HUES[i % SES_HUES.length];
+  return '<span class="ses"><i style="background:'+cav(h)+'"></i>'+id+'</span>';
+}
+var mode = "calls", showPass = false, CATALOG = null;
+var rowsEl = document.getElementById("rows"), headEl = document.getElementById("head"), sel = 0;
+function itemCount(l){ return l.items.reduce(function(a,i){return a+i[1]},0); }
+function renderRows(filter){
+  var selId = (logOf(sel) || {}).id;
+  headEl.innerHTML = HEADS[mode];
+  var h = "";
+  if (mode === "calls") {
+    LOGS.forEach(function(l,i){
+      var plain = l.msg.replace(/<[^>]+>/g,"");
+      if (l.lvl === "pass" && !showPass) return;
+      if (!inBucket(l.t)) return;
+      if (filter && (plain + " " + l.src + " " + (l.ses || "")).toLowerCase().indexOf(filter) < 0) return;
+      var n = itemCount(l);
+      h += '<tr data-i="'+l.id+'"'+(l.id===selId?' class="sel"':'')+'>'
+        + '<td class="c-time">'+l.t+'</td>'
+        + '<td class="c-ses">'+sesTag(l.ses)+'</td>'
+        + '<td class="c-src"><span class="src">'+SRC_ICON+l.src+'</span></td>'
+        + '<td class="c-lvl"><span class="lvl '+LVL[l.lvl][0]+'"><i></i>'+LVL[l.lvl][1]+'</span></td>'
+        + '<td><span class="msg">'+l.msg+'</span></td>'
+        + '<td class="c-cnt"><span class="cnt">'+(n?'<b>'+n+'</b>':'—')+'</span></td>'
+        + '</tr>';
+    });
+    rowsEl.innerHTML = h || '<tr><td colspan="5" style="padding:30px 14px;color:var(--text-muted)">Aucun appel pour cette recherche.</td></tr>';
+  } else {
+    /* `page/unique.ts` decides; the key is (session, substitute), never the substitute
+       alone — two clients have two vaults, so one fake can stand for two real values. */
+    var shownRows = uniq ? API.collapseByValue(DATA) : DATA;
+    setUniqCount(API.hiddenByCollapse(DATA, API.collapseByValue(DATA)));
+    shownRows.forEach(function(d,i){
+      /* The timeline bucket filters Data too, not only Calls: a value belongs to the
+         bucket of the call it was masked in. */
+      if (!inBucket(d.t)) return;
+      var hay = (d.it.tok + " " + d.it.type + " " + catLabel(d.it.cat) + " " + d.src + " " + (d.ses || "")).toLowerCase();
+      if (filter && hay.indexOf(filter) < 0) return;
+      h += '<tr data-i="'+d.call+'" data-item="'+i+'"'+(d.call===selId?' class="sel"':'')+'>'
+        + '<td class="c-time">'+d.t+'</td>'
+        + '<td class="c-ses">'+sesTag(d.ses)+'</td>'
+        + '<td class="c-tok"><span class="pair"><span>'+swipe(d.it.cat, d.it.tok)+'</span>'
+          + '<span class="v2">'+shown(d.it.tok)+'</span></span></td>'
+        + '<td class="c-type">'+d.it.type+'</td>'
+        + '<td class="c-cat"><span class="cat-tag"><i style="background:'+cav(d.it.cat)+'"></i>'+catLabel(d.it.cat)+'</span></td>'
+        + '<td class="c-cnt" title="' + esc(uniq
+              ? d.total + " occurrence" + (d.total > 1 ? "s" : "") + " across " + d.calls + " call" + (d.calls > 1 ? "s" : "")
+              : "in this call") + '"><span class="cnt"><b>'
+          + (uniq ? d.total : d.it.n) + '</b>' + (uniq && d.calls > 1 ? '<em>×' + d.calls + '</em>' : "") + '</span></td>'
+        + '</tr>';
+    });
+    rowsEl.innerHTML = h || '<tr><td colspan="6" style="padding:30px 14px;color:var(--text-muted)">Aucune donnée pour cette recherche.</td></tr>';
+  }
+}
+/* Colour the mask-swipe spans by their category (they carry it inline already). */
+var detailEl = document.getElementById("detail"), dTab = "flow";
+function jsonLine(no, text, kind){
+  var cls = "co", body = text;
+  if (kind && kind.indexOf("mask:") === 0) {
+    var cat = cavSafe(kind.slice(5));
+    var swipe = function(v){
+      return '<span class="rd" style="background:'+cav(cat)+';color:'+cavOn(cat)+'">'+v+'</span>';
+    };
+    /* A substitute token, plus whatever follows it inside the same quoted string
+       (PERS_02@ex.fr swipes as ONE span). Single pass — never re-scan our own output. */
+    body = text.replace(/\b([A-Z]{3,}_\d+)((?:[@.\w-]|\+)*)/g, function(m, tok, tail){
+      return swipe(tok + tail);
+    });
+  } else if (kind === "kv") {
+    body = text.replace(/"([^"]+)":/g, '"<span class="key">$1</span>":')
+               .replace(/: "([^"]*)"/g, ': "<span class="str">$1</span>"')
+               .replace(/: (\d+)/g, ': <span class="num">$1</span>');
+  } else {
+    body = '<span class="pun">' + text + '</span>';
+  }
+  return '<div class="ln"><span class="no">'+no+'</span><span class="'+cls+'">'+body+'</span></div>';
+}
+/* The payload as it reads on ONE side of the boundary: masked (the swipes the row already
+   carries) or in clear (each swipe replaced by its real value). Same string, two states —
+   which is what makes the two sides comparable. */
+function payload(msg, clear){
+  if (!clear) return msg;
+  return msg.replace(/<span class="rd"[^>]*>([^<]+)<\/span>/g, function(m, tok){
+    var o = origOf(tok);
+    return o ? (rev ? '<span class="clr">'+o+'</span>' : '<span class="hid">••••••••</span>') : m;
+  });
+}
+var DOWN = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v14M6 13l6 6 6-6"/></svg>';
+var UP = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20V6M6 11l6-6 6 6"/></svg>';
+function step(k, p){ return '<div class="st"><span class="k">'+k+'</span><span class="p">'+p+'</span></div>'; }
+function zone(kind, label, steps, note){
+  return '<div class="zn '+kind+'"><div class="zn-h"><i></i>'+label+'</div>'
+    + '<div class="zn-b">'+steps.join("")+'</div>'
+    + (note ? '<div class="zn-note">'+note+'</div>' : '') + '</div>';
+}
+var GR = '<span class="gr">abc</span>', GM = '<span class="gm"></span>';
+/* The crossing, stated once per direction. With a count it is the kit's figure — n × a dashed
+   real value → a black bar (masked), or the reverse (restored); without one, the sentence. */
+function cross(icon, text, n, dir){
+  var fx = n
+    ? '<span class="fx"><span class="n">' + n + '</span><span class="ar">×</span>'
+      + (dir === "mask" ? GR + '<span class="ar">→</span>' + GM : GM + '<span class="ar">→</span>' + GR)
+      + '<span class="cap">' + (dir === "mask" ? "masked" : "restored") + '</span></span>'
+    : '<span>' + text + '</span>';
+  return '<div class="cross">' + icon + fx + '<span class="ln"></span></div>';
+}
+/* Who sees WHAT is the whole point, and it is not a single boundary: the substitutes are
+   for the MODEL. Before an approved tool call is dispatched, OpenMasq puts the real values
+   back locally — an e-mail cannot be sent to PERS_02@ex.fr — and masks the result again on
+   the way back to the model. Hence four crossings, and three kinds of zone. */
+function renderFlow(l){
+  /* Every word below is DERIVED from the event the proxy sent: the route, the tool's name,
+     the substitutes and their count. Nothing is quoted that was not received — no prompt
+     (the page never gets one), no tool result (it gets its masked values, not its text). */
+  var its = itemsOf(l).filter(function(it){ return it.tok });
+  var n = itemCount(l), raw = l._raw || {}, many = n > 1 ? "s" : "";
+  var route = esc(raw.method || "") + " " + esc(raw.path || "");
+  var toks = its.length
+    ? its.map(function(it){ return (rev && shown(it.tok)) ? shown(it.tok) : swipe(it.cat, esc(it.tok)); }).join(" · ")
+    : '<span class="hid">no sensitive value</span>';
+  if (l.lvl === "block") {
+    var sec = its[0];
+    return '<div class="flow">'
+      + zone("loc", "On your machine", [
+          step("Your call", route),
+          step("Refused", sec ? swipe(sec.cat, esc(sec.tok)) : "—")
+        ], "A secret cannot be swapped for a substitute without losing its meaning: the call is blocked, not masked.")
+      + cross(UP, "<b>nothing</b> leaves")
+      + zone("rem", "Model", [step("Receives", '<span class="hid">nothing</span>')],
+          "Not the value, not a substitute, not the call.")
+      + '</div>';
+  }
+  if (raw.method === "TOOL") {
+    return '<div class="flow">'
+      + zone("rem", "Model · knows only the substitutes", [step("Asks", esc(raw.path || "the tool") + " <span class=\"hid\">· arguments carry substitutes</span>")],
+          "The model puts the substitutes it knows in its arguments — never an original value.")
+      + cross(DOWN, "original values put back into the arguments, locally", n, "restore")
+      + zone("tool", "Tool · " + esc(raw.path || "") + " · sees the real values", [step("Runs", "on the real service, with the real values")],
+          "A tool acts on the real world: the email goes to the real address, the record is read at the real id. The values are put back on your machine, right before the call.")
+      + cross(UP, "nothing to mask in the result", n, "mask")
+      + zone("rem", "Model · sees only the substitutes", [step("Receives", toks)],
+          "The result is masked again before it goes back to the model.")
+      + '</div>';
+  }
+  return '<div class="flow">'
+    + zone("loc", "On your machine", [step("Your call", route + (n ? ' <span class="hid">· '+n+' sensitive value'+many+'</span>' : ' <span class="hid">· nothing sensitive</span>'))],
+        "The original values stay here: the vault lives in memory, in this process, and is gone when it stops.")
+    + cross(DOWN, "nothing to mask", n, "mask")
+    + zone("rem", "Model · sees only the substitutes", [step("Receives", toks)],
+        n ? "The model reasons over these substitutes. An answer about a person or an organisation may be affected." : "The text left as it was: nothing to replace.")
+    + cross(UP, "reply passed on as it came", n, "restore")
+    + zone("loc", "Your copy", [step("You read", n ? "the reply with your real values" : "the model's reply")],
+        null)
+    + '</div>';
+}
+function renderDetail(){
+  var l = logOf(sel);
+  if (!l) {
+    detailEl.innerHTML = '<div class="empty"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="16" rx="3"/><path d="M7 9h10M7 13h7"/></svg><b>No row selected</b><span>Click a row of the log to follow the data\'s journey, from the call to your copy.</span></div>';
+    return;
+  }
+  var chips = '<span class="chip">'+SRC_ICON+'<b>'+l.src+'</b></span>'
+    + '<span class="chip"><i class="lvl '+LVL[l.lvl][0]+'" style="width:7px;height:7px;border-radius:50%;background:currentColor;display:inline-block"></i>'+LVL[l.lvl][1]+'</span>'
+    + '<span class="chip">values <b>'+itemCount(l)+'</b></span>'
+    + '<span class="chip">pid <b>' + PID + '</b></span>';
+  var body;
+  if (dTab === "flow") {
+    body = '<div class="d-sec"><span class="lb">Data journey</span>'
+      + '</div>'
+      + renderFlow(l);
+  } else if (dTab === "json") {
+    /* The event itself, as the proxy sent it. A real value is in it unless --no-console-reveal,
+       and then only shown once the toggle is on — the JSON is in the DOM, not behind it. */
+    var lines = JSON.stringify(exportable(l._raw), null, 2).split("\n").map(function(t){
+      return [t, /^\s*"[^"]+":/.test(t) ? "kv" : "pun"];
+    });
+    body = '<div class="d-sec"><span class="lb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M8 4H6a2 2 0 0 0-2 2v3a2 2 0 0 1-2 2 2 2 0 0 1 2 2v3a2 2 0 0 0 2 2h2M16 4h2a2 2 0 0 1 2 2v3a2 2 0 0 0 2 2 2 2 0 0 0-2 2v3a2 2 0 0 1-2 2h-2"/></svg>JSON</span>'
+      + '<span class="d-acts"><button id="copy-json"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>Copy</button></span></div>'
+      + '<div class="json">' + lines.map(function(p,i){ return jsonLine(i+1, p[0], p[1]); }).join("") + '</div>';
+  } else if (dTab === "items") {
+    var its = itemsOf(l);
+    body = '<div class="d-sec"><span class="lb">Intercepted data</span></div>'
+      + '<div class="d-items">'
+      + (its.length
+        ? its.map(function(it){
+            return '<div class="d-item">'
+              + '<span class="tk">'+(it.tok ? swipe(it.cat, it.tok)
+                  : '<span style="color:var(--text-muted)">'+it.n+' more value'+(it.n>1?'s':'')+'</span>')+'</span>'
+              + '<span class="oc">'+(it.tok ? (it.n > 1 ? it.n + ' occurrences' : '1 occurrence') : '')+'</span>'
+              + (it.tok && shown(it.tok) ? '<span class="mt" style="margin-top:2px">→ '+shown(it.tok)+'</span>' : '')
+              + '<span class="mt"><span class="cat-tag"><i style="background:'+cav(it.cat)+'"></i>'+catLabel(it.cat)+'</span>'
+              + '<span>'+it.type+'</span>'
+              + (it.tok ? '<span>substitut stable</span><span>valeur d\'origine conservée en local</span>'
+                        : '<span>ouvrir le JSON pour les voir</span>')+'</span>'
+              + '</div>';
+          }).join("")
+        : '<div class="d-item"><span class="tk" style="color:var(--text-muted)">—</span><span class="mt">Aucune donnée sensible dans cet appel.</span></div>')
+      + '</div>';
+  } else {
+    body = '<div class="d-sec"><span class="lb">Contexte</span></div><div class="d-fields">'
+      + (l.fields || [["server",l.src],["action",LVL[l.lvl][1]],["transport","stdio"],["items",itemCount(l)]])
+        .map(function(f){ return '<div class="fr"><span class="fk">'+f[0]+'</span><span class="fv">'+f[1]+'</span></div>'; }).join("")
+      + '</div>';
+  }
+  detailEl.innerHTML =
+      '<div class="d-top"><span class="ts">'+l.t+'</span>'
+
+    + '<button class="iconbtn" id="close-d" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>'
+    + '<div class="d-chips">'+chips+'</div>'
+    + '<div class="d-tabs">'
+      + '<button data-t="flow" title="The crossing, step by step: what stayed here, what the model received, what came back"'+(dTab==="flow"?' class="on"':'')+'>Parcours</button>'
+      + '<button data-t="json" title="The event exactly as the proxy sent it to this page — real values included only while the toggle shows them"'+(dTab==="json"?' class="on"':'')+'>JSON</button>'
+      + '<button data-t="items" title="Every value replaced in this one call, with its category"'+(dTab==="items"?' class="on"':'')+'>Data ('+itemsOf(l).length+')</button>'
+      + '<button data-t="ctx" title="The run this call happened under: level, mode, session, upstream"'+(dTab==="ctx"?' class="on"':'')+'>Contexte</button>'
+    + '</div><div class="d-body">'+body+'</div>';
+}
+renderRows("");
+renderDetail();
+
+function setMode(next){
+  mode = next;
+  document.getElementById("m-calls").className = next === "calls" ? "on" : "";
+  document.getElementById("m-items").className = next === "items" ? "on" : "";
+  // The collapse is about VALUES; on the call log there is nothing for it to fold.
+  document.getElementById("uniq").hidden = next !== "items";
+  document.getElementById("m-calls").setAttribute("aria-selected", next === "calls");
+  document.getElementById("m-items").setAttribute("aria-selected", next === "items");
+  renderRows(document.getElementById("q").value.trim().toLowerCase());
+}
+function setRev(next){
+  rev = next;
+  var b = document.getElementById("reveal");
+  b.className = "pill" + (rev ? " on" : "");
+  b.setAttribute("aria-pressed", String(rev));
+  renderRows(document.getElementById("q").value.trim().toLowerCase());
+  renderDetail();
+}
+document.getElementById("reveal").addEventListener("click", function(){ setRev(!rev); });
+document.getElementById("m-calls").addEventListener("click", function(){ setMode("calls"); });
+document.getElementById("m-items").addEventListener("click", function(){ setMode("items"); dTab = "items"; renderDetail(); });
+document.getElementById("uniq").addEventListener("click", function(){
+  uniq = !uniq;
+  this.className = "pill" + (uniq ? " on" : "");
+  this.setAttribute("aria-pressed", String(uniq));
+  renderRows(document.getElementById("q").value.trim().toLowerCase());
+});
+/* Nothing repeated ⇒ say nothing rather than « 0 », which reads as a filter that failed. */
+function setUniqCount(hidden){ set("uniq-n", hidden > 0 ? String(hidden) : ""); }
+
+rowsEl.addEventListener("click", function(e){
+  var tr = e.target.closest("tr[data-i]"); if(!tr) return;
+  sel = +tr.getAttribute("data-i");
+  dTab = tr.hasAttribute("data-item") ? "items" : "flow";
+  document.getElementById("body").classList.add("has-detail");
+  renderRows(document.getElementById("q").value.trim().toLowerCase());
+  renderDetail();
+});
+detailEl.addEventListener("click", function(e){
+  if (e.target.closest("#copy-json")) {
+    var l = logOf(sel); if (l) navigator.clipboard.writeText(JSON.stringify(exportable(l._raw), null, 2)).catch(function(){});
+    return;
+  }
+  var t = e.target.closest("[data-t]");
+  if (t) { dTab = t.getAttribute("data-t"); renderDetail(); return; }
+  if (e.target.closest("#close-d")) {
+    sel = -1; document.getElementById("body").classList.remove("has-detail");
+    renderRows(document.getElementById("q").value.trim().toLowerCase()); renderDetail();
+  }
+});
+document.getElementById("q").addEventListener("input", function(e){
+  renderRows(e.target.value.trim().toLowerCase());
+});
+document.getElementById("tail").addEventListener("click", function(){
+  this.classList.toggle("live");
+});
+document.getElementById("pass").addEventListener("click", function(){
+  showPass = !showPass;
+  this.className = "pill" + (showPass ? " on" : "");
+  this.setAttribute("aria-pressed", String(showPass));
+  renderRows(document.getElementById("q").value.trim().toLowerCase());
+});
+/* What leaves this page as a file. The RULE — who may see a real value, here and in the
+   file — lives in `page/reveal.ts` now, typed and tested; what stays here is the DOM around
+   it. `exportable()` is gone from this script on purpose: one home (rule 9). */
+document.getElementById("export").addEventListener("click", function(){
+  if (!API) return degraded();
+  var doc = API.exportDocument(LOGS.slice().reverse().map(function(l){ return l._raw; }),
+                               { sent: canReveal, shown: rev });
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(doc, null, 2)], { type: "application/json" }));
+  a.download = API.exportFilename();
+  a.click(); setTimeout(function(){ URL.revokeObjectURL(a.href); }, 1000);
+});
+/* The level in force, read from the proxy itself every few seconds: the `l` key changes it
+   while it runs, and this is the one fact a reader needs before trusting a row — at
+   `standard` no name or company is ever looked for. */
+/* The page's decisions live in `app.js` (`page/`). If it did NOT load — a tab left open on a
+   token the proxy no longer accepts, a blocked request, a half-deployed pair — the page must
+   DEGRADE, never die. It used to die: one call at parse time threw before a single handler
+   was attached, so every control on the page went inert at once and the log looked frozen
+   for a reason nothing on screen explained. A missing asset may cost a feature; it may not
+   cost the page. */
+var API = window.openmasqConsole || null;
+/* Without it, redraw on every poll — what the page did before the watch existed. Worse, and
+   correct. */
+var SHEET_WATCH = API ? API.createMaskingWatch() : { changed: function(){ return true; } };
+function levelTile(h){
+  var lvl = h.level || "—", note;
+  if (lvl === "standard") note = "Patterns only: emails, phones, IBANs, keys. Names, companies, places and handles go through in clear.";
+  else if (h.ner === false) note = "No local model — names are not found.";
+  else note = "Names, companies and places replaced by substitutes: answers about people or organisations may be affected.";
+  set("s-level", lvl + (h.mode ? " · " + (h.mode === "token" ? "jetons" : "substituts") : ""));
+  // The `l` key moves the level under an open page: the panel reads the same poll as the tile
+  // rather than holding the value it was told at connect time.
+  if (h.level) { LEVEL = h.level; set("tier-lb", h.level); }
+  if (h.mode) MODE = h.mode;
+  if (h.masking) MASKING = h.masking;
+  /* The poll answers the same thing almost every time, and the panel is rebuilt with
+     `innerHTML` — redrawing on each tick threw away the reader's scroll and their place in
+     a list of fifty-seven connectors, every five seconds. `page/poll.ts` decides. */
+  if (shOpen && SHEET_WATCH.changed(h)) renderSheet();
+  set("s-level-note", note);
+  document.getElementById("s-level-tile").className = "stat" + (lvl !== "standard" ? " warn" : "");
+}
+function pollLevel(){
+  fetch("/healthz", { cache: "no-store" }).then(function(r){ return r.json(); }).then(levelTile).catch(function(){});
+}
+pollLevel(); setInterval(pollLevel, 5000);
+/* Said out loud, in the page. A console whose own script did not load is still a console —
+   it just cannot do a few things — and the reader has to be told which state they are in
+   rather than left wondering why a button is quiet. */
+function degraded(){
+  var f = document.getElementById("f-ver");
+  if (f) f.textContent = "reload this page — its script did not load";
+}
+if (!API) degraded();
+/* Theme: light by default, remembered. Never touch keys this page did not write. */
+(function(){
+  var K="openmasq-cli-theme", btn=document.getElementById("theme");
+  var saved=null; try{saved=localStorage.getItem(K)}catch(e){}
+  if(saved) document.documentElement.setAttribute("data-theme", saved);
+  btn.addEventListener("click", function(){
+    var next = document.documentElement.getAttribute("data-theme")==="dark" ? "light" : "dark";
+    document.documentElement.setAttribute("data-theme", next);
+    try{localStorage.setItem(K,next)}catch(e){}
+  });
+})();
+/* ---------------------------------------------------------------------------
+   LIVE. The arrays above start empty; everything below fills them from the
+   proxy's own event stream. One EventSource, no polling, no storage: this page
+   is a window onto a running process and keeps nothing when you close it.
+
+   The kit's seams are used rather than worked around: `l._items` is the cache
+   `itemsOf()` reads first, so the structured items the server sends are handed
+   over directly instead of being parsed back out of HTML; and `ORIG` is the
+   vault `origOf()` looks in, which stays EMPTY when the run was started with
+   --no-console-reveal. That is what makes the page's own "Real values" toggle honest:
+   with nothing to reveal, the server never sent it, and the button says so.
+   --------------------------------------------------------------------------- */
+var MAX_ROWS = 500;
+/* A row is selected by IDENTITY, never by position: the journal is newest-first, so every
+   arrival shifts every index by one and a selected index slid to the neighbouring row — the
+   drawer with it — each time the log moved. `sel` is 0 to follow the newest row (the state at
+   load), -1 for none, or the id `push()` gave the row. */
+var SEQ = 0;
+function logOf(id){ return id === 0 ? LOGS[0] : LOGS.filter(function(l){ return l.id === id; })[0]; }
+var started = Date.now(), servers = {};
+
+function esc(t){ return String(t == null ? "" : t).replace(/[&<>"]/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]; }); }
+
+/* The event line: the route, then each substitution swiped in its section's colour. */
+/* The row carries the CATEGORIES and their counts, like the terminal's own line; the
+   substitutes wait in the drawer. Inline, a coding agent's context put the same two chips at
+   the head of every row and the rows stopped telling anything apart. */
+function lineOf(e){
+  var tally = {};
+  (e.items || []).forEach(function(it){ tally[it.cat] = (tally[it.cat] || 0) + it.n; });
+  var parts = Object.keys(tally).map(function(k){ return rd(k, esc(catLabel(k)) + " " + tally[k]); });
+  return esc(e.method) + " " + esc(e.path) + (parts.length ? "  " + parts.join(" ") : "")
+       + (e.stream ? ' <span class="pun">⇢ stream</span>' : "");
+}
+
+function levelOf(e){ return e.status === 403 ? "block" : (e.items && e.items.length) ? "mask" : "pass"; }
+
+function push(e){
+  servers[e.family] = 1;
+  var tally = {};
+  (e.items || []).forEach(function(it){ tally[it.cat] = (tally[it.cat] || 0) + it.n; });
+  var log = {
+    t: e.t, src: e.family, ses: e.session || "", lvl: levelOf(e), msg: lineOf(e),
+    items: Object.keys(tally).map(function(k){ return [k, tally[k]]; }),
+    fields: [["route", e.path], ["status", String(e.status)], ["latence", e.ms + " ms"],
+             ["transport", e.stream ? "sse" : "json"], ["session", e.session || "—"]],
+    /* The cache `itemsOf()` checks first — no HTML to re-parse. */
+    _items: (e.items || []).map(function(it){
+      /* `n`, not `count`: it is the field the kit's own rows and drawer read. */
+      return { cat: it.cat, tok: it.fake, type: it.type, n: it.n };
+    }),
+    /* The event as the proxy sent it: what the JSON tab shows and the export writes. */
+    _raw: e,
+    id: ++SEQ
+  };
+  LOGS.unshift(log);
+  if (LOGS.length > MAX_ROWS) LOGS.length = MAX_ROWS;
+  (e.items || []).forEach(function(it){
+    if (it.real) ORIG[it.fake] = it.real;
+    var c = CATS.filter(function(x){ return x.id === cavSafe(it.cat); })[0];
+    if (c) c.n += it.n;
+  });
+}
+
+function pad(n){ return n < 10 ? "0" + n : String(n); }
+function uptime(){
+  var s = Math.round((Date.now() - started) / 1000);
+  return s < 60 ? s + "s" : Math.floor(s / 60) + "m " + pad(s % 60) + "s";
+}
+function set(id, v){ var el = document.getElementById(id); if (el) el.textContent = v; }
+
+function repaint(){
+  var values = LOGS.reduce(function(a, l){ return a + itemCount(l); }, 0);
+  var passed = LOGS.filter(function(l){ return l.lvl === "pass"; }).length;
+  set("s-calls", LOGS.length - passed);
+  set("s-total", values);
+  set("s-block", LOGS.filter(function(l){ return l.lvl === "block"; }).length);
+  set("pass-n", passed);
+
+  /* Derived from the journal, visible from the first row: a chart that waits five minutes to
+     appear reads as a chart that is broken. */
+  BUCKETS = LOGS.length ? buildBuckets() : [];
+  if (bkt !== null && bkt >= BUCKETS.length) bkt = null;
+  document.getElementById("histo").hidden = !LOGS.length;
+  if (LOGS.length) renderBars();
+
+  recap();
+  rebuildData();
+  renderRows(document.getElementById("q").value.trim().toLowerCase());
+  if (sel !== -1) renderDetail();
+}
+
+/* The toggle promises real values. When the run sends them, it starts ON — the page is the
+   operator's own screen, and hiding them is the click. When the run sends none
+   (--no-console-reveal), the button is disabled and says why, instead of flipping to a row
+   of dots. */
+function armReveal(on){
+  canReveal = on;
+  var b = document.getElementById("reveal");
+  if (on) { setRev(true); return; }
+  rev = false;
+  b.disabled = true;
+  b.title = "Started with --no-console-reveal: the real values were not sent to this page";
+  b.querySelector(".t").textContent = "Real values (off)";
+}
+
+/* ---------- configuration sheet ----------
+   What the run masks, and what its tools go through. Everything here is SENT by the proxy —
+   the nine sections and their categories come from the catalogue (`rules`), what is on right
+   now from `/healthz` (`masking`), the connectors from the run itself. The page invents
+   nothing: a panel that described rules it had not been told would be read against the log
+   beside it.
+   ⚠️ It SHOWS; it does not set. Changing the masking is a decision taken on the terminal,
+   where the operator is — a token in an URL is not an authorisation to lower it. So each
+   panel carries the command that does it, and the switches are inert. */
+var RULES = [], MASKING = [], LEVEL = "", MODE = "", MCP = null, LEVELS = [], shTab = "tier", shOpen = false;
+/* Each connected server's level, and whether this run can change one at all. */
+var SRV_LVL = {}, CAN_SET = false;
+/* Collapse repeats in the Data view. ON by default — see the button's own label. */
+var uniq = true;
+
+
+function tierBody(){
+  /* Said BEFORE the controls, not under them. Everything in this panel looks operable --
+     cards that read as radios, rows that read as switches -- and `aria-disabled` is invisible
+     to someone using a mouse. They found out by clicking and getting nothing, which reads as
+     a broken page rather than a deliberate boundary. */
+  var h = RO_BANNER("This panel SHOWS the masking. It cannot change it \u2014 a token in a URL is not an authorisation to lower protection, so the level moves on the terminal, where you are.")
+    + '<div class="sh-lb">Level in force</div><div class="tiers">';
+  LEVELS.forEach(function(l){
+    var inForce = l.id === LEVEL;
+    h += '<div class="tier ro' + (inForce ? " on" : "") + '" role="radio" aria-checked="' + inForce + '" aria-disabled="true"'
+      + ' data-cmd="openmasq-proxy --level ' + esc(l.id) + '"'
+      + ' title="' + esc(inForce ? "In force on this run. Click to copy the command that sets it; "
+                                 + "press l on the terminal to cycle."
+                                 : "Not in force. Click to copy: openmasq-proxy --level " + l.id) + '">'
+      + '<span class="hd">' + SHIELD + '<b>' + esc(l.label || l.id) + '</b><em>' + esc(l.id) + ' · ' + l.n + ' categories</em>'
+      + '<span class="ck">' + CHECK + '</span></span>'
+      + '<span class="ds">' + esc(l.desc || "") + (l.short ? " " + esc(l.short) : "") + '</span>'
+      + (l.tradeoff ? '<span class="nt">' + esc(l.tradeoff) + '</span>' : "")
+      + '</div>';
+  });
+  h += "</div>";
+  h += '<div class="cmd"><span>change it:</span><b>press l</b><span>or</span><b>openmasq-proxy --level &lt;level&gt;</b></div>';
+  h += '<div class="sh-note">This page shows the rules; it does not change them. Lowering the masking is decided on the terminal, where you are.</div>';
+  h += '<div class="sh-sub"><span class="sh-lb">Categories</span><em>' + MASKING.length + ' on</em></div>';
+  RULES.forEach(function(sec){
+    if (!sec.items.length) return;
+    var on = sec.items.filter(function(it){ return MASKING.indexOf(it.key) >= 0; }).length;
+    h += '<div class="cat-g"><div class="cat-hd"><i style="background:' + cav(sec.id) + '"></i><b>' +
+      esc(sec.label) + "</b><em>" + on + "/" + sec.items.length + "</em></div><div class=\"cat-b\">";
+    sec.items.forEach(function(it){
+      var isOn = MASKING.indexOf(it.key) >= 0;
+      /* Each row says its own state and where it is decided -- the detail alone left the
+         reader to guess whether the switch was theirs to flip. */
+      var tip = (it.detail ? it.detail + "\n\n" : "")
+        + (isOn ? "Masked on this run." : "NOT masked at this level: it goes to the model in clear.")
+        + " Read-only here \u2014 change the level on the terminal, or pass --disable " + it.key + ".";
+      h += '<div class="det ro" aria-pressed="' + isOn + '" aria-disabled="true"' +
+        ' data-cmd="openmasq-proxy --disable ' + esc(it.key) + '"' +
+        ' title="' + esc(tip + " Click to copy: openmasq-proxy --disable " + it.key) + '">' +
+        '<span class="n">' + esc(it.label) + "</span>" +
+        (it.ai ? '<span class="bt">BETA</span>' : "") + '<span class="sw"></span></div>';
+    });
+    h += "</div></div>";
+  });
+  return h;
+}
+/* One banner, both panels: a read-only surface says so once, at the top, in the same words.
+   The LOCK is not decoration -- it is the only part of this a reader sees without hovering. */
+function RO_BANNER(text){
+  return '<div class="ro-b" title="' + esc(text) + '">' + LOCK + '<span>' + esc(text) + '</span></div>';
+}
+var LOCK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="10.5" width="16" height="10" rx="2"/><path d="M8 10.5V7a4 4 0 0 1 8 0v3.5"/></svg>';
+var SHIELD = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3 4 6.5v5c0 4.4 3.4 8.3 8 9.5 4.6-1.2 8-5.1 8-9.5v-5L12 3Z"/></svg>';
+var CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" width="16" height="16"><path d="m5 12 5 5L20 7"/></svg>';
+
+/* The design-system highlight hues a connector tile may be painted in — the catalog's
+   `tone`. `tokens.css` carries every `--hl-*`; an unknown tone falls back to slate. */
+var HL_TONES = { violet:1, sky:1, mint:1, teal:1, amber:1, gold:1, pink:1, slate:1, red:1, lime:1 };
+function toneVar(t){ return "var(--hl-" + (HL_TONES[t] ? t : "slate") + ")"; }
+/* A connector's TILE. The brand's own mark when the catalogue carries one — a single 24x24
+   path on the brand's hex, or a `data:` favicon — and the coloured initials otherwise, which
+   is the desktop's own fallback. Everything is inline: the page fetches nothing, ever. */
+function ctile(name, tone, c){
+  if (c && c.logo)
+    return '<span class="av mk" style="background:' + esc(c.logo.hex) + '">' +
+      '<svg viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="' + esc(c.logo.path) + '"/></svg></span>';
+  if (c && c.img)
+    return '<span class="av mk ph"><img src="' + esc(c.img) + '" alt="" loading="lazy"></span>';
+  var ini = (name.replace(/[^A-Za-z0-9]/g, "").slice(0, 2) || "??").toUpperCase();
+  return '<span class="av" style="background:' + toneVar(tone) + ';color:var(--ink-on-hl)">' + esc(ini) + '</span>';
+}
+/* The catalogue entry for a connected server id, so its live row wears the same mark. */
+function conOf(id){ return (CATALOG && CATALOG.connectors.filter(function(x){ return x.id === id; })[0]) || null; }
+/* A level PER connector. A single level is the wrong grain for a machine that serves a
+   filesystem read AND a web search, so the row that carries the server carries its level.
+   « Default » is the absence of an override, not a fourth level — it follows the run.
+
+   ⚠️ The buttons are live only when the run can act (`canSetMasking`: there has to be a
+   terminal to confirm a loosening on). Otherwise they render as the read-only state the rest
+   of this panel is in, and say where the change is made. */
+function lvSel(id){
+  var cur = SRV_LVL[id] || { level: LEVEL, own: false };
+  function b(lv, label, tip){
+    var on = lv === null ? !cur.own : (cur.own && cur.level === lv);
+    return '<button data-lv="' + esc(id) + ':' + (lv || "") + '"' + (CAN_SET ? "" : " disabled")
+      + ' class="' + (on ? "on" : "") + '" title="' + esc(tip) + '">' + label + '</button>';
+  }
+  var tail = CAN_SET
+    ? " Lowering it asks for a y on the terminal; raising it applies at once."
+    : " Read-only on this run: there is no terminal to confirm a change on.";
+  return '<span class="lvsel' + (CAN_SET ? "" : " ro") + '" role="group" aria-label="Masking level for ' + esc(id) + '">'
+    + b(null, "Default", "Follow the run's own level (" + LEVEL + ")." + tail)
+    + LEVELS.map(function(l){ return b(l.id, esc(l.label || l.id), (l.desc || l.id) + tail); }).join("")
+    + '</span>';
+}
+/* One request, one answer. The page does not guess the outcome: a loosening may sit waiting
+   for a keystroke on a terminal nobody is watching, and a picker that had already moved would
+   be claiming a protection level the proxy is not applying. */
+function setLevel(id, lv){
+  fetch("/console/masking/" + encodeURIComponent(id || "-") + location.search,
+        { method: "POST", headers: { "content-type": "application/json" },
+          body: JSON.stringify({ level: lv || null }) })
+    .then(function(r){ return r.json().then(function(j){ return { ok: r.ok, j: j }; }); })
+    .then(function(res){
+      if (res.ok) { SRV_LVL[id] = { level: lv || LEVEL, own: !!lv }; toast(id + " → " + (lv || "default")); }
+      else toast(res.j && res.j.why ? res.j.why : "refused", true);
+      if (shOpen) renderSheet();
+    })
+    .catch(function(){ toast("the proxy did not answer", true); });
+}
+/* A one-line answer under the panel header. Not an alert: the operator may be mid-keystroke
+   on the terminal, and a modal would steal the very focus the gate is waiting on. */
+function toast(text, bad){
+  var el = document.getElementById("sh-toast");
+  if (!el) return;
+  el.textContent = text;
+  el.className = "sh-toast" + (bad ? " bad" : "");
+  clearTimeout(toast._t);
+  toast._t = setTimeout(function(){ el.className = "sh-toast"; el.textContent = ""; }, 6000);
+}
+function mcpBody(){
+  var h = RO_BANNER("This panel SHOWS the connectors. Connecting or removing one happens on the terminal \u2014 credentials never pass through this page.");
+  /* What is LIVE on this run, if anything. */
+  if (MCP) {
+    h += '<div class="sh-lb">Connected · ' + MCP.servers.length + '</div><div class="srv">';
+    if (!MCP.servers.length) h += '<div class="sh-note">No server answered.</div>';
+    MCP.servers.forEach(function(s){
+      var id = s.split(" (")[0];
+      h += '<div class="srv-r up" title="' + esc(id + " is connected through openmasq on this run. Its tool results are masked on the way to the model and restored on the way back, and its credential stays on this machine.") + '">' + ctile(id, toneOf(id), conOf(id)) +
+        '<span class="id"><b>' + esc(s) + "</b><em>values masked on the way out, restored on the way back</em></span>" +
+        lvSel(id) +
+        '<span class="st2"><i></i>connected</span></div>';
+    });
+    h += "</div>";
+    var w = MCP.writes === "deny" ? "every write is refused"
+      : MCP.writes === "allow" ? "writes pass without confirmation"
+      : "a write asks for a \"y\" on the terminal";
+    h += '<div class="sh-note">Writes: ' + w + '. Everything passing through a connector is masked before it reaches the model, at the level set in the other tab; the credentials stay on this machine and never reach the agent.</div>';
+  } else {
+    h += '<div class="sh-note">No MCP on this run: the agent\'s tools go to their services directly, and nothing on that path is masked. Start with <b>--mcp</b> to route them through here.</div>';
+  }
+  /* The full catalog — every service that CAN be connected, the desktop app's own list. */
+  if (CATALOG && CATALOG.connectors.length) {
+    var connected = {};
+    if (MCP) MCP.servers.forEach(function(s){ connected[s.split(" (")[0]] = 1; });
+    h += '<div class="sh-sub"><span class="sh-lb">Catalogue</span><em>' + CATALOG.connectors.length + ' connectors</em></div>';
+    CATALOG.categories.forEach(function(cat){
+      var list = CATALOG.connectors.filter(function(c){ return c.category === cat.id; });
+      if (!list.length) return;
+      h += '<div class="cat-h">' + esc(cat.label) + '</div><div class="cat-grid">';
+      list.forEach(function(c){
+        var on = connected[c.id];
+        h += '<div class="cx' + (on ? " on" : "") + '"'
+          + (on ? "" : ' data-cmd="openmasq-proxy mcp add ' + esc(c.id) + '"')
+          + ' title="' + esc(on
+              ? c.name + " is connected on this run — its tool calls pass through openmasq and are masked."
+              : c.name + " is in the catalogue but not connected here. Connect it with: openmasq-proxy mcp add") + '">' +
+          ctile(c.name, c.tone, c) + '<span class="cx-n">' + esc(c.name) + '</span>' +
+          (on ? '<i class="cx-dot"></i>' : "") + '</div>';
+      });
+      h += "</div>";
+    });
+  }
+  h += '<div class="cmd"><span>$</span><b>openmasq-proxy mcp add</b></div>';
+  return h;
+}
+/* The catalog tone for a connected server id, so its live row matches its catalog tile. */
+function toneOf(id){
+  var c = CATALOG && CATALOG.connectors.filter(function(x){ return x.id === id; })[0];
+  return c ? c.tone : "slate";
+}
+
+function renderSheet(){ document.getElementById("sh-b").innerHTML = shTab === "tier" ? tierBody() : mcpBody(); }
+function setShTab(next){
+  shTab = next;
+  document.getElementById("t-tier").className = next === "tier" ? "on" : "";
+  document.getElementById("t-mcp").className = next === "mcp" ? "on" : "";
+  renderSheet();
+}
+function openSheet(t){
+  shOpen = true; setShTab(t);
+  document.getElementById("sheet").classList.add("on");
+  document.getElementById("sheet").setAttribute("aria-hidden", "false");
+  document.getElementById("scrim").classList.add("on");
+}
+function closeSheet(){
+  shOpen = false;
+  document.getElementById("sheet").classList.remove("on");
+  document.getElementById("sheet").setAttribute("aria-hidden", "true");
+  document.getElementById("scrim").classList.remove("on");
+}
+document.getElementById("tier-btn").addEventListener("click", function(){ openSheet("tier"); });
+document.getElementById("mcp-btn").addEventListener("click", function(){ openSheet("mcp"); });
+document.getElementById("sh-x").addEventListener("click", closeSheet);
+document.getElementById("scrim").addEventListener("click", closeSheet);
+document.getElementById("t-tier").addEventListener("click", function(){ setShTab("tier"); });
+document.getElementById("t-mcp").addEventListener("click", function(){ setShTab("mcp"); });
+document.getElementById("sh-b").addEventListener("click", function(e){
+  var b = e.target.closest("[data-lv]");
+  if (b && !b.disabled) {
+    var p = b.getAttribute("data-lv").split(":");
+    setLevel(p[0], p[1]);
+    return;
+  }
+  /* Everything else in this panel is READ-ONLY, and a read-only control that swallows a click
+     teaches nothing — which is what "clicking does nothing" was. What it CAN do without
+     touching the run is hand over the command that would: the terminal is where the change is
+     made, so the clipboard is the shortest path between the two. */
+  var c = e.target.closest("[data-cmd]");
+  if (c) copyCmd(c.getAttribute("data-cmd"));
+});
+/* A localhost page IS a secure context, so `writeText` is available — but a browser that
+   refuses anyway must not leave the reader with nothing, so the command is SHOWN either way
+   and can be selected by hand. */
+function copyCmd(cmd){
+  var ok = function(){ toast("copied:  " + cmd); };
+  var no = function(){ toast(cmd, true); };
+  if (navigator.clipboard && navigator.clipboard.writeText)
+    navigator.clipboard.writeText(cmd).then(ok, no);
+  else no();
+}
+document.addEventListener("keydown", function(e){ if (e.key === "Escape" && shOpen) closeSheet(); });
+
+/* ---------- timeline (design-system `cli-logs` kit) ----------
+   Buckets come from the rows' own timestamps — a click filters to the calls it counted, which
+   only works because the bars ARE the log. Nothing here is a second source: `LOGS` is the
+   journal, `l.items` the per-section tallies the rows already carry. */
+var BW = 10000;          /* bucket width in ms — the scale picker sets it */
+var CELL = { 1000:14, 10000:24, 60000:34, 300000:78 };  /* px per bucket, per scale */
+var BUCKETS = [], bkt = null;
+function tms(t){
+  var m = /(\d+):(\d+):(\d+)(?:\.(\d+))?/.exec(t || "");
+  if (!m) return 0;
+  return ((+m[1] * 60 + +m[2]) * 60 + +m[3]) * 1000 + (+m[4] || 0);
+}
+function tfmt(ms){
+  var s2 = Math.floor(ms / 1000);
+  var hm = ("0"+Math.floor(s2/3600)%24).slice(-2)+":"+("0"+Math.floor(s2/60)%60).slice(-2);
+  return BW >= 60000 ? hm : hm + ":" + ("0"+s2%60).slice(-2);
+}
+function buildBuckets(){
+  var ts = LOGS.map(function(l){ return tms(l.t); });
+  var lo = Math.floor(Math.min.apply(null, ts) / BW) * BW;
+  var hi = Math.floor(Math.max.apply(null, ts) / BW) * BW;
+  var out = [];
+  for (var t = lo; t <= hi && out.length < 2000; t += BW) out.push({ t0:t, t1:t+BW, calls:[], cats:{}, items:0 });
+  LOGS.forEach(function(l, i){
+    var b = out[Math.min(out.length - 1, Math.floor((tms(l.t) - lo) / BW))];
+    if (!b) return;
+    b.calls.push(i);
+    b.items += itemCount(l);
+    l.items.forEach(function(p){ b.cats[p[0]] = (b.cats[p[0]] || 0) + p[1]; });
+  });
+  return out;
+}
+function renderBars(){
+  /* One call can carry a hundred values where the next-highest bucket has five. On a linear
+     scale that outlier flattens every other bucket to under 3px, so the strip stops showing
+     when anything happened. Square-root compression plus a floor keeps a 1-value bucket
+     legible next to a 100-value one; the empty placeholder is thinner than the smallest
+     populated bar so height still orders by value count. */
+  var peak = Math.max.apply(null, BUCKETS.map(function(b){ return b.items; }).concat([0])) || 1;
+  var FLOOR = 8, sq = Math.sqrt(peak);
+  var cell = CELL[BW] || 24, stride = Math.max(1, Math.round(160 / cell));
+  var bars = "", ax = "";
+  BUCKETS.forEach(function(b, i){
+    var hf = b.items ? Math.max(FLOOR, Math.sqrt(b.items) / sq * 100) : 0;
+    var col = b.items
+      ? Object.keys(b.cats).map(function(c){
+          return '<i style="height:'+(hf * b.cats[c] / b.items).toFixed(2)+'%;background:'+cav(cavSafe(c))+'"></i>';
+        }).join("")
+      : b.calls.length
+        /* passed through: a call happened, nothing was masked */
+        ? '<i style="height:'+FLOOR+'%;min-height:3px;background:var(--text-muted)"></i>'
+        : '<i style="height:1px;background:var(--border-default)"></i>';
+    bars += '<div data-b="'+i+'" style="flex-basis:'+cell+'px" class="'+(bkt===i?"on":"")+(b.calls.length?"":" nil")+'"'
+      + ' title="'+tfmt(b.t0)+' — '+b.calls.length+' call'+(b.calls.length===1?"":"s")+' · '+b.items+' value'+(b.items===1?"":"s")+'">'
+      + col + '</div>';
+    var tick = i % stride === 0;
+    ax += '<span style="flex-basis:'+cell+'px"'+(tick?' class="lb"':'')+'>'+(tick?tfmt(b.t0):"")+'</span>';
+  });
+  document.getElementById("bars").innerHTML = bars;
+  document.getElementById("axis").innerHTML = ax;
+  set("histo-rt", BUCKETS.length ? tfmt(BUCKETS[0].t0) + " → " + tfmt(BUCKETS[BUCKETS.length-1].t1) : "—");
+  var chip = document.getElementById("bkt-chip");
+  if (bkt === null) chip.innerHTML = "";
+  else {
+    var b = BUCKETS[bkt];
+    chip.innerHTML = '<span class="bchip"><b>'+tfmt(b.t0)+'</b> · '+b.calls.length+' call'+(b.calls.length===1?"":"s")
+      + ' · '+b.items+' value'+(b.items===1?"":"s")
+      + '<button id="bkt-x" aria-label="Show everything"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button></span>';
+  }
+  /* Live tail: keep the newest bucket in view unless the reader has scrolled back. */
+  var scx = document.getElementById("scx");
+  if (bkt === null && document.getElementById("tail").classList.contains("live")) scx.scrollLeft = scx.scrollWidth;
+}
+function inBucket(t){
+  if (bkt === null || !BUCKETS[bkt]) return true;
+  var v = tms(t);
+  return v >= BUCKETS[bkt].t0 && v < BUCKETS[bkt].t1;
+}
+function setBucket(i){
+  bkt = (bkt === i ? null : i);
+  renderBars();
+  renderRows(document.getElementById("q").value.trim().toLowerCase());
+}
+document.getElementById("bars").addEventListener("click", function(e){
+  var d = e.target.closest("[data-b]");
+  if (d) setBucket(+d.getAttribute("data-b"));
+});
+document.getElementById("bkt-chip").addEventListener("click", function(e){
+  if (e.target.closest("#bkt-x")) setBucket(bkt);
+});
+document.getElementById("bw-seg").addEventListener("click", function(e){
+  var b = e.target.closest("[data-bw]");
+  if (!b) return;
+  BW = +b.getAttribute("data-bw"); bkt = null;
+  Array.prototype.forEach.call(e.currentTarget.children, function(x){ x.className = x === b ? "on" : ""; });
+  repaint();
+});
+/* The strip is a scroller: a wheel over it should pan time, not fight the page. */
+document.getElementById("scx").addEventListener("wheel", function(e){
+  if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) return;
+  var el = e.currentTarget;
+  if (el.scrollWidth <= el.clientWidth) return;
+  el.scrollLeft += e.deltaY;
+  e.preventDefault();
+}, { passive: false });
+
+var stream = new EventSource("./events" + location.search);
+stream.addEventListener("hello", function(m){
+  var d = JSON.parse(m.data);
+  CATS = (d.sections || []).map(function(x){ return { id: x.id, label: x.label, n: 0 }; });
+  RULES = d.rules || []; MASKING = d.masking || []; LEVELS = d.levels || [];
+  LEVEL = d.level || ""; MODE = d.mode || ""; MCP = d.mcp || null; CATALOG = d.catalog || null;
+  SIDE = d.side || null; renderKey();
+  SRV_LVL = d.levelsByServer || {}; CAN_SET = !!d.canSetMasking;
+  set("tier-lb", LEVEL || "Masking");
+  set("mcp-lb", MCP && MCP.servers.length ? ("MCP · " + MCP.servers.length) : "MCP");
+  if (shOpen) renderSheet();
+  PID = String(d.pid);
+  armReveal(!!d.reveal);
+  started = Date.now() - (d.upMs || 0);
+  set("f-cmd", d.command || "openmasq-proxy");
+  set("f-pid", "pid " + d.pid);
+  set("f-ver", "v" + d.version);
+  if (d.reveal) document.title = "OpenMasq — log (real values available)";
+});
+stream.addEventListener("request", function(m){ push(JSON.parse(m.data)); repaint(); });
+stream.onerror = function(){ document.getElementById("tail").classList.remove("live"); };
+repaint();
+
+</script>
+</body>
+</html>

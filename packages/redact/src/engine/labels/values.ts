@@ -1,21 +1,15 @@
-// The VALUE of a labeled field: clean it, bound it, and decide whether it is one.
-//
-// Every pass in `contextFields.ts` (inline, vertical, serialised) and the detached
-// BLOCKS pass (`labelBlocks.ts`) go through these three functions — it's the single copy
-// of the gate (rule 9). Keeping them together, outside the PATTERNS file, keeps the surface
-// legible: here we decide what a value IS, there where it starts.
+import { isCodeReference } from "../validators";
+// The VALUE of a labeled field: clean it, bound it, and decide whether it is one. Every
+// labeled-field pass goes through these three functions — the single copy of the gate
+// (rule 9): here we decide what a value IS, in the patterns file where it starts.
 import { isStopword, isGenericTerm, isGenericCompound, stripOrgAffixes } from "../../model/detect";
 import { trimAddressTail } from "../addresses";
 
-// A NAME field whose value is a CODE IDENTIFIER is tool/API metadata, not a person.
-// MCP tool descriptions are YAML — `name: read-data-schema`, `name: create_issue`,
-// `name: getUserById` — and a value read as a multi-word NAME hands each fragment its
-// own alias ("data"→fake) which then redacted every occurrence conversation-wide (the
-// reported PostHog overredaction). Three shapes, none a human name in a name field:
-// an underscore anywhere; a single token that STARTS lowercase then carries an
-// uppercase (camelCase — "McDonald"/"DiCaprio" start uppercase and stay detected);
-// 3+ lowercase kebab/dotted segments (a lowercase 2-segment "jean-rebour" in a real
-// form still counts as a name — the conservative boundary, pinned in tests).
+// A NAME field whose value is a CODE IDENTIFIER (`name: read-data-schema`, `getUserById`)
+// is tool/API metadata, not a person — read as a multi-word NAME it hands each fragment
+// an alias that redacts every occurrence conversation-wide. Three shapes: an underscore;
+// camelCase starting lowercase ("McDonald" stays detected); 3+ lowercase kebab/dotted
+// segments (a 2-segment "jean-rebour" still counts as a name — pinned in tests).
 const CODE_IDENT = /_|^[a-z][a-z0-9]*[A-Z]|^[a-z0-9]+(?:[-.][a-z0-9]+){2,}$/;
 
 // Field kinds whose value is inherently numeric — a captured value with no digit
@@ -28,15 +22,10 @@ const NUMERIC_CATS = new Set(["PHONE", "IBAN", "CARD", "POSTAL_CODE", "DOB"]);
 const PLACEHOLDER =
   /^(?:n\/?a|néant|neant|none|null|undefined|non renseigné|non renseigne|-+|—+|_{2,}|\.{2,}|x{2,}|tbd|tba|tbc|unknown|pending|not (?:provided|applicable|available|specified|given|known|listed)|to be (?:filled|determined|confirmed|provided|advised|completed)\b.*|see (?:attached|above|below|attachment)|non applicable|inconnu|à compléter|a completer|à renseigner|a renseigner|à définir|a definir|en attente|voir (?:ci-joint|ci-dessus|ci-dessous|pièce jointe)|[[<{(][\p{L} _.\-]{0,40}[\]>})])$/iu;
 /**
- * A SENTENCE under a NAME label — « Skin contact: Wash off with soap and water » is a safety
- * sheet, not a person.
- *
- * ⚠️ The discriminant is the CASING of the substantive words, never the word count nor the
- * function words: a French name is full of particles and can be long — « Marie-Claire de la
- * Tour du Pin » is six words carrying three of them, and every rule written on those two
- * counts dropped it, i.e. sent it in CLEAR. What a name never has is several LOWERCASE words
- * that are not particles. Both bounds are needed: « van der Berg de Vries » has one
- * (« van »), so the floor is two, and a short value is left alone entirely.
+ * A SENTENCE under a NAME label (« Skin contact: Wash off with soap and water ») is not a
+ * person. The discriminant is the CASING of the substantive words, never the word count:
+ * « Marie-Claire de la Tour du Pin » is six words. A name never has several LOWERCASE
+ * non-particle words; « van der Berg de Vries » has one, so the floor is two.
  */
 function isProse(v: string): boolean {
   const words = v.split(/\s+/u).filter(Boolean);
@@ -50,68 +39,43 @@ const SENTENCE_KEEPS = new Set(["NAME", "ADDRESS", "ORG", "CITY", "PLACE"]);
  *  column gap (tab / fullwidth space / 2+ spaces), or at 80 chars — then trim.
  *  Handles both Latin (`Word :`) and CJK (`ラベル：`, fullwidth colon) next-fields. */
 export function cleanValue(raw: string): string {
-  // A tab, a fullwidth space (common CJK field separator), a 2+ space gap, or the
-  // ` | ` column separator used by the tabular (CSV/XLSX) header-annotation
-  // (`documents/tabular.ts`) — so a `nom: Rebour | ville: Lyon` row yields just
-  // "Rebour" for the `nom` field, not the whole rest of the line.
-  // …and the EM-DASH surrounded by spaces, the field separator of every one-line
-  // form (« Numéro étudiant : 22104877 — Né le 2 février 2003 »). Without it, the
-  // greedy capture would carry off the next field, and the fake would rewrite the birth
-  // date at the same time as the identifier. The SIMPLE hyphen is excluded: it lives
-  // inside names and addresses (« Saint-Ouen », « 12-14 rue »).
-  // …and the MIDDLE DOT / BULLET the same way (« Customer ID: Xe-97453 · SSN: … »): a
-  // one-line record separates its fields with it, and the SSN value kept « · » glued.
+  // Field separators: a tab, a fullwidth space (CJK), a 2+ space gap, the ` | ` of the
+  // tabular header annotation (`documents/tabular.ts`), a space-surrounded EM-DASH /
+  // middle dot / bullet (one-line forms). The SIMPLE hyphen is excluded: it lives inside
+  // names and addresses (« Saint-Ouen », « 12-14 rue »).
   let v = raw.split(/\t|　|\s{2,}|\s\|\s|\s[—–·•]\s/u)[0] ?? raw;
-  // Next field: a short token (Latin word OR CJK run) immediately before a colon —
-  // INCLUDING the "N° xxx :" label form ("Nom et prénom : REBOUR Jean N° sécu :
-  // 184…" — without it the whole rest of the line became the NAME value, the NIR
-  // rode inside a composite that never re-applied, and "sécu" got a NAME alias
-  // that then redacted every «sécu» in the conversation).
-  const nextField = v.search(/\s+\p{Lu}[\p{L}]{2,}\s*[:：]|\s+[Nn][°º][^:：\n]{0,20}[:：]|[\p{sc=Han}\p{sc=Hiragana}\p{sc=Katakana}\p{sc=Hangul}]{1,6}[:：]/u);
+  // Guillemets bound a quoted value and never sit inside a name/id/secret: cut there.
+  v = v.split(/[«»]/)[0] ?? v;
+  // Next field: a short token (Latin word OR CJK run) before a colon, INCLUDING the
+  // "N° xxx :" label form — else the rest of the line becomes the NAME value.
+  const nextField = v.search(
+    /\s+\p{Lu}[\p{L}]{2,}\s*[:：]|\s+[Nn][°º][^:：\n]{0,20}[:：]|[\p{sc=Han}\p{sc=Hiragana}\p{sc=Katakana}\p{sc=Hangul}]{1,6}[:：]/u,
+  );
   if (nextField > 0) v = v.slice(0, nextField);
   v = v.replace(/^[\s:：=.–—-]+/u, "").trim();
-  // A serialised value keeps its QUOTES ("name: \"Inès FONSEQUA\"" in YAML, a JSON
-  // record) — vaulting them makes the fake replace the document's own punctuation, so
-  // the substituted line is no longer valid YAML/JSON. Strip a MATCHED surrounding pair
-  // only; an apostrophe inside the value (« l'Étang ») is untouched.
+  // A serialised value keeps its QUOTES (YAML, JSON): vaulting them makes the fake replace
+  // the document's punctuation. Strip a MATCHED surrounding pair only.
   v = v.replace(/^(["'`])([\s\S]*)\1$/u, "$2").trim();
-  return v.length > 80 ? v.slice(0, 80).trim() : v;
+  // The 80-char cap must not CUT a code reference: an expression of references cut at 80
+  // lands mid-call, and the reference gate downstream then reads the fragment as a secret.
+  // So the reference is measured BEFORE the cut.
+  if (v.length <= 80 || isCodeReference(v)) return v;
+  return v.slice(0, 80).trim();
 }
 
-/** A NAME field's value, trimmed to the NAME: the civil-status tail after a comma is
- *  other fields' territory ("Gérant : Madame Inès FONSEQUA, née le 17 mai 1988 à
- *  Villeurbanne" — the date and birthplace have their OWN detectors), and the leading
- *  honorific is a role word. Untrimmed, the whole line became ONE composite NAME whose
- *  per-word aliases included « Madame » — and every future « Madame » in the
- *  conversation was redacted. */
-const LEAD_HONORIFIC = /^(?:m\.|mme\.?|mlle\.?|mr\.?|mrs\.?|ms\.?|dr\.?|monsieur|madame|mademoiselle|docteur|ma[îi]tre|me)[^\S\r\n]+/iu;
+/** A NAME field's value, trimmed to the NAME: the civil-status tail after a comma is other
+ *  fields' territory (date and birthplace have their OWN detectors), and the leading
+ *  honorific is a role word whose alias would redact every future « Madame ». */
+const LEAD_HONORIFIC =
+  /^(?:m\.|mme\.?|mlle\.?|mr\.?|mrs\.?|ms\.?|dr\.?|monsieur|madame|mademoiselle|docteur|ma[îi]tre|me)[^\S\r\n]+/iu;
 
 /**
- * ⚠️ LEAK — the comma wasn't the only boundary, and the others let the
- * neighbouring field's value go out IN CLEAR (measured on 16/08/2026):
- *
- * | Input | What went out |
- * |---|---|
- * | `Contact : Julien Sabourdin (06 12 34 56 78)` | the phone number, in clear |
- * | `Gérant : Julien Sabourdin (né le 12/03/1984)` | the birth date, in clear |
- * | `Contact : Julien Sabourdin - julien@exemple.fr` | the email, in clear |
- *
- * The mechanics, visible in the vault: the key was `"Aurèle Aubertin (06 12 34 56 78)"`
- * — the REAL phone number inside the FAKE. The labeled field was capturing the whole line
- * as ONE NAME value; the nested phone candidate was then dropped by the de-nest
- * (`model/pseudonymize/filter.ts`, rightly: all its occurrences sit inside a longer
- * candidate); and a NAME's fake generator rewrites ONLY name words — digits
- * and addresses pass right through.
- *
- * Three boundaries are therefore added to the comma, each impossible in a person's
- * name: an opening PARENTHESIS, a SPACE-SURROUNDED DASH (« Jean-Pierre » and
- * « Saint-Ouen » don't carry one — it's the SIMPLE hyphen that lives in names, never
- * the spaced one), and a token carrying an `@` or a run of 2+ digits.
- *
- * This isn't a coverage loss: what gets cut falls back under its OWN
- * detectors (phone, DOB, email, identifier), which couldn't see it while it was
- * nested. Same reasoning, and same benefits, as the comma cut.
- * Pinned in `contextFields.test.ts` + `../__cases__/labelledNeighbour.test.ts` (the WIRE).
+ * Beyond the comma, three boundaries end a NAME value, each impossible in a person's name:
+ * an opening PARENTHESIS, a SPACE-SURROUNDED DASH (the simple hyphen lives in names), and a
+ * token carrying an `@` or 2+ digits. Without them the whole line is ONE NAME value whose
+ * fake rewrites only name words, so the phone/date/email nested in it travels IN CLEAR
+ * inside the fake. What gets cut falls back under its OWN detectors. Pinned in
+ * `contextFields.test.ts` + `../__cases__/labelledNeighbour.test.ts`.
  */
 const NAME_FIELD_END = /[(（[]|\s[-–—]\s|\S*@|\d{2}/u;
 
@@ -120,7 +84,10 @@ function trimNameValue(v: string): string {
   const cut = head.search(NAME_FIELD_END);
   const kept = cut > 0 ? head.slice(0, cut) : head;
   // The cut leaves a dangling separator (« REBOUR (» → « REBOUR »).
-  return kept.replace(LEAD_HONORIFIC, "").replace(/[\s(（[\-–—]+$/u, "").trim();
+  return kept
+    .replace(LEAD_HONORIFIC, "")
+    .replace(/[\s(（[\-–—]+$/u, "")
+    .trim();
 }
 
 /** The shared per-value gate every labeled-field pass applies, and the ONLY copy of it.
@@ -135,51 +102,40 @@ export function acceptFieldValue(
   let value = raw;
   if (groupCategory === "ORG") value = stripOrgAffixes(value);
   if (groupCategory === "NAME") value = trimNameValue(value);
-  // An ADDRESS value stops at the end of the address. A labeled field's capture goes
-  // to the end of the line: without this, « Adresse : 3 quai des Bateliers, 67000 Strasbourg
-  // et mon bureau est ailleurs » went out WHOLE into the vault, and the model received an
-  // address fake in place of the rest of the sentence. Same cut as the address
-  // detector, not a second one (rule 9).
+  // An ADDRESS value stops at the end of the address (a labeled capture runs to the end of
+  // the line). Same cut as the address detector, not a second one (rule 9).
   if (groupCategory === "ADDRESS") value = trimAddressTail(value);
-  // …and an IDENTIFIER stops at the COMMA, for the same reason the NAME stops at
-  // its own: a labeled field's capture goes to the end of the line. Measured on
-  // 16/08/2026 when adding log-style labels — « user_id=8842019, ip 192.0.2.44 »
-  // was becoming ONE identifier value, and the number-faker was rewriting the IP
-  // inside it… as « 944.9.8.74 », an address that doesn't exist. An identifier never
-  // carries a comma; what follows it is another field, and it has its own detector.
+  // An IDENTIFIER stops at the COMMA: what follows is another field with its own detector,
+  // and a number-faker would otherwise rewrite the IP glued after it.
   if (groupCategory === "ID") value = value.split(/[,;]/)[0].trim();
-  // …and EVERY value but a name, an address, an organisation or a city stops at the end of
-  // the SENTENCE — a stop followed by a space, or closing the line. « Social Security
-  // Number: 017-69-1878. The taxpayer's… » vaulted the identifier WITH the clause after it,
-  // so the fake rewrote the sentence and the number itself was only half covered. A name
-  // has its own cut, an address its tail, and « St. Louis » is a city.
+  // EVERY value but a name, an address, an organisation or a city stops at the end of the
+  // SENTENCE, else the fake rewrites the clause after the identifier. « St. Louis » is a city.
   if (!SENTENCE_KEEPS.has(groupCategory)) value = value.split(/\.(?:\s|$)/u)[0].trim();
   if (value.length < 2) return null;
   if (!/[\p{L}\p{N}]/u.test(value)) return null; // must carry a letter or digit
-  // A numeric-kind field (phone/IBAN/card/CP/date) whose "value" carries NO digit is
-  // prose, not the field's value — never redact a sentence as a PHONE (its
-  // digit-faker would be an identity pass-through).
+  // A numeric-kind field whose "value" carries NO digit is prose, not the field's value.
   if (numeric && !/\d/.test(value)) return null;
-  // …and a digit is not enough: a SENTENCE that happens to carry a date ("Fait à Lyon,
-  // le 06/02/2026 —") satisfied the digit test and was vaulted as an IBAN, so the fake
-  // rewrote a whole clause of the document. An identifier/phone/postal value is not
-  // prose: two or more FUNCTION words in it means we captured a sentence.
+  // …and a digit is not enough: two or more FUNCTION words means we captured a sentence.
   if (numeric && value.split(/[\s,;]+/u).filter((w) => w && isStopword(w)).length >= 2) {
     return null;
   }
-  // A PLACEHOLDER is not a value: the form's own « N/A », « TBD », « Not provided », « To be
-  // filled by the tenant », a template's « [Insert Coverage Limit] », a blank of underscores.
+  // A PLACEHOLDER is not a value (« N/A », « TBD », « [Insert Coverage Limit] », underscores).
   if (PLACEHOLDER.test(value)) return null;
+  // A value that REFERENCES a secret (`var.x`) is not one: masking it corrupts the code and
+  // protects nothing. One home for that test (`engine/validators/validators.config.ts`).
+  if (isCodeReference(value)) return null;
   // …and neither is a SENTENCE under a NAME label (see `isProse`).
   if (groupCategory === "NAME" && isProse(value)) return null;
+  // …nor a running PROSE clause under a SECRET label: a key has no spaces, a passphrase is
+  // short. The escape is a SECRET SYMBOL (`_ / ! @ # …`), which real keys carry and a
+  // plain-word clause does not; the prose-password pass (`codes.ts`) still catches a
+  // symbol-bearing passphrase behind a copula.
+  if (groupCategory === "SECRET" && isProse(value) && !/[^\s\p{L}\p{N},.'’-]/u.test(value))
+    return null;
   if (isStopword(value) || isGenericTerm(value) || isGenericCompound(value)) return null;
   if (groupCategory === "NAME" && CODE_IDENT.test(value)) return null;
-  // A CITY/Commune/Ville field whose value is a "CP + Ville" ("92110 CLICHY") is a PLACE,
-  // not a bare city: fake the CODE and the CITY TOGETHER (coherent, `fakeGeo` PLACE)
-  // instead of a bare city that DROPS the postal.
-  // …and a POSTAL_CODE field holding one is the same object seen from the other side
-  // ("Code postal / Ville" → "59800 Lille"): a bare postal fake beside a real city, or
-  // vice-versa, is the split this promotion exists to prevent.
+  // A CITY or POSTAL_CODE field holding "CP + Ville" ("92110 CLICHY") is a PLACE: fake the
+  // CODE and the CITY TOGETHER (`fakeGeo` PLACE) instead of splitting them.
   const category =
     (groupCategory === "CITY" || groupCategory === "POSTAL_CODE") &&
     /^\d{4,5}\s+\p{Lu}/u.test(value)

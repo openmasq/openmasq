@@ -2,7 +2,7 @@
  * The SETTINGS — their tabs, their ⌘K-reachable entries, their mobile groups.
  *
  * A SLICE of the contract (`../messages.ts`), which stays the only list of namespaces.
- * The split holds the 300-LOC cap (rule 1) — same shape as `packages/emails/i18n/`.
+ * The split holds the 300-LOC cap (rule 1).
  */
 
 /** The rail label, the panel title, a ⌘K row's sentence, and the words one types

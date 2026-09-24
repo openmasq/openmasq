@@ -8,42 +8,29 @@ import { logUpdate } from "./log";
 const { autoUpdater } = electronUpdater;
 
 /**
- * The update FUNNEL as product events — the counterpart to `report.ts` (which only ever
- * speaks on failure). Without this, a successful update produced ZERO telemetry and an
- * update that silently never applied was indistinguishable from a user who simply never
- * updated. Emitted through the injected reporter (→ `reportMainEvent` → the renderer's
- * consent-gated, allow-listed `captureEvent`), so this module stays free of the bridge
- * AND of the analytics transport.
- *
- * check → downloaded → install → installed. The last two are reported on the NEXT
- * launch, from disk: a ShipIt swap happens after we quit, so in-process there is nobody
- * left to send anything (see `pendingInstall` in `config.ts`).
+ * The update FUNNEL as product events (the counterpart of `report.ts`, which speaks only
+ * on failure), through the injected reporter so this module is free of the bridge. check →
+ * downloaded → install → installed; the last two are reported on the NEXT launch, from
+ * disk: the swap happens after we quit (`pendingInstall` in `config.ts`).
  */
 export type ReportEvent = (event: TrackEvent) => void;
 
 let emit: ReportEvent = () => {};
 
-/** The version whose download completed this session — the only one `quitAndInstall`
- *  can install, so it's what an install attempt records (`install.ts` has no info). */
+/** The version downloaded this session: the only one `quitAndInstall` can install. */
 let downloadedVersion: string | null = null;
 
-/** electron-updater handed us no version (never seen in practice) — a placeholder, so
- *  the event still counts in the funnel instead of vanishing on a missing field. */
+/** A placeholder, so an event with no version still counts in the funnel. */
 const UNKNOWN = "unknown";
 
-/** The renderer subscribes to `app:event` while it boots, so anything sent in the first
- *  moments of `whenReady` is dropped. Same delay, same reason as the ShipIt detector. */
+/** The renderer subscribes to `app:event` while it boots: anything sent earlier is dropped. */
 const RENDERER_READY_MS = 8000;
 
 /**
- * The PREVIOUS session's outcome, decided from persisted state alone (pure → unit
- * tested in `track.test.ts`):
- * - `pendingInstall` set ⇒ that session handed a build to ShipIt (an install ATTEMPT).
- * - the running version differs from `lastVersion` ⇒ the swap actually LANDED.
- *
- * An attempt with no landing is the silent ShipIt failure this whole channel exists to
- * make visible. A first launch ever (no `lastVersion`) is an INSTALL, not an update, and
- * yields nothing.
+ * The PREVIOUS session's outcome from persisted state (pure, `track.test.ts`):
+ * `pendingInstall` ⇒ an install ATTEMPT; a different running version ⇒ it LANDED. An
+ * attempt with no landing is the silent failure this channel exists to see. A first launch
+ * (no `lastVersion`) yields nothing.
  */
 export function lastSessionEvents(state: {
   channel: string;
@@ -67,18 +54,13 @@ function flushLastSession(): void {
     if (e.name === "update_installed") logUpdate(`update applied: v${e.from} → v${e.to}`);
     emit(e);
   }
-  // Always re-baseline: `lastVersion` must track the running build even on a first
-  // launch (nothing emitted then), and a consumed `pendingInstall` must not be
-  // re-reported at every subsequent launch.
+  // Always re-baseline, so a consumed `pendingInstall` is never re-reported.
   if (pendingInstall || lastVersion !== current)
     updateConfig({ lastVersion: current, pendingInstall: undefined });
 }
 
-/**
- * Wire the funnel's live half (check / downloaded) and schedule the cross-launch half.
- * Packaged-only, like the rest of the real updater — `wireEvents` in `index.ts` owns the
- * file log + the renderer status stream; this owns telemetry, and nothing else.
- */
+/** Wire the live half (check / downloaded) and schedule the cross-launch half. Telemetry
+ *  only; `index.ts` owns the log and the status stream. */
 export function setupUpdateTracking(report?: ReportEvent): void {
   if (report) emit = report;
   autoUpdater.on("update-available", (info) => {
@@ -86,11 +68,8 @@ export function setupUpdateTracking(report?: ReportEvent): void {
       name: "update_check",
       channel: getConfig().channel,
       result: "available",
-      // `found_version`, NOT `version`: PostHog displayed this field as "App version"
-      // right next to the `app_version` stamped on every event — the version
-      // FOUND on the feed read as the version CURRENTLY RUNNING (the false "drift"
-      // on 07/08). update_downloaded/install keep `version`: there, it really is
-      // the version of the artifact concerned.
+      // `found_version`, NOT `version`: the version FOUND on the feed must not read as the
+      // one RUNNING. update_downloaded/install keep `version` (the artifact's).
       found_version: info?.version ?? UNKNOWN,
     });
   });
@@ -109,12 +88,8 @@ export function setupUpdateTracking(report?: ReportEvent): void {
   setTimeout(flushLastSession, RENDERER_READY_MS).unref?.();
 }
 
-/**
- * Record the install attempt SYNCHRONOUSLY to disk, on the way into `quitAndInstall`.
- * Deliberately not an event: the renderer owns the transport and is about to die with
- * the app, so an IPC hop here would lose the one event whose absence we care about.
- * `flushLastSession` reports it on the next launch.
- */
+/** Record the install attempt SYNCHRONOUSLY to disk: the renderer owns the transport and
+ *  is about to die, so an IPC hop would lose the one event whose absence matters. */
 export function trackUpdateInstall(): void {
   updateConfig({ pendingInstall: downloadedVersion ?? UNKNOWN });
 }

@@ -37,6 +37,32 @@ async function envoyer(texte: string, opts: object = {}) {
   return { sortie: res.text, vault };
 }
 
+describe("buildFakeName — une initiale est une donnée, pas une ponctuation", () => {
+  // TAB, 127 arrêts de la CEDH : « Mr C. Whomersley », « Mrs E. Palm », « W.K. » — la
+  // personne anonymisée n'est plus QUE son initiale, et le faux la recopiait telle quelle.
+  const fake = (real: string) => buildFakeName(real, 0, () => undefined, () => false);
+  it("change l'initiale devant un nom de famille", () => {
+    const out = fake("C. Whomersley");
+    expect(out).toMatch(/^[A-Z]\. \p{Lu}\p{L}+$/u); // même forme : « X. Nom »
+    expect(out.startsWith("C.")).toBe(false);
+    expect(out).not.toContain("Whomersley");
+  });
+  it("change chaque initiale d'une suite, sans les confondre", () => {
+    const out = fake("J. R. R. Tolkien");
+    expect(out).toMatch(/^[A-Z]\. [A-Z]\. [A-Z]\. \p{Lu}\p{L}+$/u);
+    expect(out.startsWith("J.")).toBe(false);
+  });
+  it("n'aliase jamais la lettre seule — rien d'autre dans la conversation n'est réécrit", () => {
+    // `nameAliases` refuse une lettre (isNamePart) : seule l'entrée du nom entier porte
+    // l'initiale. Vérifié de bout en bout : le « C » de « vitamine C » reste un C.
+    return envoyer("Mr C. Whomersley prend de la vitamine C.").then(({ sortie }) => {
+      expect(sortie).not.toContain("Whomersley");
+      expect(sortie).not.toMatch(/Mr C\./);
+      expect(sortie).toMatch(/vitamine C\./);
+    });
+  });
+});
+
 describe("buildFakeName — aucun jeton réel n'est recopié dans le faux", () => {
   const cas: [string, string, string][] = [
     // label, real name, the token that used to go out in clear
@@ -72,9 +98,13 @@ describe("ce qui doit RESTER verbatim (la raison d'être du prédicat étroit)",
     expect(fake).not.toContain("Croix");
   });
 
-  it("une initiale et une civilité traînante restent telles quelles", () => {
-    expect(buildFakeName("L. Morvan", 0, () => undefined, () => false, 0)).toMatch(/^L\. /);
+  it("une civilité traînante reste telle quelle — une initiale, NON, elle change", () => {
+    // La civilité n'identifie personne. L'initiale, si : dans un arrêt anonymisé c'est ce
+    // qui reste de la personne (818 des 969 noms manqués sur TAB). Elle est donc faussée —
+    // voir « une initiale est une donnée » plus haut ; ceci épingle que la civilité, elle,
+    // n'a pas bougé.
     expect(buildFakeName("MARTINEZ CAROLINE MME", 0, () => undefined, () => false, 0)).toContain("MME");
+    expect(buildFakeName("L. Morvan", 0, () => undefined, () => false, 0)).not.toMatch(/^L\. /);
   });
 
   it("aucun alias par mot n'est créé pour un patronyme-stopword — « petit » ordinaire survit", async () => {

@@ -1,58 +1,23 @@
 #!/usr/bin/env node
-// Packaged-dependency guard. The ONE failure this exists for: the node_modules
-// electron-builder ships is NOT the tree pnpm installed. It walks the workspace ROOT and
-// keeps ONE copy per package NAME, so a nested `<pkg>/node_modules/<dep>` slot receives the
-// root-hoisted version whatever the declared range says, and some packages are dropped
-// outright. Dev resolves the real tree, so NOTHING here reproduces before packaging — the
-// app boots for months and the shipped binary dies on launch.
+// Packaged-dependency guard. electron-builder does not ship the tree pnpm installed: it
+// walks the workspace ROOT and keeps ONE copy per package NAME, so a nested dependency may
+// receive the hoisted version whatever its declared range says, or be dropped outright. Dev
+// resolves the real tree, so nothing here reproduces before packaging.
 //
-// It has already shipped once: `htmlparser2@10` (via `linkedom`, external in the main
-// bundle) was handed `entities@4.5.0` instead of `^7`, so its top-level
-// `require("entities/decode")` threw ERR_PACKAGE_PATH_NOT_EXPORTED at module load — before
-// any window existed. Release 0.3.2 was dead on launch, and every gate was green.
+// Findings: ABSENT (the main bundle requires a package the app does not ship — always fatal,
+// and the check that keeps an empty bundle from reporting green), APP-MISMATCH (the app's own
+// package.json vs what shipped — always blocking), UNRESOLVED (a declared dependency whose
+// required specifier does not resolve — the load-time crash class) and MISMATCH (resolves
+// outside its declared range — fails later and quietly). For the latter two, severity comes
+// from REACHABILITY: a finding on a file the app really loads is a HARD failure, never
+// allowlistable; dead weight the collector copied and nothing loads is ratcheted through
+// packaged-tree-allowlist.json (a backlog that may only SHRINK; `--update` after review).
 //
-// Four findings. ABSENT is judged from the built main bundle, APP-MISMATCH from the app's
-// own package.json (both always blocking); the other two from the DECLARED `dependencies`
-// of each shipped package (so node builtins, optional/try-catch'd requires and peer deps
-// cannot produce noise):
-//
-//   ABSENT     — the main bundle requires a package the app does not ship at all. ALWAYS
-//     fatal, and the check that stops the guard from congratulating itself on an empty
-//     bundle: when the collector resolves nothing there are no shipped packages left to
-//     find findings in, so every other check reports green on an app that cannot start.
-//     `npm run` instead of `pnpm run` produced exactly that — two packages, all green.
-//   UNRESOLVED — a declared dependency whose actually-`require`d specifier does not
-//     resolve in the shipped tree. This is the crash class: it throws at load time.
-//   MISMATCH  — a declared dependency that resolves to a version OUTSIDE its range. Does
-//     not throw; the dep just meets an API it wasn't written against, so it fails later
-//     and quietly.
-//
-// For the latter two, severity comes from REACHABILITY, not the finding itself. The main bundle's
-// externals (plus `@playwright/mcp`, dynamically imported by the re-spawned PWMCP child)
-// are walked file-by-file through the shipped tree:
-//
-//   * REACHABLE  — the app really loads that file. HARD failure, never allowlistable:
-//     this is precisely the "dead on launch" bug, so it must not be silenceable.
-//   * unreachable — dead weight the collector copied out of the workspace root and
-//     nothing loads (the whole `express` island arrives this way, via the MCP SDK's
-//     server transports, which the desktop — a client — never touches). Ratcheted through
-//     packaged-tree-allowlist.json: a frozen backlog, may only SHRINK (same contract as
-//     check:loc / check:dup). Regenerate after a reviewed change with `--update`.
-//
-// So re-externalising a bundled dep cannot hide behind the backlog: pulling it back onto
-// the load path makes its findings reachable, and reachable findings always fail.
-//
-// The fix for a reachable finding is almost never to ship a different version — prefer
-// BUNDLING the dep (move it to devDependencies, see the externals block in
-// apps/desktop/electron.vite.config.ts). Only a dep that MUST load from disk (native
-// binary, file-path worker, lazily-`import()`ed asset tree) belongs in `dependencies`.
-//
-// Needs a PACKAGED app: run `pnpm --filter @openmasq/desktop run eb --dir` first. That
-// exact spelling matters twice over — `pnpm run` (never `npm run`/`npx`, which make
-// electron-builder resolve an entirely different and nearly empty dependency set), and NO
-// `--` before the flags (pnpm forwards it literally and electron-builder then ignores every
-// flag after it). With no build present this skips (exit 0) rather than failing — packaging
-// is not a prerequisite for the cheap gates.
+// The fix for a reachable finding is to BUNDLE the dep (devDependencies + the externals block
+// of apps/desktop/electron.vite.config.ts); only a dep that MUST load from disk belongs in
+// `dependencies`. Needs a packaged app: `pnpm --filter @openmasq/desktop run eb --dir`, with
+// `pnpm run` (npm resolves a different, nearly empty tree) and no `--` before the flags (pnpm
+// forwards it literally). No build present ⇒ skip (exit 0).
 import { readdirSync, readFileSync, existsSync, statSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join, relative, sep, resolve as resolvePath } from "node:path";
@@ -68,10 +33,8 @@ const req = createRequire(import.meta.url);
 
 // ---- locate the packaged tree --------------------------------------------------
 
-// Where the unpacked tree sits INSIDE one `release/<dir>`, per platform. electron-builder
-// names those dirs per target+arch (`mac-arm64/`, `win-unpacked/`, `win-arm64-unpacked/`…),
-// so we walk them all and try each layout rather than guessing the dir name. The macOS
-// bundle is named after the product, which has ONE home: the branding JSON (rule 9).
+// Where the unpacked tree sits inside a `release/<dir>`, per platform. The dir is named per
+// target+arch, so every layout is tried. The macOS bundle is named from the branding JSON (rule 9).
 const BRAND = JSON.parse(readFileSync(new URL("../../packages/branding/branding.json", import.meta.url)));
 const TREE_LAYOUTS = [
   `${BRAND.name}.app/Contents/Resources/app.asar.unpacked/node_modules`, // macOS
@@ -94,11 +57,8 @@ function findTree() {
 
 const FOUND = findTree();
 if (!FOUND) {
-  // Skipping is right when nothing is built (this runs in contexts with no packaged app),
-  // but it is exactly how the check went green on a Windows build for free: only the macOS
-  // layout was known, so `release/win-unpacked/` read as "nothing packaged". A caller that
-  // JUST packaged knows better and passes `--require-tree`, turning a silent skip into the
-  // failure it is (see the release workflows).
+  // No packaged app ⇒ skip. A caller that JUST packaged passes `--require-tree`, so an
+  // unknown layout fails instead of reading as "nothing packaged".
   const msg = "check:pkgtree — no packaged app under apps/desktop/release";
   if (process.argv.includes("--require-tree")) {
     console.error(`${msg}, but --require-tree was passed.`);
@@ -109,24 +69,17 @@ if (!FOUND) {
   console.log("  build one with: pnpm --filter @openmasq/desktop run eb --dir");
   process.exit(0);
 }
-// Resolution must never climb above this. Plain `require.resolve` would: from inside the
-// packaged app it keeps walking up into THIS repo's node_modules and "finds" a package the
-// app does not ship, turning the exact bug we hunt into a green result.
-// Resolution happens in the RUNTIME view (asar ∪ unpacked), not in `app.asar.unpacked`
-// alone: Electron keeps an unpacked file's `__filename` at its `app.asar/...` path, so a
-// `require` falls back through the seal and loads a dependency the seal keeps inside the
-// archive. Resolving against the unpacked dir alone produced 21 phantom "dead on launch"
-// findings the day the 2026-08 server split stopped nesting sealed deps under their
-// unpacked consumers — `packagedTreeView.mjs` carries the full story, and the one loader
-// this view must NOT excuse is handled just below.
+// Resolution must never climb above the packaged app: plain `require.resolve` would find this
+// repo's node_modules and turn the bug we hunt into a green result. It runs in the RUNTIME
+// view (asar ∪ unpacked): Electron keeps an unpacked file's `__filename` at its `app.asar/...`
+// path, so a `require` falls back through the seal — see `packagedTreeView.mjs`.
 const UNPACKED_ROOT = dirname(FOUND);
 const { appRoot: APP_ROOT, tree: TREE } = runtimeView(FOUND);
 const SHOWN = FOUND.replace(root + sep, "");
 
-// Trees that run inside a `worker_threads` Worker started on a REAL unpacked path: no
-// asar fall-through exists there, so their dependencies must resolve from the unpacked
-// dir ALONE — the strictness the merged view would otherwise lose. The loader inventory
-// justifying each entry is the `asarUnpack` block of apps/desktop/electron-builder.cjs.
+// Trees run inside a `worker_threads` Worker on a REAL unpacked path have no asar
+// fall-through: their deps must resolve from the unpacked dir ALONE. The loader inventory is
+// the `asarUnpack` block of apps/desktop/electron-builder.cjs.
 const REAL_PATH_WORKER_PKGS = new Set(["tesseract2.js", "tesseract.js-core"]);
 
 // The built main bundle — the same files electron-builder packs into the asar. Read from
@@ -220,9 +173,8 @@ function ownerNodeModules(fromDir, name, limit = APP_ROOT) {
 }
 
 /**
- * Resolve `spec` the way the app would. Two distinct outcomes matter and both are `null`:
- * the package is absent from the bundle, or it is present but does not EXPORT the requested
- * subpath (ERR_PACKAGE_PATH_NOT_EXPORTED — the `entities/decode` crash).
+ * Resolve `spec` the way the app would. Two outcomes are both `null`: the package is absent,
+ * or present but does not EXPORT the requested subpath (ERR_PACKAGE_PATH_NOT_EXPORTED).
  */
 function resolveBare(fromDir, spec, limit = APP_ROOT) {
   const name = pkgNameOf(spec);
@@ -287,12 +239,9 @@ function reachableFiles() {
   return seen;
 }
 
-// The entry specifiers themselves must RESOLVE. Without this the guard has a blind spot big
-// enough to drive the whole app through: when the collector ships (almost) nothing, there are
-// no packages left to find findings in, the reachable set is empty, and everything reports
-// green on an app that cannot start. That is not hypothetical — `npm run` instead of
-// `pnpm run` makes electron-builder resolve its dependency graph as npm, and it packaged an
-// app with TWO packages in node_modules. `electron` is excluded: the runtime provides it.
+// The entry specifiers themselves must RESOLVE: when the collector ships (almost) nothing, the
+// reachable set is empty and every other check reports green on an app that cannot start.
+// `electron` is excluded: the runtime provides it.
 function missingExternals() {
   if (entries === null) return [];
   const missing = [];
@@ -340,19 +289,10 @@ collect(TREE);
 
 const findings = []; // { key, reachable }
 
-// ── deliberate substitutions (pnpm.overrides → a LOCAL package) ─────────────────────────
-//
-// `packages/ort` TAKES THE PLACE of `onnxruntime-node` (root override `link:packages/ort`):
-// the package shipped under that name therefore carries the shim's version (0.0.0), and any
-// comparison against the declared range — the app's as well as `@huggingface/transformers`'s
-// — reports a gap that is not one. This is not debt to freeze in the allowlist (which may
-// only shrink): it is information this guard did not have.
-//
-// ⚠️ What this does NOT excuse, and that is the point: only the VERSION stops being
-// compared. That the package is present, resolvable, and that its own dependencies are too,
-// stays checked — which is precisely what caught `ort-native`/`ort-wasm` missing from the
-// app. Only LOCAL targets are exempted (`link:`/`file:`/`workspace:`): an override to an npm
-// version must keep being confronted with the ranges.
+// Deliberate substitutions (pnpm.overrides → a LOCAL package): `packages/ort` takes the place
+// of `onnxruntime-node`, so the shipped version (0.0.0) is not compared against the declared
+// ranges. ONLY the version is excused — presence, resolution and the package's own deps stay
+// checked. Only `link:`/`file:`/`workspace:` targets qualify; an npm override keeps its ranges.
 const substituted = new Set(
   Object.entries(readJson(join(root, "package.json"))?.pnpm?.overrides ?? {})
     .filter(([, target]) => /^(?:link|file|workspace):/.test(String(target)))
@@ -388,10 +328,8 @@ for (const dir of pkgDirs) {
     }
   }
 
-  // UNRESOLVED — a specifier the code really asks for, on a dep it really declares.
-  // A real-path worker tree resolves from its UNPACKED twin, asar excluded (see
-  // REAL_PATH_WORKER_PKGS): the merged view models the loaders that fall back through
-  // the seal, and these are exactly the ones that cannot.
+  // UNRESOLVED — a specifier the code really asks for, on a dep it really declares. A
+  // real-path worker tree resolves from its UNPACKED twin (REAL_PATH_WORKER_PKGS).
   const strict = REAL_PATH_WORKER_PKGS.has(pkg.name);
   for (const file of filesUnder(dir)) {
     for (const spec of specifiersOf(file)) {
@@ -414,18 +352,12 @@ const byKey = new Map();
 for (const f of findings) byKey.set(f.key, (byKey.get(f.key) ?? false) || f.reachable);
 const keys = [...byKey.keys()].sort();
 
-// Only an UNRESOLVED on the load path is un-silenceable: it is the one that THROWS, and it
-// throws where the app cannot survive it. A reachable MISMATCH is a real smell but not a
-// crash (the dep meets an API it wasn't written against and may well cope), and several are
-// unavoidable patch-level drift from the root tree — gating on those would mean a gate no
-// build can pass, which is how a guard gets disabled. They stay in the backlog, reported
-// under their own louder heading.
-// The APP's own declared `dependencies` vs what actually shipped. Its package.json is the
-// one declaration the developer directly controls, and it is NOT inside node_modules, so the
-// per-package walk above never sees it — which is how the app declared `undici@^6.28.0` and
-// shipped 7.29.0 (the collector takes the ROOT-hoisted copy; the pnpm-nested 6.x under
-// apps/desktop is ignored). Always blocking: either the tree is wrong or the declaration is —
-// both are a one-line fix, and silencing it would un-pin the app from its own manifest.
+// Only an UNRESOLVED on the load path is un-silenceable: it throws where the app cannot
+// survive it. A reachable MISMATCH is reported under its own heading but stays in the backlog:
+// patch-level drift from the root tree is unavoidable, and a gate no build can pass gets disabled.
+// The APP's own declared `dependencies` vs what shipped: its package.json is outside
+// node_modules, so the per-package walk never sees it. Always blocking — either the tree or
+// the declaration is wrong, and both are a one-line fix.
 function appManifestDrift() {
   const appPkg = readJson(join(root, "apps/desktop/package.json"));
   const drift = [];

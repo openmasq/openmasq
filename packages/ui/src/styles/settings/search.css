@@ -1,0 +1,111 @@
+
+/* ⌘K search modal. */
+.search-head {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 16px 18px;
+  border-bottom: 1px solid var(--border-default);
+}
+.search-input {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: var(--text-md);
+  color: var(--text-strong);
+}
+.search-kbd {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-faint);
+  border: 1px solid var(--border-default);
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+.search-body {
+  max-height: 52vh;
+  overflow-y: auto;
+  padding: 8px;
+}
+.search-body .cv-eyebrow {
+  padding: 6px 10px;
+}
+.search-empty {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  padding: 32px 0;
+}
+.search-time {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-faint);
+}
+
+/* Settings row-icon static tones (data-driven category tones stay inline). */
+.row-icon.tone-azure {
+  background: var(--pearl-azure-soft);
+  color: var(--pearl-azure);
+}
+.row-icon.tone-coral {
+  background: var(--pearl-coral-soft);
+  color: var(--pearl-coral);
+}
+.row-icon.tone-emerald {
+  background: var(--pearl-emerald-soft);
+  color: var(--pearl-emerald);
+}
+/* A nested settings-card flush under its parent toggle (no own border/shadow). */
+.settings-card.flush {
+  border: none;
+  border-top: 1px solid var(--border-subtle);
+  border-radius: 0;
+  box-shadow: none;
+}
+.settings-card.clip {
+  overflow: hidden;
+}
+.modal-note.ok {
+  color: var(--green-500);
+}
+.modal-note.err {
+  color: var(--red-500);
+}
+/* Settings tab bar. */
+.settings-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border-bottom: 1px solid var(--border-default);
+  margin-bottom: 22px;
+}
+.settings-tab {
+  position: relative;
+  padding: 10px 4px;
+  margin: 0 16px 0 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  font-weight: 500;
+  color: var(--text-muted);
+}
+.settings-tab.active {
+  font-weight: 700;
+  color: var(--text-strong);
+}
+.settings-tab-underline {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  background: var(--brand);
+  border-radius: 2px;
+}
+.settings-signout {
+  margin-right: 10px;
+}

@@ -1,37 +1,16 @@
-import { randomBytes } from "node:crypto";
-import { createServer, type Server } from "node:http";
+import { startLoopback as startLoopbackMechanism, type Loopback } from "@openmasq/mcp/node";
 import { connectSignal } from "./server/connectCancel";
 import { BRAND } from "@openmasq/branding";
 
+export type { Loopback };
+
 /**
- * An ephemeral loopback HTTP server on 127.0.0.1 that catches the OAuth redirect.
- * The provider's authorization page redirects the browser back to
- * `http://127.0.0.1:<port>/callback?code=…&state=…`; we read that code and resolve.
- *
- * ⚠️ **The `state` is the per-attempt binding, and it is not decoration.** The port is
- * PERSISTED per server (`persist.ts` `savePort`) precisely so the registered redirect URI
- * stays stable — which also makes `http://127.0.0.1:<port>/callback` a long-lived endpoint
- * any web page can hit with a bare `<img src="…/callback?error=x">`: no CORS to clear, no
- * response to read. That request settled the pending promise and killed a login the user
- * was in the middle of; a `?code=` would have resolved it with a code the page chose.
- * Nothing tied a request to THIS attempt. The OAuth `state` does, the way RFC 6749 §10.12
- * intends: the loopback mints an unguessable value, every flow puts it in its authorize URL
- * (`loop.state`), the authorization server echoes it, and a callback whose `state` does not
- * match gets a 404 that settles NOTHING. The binding lives in a QUERY parameter every
- * provider must echo verbatim — never in the path, which would change the redirect URI on
- * each attempt, something loopback clients are only guaranteed to tolerate for the PORT.
- * (PKCE is unchanged and still the defence for an intercepted code.)
+ * The desktop's OAuth redirect catcher: this file owns the BRANDED page and the app's
+ * cancellation signal; the mechanism — the ephemeral 127.0.0.1 listener and, above all, the
+ * per-attempt `state` binding that keeps a stale tab or a web page's `<img>` from settling
+ * someone's login — lives once, in `@openmasq/mcp/node` (root rule 9). Read its comment
+ * before touching anything here: the security argument is there, in full.
  */
-export interface Loopback {
-  redirectUrl: string;
-  /** The per-attempt `state` — put it in the authorize URL, the callback must echo it. */
-  state: string;
-  /** The port actually bound — persist it so the redirect URI stays stable. */
-  port: number;
-  /** Resolves with the `code` once the browser is redirected back (or rejects). */
-  waitForCode(timeoutMs: number): Promise<string>;
-  close(): void;
-}
 
 /**
  * The branded "connexion réussie" page shown in the OAuth login window after the
@@ -156,94 +135,12 @@ export async function startLoopback(
    * the app window forward, since we can't close the external browser tab. */
   onRedirect?: () => void,
 ): Promise<Loopback> {
-  let resolveCode!: (code: string) => void;
-  let rejectCode!: (err: Error) => void;
-  const codePromise = new Promise<string>((resolve, reject) => {
-    resolveCode = resolve;
-    rejectCode = reject;
-  });
-
-  // One secret segment per attempt (128 bits, url-safe). A second, concurrent or later,
-  // attempt gets a different one — so a stale browser tab redirecting back can no longer
-  // settle the flow that replaced it either.
-  const state = randomBytes(16).toString("base64url");
-
-  const server: Server = createServer((req, res) => {
-    const url = new URL(req.url ?? "/", "http://127.0.0.1");
-    // Not ours, or not THIS attempt: 404, and nothing settles — an unsolicited hit
-    // (a web page's `<img>`, a stale tab replaying an old redirect) must not touch the
-    // pending login either way.
-    if (url.pathname !== "/callback" || url.searchParams.get("state") !== state) {
-      res.writeHead(404);
-      res.end();
-      return;
-    }
-    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-    res.end(PAGE);
-    const code = url.searchParams.get("code");
-    const error = url.searchParams.get("error");
-    // `error_description` carries the provider's ACTIONABLE detail — Microsoft puts its
-    // `AADSTS…` code there, and that code is the only way to tell "your admin must approve"
-    // apart from an ordinary refusal. Dropping it left the caller with a bare
-    // "access_denied" it could do nothing with.
-    const detail = url.searchParams.get("error_description");
-    if (code) resolveCode(code);
-    else
-      rejectCode(
-        new Error([error, detail].filter(Boolean).join(" — ") || "OAuth redirect carried no code"),
-      );
-    onRedirect?.();
-  });
-
-  // Cancel wiring: if the interactive connect is cancelled ("Annuler"), reject the
-  // pending code and CLOSE the loopback at once. Closing the 127.0.0.1 listener is the
-  // security lever — a late redirect from the (still-open) browser tab then hits a
-  // closed port, so no `code` is captured and no token is minted. Fail-closed.
   const signal = connectSignal();
-  const onAbort = () => {
-    rejectCode(new Error("Connexion annulée"));
-    try {
-      server.close();
-    } catch {
-      /* already closing */
-    }
-  };
-  if (signal) {
-    if (signal.aborted) onAbort();
-    else signal.addEventListener("abort", onAbort, { once: true });
-  }
-
-  const listenOn = (port: number) =>
-    new Promise<void>((resolve, reject) => {
-      const onError = (err: Error) => reject(err);
-      server.once("error", onError);
-      server.listen(port, "127.0.0.1", () => {
-        server.removeListener("error", onError);
-        resolve();
-      });
-    });
-
-  try {
-    await listenOn(preferredPort ?? 0);
-  } catch {
-    // Preferred port busy/unavailable — fall back to an ephemeral one (a fresh
-    // registration will be triggered because the redirect URI changed).
-    await listenOn(0);
-  }
-  const addr = server.address();
-  const port = typeof addr === "object" && addr ? addr.port : 0;
-
-  return {
-    redirectUrl: `http://127.0.0.1:${port}/callback`,
-    state,
-    port,
-    waitForCode: (timeoutMs) =>
-      Promise.race([
-        codePromise,
-        new Promise<string>((_, reject) =>
-          setTimeout(() => reject(new Error("OAuth login timed out")), timeoutMs),
-        ),
-      ]),
-    close: () => server.close(),
-  };
+  return startLoopbackMechanism({
+    page: PAGE,
+    ...(preferredPort ? { port: preferredPort } : {}),
+    ...(onRedirect ? { onRedirect } : {}),
+    ...(signal ? { signal } : {}),
+    cancelledMessage: "Connexion annulée",
+  });
 }

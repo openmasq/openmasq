@@ -1,31 +1,15 @@
 /**
- * The redaction palette's ORDER, for anything that walks it as a SEQUENCE rather than
- * picking the hue its data dictates. Today that is the thinking loader's mini grid
- * (`MiniRedaction`); it lives here rather than in that component so a second such surface
- * cannot disagree on what the 3rd swatch is.
+ * The CSS side of the redaction palette's ORDER. The order itself — and the walk that reads
+ * it — live in `@openmasq/redact` (`highlight/walk.ts`), because the proxy CLI walks the same
+ * sequence in a terminal; what belongs here is only how a swatch becomes CSS.
  *
  * These are KEYS, not colours. `styles/redaction.css` maps each to the `--hl-*` token of the
  * redaction SECTION it names, plus that hue's own `--ink-on-hl-*` — so re-toning the palette
- * at its source (`SECTION_HUE`, `packages/redact/src/highlight/sections.ts`) reaches the
- * loader too, and it can never drift from the marks a real conversation shows.
- *
- * IDENTITY leads on purpose, then the black bar — the classic redacted-block look, the one
- * swatch that is not a section hue — then the palette unrolls in section order.
+ * at its source (`SECTION_HUE`) reaches the loader too, and it can never drift from the marks
+ * a real conversation shows.
  */
-export const CAV_SWATCHES = [
-  "identite",
-  "bar",
-  "contact",
-  "localisation",
-  "organisation",
-  "financier",
-  "identifiants",
-  "reseau",
-  "systeme",
-  "secrets",
-] as const;
-
-export type CavSwatch = (typeof CAV_SWATCHES)[number];
+export { CAV_SWATCHES, type CavSwatch } from "@openmasq/redact";
+import { CAV_SWATCHES } from "@openmasq/redact";
 
 /** The CSS custom properties for a swatch index (fill + the ink that reads on it). */
 export function cavVars(swatch: number): { "--cav": string; "--cav-on": string } {

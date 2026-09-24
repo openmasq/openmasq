@@ -1,0 +1,117 @@
+/* Pre-send redaction preview (RedactionPreviewModal): the wire + per-span
+   hover popover to un-redact before sending. */
+.rp-body {
+  padding: 22px 24px 8px;
+}
+.rp-title {
+  font-size: var(--text-lg);
+  color: var(--text-strong);
+  margin-bottom: 6px;
+}
+.rp-sub {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  line-height: 1.5;
+  margin: 0 0 14px;
+}
+.rp-wire {
+  max-height: 46vh;
+  overflow-y: auto;
+  padding: 14px 16px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg, 12px);
+  background: var(--surface-sunken);
+  font-size: var(--text-sm);
+  line-height: 1.8;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--text-body);
+}
+.rp-mark {
+  cursor: pointer;
+  border-radius: 3px;
+}
+.rp-mark:hover {
+  filter: brightness(0.96);
+}
+.rp-mark.active {
+  outline: 2px solid var(--brand);
+  outline-offset: 1px;
+}
+.rp-revealed {
+  background: var(--hl-lime, rgba(120, 180, 60, 0.18));
+  border-bottom: 1px dashed var(--brand);
+  border-radius: 3px;
+  padding: 0 1px;
+}
+/* Action bar in normal flow BELOW the scrollable wire, so `.rp-wire`'s overflow can never
+   clip it. */
+.rp-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+  min-height: 40px;
+  padding: 8px 12px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md, 10px);
+  background: var(--surface-card);
+}
+.rp-controls-real {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  word-break: break-word;
+}
+.rp-controls-real b {
+  color: var(--text-strong);
+}
+.rp-controls-hint {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+.rp-ctl-btn {
+  padding: 6px 10px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm, 7px);
+  background: var(--surface-sunken);
+  color: var(--text-body);
+  font-size: var(--text-xs, 11px);
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.rp-ctl-btn:hover {
+  border-color: var(--brand);
+  background: var(--surface-hover);
+}
+.rp-footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px;
+  border-top: 1px solid var(--border-default);
+  background: var(--surface-sunken);
+}
+.rp-count {
+  font-size: var(--text-xs, 11px);
+  color: var(--text-muted);
+}
+.rp-send {
+  padding: 8px 16px;
+  border: none;
+  border-radius: var(--radius-md, 8px);
+  background: var(--brand);
+  color: var(--text-on-brand, #fff);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  cursor: pointer;
+}
+.rp-send:hover {
+  filter: brightness(1.05);
+}
+
+/* Rail avatar gets a brand ring when the settings section is active. */
+.rail-avatar.active {
+  box-shadow: 0 0 0 2px var(--brand);
+}

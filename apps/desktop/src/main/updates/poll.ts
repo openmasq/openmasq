@@ -5,12 +5,9 @@ import { logUpdate } from "./log";
 // electron-updater is CommonJS; destructure after a default import.
 const { autoUpdater } = electronUpdater;
 
-// WHEN we ask the feed. A desktop app stays open for days, so a launch-only check made
-// the restart the unit of update latency: the Worker's rollout — and, more importantly,
-// a ROLLBACK — only reached an install when its user happened to relaunch. Re-asking on
-// a timer makes a server-side rule effective within one interval instead. 15 min is the
-// cost of a manifest GET on the Worker (~96/day/install, no download unless the version
-// actually moved) against how long a bad release keeps reaching people.
+// WHEN we ask the feed. An app stays open for days: a launch-only check would make the
+// restart the unit of update latency, and a ROLLBACK would wait for it. One manifest GET
+// per interval against how long a bad release keeps reaching people.
 export const CHECK_INTERVAL_MS = 15 * 60 * 1000; // 15 min
 
 /** What a background tick has to look at before spending an HTTP call. */
@@ -31,17 +28,9 @@ let timer: ReturnType<typeof setInterval> | null = null;
 let intervalMs = CHECK_INTERVAL_MS;
 
 /**
- * Own the DOWNLOAD promise electron-updater hands back — nobody else does.
- *
- * `AppUpdater.downloadUpdate` re-throws after emitting `error`, so the promise it stores
- * always rejects on failure; `checkForUpdates()` returns it untouched. An unowned
- * rejection in MAIN becomes an `unhandledRejection`, i.e. a SECOND exception
- * (`uncaught/main-rejection`) for a failure the `error` event has already reported with
- * its code and context — measured on 0.4.1-staging, where the ditto/lstat apply failure
- * arrived twice in PostHog, the duplicate carrying no context at all.
- *
- * The `error` event stays the ONE reporting path. This only stops the duplicate from
- * escaping the process.
+ * Own the DOWNLOAD promise electron-updater hands back: it rejects on failure after the
+ * `error` event already reported it, and an unowned rejection in MAIN is a SECOND,
+ * context-less exception. The `error` event stays the ONE reporting path.
  */
 export function ownDownloadPromise(res: { downloadPromise?: Promise<unknown> | null } | null | undefined): void {
   res?.downloadPromise?.catch(() => {});
@@ -50,15 +39,9 @@ export function ownDownloadPromise(res: { downloadPromise?: Promise<unknown> | n
 function tick(reason: string): void {
   if (!shouldCheck(state)) return;
   logUpdate(`${reason} check`);
-  // The feed URL is NOT re-applied here on purpose: `updates:set-channel` / `pin` /
-  // `switch` already own it, and re-pointing it at <channel>/latest under a tick would
-  // silently undo a pin the user just asked for.
-  //
-  // ⚠️ `checkForUpdates`, NOT `checkForUpdatesAndNotify`: the latter attaches a bare
-  // `.then()` to the download promise, so ITS derived promise rejects unowned inside the
-  // library — unreachable from here — and it pops a native "update downloaded"
-  // notification, the very OS-level announcement this app deliberately removed (the
-  // renderer announces, with the release note).
+  // The feed URL is NOT re-applied here: a tick would undo a pin the user just asked for.
+  // ⚠️ `checkForUpdates`, NOT `checkForUpdatesAndNotify`: the latter leaves an unowned
+  // rejection inside the library and pops a native notification the renderer replaces.
   autoUpdater
     .checkForUpdates()
     .then(ownDownloadPromise)
@@ -67,8 +50,7 @@ function tick(reason: string): void {
     });
 }
 
-/** (Re)arm the interval. Separate from the listener wiring so a re-arm after a failed
- *  staged install doesn't stack a second set of listeners on the updater. */
+/** (Re)arm the interval, separate from the listeners so a re-arm doesn't stack them. */
 function armTimer(): void {
   if (timer) clearInterval(timer);
   timer = setInterval(() => tick("periodic"), intervalMs);
@@ -81,11 +63,7 @@ export function stopUpdateChecks(): void {
   timer = null;
 }
 
-/**
- * The launch check + the periodic re-check. Call once, LAST in
- * `setupAutoUpdates` — it registers its own listeners on top of the log/status/telemetry
- * ones so the busy/downloaded state stays local to this module.
- */
+/** The launch check + the periodic re-check. Call once, LAST in `setupAutoUpdates`. */
 export function startUpdateChecks(everyMs: number = CHECK_INTERVAL_MS): void {
   stopUpdateChecks();
   intervalMs = everyMs;
@@ -95,8 +73,7 @@ export function startUpdateChecks(everyMs: number = CHECK_INTERVAL_MS): void {
   autoUpdater.on("checking-for-update", () => {
     state.busy = true;
   });
-  // A download follows only when autoDownload is on; otherwise the check is over and a
-  // later tick must not stay blocked forever on a stale busy flag.
+  // A download follows only when autoDownload is on; otherwise the check is over.
   autoUpdater.on("update-available", () => {
     state.busy = autoUpdater.autoDownload;
   });
@@ -105,20 +82,15 @@ export function startUpdateChecks(everyMs: number = CHECK_INTERVAL_MS): void {
   });
   autoUpdater.on("error", () => {
     state.busy = false;
-    // An error AFTER a build was staged means the staged build did NOT apply (ShipIt's
-    // ditto step, a vanished cache file, a refused swap). `update-downloaded` had made
-    // the loop terminal, so the app then never re-checked: the machine stayed on the old
-    // version until someone happened to relaunch it, and the same broken staging was
-    // reused. A failed apply voids the terminal state — re-open the loop so the next
-    // tick can fetch the build again.
+    // An error AFTER a build was staged means it did NOT apply: void the terminal state
+    // and re-open the loop, or the machine stays on the old version until a relaunch.
     if (state.downloaded) {
       logUpdate("staged build failed to apply — re-opening the update loop");
       state.downloaded = false;
       armTimer();
     }
   });
-  // Terminal: the build is staged for ShipIt. Further checks can only churn the feed —
-  // and a second staged download while one is pending is exactly what ShipIt dislikes.
+  // Terminal: the build is staged. A second staged download is what the installer dislikes.
   autoUpdater.on("update-downloaded", () => {
     state.busy = false;
     state.downloaded = true;

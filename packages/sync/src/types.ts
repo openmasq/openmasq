@@ -1,18 +1,10 @@
 /**
- * Shared shapes for cross-device sync. Two independent channels, deliberately:
- *
- *  1. VAULT SYNC — the reversible `placeholder→original` map (plus kinds/times),
- *     the crown jewels: it holds the REAL secrets. It is **end-to-end encrypted**
- *     on the client (see `crypto.ts`); the server only ever stores an opaque
- *     {@link EncryptedBlob}. Keyed by the web thread id, which is the same
- *     primary key every surface already uses — so a second device opening the
- *     same ChatGPT/Claude thread can pull its vault and restore replies.
- *
- *  2. ORG AUDIT — when the signed-in account belongs to an organization, the
- *     extension/desktop/mobile report **aggregate counts only** (how many of each
- *     PII class were redacted, per provider) to the org's compliance dashboard.
- *     Never a value, never a placeholder — see `events.ts`. This is metadata for
- *     the org, distinct from the encrypted vault, and travels in clear.
+ * Shared shapes for cross-device sync. Two independent channels:
+ *  1. VAULT SYNC — the reversible `placeholder→original` map, **end-to-end encrypted** on
+ *     the client (`crypto.ts`); the server only stores an opaque {@link EncryptedBlob}.
+ *  2. ORG AUDIT — when the account belongs to an organization, surfaces report
+ *     **aggregate counts only** (how many of each PII class, per provider). Never a value,
+ *     never a placeholder (`events.ts`).
  */
 
 /** The reversible redaction state for one conversation. Mirrors the fields every
@@ -80,9 +72,7 @@ export interface DeviceInfo {
   current: boolean;
 }
 
-/** An organization the caller belongs to (from GET /organizations/me). The
- *  backend returns the full org row joined with the caller's membership, so more
- *  than the three fields below may be present; these are the ones we read. */
+/** An organization the caller belongs to. More fields may be present; these are the ones we read. */
 export interface OrgRef {
   organization_uuid: string;
   organization_name?: string;
@@ -116,9 +106,8 @@ export interface McpPolicyRow {
   allowed: boolean;
 }
 
-/** An org's (or user's) prepaid credit budget for platform-provided answer
- *  models — mapped from the backend's snake_case CreditStatus. `blocked` (balance
- *  ≤ 0) fail-closes a platform/keyless send. */
+/** A prepaid credit budget for platform-provided answer models. `blocked` (balance ≤ 0)
+ *  fail-closes a platform send. */
 export interface CreditBalance {
   blocked: boolean;
   allotmentCents: number;
@@ -126,11 +115,9 @@ export interface CreditBalance {
   balanceCents: number;
 }
 
-/** The consolidated org authorization the end-user surfaces reflect + enforce.
- *  When the user belongs to several orgs it is the MOST RESTRICTIVE consolidation:
- *  the allow-lists INTERSECT (a model must be allowed by EVERY org to be usable),
- *  every org's forced categories are forced, and one org refusing personal keys
- *  refuses them everywhere. */
+/** The consolidated org authorization the end-user surfaces reflect + enforce. Several orgs
+ *  ⇒ the MOST RESTRICTIVE consolidation: allow-lists INTERSECT, forced categories union,
+ *  one org refusing personal keys refuses them everywhere. */
 export interface OrgProfile {
   /** All orgs the caller belongs to (primary = first). */
   orgs: OrgRef[];
@@ -169,8 +156,7 @@ export interface OrgProfile {
   credits?: CreditBalance;
 }
 
-/** One aggregate redaction fact — matches the backend ingestion payload exactly.
- *  `types` is a PII-class → count map; `total` their sum. No values ever. */
+/** One aggregate redaction fact. `types` is a PII-class → count map; `total` their sum. No values ever. */
 export interface RedactionEvent {
   provider?: string | null;
   model?: string | null;
@@ -178,16 +164,14 @@ export interface RedactionEvent {
   total: number;
 }
 
-// The record-channel (v2) shapes live in `recordTypes.ts` (rule 1 split);
-// re-exported here so every existing `./types` import keeps resolving.
+// The record-channel (v2) shapes live in `recordTypes.ts`; re-exported so `./types` keeps resolving.
 export * from "./recordTypes";
 
 
 /**
- * The platform-injected transport. The package is otherwise pure: give it a way
- * to reach the backend (a `fetch` + a bearer-token getter) and it does the rest.
- * `getToken` returns the current Supabase access token, or null when signed out
- * (every call then no-ops — sync is best-effort, never blocks the user).
+ * The platform-injected transport: a `fetch` + a bearer-token getter. `getToken` returns
+ * the current session token, or null when signed out (every call then no-ops — sync is
+ * best-effort, never blocks the user).
  */
 export interface SyncTransport {
   listVaults(): Promise<SyncedVaultMeta[]>;

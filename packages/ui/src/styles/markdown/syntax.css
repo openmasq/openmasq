@@ -1,0 +1,197 @@
+/* ── Syntax highlighting (lowlight/highlight.js token classes → brand hues) ──
+   Both code surfaces are dark (`.md-code` + `.artifact-code`), so one theme works
+   everywhere. Only the `.hljs-*` spans are coloured; the base text stays the code body colour. */
+.hljs-comment,
+.hljs-quote {
+  color: #7d8a6b;
+  font-style: italic;
+}
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-literal,
+.hljs-doctag,
+.hljs-type,
+.hljs-name,
+.hljs-strong {
+  color: var(--hl-violet, #a99cff);
+}
+.hljs-string,
+.hljs-regexp,
+.hljs-addition,
+.hljs-meta-string {
+  color: var(--hl-mint, #5fe3c0);
+}
+.hljs-number,
+.hljs-literal.number,
+.hljs-bullet,
+.hljs-symbol {
+  color: var(--hl-amber, #ffc24d);
+}
+.hljs-title,
+.hljs-title.function_,
+.hljs-section,
+.hljs-selector-id {
+  color: var(--hl-sky, #3ccfda);
+}
+.hljs-built_in,
+.hljs-title.class_,
+.hljs-class .hljs-title,
+.hljs-selector-class {
+  color: var(--hl-lime, #b8e635);
+}
+.hljs-attr,
+.hljs-attribute,
+.hljs-variable,
+.hljs-template-variable,
+.hljs-property,
+.hljs-params {
+  color: #cbd6b4;
+}
+.hljs-meta,
+.hljs-comment .hljs-doctag,
+.hljs-operator,
+.hljs-punctuation {
+  color: #96a67e;
+}
+.hljs-tag {
+  color: #96a67e;
+}
+.hljs-deletion {
+  color: var(--hl-pink, #ff8fa3);
+}
+.hljs-emphasis {
+  font-style: italic;
+}
+@media (max-width: 879px) {
+  .artifact-pane {
+    flex: 1 1 auto;
+    border-left: none;
+    border-top: 1px solid var(--border-default);
+  }
+}
+/* `.md .md-code`, not `.md-code`: it must outweigh the generic `.md pre` rule below (equal
+   specificity, later in source), which would paint `--surface-sunken` over the dark code
+   body. Keep the <pre> transparent. */
+.md .md-code > pre {
+  margin: 0;
+  padding: 13px 15px;
+  overflow-x: auto;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  line-height: 1.7;
+  color: #d5dec6;
+}
+/* Inline `code` (and any stray non-wrapped pre). */
+.md pre {
+  margin: 0 0 0.8em;
+  padding: 12px 14px;
+  overflow-x: auto;
+  background: var(--surface-sunken, #1b1b1f);
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+}
+.md pre code {
+  background: none;
+  padding: 0;
+  font-size: 0.85em;
+  line-height: 1.5;
+}
+/* Off-screen textarea for the clipboard fallback (no inline style). */
+.sr-only-copy {
+  position: fixed;
+  top: -9999px;
+  left: -9999px;
+}
+/* Tables — rounded bordered scroll box, forest header, zebra rows. The wrap is the frame
+   (position:relative, holds the edge fades); `.md-table-scroll` is the horizontal scroller.
+   The table fills the column and only scrolls when its content is genuinely wider
+   (min-width: max-content). */
+.md-table-wrap {
+  position: relative;
+  margin: 0 0 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  overflow: hidden; /* clip the scroller to the rounded frame */
+}
+.md-table-scroll {
+  overflow-x: auto;
+  border-radius: inherit;
+  /* Keep a wide table's horizontal scroll from bubbling up to the message
+     scroller (so a trackpad swipe scrolls the TABLE, not the thread). */
+  overscroll-behavior-x: contain;
+}
+/* Themed scrollbar (Electron/Chromium) where the platform reserves one. */
+.md-table-scroll::-webkit-scrollbar {
+  height: 10px;
+}
+.md-table-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.md-table-scroll::-webkit-scrollbar-thumb {
+  background: var(--border-strong);
+  border-radius: 999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+.md-table-scroll:hover::-webkit-scrollbar-thumb {
+  background: var(--text-faint);
+  background-clip: padding-box;
+}
+/* Edge-fade affordance: a soft shadow on whichever side has hidden content, so a wide table
+   reads as scrollable even with the overlay scrollbar hidden. `data-edge` is stamped by
+   `TableScroll` from the live scroll position. */
+.md-table-wrap::before,
+.md-table-wrap::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 26px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+  z-index: 1;
+}
+.md-table-wrap::before {
+  left: 0;
+  background: linear-gradient(to right, rgba(15, 28, 6, 0.13), transparent);
+}
+.md-table-wrap::after {
+  right: 0;
+  background: linear-gradient(to left, rgba(15, 28, 6, 0.13), transparent);
+}
+.md-table-wrap[data-edge="start"]::after,
+.md-table-wrap[data-edge="middle"]::after,
+.md-table-wrap[data-edge="middle"]::before,
+.md-table-wrap[data-edge="end"]::before {
+  opacity: 1;
+}
+.md table {
+  border-collapse: collapse;
+  margin: 0;
+  font-size: 13.5px;
+  width: 100%;
+  min-width: max-content;
+}
+.md th {
+  /* Brand header with the inverting ink, matching the action buttons. */
+  background: var(--brand);
+  color: var(--ink-on-brand);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  font-weight: 700;
+  padding: 9px 14px;
+  text-align: left;
+  white-space: nowrap;
+}
+.md td {
+  padding: 9px 14px;
+  text-align: left;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.md tbody tr:last-child td { border-bottom: none; }
+.md tbody tr:nth-child(even) { background: var(--surface-sunken); }
+.md .katex-display { margin: 0.6em 0; overflow-x: auto; overflow-y: hidden; }

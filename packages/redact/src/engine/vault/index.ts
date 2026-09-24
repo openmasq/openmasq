@@ -36,33 +36,22 @@ export function unredact(input: string, vault: Vault): string {
     .filter((t) => t.length > 0)
     .sort((a, b) => b.length - a.length);
   if (tokens.length === 0) return input;
-  // SEPARATOR-tolerant: the model may wrap a multi-word token across lines
-  // ("Marc\nCharvet") OR SLUGIFY it — a fake company "Oslen Group" becomes
-  // "oslen-group" / "oslen_group" in a FILENAME or URL ("procès-verbal-…-oslen-group.txt"),
-  // which a space-only match never reversed → the fake leaked. Treat any run of
-  // whitespace / `-` / `_` between a token's words as one separator (in both the
-  // match pattern and the collapse key), so a slugified fake still restores.
+  // SEPARATOR-tolerant: the model may wrap a multi-word token across lines or SLUGIFY it in
+  // a filename or URL ("oslen-group"), which a space-only match never reverses. Any run of
+  // whitespace / `-` / `_` between a token's words is one separator, in the pattern and the key.
   const collapse = (s: string) => s.replace(/[\s_-]+/g, " ");
   const byCollapsed = new Map<string, string>();
-  // CASE-INSENSITIVE fallback map (lowercased key → original). Models routinely
-  // UPPER-CASE a fake name/company in formal output (a legal "PROCÈS-VERBAL … OSLEN
-  // GROUP … Madame Jade SAVEL"), and a case-sensitive reverse then left the fake (or a
-  // hybrid "Julien SAVEL" — first name reversed via its alias, surname not). Resolving
-  // a match case-insensitively restores it. First (longest-first) wins on a collision;
-  // any collision is only a value-CASING difference (same identity), never a wrong one.
+  // CASE-INSENSITIVE fallback map: models UPPER-CASE a fake in formal output, and a
+  // case-sensitive reverse leaves the fake or a hybrid. First (longest-first) wins on a
+  // collision, which can only be a casing difference of the SAME identity.
   const byLower = new Map<string, { value: string; risky: boolean; ambiguous?: boolean }>();
-  // A token whose CASE-INSENSITIVE restore would over-reach: a number token ("n1") or a
-  // very short scramble (≤3, one word) collides with an ordinary differently-cased word
-  // in the reply ("N1", a 2-3 letter acronym) → the plain value substitution would then
-  // rewrite that word to a real sensitive value. Such tokens restore ONLY on an EXACT-CASE
-  // match; longer / multi-word fakes (names, companies) keep the case-insensitive restore
-  // (models UPPER-CASE them in formal output).
+  // A token whose CASE-INSENSITIVE restore would over-reach — a number token ("n1") or a
+  // ≤3-char single word — collides with an ordinary word in the reply and would rewrite it
+  // to a real sensitive value: such tokens restore ONLY on an EXACT-CASE match.
   const isRisky = (c: string) => /^n\d+$/i.test(c) || (c.length <= 3 && !c.includes(" "));
-  // FALLBACK TO THE FOLDED FORM (no diacritics) — the model sometimes RE-SPELLS a
-  // fake: « Quémener » comes back « Quéméner », it "corrects" toward the spelling it knows.
-  // A single mark of difference, and case alone is no longer enough: the user would then read THE
-  // FAKE instead of their data. Same safeguards as `byLower` — never on a
-  // risky token, never when two different reals fold onto the same key.
+  // FALLBACK TO THE FOLDED FORM: the model sometimes "corrects" a fake's spelling toward
+  // the one it knows (« Quémener » → « Quéméner »), and the user would read THE FAKE. Same
+  // safeguards as `byLower`: never on a risky token, never when two reals fold onto one key.
   const byFolded = new Map<string, { value: string; risky: boolean; ambiguous?: boolean }>();
   for (const t of tokens) {
     const c = collapse(t);
@@ -74,21 +63,15 @@ export function unredact(input: string, vault: Vault): string {
     const cl = c.toLowerCase();
     const prior = byLower.get(cl);
     if (!prior) byLower.set(cl, { value: vault[t], risky: isRisky(c) });
-    // audit: two DIFFERENT reals sharing a case-only-different fake ("Oslen Group"→X,
-    // "OSLEN GROUP"→Y) DISABLE the case-insensitive restore — else a THIRD casing in the reply
-    // is restored to the WRONG person's value. Compare LOWERCASED: a legit recase alias
-    // ("Savel"→"Sabourdin" / "savel"→"sabourdin") is the SAME identity (casing-consistent
-    // fake↔real) and must stay case-insensitively restorable — only a genuinely different real trips it.
+    // Two DIFFERENT reals sharing a case-only-different fake DISABLE the case-insensitive
+    // restore, else a THIRD casing in the reply restores to the WRONG value. Compared
+    // LOWERCASED so a legit recase alias (same identity) stays restorable.
     else if (prior.value.toLowerCase() !== vault[t].toLowerCase()) prior.ambiguous = true;
   }
-  // MARKERS (`[PERSON1]`, `[REDACTED_NAME_2]`) — the token-mode key form. A FAKE
-  // crosses the reply intact because it's ordinary text; a marker, the model
-  // REWRITES: brackets escaped by markdown (`\[PERSON1\]`), bold glued on, or
-  // simply copied without brackets into a sentence or a table header. Every form
-  // that isn't restored leaves « PERSON1 » in front of the user instead of THEIR
-  // information — it's the mode failing to keep its promise, not a cosmetic detail.
-  // So the brackets are made OPTIONAL and resolution happens on the core. `(?!\d)` keeps
-  // « PERSON12 » distinct from « PERSON1 » (the pattern is merged, order alone isn't enough).
+  // MARKERS (`[PERSON1]`) — the token-mode key form. A marker the model REWRITES (brackets
+  // escaped by markdown, bold glued on, copied without brackets) must still restore, or the
+  // user reads « PERSON1 » instead of THEIR data. Brackets are OPTIONAL and resolution
+  // happens on the core; `(?!\d)` keeps « PERSON12 » distinct from « PERSON1 ».
   const MARKER_RE = /^\[([A-Za-z][A-Za-z_]*\d*[A-Za-z_]*)(\d+[a-z]?)\]$/;
   const markerByLower = new Map<string, { value: string; ambiguous?: boolean }>();
   const pattern = tokens

@@ -28,7 +28,7 @@ export type NerPipeline = (
 
 /** The selectable models: a HF token-classification id + rough size hint. */
 export const NER_MODELS = {
-  multilingual: "Xenova/bert-base-multilingual-cased-ner-hrl",
+  multilingual: "openmasq/ner-multilingual",
 } as const;
 
 export type NerModelKey = keyof typeof NER_MODELS;
@@ -37,13 +37,15 @@ export type NerModelKey = keyof typeof NER_MODELS;
  * Pinned commit SHA for the NER repo (audit M10 residual). A DOWNLOADED model — the mobile/web
  * onnxruntime-web path — otherwise tracks the mutable HuggingFace `main` ref, so a repointed repo
  * would load arbitrary ONNX weights into onnxruntime. Anchoring the download to a reviewed commit
- * closes that. (The DESKTOP never downloads at all — packaged OR dev: it BUNDLES this same mBERT,
- * fetched once at BUILD time and sha256-verified at both bake and load. See
+ * closes that, and it stays pinned now that the repo is OURS: "we published it" is an origin
+ * claim, not an integrity one, and the byte gate must not depend on an account staying safe.
+ * (The DESKTOP never downloads at all — packaged OR dev: it BUNDLES these weights, fetched once
+ * at BUILD time and sha256-verified at both bake and load. See
  * `apps/desktop/src/main/ner/model.ts` + `ner/CLAUDE.md`. The pin here covers mobile/web only.)
  * An explicit `revision` / `OPENMASQ_NER_REVISION` still overrides; a custom `modelName` opts out.
  */
 export const NER_REVISIONS: Record<NerModelKey, string> = {
-  multilingual: "263e82c06569c8c2ac46238a7ae5107598934234",
+  multilingual: "8cf72739a75da1de5680ea6c30c381660e740303",
 };
 
 /**
@@ -56,10 +58,10 @@ export const NER_REVISIONS: Record<NerModelKey, string> = {
  */
 export const NER_WEIGHTS_SHA256: Record<NerModelKey, Readonly<Record<string, string>>> = {
   multilingual: Object.freeze({
-    "onnx/model_quantized.onnx": "5b65139844be260b624a2a13782b01d122e613d64ce16ed0ba4d82e0b816f1a9",
-    "config.json": "7aa891abae067f95a40f5e2005b3de44824a083f256802934a993d301ec25076",
-    "tokenizer.json": "bf1b59b7b11c95f194f51708d918eea378e09d05f84c0e1656dc5180e8117088",
-    "tokenizer_config.json": "e6f3b96db926a37d4039995fbf5ad17de158dfb8f6343d607e4dbaad18d75f5a",
+    "onnx/model_quantized.onnx": "7470819a0961b246614ceedd940934b8d8ae7c39070cb15508883fe0e6f93012",
+    "config.json": "b942516293db81db39bc12b734888dc5e7a7e38c2f5f6f7ecacb337fd716c4c3",
+    "tokenizer.json": "01c1e79cf5f607729b4e64af721b961d41981c77c91849a9fd4f7262b4cc9437",
+    "tokenizer_config.json": "5c1d1f0110ec8761dc91247fb20bebfea28aa577e35b2f0eb02c55cfb69871b1",
   }),
 };
 

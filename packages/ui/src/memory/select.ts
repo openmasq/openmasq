@@ -30,9 +30,7 @@ const SOURCE = getMessages(DEFAULT_LOCALE);
  *   0 · everything else (never injected; `memory_search` covers the long tail)
  *
  * Then ONE HOP along the cross-links: a card that NAMES a certainly-mentioned entity is
- * about it, and answering about an entity while ignoring what is known around it is what
- * « veille sur les fournisseurs de X » exposed — the X card went in, the card describing
- * a competitor OF X did not, and the reply read as though nothing was known.
+ * about it (« veille sur les fournisseurs de X » needs the card describing a competitor OF X).
  *
  * Then fill the char budget by (score, recency): the profile first (it is the fixed
  * always-on stage), cards after, cut at the budget — NEVER a raw dump of the store.
@@ -174,16 +172,12 @@ export interface MemoryNotoriety {
 }
 
 /**
- * Removes from the memory forced list the values that the level's NOTORIETY POLICY exempts.
- * "A memory entity is known PII by construction" is FALSE for an alias:
- * extraction files suppliers under an organization card's aliases, and a
- * FORCED "google" alias (forced outranks notoriety AND deny-lists, by design — it
- * is meant to be an EXPLICIT user choice) used to mint `google → ostrel`, which the
- * vault then reapplied to the whole prompt: "Google Drive" became "Ostrel
- * Drive", and the model would answer "connector not connected" about its own tools.
- * Filtered here, a notorious value falls back on DETECTION, where the engine's gates
- *  (notoriety, keep, deny-lists) decide based on the level — under Strict nothing is
- * exempted (`commercial:false`, `people:false`) and the forced list stays intact.
+ * Removes from the memory forced list the values the level's NOTORIETY POLICY exempts. "A
+ * memory entity is known PII by construction" is FALSE for an alias: extraction files
+ * suppliers under an organization card's aliases, and a FORCED "google" alias (forced
+ * outranks notoriety by design) would mint `google → ostrel` and rewrite "Google Drive"
+ * across the prompt. Filtered here, a notorious value falls back on DETECTION, where the
+ * engine's gates decide by level — under Strict nothing is exempted.
  */
 export function filterNotoriousFromForced(
   forced: { value: string; category: string }[],
@@ -202,27 +196,17 @@ export function filterNotoriousFromForced(
  *  entity is KNOWN PII by construction — no detector needed to protect it. Aliases ride
  *  along; an email-shaped alias forces as EMAIL.
  *
- *  ⚠️ EXCEPT for a name that is a LANGUAGE WORD (stopword / generic term): the
- *  « retiens que… » path deliberately accepts note-cards with a generic name
- *  (`allowNotes` in extract.ts), and forcing that name redacted the common word across
- *  the WHOLE conversation — measured: a note « dossiers » turned « à quels dossiers
- *  as-tu accès ? » into « à quels brantley… », mutilating both the question AND the
- *  memory search behind it. Not forcing it leaks nothing (a common word identifies
- *  nobody); the note's CONTENT stays protected by normal detection. */
+ *  ⚠️ EXCEPT for a name that is a LANGUAGE WORD: the « retiens que… » path accepts
+ *  note-cards with a generic name (`allowNotes` in extract.ts), and forcing « dossiers »
+ *  would redact the common word across the WHOLE conversation. A common word identifies
+ *  nobody; the note's CONTENT stays protected by normal detection. */
 export function memoryForced(sel: MemorySelection): { value: string; category: string }[] {
   const catToken = (c: MemoryCard): string => (c.cat === "personne" ? "NAME" : "ORG");
   const out: { value: string; category: string }[] = [];
-  // A word from the COMMON LEXICON is never "known PII", whatever the card says:
-  // a failed extraction filed « dossiers » as an organization, and this forced then
-  // redacted it EVERYWHERE — down to the connector's error message (« hors des ashcombe
-  // autorisés », log 01/08). The MEMORY forced is machine-decided, so it is filtered
-  // here; the USER forced ("Redact" in the composer) keeps its pass to the engine.
-  // ⚠️ `isNonPiiTerm` and NOT a local predicate: both branches had fixed this
-  // bug separately, one with `isStopword || isGenericTerm`, the other with this
-  // shared predicate — which contains both of them, plus compounds, article
-  // forms, clinical vocabulary and public bodies. A second definition of the
-  // "common word" would drift from the lexicon it claims to follow (rule 9). Only
-  // the length floor survives from the other version: an "entity" of one or two
+  // A word from the COMMON LEXICON is never "known PII", whatever the card says. The
+  // MEMORY forced is machine-decided, so it is filtered here; the USER forced keeps its
+  // pass to the engine. `isNonPiiTerm` and NOT a local predicate (rule 9): a second
+  // definition of "common word" would drift from the lexicon. An "entity" of one or two
   // characters designates nothing and would redact fragments everywhere.
   const push = (value: string, category: string) => {
     if (value.trim().length < 3 || isNonPiiTerm(value)) return;
@@ -241,11 +225,9 @@ export function memoryForced(sel: MemorySelection): { value: string; category: s
   return out;
 }
 
-/** The forced list for the INJECTED BLOCK: the selected cards + any memory entity
- *  that APPEARS in the block — the PROFILE (the always-injected tier) can name an
- *  organization whose card is NOT selected ("director at X" on some day unrelated
- *  to X): without this addition, its protection fell back on detection alone —
- *  the leak measured in eval under the regex engine. */
+/** The forced list for the INJECTED BLOCK: the selected cards + any memory entity that
+ *  APPEARS in the block — the PROFILE can name an organization whose card is NOT selected,
+ *  and its protection must not fall back on detection alone (the regex engine can't see it). */
 export function memoryForcedForBlock(
   sel: MemorySelection,
   memory: MemoryData | undefined,

@@ -22,14 +22,10 @@ export type { GeoAnchors } from "./cityAnchor";
  *  street can hide behind. `ADDRESS` is excluded: it already routes correctly. */
 const GENERIC_PLACE: ReadonlySet<string> = new Set(["LOCATION", "PLACE", "GPE", "LOC"]);
 /**
- * A value that OPENS with a street-type word (optionally after its house number):
- * « rue Villa Ancelle », « 31 rue Villa Ancelle », « avenue des Ternes ».
- *
- * ⚠️ Anchored at the START on purpose, and with no short abbreviation. A first attempt
- * matched a street word ANYWHERE and included `st`/`av`/`bd`/`villa` — « ST OUEN (93400) »
- * was then read as a street and faked into « 96 IMPASSE DE LA FONTAINE, 29000 Quimper »,
- * breaking the very town the sibling fix had just taught to come back. A missed street is
- * a clumsy fake; a town read as a street is a wrong one.
+ * A value that OPENS with a street-type word (optionally after its house number). ⚠️
+ * Anchored at the START and with no short abbreviation (`st`/`av`/`bd`), else « ST OUEN
+ * (93400) » reads as a street. A missed street is a clumsy fake; a town read as a street
+ * is a wrong one.
  */
 const STREET_HEAD =
   /^\s*(?:\d{1,4}\s*(?:bis|ter|[a-d])?[\s,]+)?(?:rue|avenue|boulevard|chemin|impasse|all[ée]e|place|cours|quai|route|square|passage|sentier|voie|street|road|lane|drive|strasse|stra\u00dfe|calle|avenida|via|viale|corso|rua)(?:[\s,.]|$)/iu;
@@ -46,8 +42,7 @@ export const PLACES_BY_COUNTRY: Record<ISO2, GeoPlace[]> = {
   ...ASIA_PLACES,
 };
 
-/** Fake street vocabulary (combinatorial, per language) — data lives in ./streets.ts. */
-/** Which street language each country writes in. */
+/** Which street language each country writes in (vocabulary in ./streets.ts). */
 const COUNTRY_LANG: Record<ISO2, keyof typeof STREETS> = {
   FR: "fr", BE: "fr", CH: "fr", LU: "fr",
   US: "en", GB: "en", CA: "en", IE: "en",

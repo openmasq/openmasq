@@ -1,0 +1,235 @@
+/* Find-in-document bar — sits inline in the toolbar row (see `.fv-toolbar-bar`). */
+.fv-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 20px 0;
+  padding: 6px 10px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-sm);
+  background: var(--surface-card);
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+.fv-search-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--text-strong);
+}
+.fv-search-count {
+  flex-shrink: 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.fv-search-nav,
+.fv-search-clear {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: var(--radius-xs);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 13px;
+  line-height: 1;
+}
+.fv-search-nav:hover:not(:disabled),
+.fv-search-clear:hover {
+  background: var(--surface-hover);
+  color: var(--text-strong);
+}
+.fv-search-nav:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+/* Search match highlight in the extracted/redacted text — distinct from the
+   redaction tone marks; the active match gets a stronger lime + brand ring. */
+.fv-search-hit {
+  background: var(--hl-amber);
+  color: inherit;
+  border-radius: 2px;
+}
+.fv-search-hit.active {
+  background: var(--hl-lime);
+  box-shadow: 0 0 0 2px var(--brand);
+}
+.fv-tab {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 12px 4px;
+  margin-right: 18px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-muted);
+}
+.fv-tab.on {
+  font-weight: 700;
+  color: var(--text-strong);
+}
+/* Every tab carries a rail: a 1.5px hairline the active tab thickens to 2px in brand, one
+   continuous track. Matches .lib-tab / .conv-tab. */
+.fv-tab::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 1.5px;
+  background: var(--border-default);
+  border-radius: 2px;
+}
+.fv-tab.on::after {
+  height: 2px;
+  background: var(--brand);
+}
+/* Usage count on the Conversations tab — lime when that tab is open, like the kit. */
+.fv-tab-n {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  padding: 1px 5px;
+  border-radius: 3px;
+  background: var(--surface-sunken);
+  color: var(--text-faint);
+}
+.fv-tab.on .fv-tab-n {
+  background: var(--lime);
+  color: var(--text-strong);
+}
+.fv-seg-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 20px 0;
+  flex-shrink: 0;
+}
+/* The viewer's note line — the Redacted⇄Original toggle lives in fvToggle.css. */
+.fv-seg-note {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.fv-body {
+  padding: 6px 22px 4px;
+  overflow: auto;
+  flex: 1;
+  min-height: 160px;
+  /* Flex-item default `min-width: auto` lets a wide child (a spreadsheet grid) blow the
+     body past the panel instead of scrolling — pin it to 0 so the scroll containers win. */
+  min-width: 0;
+}
+/* The preview opens before its bytes are read, so the body starts as a skeleton: the floor
+   is what a loaded document settles at, so the open is one size instead of a jump. The
+   max-height still caps it and the flex child still scrolls. */
+.fv-body-stable {
+  min-height: min(60vh, 620px);
+}
+.fv-status {
+  padding: 48px 0;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+/* "Reredact" action bar atop the Redacted tab (re-run with the current engine,
+   e.g. after switching redaction model). Hint pushes the button to the right. */
+.fv-reredact {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.fv-stale-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-right: auto;
+  font-size: var(--text-xs);
+  color: var(--pearl-amber);
+}
+/* Per-value reveal (send-in-clear) in the document preview. */
+.fv-reveal-chips {
+  margin: 0 0 12px; /* bare strip (no banner box) — same rhythm as the composer's row */
+}
+/* Discoverability hint for the manual "Redact" affordance — a slim, muted bottom bar
+   below `.fv-body`, so it costs the document no height. */
+.fv-footbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  padding: 7px 22px;
+  border-top: 1px solid var(--border-subtle);
+  background: var(--surface-sunken);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+/* Coverage disclosure — what this preview is NOT redacting (categories off). Amber: it
+   flags data leaving in clear, not an error. Block, so it can't read as one hint among others. */
+.fv-coverage-note {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  padding: 7px 11px;
+  border-radius: var(--radius-md);
+  background: var(--hl-amber-soft, #fff3e0);
+  border: 1px solid var(--hl-amber, #f4b04c);
+  font-size: var(--text-xs);
+  color: var(--ink-on-hl); /* never --text-*: the pastel doesn't invert, the ink does (frozenInk) */
+}
+/* Inline "go to the Redacted tab" link inside a doc-view hint — a text button that
+   reads as a link, not a chip. */
+.fv-hint-link {
+  border: 0;
+  background: none;
+  padding: 0;
+  font: inherit;
+  color: var(--brand-text);
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.fv-hint-link:hover {
+  color: var(--text-strong);
+}
+/* A redacted value as a CLICKABLE reveal target (text tab / spreadsheet cell). It
+   already carries `.redaction-mark tone-*`; strip the button chrome + add a pointer. */
+.fv-reveal-mark {
+  border: 0;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+.fv-reveal-mark:hover {
+  filter: brightness(0.96);
+}
+/* Revealed → the value goes in clear and the redaction disappears: no fill and no outline
+   IS the honest render (no mark = no protection). Still a button: hover/click re-redacts,
+   and the header's « 🛡 N » count keeps the overview. */
+.fv-reveal-mark.revealed,
+.fv-cell-revealed {
+  background: none;
+  background-image: none;
+  outline: none;
+  color: inherit;
+  border-radius: 0;
+  padding: 0;
+}

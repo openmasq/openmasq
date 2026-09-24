@@ -55,7 +55,8 @@ export function privacyLevelMeta(t: Messages): {
  *
  * It is the deliberate return of the old "Navigation" preset: it leaves the five BETA
  * categories in clear (names, dates of birth, addresses, places, companies), the ones
- * only the model detects. This preset had been removed because the engine already covers
+ * only the model detects — and the handles (`FROM_RENFORCE`), whose only signal is a
+ * leading `@` and which read as scopes, flags and bot mentions on ordinary text. This preset had been removed because the engine already covers
  * web search without lowering its guard (the notoriety filter never masks a public figure,
  * a major brand, or a country, and `WebNavRedactOffer` offers to reveal the rest right
  * before the call that would trigger it). It comes back conditionally, and the conditions

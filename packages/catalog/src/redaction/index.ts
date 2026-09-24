@@ -1,13 +1,7 @@
 /**
- * Unified REDACTION-category catalog — the single source of truth for "which
- * redaction categories exist and how they're presented", shared by the desktop UI
- * and the org admin console.
- *
- * The category KEY vocabulary is `@openmasq/redact`'s `RedactionCategory` (the
- * engine's own enum) — re-exported here so there is ONE key type. The display
- * metadata (labels, groups, tones, defaults) previously lived in the UI-only file
- * `packages/ui/src/components/Settings/shared.ts`; it moves here so the admin can
- * govern the same categories the desktop enforces, with no drift.
+ * Unified REDACTION-category catalog — the single source of "which categories exist and
+ * how they're presented", shared by every surface that governs them. The KEY vocabulary
+ * is `@openmasq/redact`'s `RedactionCategory`, re-exported so there is ONE key type.
  */
 import {
   CATEGORY_HUE,
@@ -20,9 +14,7 @@ import {
 } from "@openmasq/redact";
 
 export type { RedactionCategory };
-// Re-export the palette's single source so a consumer (the desktop UI, the org admin
-// console) colours a section or a category from it rather than declaring a second,
-// drifting palette. `CATEGORY_HUE` is itself derived from `SECTION_HUE`.
+// The palette's single source, re-exported so a consumer never declares a second one.
 export { CATEGORY_HUE, CATEGORY_SECTION, SECTION_HUE };
 export type { Hue, RedactionSection };
 
@@ -55,179 +47,24 @@ export interface CatalogRedactionCategory {
   impact?: string;
 }
 
-// Base list — keys, labels and copy only. The SECTION and the COLOUR are not repeated
-// here: both are read from the palette source (`CATEGORY_SECTION` / `SECTION_HUE`) when
-// `REDACTION_CATEGORIES` is built below, so a category cannot be filed under one section
-// and painted with another's colour.
-const BASE: {
-  key: RedactionCategory;
-  label: string;
-  ai?: boolean;
-  detail?: string;
-  impact?: string;
-}[] = [
-  {
-    key: "name",
-    label: "Noms & prénoms",
-    ai: true,
-    detail:
-      "Prénoms, noms, identités complètes détectés par le modèle local — y compris en MAJUSCULES, collés ou dans un champ étiqueté (Nom :, Prénom(s) :). Les personnalités publiques restent lisibles.",
-  },
-  {
-    key: "dob",
-    label: "Date de naissance",
-    ai: true,
-    detail:
-      "Dates de naissance (né le…, date of birth, formats FR/EN/DE), champs étiquetés inclus. Les autres dates relèvent de « Dates », éteinte par défaut.",
-    impact:
-      "Redacted, un âge ou un délai CALCULÉ par le modèle peut être décalé (la fausse date protège l'année réelle, elle-même identifiante). La date restituée, elle, est toujours la vraie.",
-  },
-  // Every OTHER date — off by default (a date is rarely an identity on its own, and a
-  // masked timestamp corrupts every duration the model reasons about), on in Strict, where
-  // a dated event in a document is treated as the quasi-identifier it can be.
-  {
-    key: "date",
-    label: "Dates",
-    detail:
-      "Toutes les autres dates — en chiffres (12/05/2024, 2024-05-12) ou en lettres (12 mai 2024, May 12, 2024, mai 2024), dans les langues du produit. Éteinte par défaut ; le niveau Strict l'allume. Les années seules ne sont jamais touchées.",
-    impact:
-      "Masquées, les durées, délais et chronologies que le modèle calcule portent sur des dates d'emprunt : décalées de quelques années mais cohérentes entre elles, et toujours restituées vraies.",
-  },
-  // Pseudo / handle / login. DETERMINISTIC (labeled fields + a leading-`@` handle rule —
-  // NOT `ai`), and ON from Renforcé: a handle is the single most reliable way to re-find
-  // someone across services, so its miss is an identity leak, not the cosmetic noise the
-  // opt-in tier is for. The rule stays narrow (an explicit login field, or a leading `@`),
-  // which is what makes the default affordable.
-  {
-    key: "username",
-    label: "Pseudo / identifiant",
-    detail:
-      "Pseudos @handle et champs login / nom d'utilisateur / nickname. Active par défaut : un pseudo suit une personne d'un service à l'autre.",
-  },
-  {
-    key: "email",
-    label: "E-mail",
-    detail:
-      "Adresses e-mail (le faux garde un prénom cohérent pour que « Bonjour X » reste réversible).",
-  },
-  {
-    key: "phone",
-    label: "Téléphone",
-    detail:
-      "Numéros français et internationaux (+33, 00…), validés libphonenumber pour l'international.",
-  },
-  {
-    key: "address",
-    label: "Adresse postale",
-    ai: true,
-    detail:
-      "Adresses complètes multi-langues (FR/EN/DE/ES/IT/PT/NL + CJK) — remplacées par une vraie adresse du même pays, région différente.",
-    impact:
-      "Redacted, l'adresse reste cohérente (même pays, même forme) mais tout calcul géographique — distance, proximité, secteur — porte sur le lieu d'emprunt.",
-  },
-  {
-    key: "location",
-    label: "Lieu / ville / code postal",
-    ai: true,
-    detail:
-      "Villes, codes postaux, départements, régions, lieux de naissance. Les PAYS ne sont jamais masqués (connaissance du monde).",
-    impact:
-      "Redacted, distances, trajets et juridictions sont raisonnés sur des lieux d'emprunt — cohérents entre eux, mais pas avec la carte réelle.",
-  },
-  {
-    key: "company",
-    label: "Entreprise",
-    ai: true,
-    detail:
-      "Noms d'entreprises et d'organisations détectés par le modèle. Les grandes marques, produits et indices connus restent lisibles ; vos numéros SIREN/TVA relèvent d'« Identifiants d'entreprise ».",
-    impact:
-      "Redacted, le modèle ne sait RIEN de l'entreprise (secteur, taille, convention collective) : son nom d'emprunt est inconnu du monde, exprès.",
-  },
-  {
-    key: "card",
-    label: "Carte bancaire",
-    detail: "Numéros de carte 13-19 chiffres validés Luhn, espaces/tirets tolérés.",
-  },
-  {
-    key: "iban",
-    label: "IBAN / coordonnées bancaires",
-    detail:
-      "IBAN (mod-97), BIC/SWIFT, et les codes de routage : ABA (US), sort code (UK), BSB (AU), CLABE (MX), IFSC (IN), numéros de compte étiquetés.",
-  },
-  {
-    key: "national_id",
-    label: "ID national / passeport / permis",
-    detail:
-      "Documents d'identité de 40+ pays : CNI, passeports, NIR/sécu (espacé, Corse), permis de conduire, titres de séjour, numéros fiscaux, MRZ de documents scannés, SSN/ITIN, NHS, PESEL, AVS suisse, registre belge, CPF brésilien, carte d'identité chinoise, HKID, My Number… plus plaques d'immatriculation, VIN et IMEI. Sommes de contrôle vérifiées quand le pays en publie une.",
-  },
-  {
-    key: "company_id",
-    label: "Identifiants d'entreprise",
-    detail:
-      "SIREN/SIRET/RCS, TVA intracommunautaire (FR + UE), LEI, registres du commerce (HR allemand, UEN Singapour, ABN/ACN Australie, CNPJ Brésil, EIN US), numéros d'organisation.",
-  },
-  {
-    key: "ip",
-    label: "Adresse IP",
-    detail:
-      "IPv4, IPv6 (formes compressées ::) et adresses MAC — remplacées par des adresses valides.",
-  },
-  {
-    key: "path",
-    label: "Chemins de fichiers",
-    detail:
-      "Chemins absolus (macOS/Windows/Linux), noms de fichiers et dossiers personnels (documents, images, archives) — le code source n'est pas visé.",
-  },
-  // A GATE, not a value type: when ON the sub-parts of a URL are redacted like any
-  // other text; when OFF (the default) NOTHING inside a URL is touched. A browsed /
-  // searched page is full of image srcs + CDN cache-busters whose path/key/name
-  // look-alikes flooded the audit ("détection de sous-parties d'URL, néfaste"), so
-  // this defaults OFF to leave URLs alone.
-  {
-    key: "url",
-    label: "Adresses web (URL)",
-    detail:
-      "Masque l'adresse ENTIÈRE — domaine, chemin et paramètres — pas seulement ce qu'elle contient. Éteinte, les URL restent lisibles ET rien de ce qui se trouve à l'intérieur n'est masqué par erreur (noms de fichiers, jetons de cache d'une page consultée) ; les clés qui y figurent le sont toujours. Activée au niveau Strict, pensé pour l'analyse de documents.",
-  },
-  {
-    key: "secret",
-    label: "Clés & secrets",
-    detail:
-      "Clés d'accès (OpenAI, AWS, Stripe, GitHub, Slack…), jetons de connexion, clés privées, mots de passe, codes OTP/PIN, portefeuilles crypto.",
-  },
-  {
-    key: "apikey",
-    label: "Chaînes type clé (générique)",
-    detail:
-      "Heuristique large : toute chaîne qui RESSEMBLE à une clé (mélange lettres/chiffres long). Active à tous les niveaux de protection — une clé manquée part en clair. En contrepartie elle attrape aussi des références produit inoffensives.",
-  },
-];
+import { BASE } from "./categories.data";
 
 /**
- * Per-SECTION swatch colour as a `var(--hl-*)` property — **DERIVED** from `SECTION_HUE`,
- * the palette's single source. This is the colour the "Règles de redaction" chips wear AND
- * the colour a redaction mark of that section wears in the chat, in a document and in the
- * privacy report: one value, one variable, no possible disagreement.
- *
- * It used to be a palette of its OWN, nine section-only colours declared here beside a
- * six-hue marker palette declared in the engine — which is how the rules screen came to
- * promise "e-mail is blue" while the chat painted it lime. Deriving is what makes that
- * class of bug unrepresentable; do not re-declare a colour here.
+ * Per-SECTION swatch colour as a `var(--hl-*)` property, DERIVED from `SECTION_HUE`: the
+ * colour the rules chips wear AND the colour a mark of that section wears in the chat, a
+ * document and the privacy report. Deriving makes a disagreement unrepresentable — never
+ * re-declare a colour here.
  */
 export const REDACTION_GROUP_TONE: Record<string, string> = Object.fromEntries(
   REDACTION_SECTIONS.map((section) => [section, hlFg(SECTION_HUE[section])]),
 );
 
 /**
- * Categories the ENGINE still knows but the PRODUCT no longer exposes. They are absent
- * from `REDACTION_CATEGORIES` (no Settings toggle, no admin-policy row, not a valid
- * `forced_categories` id at the backend) and forced OFF in `CATEGORY_DEFAULTS`.
- *
- * A retired category is NOT the same as one that merely defaults off: an off-by-default
- * category can be switched back on, this one cannot. `effectiveRedactCategories`
- * (`packages/ui/src/send/redactionOptions.ts`) therefore forces them off at the send
- * merge — a `health: true` persisted before the retirement, or an org policy row written
- * against the old catalog, must not resurrect a category with no UI to turn it back off.
+ * Categories the ENGINE still knows but the PRODUCT no longer exposes: absent from
+ * `REDACTION_CATEGORIES` (no toggle, no policy row) and forced OFF in `CATEGORY_DEFAULTS`.
+ * Unlike an off-by-default category, a retired one cannot be switched back on:
+ * `effectiveRedactCategories` (`packages/ui/src/send/redactionOptions.ts`) forces them off
+ * at the send merge, so a persisted `true` or an old policy row cannot resurrect one.
  */
 export const RETIRED_CATEGORIES: readonly RedactionCategory[] = ["health", "number", "salary"];
 
@@ -241,32 +78,22 @@ export const REDACTION_CATEGORIES: CatalogRedactionCategory[] = BASE.map((c) => 
 
 /**
  * Default on/off policy per category, DERIVED from `BASE`:
- *  - **`ai` (BETA) categories default ON** — name/dob/address/location/company are the
- *    identity data the product's own copy promises to protect, and the default engine is
- *    the offline NER (`DEFAULT_SETTINGS.redactEngine: "local"`, bundled on the packaged
- *    desktop), so the promise holds out of the box. The "BETA" badge and the per-category
- *    toggles remain; a user who prefers no model-based redaction turns them off and their
- *    persisted choice wins over this seed (`normalizeSettings` spreads user settings over
- *    it). ⚠️ Where the AI engine is unavailable the send FAILS CLOSED by design — never
- *    "fix" that by flipping these back off silently.
- *  - **`apikey` (generic key-shaped strings) is now ON** — it is the one heuristic whose
- *    MISS is a credential in clear, so it belongs to the floor every level shares
- *    (`ALWAYS_ON`, `packages/ui/src/privacy/privacyLevel.ts`) rather than to the noise
- *    tier. The trade is accepted knowingly: the heuristic is broad and also catches
- *    harmless product references, which is exactly why it used to default OFF.
- *  - `username` is ON from Renforcé: a handle re-identifies its owner across services, so
- *    leaving it in clear IS a data risk — unlike a URL, whose masking mostly breaks a link
- *    the model needed to read.
- *  - `url` stays OFF — deliberately opt-in, and its absence is not a data risk the way a
- *    name, a handle or a key is.
- *  - every deterministic PII category (email/phone/card/iban/national_id/ip/path/
- *    secret) stays ON.
+ *  - `ai` (BETA) categories default ON: identity data the product's copy promises to
+ *    protect, and the default engine is the offline NER, so the promise holds out of the
+ *    box. ⚠️ Where the AI engine is unavailable the send FAILS CLOSED — never "fix" that by
+ *    flipping these off silently.
+ *  - `apikey` is ON: the one heuristic whose MISS is a credential in clear, so it belongs
+ *    to the floor every level shares (`ALWAYS_ON`, `packages/ui/src/privacy/privacyLevel.ts`).
+ *  - `username` is ON from Renforcé (`FROM_RENFORCE` in `levels.ts`): a handle
+ *    re-identifies its owner; not at Standard, where a leading `@` is mostly code.
+ *  - `url` stays OFF (opt-in); every deterministic PII category stays ON.
+ *  - `path` is OFF: the engine fakes a path SEGMENT BY SEGMENT, which breaks a coding
+ *    agent's commands, while the USERNAME a path identifies is covered by `name`. Strict
+ *    turns it on; a value already persisted as on stays on.
  *  - a RETIRED category is absent from `BASE`, hence OFF with no way back on.
- *
- * Keyed over the ENGINE's enum, not `BASE`, so the record stays total: consumers index it
- * by `RedactionCategory` and spread it as the seed for `Settings.redactCategories`.
+ * Keyed over the ENGINE's enum so the record stays total.
  */
-const OFF_BY_DEFAULT = new Set<RedactionCategory>(["url", "date"]);
+const OFF_BY_DEFAULT = new Set<RedactionCategory>(["url", "date", "path"]);
 export const CATEGORY_DEFAULTS: Record<RedactionCategory, boolean> = Object.fromEntries(
   (Object.keys(CATEGORY_HUE) as RedactionCategory[]).map((key) => {
     const c = BASE.find((b) => b.key === key);
@@ -278,7 +105,22 @@ export const CATEGORY_DEFAULTS: Record<RedactionCategory, boolean> = Object.from
 export {
   ALWAYS_ON,
   categoriesForLevel,
+  FROM_RENFORCE,
   disabledKindsOf,
   type RedactionLevel,
   usesLocalModel,
 } from "./levels";
+
+// The per-connector masking policy — one home for its SHAPE and for how a connector's
+// effective masking resolves, because the desktop's panes and the proxy's console both
+// edit it (`maskingPolicy.ts` says what each surface keeps for itself).
+export {
+  effectiveMasking,
+  loosensMasking,
+  maskedCategories,
+  MASKING_KEYS,
+  overriddenConnectors,
+  overridesMasking,
+  type ConnectorMasking,
+  type MaskingPolicy,
+} from "./maskingPolicy";

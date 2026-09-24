@@ -1,0 +1,163 @@
+/* Unified chat top bar: sidebar toggle · conversation tabs · spacer · browser toggle ·
+   marks eye · protected pill · more. In-flow at the top of the pane, and it doubles as the
+   frameless-window drag region — interactive children opt back out. */
+.chat-topbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px 8px;
+  flex-shrink: 0;
+  -webkit-app-region: drag;
+}
+.chat-topbar button,
+.chat-topbar a,
+.chat-topbar .conv-tab,
+.chat-topbar .menu-anchor {
+  -webkit-app-region: no-drag;
+}
+/* Subtle per-conversation token total in the chat header. */
+/* Plain text under the composer (no pill/background) — a discreet token count. */
+.usage-float {
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.chat-header {
+  height: var(--header-h);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.chat-title-empty {
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  color: var(--text-strong);
+}
+.header-spacer {
+  flex: 1;
+}
+
+.protected-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 30px;
+  padding: 0 11px;
+  border-radius: var(--radius-pill);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+}
+.protected-pill {
+  background: var(--green-soft);
+  color: var(--green-ink);
+}
+
+.header-share {
+  height: 32px;
+  padding: 0 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-default);
+  background: var(--surface-card);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  color: var(--text-body);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+.header-share:hover {
+  background: var(--surface-hover);
+}
+
+.header-menu {
+  position: absolute;
+  top: 42px;
+  right: 0;
+  z-index: 50;
+  width: max-content; min-width: 220px; /* une ligne par action — headerMenuFit.test.ts */
+  background: var(--surface-card);
+  /* The borderless chat skin flattens `--border-subtle`/`--shadow-lg` to nothing, which would
+     make this floating menu invisible on the light surface. A popover needs real elevation:
+     `--border-default` + an explicit shadow. */
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 12px 32px rgba(24, 40, 12, 0.16), 0 4px 10px rgba(24, 40, 12, 0.08);
+  padding: 7px;
+  transform-origin: top right;
+  animation: header-menu-pop var(--dur-fast) var(--ease-out);
+}
+@keyframes header-menu-pop {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+.header-menu-state {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.header-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  padding: 10px 11px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  text-align: left; white-space: nowrap;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-body);
+  cursor: pointer;
+  transition:
+    background var(--dur-fast) var(--ease-out),
+    color var(--dur-fast) var(--ease-out);
+}
+/* Icon sits a shade quieter than the label, then warms to the brand on hover. */
+.header-menu-item svg {
+  flex-shrink: 0;
+  color: var(--text-faint);
+  transition: color var(--dur-fast) var(--ease-out);
+}
+.header-menu-item:hover {
+  background: var(--surface-hover);
+  color: var(--text-strong);
+}
+.header-menu-item:hover svg {
+  color: var(--brand-text);
+}
+/* Set the destructive action apart with a hairline divider above it. */
+.header-menu-item.danger {
+  position: relative;
+  margin-top: 5px;
+  color: var(--red-500);
+}
+.header-menu-item.danger::before {
+  content: "";
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  top: -3px;
+  height: 1px;
+  background: var(--border-subtle);
+}
+.header-menu-item.danger svg,
+.header-menu-item.danger:hover svg {
+  color: var(--red-500);
+}
+.header-menu-item.danger:hover {
+  background: var(--red-soft);
+  color: var(--red-500);
+}

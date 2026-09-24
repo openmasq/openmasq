@@ -1,7 +1,9 @@
 import { defineConfig } from "tsup";
 
 export default defineConfig({
-  entry: ["src/index.ts"],
+  // Named so the emitted file matches the export subpath (`./tooltip` → `dist/tooltip.js`),
+  // which a bare path would not: tsup names an output after its source file.
+  entry: { index: "src/index.ts", tooltip: "src/components/brand/tooltipPlacement.ts" },
   format: ["esm"],
   dts: true,
   clean: true,

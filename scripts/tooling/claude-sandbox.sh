@@ -2,33 +2,23 @@
 #
 # claude-sandbox.sh — Claude Code with --dangerously-skip-permissions, LOCKED IN.
 #
-# Runs `claude --dangerously-skip-permissions` under sandbox-exec (macOS
-# seatbelt). The process, AND everything it runs (node, git, pnpm, a script it
-# has just written…), inherits the sandbox: writing is DENIED BY DEFAULT and
-# only re-opened on an explicit list — this repository, the temporaries, and the
-# caches/state the toolchain needs. Reading /Users is denied by default, and
-# re-opened on the same logic.
+# Runs `claude --dangerously-skip-permissions` under sandbox-exec (macOS seatbelt). The
+# process AND everything it runs inherits the sandbox: writing is DENIED BY DEFAULT and
+# re-opened on an explicit list (this repository, the temporaries, the toolchain's caches);
+# reading /Users likewise.
 #
-# What stays OUT of this guardrail's reach (say it, do not dress it up):
-#   • The NETWORK. Seatbelt does not usefully filter by host: the process keeps
-#     full outbound access. This sandbox bounds the FILESYSTEM, not
-#     exfiltration. Do not use it as if it bounded both.
-#   • The keychain (~/Library/Keychains) is readable AND writable, otherwise the
-#     session cannot authenticate nor refresh its token. If you go through
-#     ANTHROPIC_API_KEY, remove the two lines marked KEYCHAIN.
-#   • sandbox-exec is deprecated by Apple (still functional, and it is the
-#     mechanism Chrome's and Electron's own sandboxes still use).
+# What stays OUT of this guardrail's reach:
+#   • The NETWORK. Seatbelt does not filter by host: this bounds the FILESYSTEM, not
+#     exfiltration.
+#   • The keychain (~/Library/Keychains) stays readable AND writable, or the session cannot
+#     authenticate. With ANTHROPIC_API_KEY, remove the two lines marked KEYCHAIN.
+#   • sandbox-exec is deprecated by Apple (still functional; Chrome and Electron use it).
 #
-# NO CODE LEAVES: every remote git transport (git-remote-http(s)/ext,
-# send-pack), the credential helpers, ssh/scp/sftp and `gh` are DENIED AT
-# EXECUTION. LOCAL git stays whole (status, diff, commit, branch) — it is the
-# push, the PR and the remote fetch that disappear. The key agent is unhooked
-# from the environment, because denying ~/.ssh is not enough on its own: a key
-# handed over by the agent pushes without ever touching the disk.
-#   ⚠️ This denial is on PATHS. Copying one of those binaries elsewhere then
-#   running it works around it — that is a deliberate bypass, not an accident,
-#   but it is not airtightness. Airtightness needs the network layer: loopback
-#   only + a CONNECT proxy outside the sandbox whose list excludes GitHub.
+# NO CODE LEAVES: every remote git transport, the credential helpers, ssh/scp/sftp and `gh`
+# are DENIED AT EXECUTION; LOCAL git stays whole. The key agent is unhooked from the
+# environment, because a key handed over by the agent pushes without touching the disk.
+#   ⚠️ This denial is on PATHS: copying one of those binaries elsewhere works around it.
+#   Airtightness needs the network layer (loopback only + a CONNECT proxy outside).
 #
 # Usage:  ./scripts/tooling/claude-sandbox.sh [args passed to claude…]
 #         ./scripts/tooling/claude-sandbox.sh --print-profile   # inspect the profile
@@ -126,7 +116,7 @@ $(extras "${CLAUDE_SANDBOX_READ:-}")
   (subpath "/private/tmp")
   (subpath "/private/var/tmp")
   (subpath "$HOME_DIR/.claude")               ; history, shell snapshots, todos
-  (subpath "$HOME_DIR/.openmasq-agent")      ; parcours-agent (infra repo) §7: reporting back
+  (subpath "$HOME_DIR/.openmasq-agent")      ; the agent skills' state directory
   (regex #"^$HOME_RE/\\.claude\\.json")       ; + .claude.json.backup / .tmp
   (subpath "$HOME_DIR/.cache")
   (subpath "$HOME_DIR/.npm")
@@ -154,16 +144,11 @@ $(push_denies)
 PROFILE_EOF
 
 # ─────────── ANCESTORS: making what is allowed REACHABLE ───────────
-# realpath(3) — which Node applies to EVERY entry point, and the shell to every
-# `stat` — lstats EACH component of the path. So a file that IS allowed becomes
-# unreachable if one of its ancestors falls under the /Users `deny`: the failure
-# comes out as `EPERM … lstat '/Users'`, which reads like a broken tool and not
-# like a sandbox rule. We reopen the METADATA (lstat) of the ancestor folders
-# only — never their content: a neighbour stays unreadable, and even its name
-# does not appear (no directory read is granted here).
-# Derived from the profile ITSELF, hence no possible drift: any path added to an
-# allow-list above automatically makes its ancestors traversable.
-# Last, because in SBPL the LAST matching rule wins.
+# realpath(3) — which Node applies to EVERY entry point — lstats EACH component of a path,
+# so an allowed file becomes unreachable if an ancestor falls under the /Users `deny`
+# (`EPERM … lstat '/Users'`). We reopen the METADATA (lstat) of the ancestor folders only —
+# never their content or their listing. Derived from the profile ITSELF, so any path added
+# above makes its ancestors traversable. Last, because in SBPL the LAST matching rule wins.
 {
   printf '\n;; Ancestors of the allowed paths — METADATA only (lstat), derived above.\n'
   grep -oE '\((subpath|literal) "/Users/[^"]*"\)' "$PROFILE" \

@@ -19,13 +19,9 @@ export function bearerFetchJson(accessToken: string) {
       await res.text().catch(() => "");
       throw new Error(`Upstream request failed (${res.status})`);
     }
-    // ⚠️ **AN EMPTY BODY IS AN EMPTY SUCCESS.** A write that succeeds often replies with NO
-    // body (Graph `sendMail` → empty `202`, a `DELETE` → `204`): `res.json()` used to throw
-    // "Unexpected end of JSON input" there, the tool surfaced as a FAILURE even though the effect had
-    // taken place, and the model retried — hence a duplicate (observed on 18/08 on Outlook, on the
-    // desktop side). The same fix lives in `apps/desktop/.../connectors/run.ts`: two
-    // runtimes, so two copies, but the same rule — letting them drift would reopen the
-    // bug on whichever side was left behind.
+    // AN EMPTY BODY IS AN EMPTY SUCCESS. A write that succeeds often replies with NO body
+    // (an empty `202`, a `204`): parsing it as JSON would surface the tool as a FAILURE
+    // although the effect took place, and the model would retry — a duplicate write.
     const text = await res.text();
     if (!text.trim()) return undefined as T;
     try {

@@ -10,8 +10,8 @@
 
 export interface LoginMessages {
   /** The RETURNING title (« Content de vous revoir ») — only once an account has already
-   *  been seen on this device; `apps/web` sets another on its invitation page, where
-   *  signing in is not a return but an arrival. */
+   *  been seen on this device; an invitation flow sets another, where signing in is not a
+   *  return but an arrival. */
   heading: string;
   /** The FIRST-LAUNCH title: neutral, no account has been seen here yet. */
   headingFirst: (brand: string) => string;
@@ -197,7 +197,17 @@ export interface LeavesMessages {
     statsOn: string;
     statsOff: string;
   };
-  privacyLevels: { custom: string; customNote: string };
+  privacyLevels: {
+    custom: string;
+    customNote: string;
+    /** A connector masked at its own level (`components/MaskLevelPicker.tsx`). */
+    perConnector: {
+      label: string;
+      /** The first option: not a fourth level, the ABSENCE of an override. */
+      followsDefault: string;
+      followsDefaultHint: (globalLevel: string) => string;
+    };
+  };
   demo: { youWrite: string; modelReceives: string };
   toolTrace: string;
   conversations: string;
@@ -211,8 +221,18 @@ export interface LeavesMessages {
   resize: string;
   loading: string;
   errorBoundary: { title: string; body: string; reload: string; retry: string };
-  code: { csvTable: string; rowsCols: (rows: number, cols: number) => string; lines: (count: number) => string };
-  document: { saveFailed: string; shortcuts: string; seeAll: string; editorAria: string; seePrompt: string };
+  code: {
+    csvTable: string;
+    rowsCols: (rows: number, cols: number) => string;
+    lines: (count: number) => string;
+  };
+  document: {
+    saveFailed: string;
+    shortcuts: string;
+    seeAll: string;
+    editorAria: string;
+    seePrompt: string;
+  };
   openInPanel: (name: string) => string;
   loadingImage: (name: string) => string;
   openImage: (name: string) => string;

@@ -64,14 +64,20 @@ describe("detectLabeledFields — tabular header-annotated rows", () => {
       ].join("\n"),
     );
     expect(g.USERNAME).toEqual([
-      "falk.riemann9", "brasa_moray", "girasole_ombra",
-      "xerath_lusco", "ravelijn.moss", "jaskolka_bem",
+      "falk.riemann9",
+      "brasa_moray",
+      "girasole_ombra",
+      "xerath_lusco",
+      "ravelijn.moss",
+      "jaskolka_bem",
     ]);
   });
 
   it("« mot de passe applicatif/admin » — the observed compounds reach SECRET", () => {
     const g = byCategory(
-      ["mot de passe applicatif : corbeau-madras-812", "mot de passe admin : Zt7!rebond"].join("\n"),
+      ["mot de passe applicatif : corbeau-madras-812", "mot de passe admin : Zt7!rebond"].join(
+        "\n",
+      ),
     );
     expect(g.SECRET).toEqual(["corbeau-madras-812", "Zt7!rebond"]);
   });
@@ -260,7 +266,9 @@ describe("detectLabeledFields — MCP tool metadata is code, not a person (overr
 
 describe("detectLabeledFields — dotted leaders and double-label lines", () => {
   it("a ≥4-dot form leader works like a colon; a 3-dot prose ellipsis never does", () => {
-    const v = detectLabeledFields("Code postal ......... 44000\nVille ................ NANTES").map((d) => d.value);
+    const v = detectLabeledFields("Code postal ......... 44000\nVille ................ NANTES").map(
+      (d) => d.value,
+    );
     expect(v).toEqual(expect.arrayContaining(["44000", "NANTES"]));
     expect(detectLabeledFields("Contact... voir plus bas")).toEqual([]);
   });
@@ -370,8 +378,9 @@ describe("libellés — scolarité, permis, et le groupe SECRET", () => {
     expect(v("Mdp wifi : maison2026!")).toContain("SECRET:maison2026!");
     expect(v("Mot de passe : Tr0ub4dor&3")).toContain("SECRET:Tr0ub4dor&3");
     expect(v("Password: hunter2xyz")).toContain("SECRET:hunter2xyz");
-    expect(v("Clé de licence : A1B2C-D3E4F-G5H6I-J7K8L"))
-      .toContain("SECRET:A1B2C-D3E4F-G5H6I-J7K8L");
+    expect(v("Clé de licence : A1B2C-D3E4F-G5H6I-J7K8L")).toContain(
+      "SECRET:A1B2C-D3E4F-G5H6I-J7K8L",
+    );
   });
 
   /** PROSE is not a label: without a colon there is no field, and a
@@ -400,10 +409,12 @@ describe("libellé TÉLÉPHONE sans deux-points — la forme DE/IT", () => {
    *  was fixed, they went out in clear. German and Italian write « Telefon 0721 … » with
    *  no separator, and the international branch requires a `+` or `00`. */
   it("attrape le numéro national collé à son libellé", () => {
-    expect(v("Karlsruhe — Telefon 0734 82 57 190 Erziehungsberechtigte: Frau B"))
-      .toContain("PHONE:0734 82 57 190");
-    expect(v("Telefono 340 118 27 64 Medico curante: Dott. Emanuele"))
-      .toContain("PHONE:340 118 27 64");
+    expect(v("Karlsruhe — Telefon 0734 82 57 190 Erziehungsberechtigte: Frau B")).toContain(
+      "PHONE:0734 82 57 190",
+    );
+    expect(v("Telefono 340 118 27 64 Medico curante: Dott. Emanuele")).toContain(
+      "PHONE:340 118 27 64",
+    );
   });
 
   /** THE guard, and it applies to the VALUE, not the label: a run of digits and
@@ -415,7 +426,8 @@ describe("libellé TÉLÉPHONE sans deux-points — la forme DE/IT", () => {
       "Tel du service après-vente",
       "Fax 2 pages reçues",
       "Téléphone portable neuf",
-    ]) expect(v(t), t).toEqual([]);
+    ])
+      expect(v(t), t).toEqual([]);
   });
 });
 
@@ -449,10 +461,12 @@ describe("forme SÉRIALISÉE — la clé d'une charge JSON n'a pas la syntaxe de
   /** A SQL query is an OUTBOUND send, not a return — and it carries the data in its
    *  filter. The same key/value pair appears there with `=` and apostrophes. */
   it("attrape la donnée dans le WHERE d'une requête", () => {
-    expect(v("SELECT * FROM users WHERE email = 'o.vernel@laposte.net'"))
-      .toContain("EMAIL:o.vernel@laposte.net");
-    expect(v("UPDATE p SET telephone = '06 45 67 89 01' WHERE nom = 'ABDELKADER'"))
-      .toEqual(expect.arrayContaining(["PHONE:06 45 67 89 01", "NAME:ABDELKADER"]));
+    expect(v("SELECT * FROM users WHERE email = 'o.vernel@laposte.net'")).toContain(
+      "EMAIL:o.vernel@laposte.net",
+    );
+    expect(v("UPDATE p SET telephone = '06 45 67 89 01' WHERE nom = 'ABDELKADER'")).toEqual(
+      expect.arrayContaining(["PHONE:06 45 67 89 01", "NAME:ABDELKADER"]),
+    );
   });
 });
 
@@ -470,7 +484,9 @@ describe("identifiant QUALIFIÉ — le libellé ne finit pas toujours au deux-po
 
   it("⚠️ le qualificatif est BORNÉ — il ne traverse pas une clause", () => {
     // At most 3 words of ≤12 letters: beyond that, it's no longer a label but a sentence.
-    expect(vals("Identifiant du projet de refonte complète du site : 02799195")).not.toContain("02799195");
+    expect(vals("Identifiant du projet de refonte complète du site : 02799195")).not.toContain(
+      "02799195",
+    );
   });
 
   it("…et une valeur d'un seul caractère n'est jamais un identifiant", () => {
@@ -572,3 +588,31 @@ describe("the XML element form", () => {
   });
 });
 
+describe("a SECRET label does not swallow a running-prose clause", () => {
+  it("drops « key: <sentence> » but keeps a real key, a password and a passphrase", () => {
+    // « API key: the proxy forwards it untouched… » once made the whole sentence a SECRET
+    // (measured on the proxy's own README/usage prose) — a digit-free clause of function
+    // words behind a credential label is documentation, not a secret.
+    const prose = byCategory(
+      "keep your own API key: the proxy forwards it untouched, masks the messages and returns",
+    );
+    expect(prose.SECRET ?? []).toHaveLength(0);
+    // A real key still fires (it carries digits).
+    expect(byCategory("API key: sk-live-4eC39HqLyjWDarjtT1zdp7dc").SECRET).toContain(
+      "sk-live-4eC39HqLyjWDarjtT1zdp7dc",
+    );
+    // A password with a symbol still fires; a short word-only passphrase is untouched by the
+    // prose guard (isProse needs ≥5 words), so it survives too.
+    expect(byCategory("password: Sm7p!Tanc2026").SECRET).toContain("Sm7p!Tanc2026");
+    expect(byCategory("password: correct horse battery staple").SECRET).toContain(
+      "correct horse battery staple",
+    );
+  });
+
+  it("cuts a labelled value at a closing guillemet, not into the prose after it", () => {
+    // « mot de passe : hunter2 » wraps label AND value; the capture ran past `»` and vaulted
+    // the whole sentence. It stops at the guillemet now — the password alone.
+    const got = byCategory("« mot de passe : hunter2 » was only caught by the token rule");
+    expect(got.SECRET).toEqual(["hunter2"]);
+  });
+});

@@ -53,6 +53,7 @@ const ENGINES = (opt("engines") ?? (PROBE ? "patterns" : "patterns,ner")).split(
 const COLUMN_ORDER = ["patterns", "ner", "ner-strict", "pplx", "opf", "presidio"];
 const EXTRA = (opt("extra") ?? "").split(",").filter(Boolean).map((kv) => { const i = kv.indexOf("="); return [kv.slice(0, i), kv.slice(i + 1)] as const; });
 const LIMIT = Number(opt("limit") ?? (PROBE ? 300 : 0));
+const CANDIDATE = process.env.OPENMASQ_BENCH_NER_MODEL ? `@${process.env.OPENMASQ_BENCH_NER_MODEL.split("/").pop()}` : "";
 /** `--label postcode,tax_id` keeps only the cases that CARRY one of those upstream labels.
  *
  *  Iterating on a rule, the corpus is mostly noise: 2 000 Nemotron documents hold ~130 with a
@@ -114,7 +115,7 @@ async function measure(name: EngineName, dataset: string, cases: SpanCase[]): Pr
     ms: { median: +q(ms, 0.5).toFixed(1), p90: +q(ms, 0.9).toFixed(1), total: +ms.reduce((a, b) => a + b, 0).toFixed(0) }, preds };
 }
 
-const LABEL: Record<string, string> = { patterns: "openmasq `patterns`", ner: "**openmasq `ner`** (the product, Renforcé)", "ner-strict": "openmasq `ner` (Strict)", pplx: "PII-Tracer", opf: "OpenAI Privacy Filter", presidio: "Presidio (default)" };
+const LABEL: Record<string, string> = { patterns: "openmasq `patterns`", ner: "openmasq `ner` (Renforcé)", "ner-strict": "**openmasq `ner`** (the product, Strict)", pplx: "PII-Tracer", opf: "OpenAI Privacy Filter", presidio: "Presidio (default)" };
 const name = (e: string) => LABEL[e] ?? e;
 
 function render(dataset: string, cases: SpanCase[], cols: { engine: string; res: ResultFile; all: Scores; inn: Scores }[]) {
@@ -211,7 +212,10 @@ for (const dataset of DATASETS) {
         .sort((a, b) => (COLUMN_ORDER.indexOf(a) + 1 || 99) - (COLUMN_ORDER.indexOf(b) + 1 || 99))
     : ENGINES;
   for (const engine of engines) {
-    const file = join(HERE, "results", `${dataset}.${engine}.json`);
+    // A candidate model (`OPENMASQ_BENCH_NER_MODEL`, see engines.ts) gets its own column
+    // files — `<dataset>.ner-strict@<name>.json` — so measuring it never overwrites the
+    // shipped model's committed columns, and `--replay` picks it up as one more column.
+    const file = join(HERE, "results", `${dataset}.${engine}${engine === "patterns" ? "" : CANDIDATE}.json`);
     let res: ResultFile | null = null;
     if (REPLAY) { if (existsSync(file)) res = JSON.parse(readFileSync(file, "utf8")); else console.error(`! no ${file}`); }
     else if (PROBE) { res = await measure(engine as EngineName, dataset, cases); if (res) probe(dataset, cases, engine, res, file); continue; }

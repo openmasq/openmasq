@@ -1,31 +1,17 @@
 /**
- * Dependency-audit CI gate — fails ONLY on advisories that matter for a shipped
- * or internet-facing surface, so the signal isn't drowned by dev/build/test noise.
+ * Dependency-audit CI gate — fails ONLY on advisories that matter for a shipped surface, so
+ * the signal isn't drowned by dev/build/test noise. A finding is GATED when its severity is
+ * `high`/`critical`, one of its paths roots in a SHIPPED workspace, and that path's DIRECT
+ * dependency is not a known build/test/CI tool. Everything else is reported as IGNORED.
  *
- * A finding is GATED (→ fail the build) when ALL of:
- *   1. severity is `high` or `critical`, AND
- *   2. at least one of its dependency paths roots in a SHIPPED/SERVED workspace, AND
- *   3. that path's DIRECT dependency is not a known build/test/CI tool.
- *
- * Everything else (dev tooling like electron-builder/vitest/wrangler/vite, or a
- * non-served workspace like react-email's bundled Next) is reported
- * as IGNORED and never fails the build.
- *
- * Rationale + the full triage live in the dependency-audit report. Re-tune the two
- * lists below as the topology changes. Runs `pnpm audit --json` itself.
- *
- *   node scripts/checks/audit-gate.mjs        # or: pnpm audit:gate
- *
- * Exit codes: 0 = clean (or an infra/parse failure — we fail OPEN on registry
- * flake so a network hiccup never blocks every PR); 1 = real gated findings.
+ * Runs `pnpm audit --json` itself (`pnpm audit:gate`). Exit codes: 0 = clean, or a
+ * registry/parse failure — fail OPEN there, a network hiccup must not block every PR;
+ * 1 = real gated findings.
  */
 import { spawnSync } from "node:child_process";
 
-/** Workspaces whose runtime dependencies reach a user (shipped). The served
- *  services (API, gateway, console, worker, relays) live in the private infra repo. Paths from `pnpm audit` encode `/` as `__` (e.g. `apps__desktop`);
- *  we normalise back to `apps/desktop`. NOTE: apps/landing left this monorepo for
- *  its own repo (18/08) — it isn't even a workspace member here anymore, so this
- *  set never needed to name it. */
+/** Workspaces whose runtime dependencies reach a user. Paths from `pnpm audit` encode `/`
+ *  as `__` (`apps__desktop`); normalised back to `apps/desktop`. */
 const SERVED_WORKSPACES = new Set([
   "apps/desktop", // Electron app shipped to users
   "apps/mcp-broker", // MCP broker sidecar (runs on the user's machine)
@@ -39,7 +25,6 @@ const DEV_TOOL_ROOTS = new Set([
   "electron-builder", "app-builder-lib", "@electron/rebuild", "@electron/notarize",
   "vite", "@vitejs/plugin-react", "vitest", "@vitest/ui", "@vitest/coverage-v8",
   "esbuild", "tsup", "tsx", "typescript", "ts-node",
-  "wrangler", "@cloudflare/vitest-pool-workers", "miniflare",
   "@playwright/test", "playwright", "playwright-core",
   "react-email", "@react-email/preview-server",
   "turbo", "eslint", "prettier", "@biomejs/biome", "oxlint",

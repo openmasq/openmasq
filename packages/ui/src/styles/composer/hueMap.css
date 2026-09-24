@@ -1,0 +1,83 @@
+/* ═══ THE hue → token map — the ONLY place a `.hl-<hue>` class resolves ═══
+   A surface that paints a redaction adds `hl-<hue>` (from `hueForKind` / `SECTION_HUE`) and
+   reads `--mk` (fill), `--mk-ink` (text on it) or `--mk-soft`. It never names a `--hl-*`
+   token itself: one map, so adding a hue is one line here. `lime` is in the map but is not
+   a redaction hue — the hue-picker and the connector tones use it. */
+.hl-violet { --mk: var(--hl-violet); --mk-ink: var(--ink-on-hl-violet); --mk-soft: var(--hl-violet-soft); }
+.hl-sky    { --mk: var(--hl-sky);    --mk-ink: var(--ink-on-hl-sky);    --mk-soft: var(--hl-sky-soft); }
+.hl-mint   { --mk: var(--hl-mint);   --mk-ink: var(--ink-on-hl-mint);   --mk-soft: var(--hl-mint-soft); }
+.hl-teal   { --mk: var(--hl-teal);   --mk-ink: var(--ink-on-hl-teal);   --mk-soft: var(--hl-teal-soft); }
+.hl-amber  { --mk: var(--hl-amber);  --mk-ink: var(--ink-on-hl-amber);  --mk-soft: var(--hl-amber-soft); }
+.hl-gold   { --mk: var(--hl-gold);   --mk-ink: var(--ink-on-hl-gold);   --mk-soft: var(--hl-gold-soft); }
+.hl-pink   { --mk: var(--hl-pink);   --mk-ink: var(--ink-on-hl-pink);   --mk-soft: var(--hl-pink-soft); }
+.hl-slate  { --mk: var(--hl-slate);  --mk-ink: var(--ink-on-hl-slate);  --mk-soft: var(--hl-slate-soft); }
+.hl-red    { --mk: var(--hl-red);    --mk-ink: var(--ink-on-hl-red);    --mk-soft: var(--hl-red-soft); }
+.hl-lime   { --mk: var(--hl-lime);   --mk-ink: var(--ink-on-hl-lime);   --mk-soft: var(--hl-lime-soft); }
+.composer-mark {
+  border-radius: 3px;
+  /* Fill and ink from the hue tokens, like `.redaction-mark`: the backdrop paints the glyphs,
+     so the span reads in `--mk-ink` on `--mk` in both themes. `--mark-band` is the
+     indirection the keyframe reads (fill-mode `both`). */
+  --mark-band: var(--mk, var(--hl-amber));
+  background: var(--mark-band);
+  color: var(--mk-ink, var(--ink-on-hl));
+  /* Appear animation when a new sensitive item is detected; stable keys mean an existing mark
+     is not remounted, so it plays once. */
+  animation: composer-mark-in 0.22s var(--ease-out, ease-out) both;
+}
+@keyframes composer-mark-in {
+  from { background: transparent; }
+  to { background: var(--mark-band); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .composer-mark { animation: none; }
+}
+/* Inline un-redaction: one chip per detected item — click to keep it IN CLEAR
+   (won't be redacted at send) or toggle it back to protected. Replaces the popup. */
+.detect-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+.detect-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  max-width: 240px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: var(--radius-pill, 999px);
+  border: 1px solid var(--mk, var(--hl-amber));
+  background: var(--mk, var(--hl-amber));
+  color: var(--mk-ink, var(--text-strong));
+  font-size: 12px;
+  cursor: pointer;
+  transition: background var(--dur-fast), border-color var(--dur-fast), opacity var(--dur-fast);
+}
+.detect-chip svg {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+.detect-chip-val {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+.detect-chip-x {
+  font-size: 10px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+/* Kept in clear → muted + struck through: this item will NOT be redacted. */
+.detect-chip.kept {
+  background: transparent;
+  border-color: var(--border-default);
+  opacity: 0.75;
+}
+.detect-chip.kept .detect-chip-val {
+  text-decoration: line-through;
+  color: var(--text-muted);
+}

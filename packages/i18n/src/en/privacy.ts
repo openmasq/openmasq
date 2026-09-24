@@ -14,12 +14,12 @@ export const privacyLevels = {
     label: "Light",
     desc: "For web search and connected tools — protects less than the default.",
     short: () => "The bare minimum: emails, phone numbers, bank cards, IBANs, identifiers and keys.",
-    tradeoff: "Names, dates, addresses, places and companies stay readable by the model.",
+    tradeoff: "Names, handles, dates, addresses, places and companies stay readable by the model.",
   },
   renforce: {
     label: "Reinforced",
     desc: "For writing, emails and everyday exchanges — the default level.",
-    short: () => "Adds the people's and company names, dates of birth, addresses and places you mention.",
+    short: () => "Adds the people's and company names, handles, dates of birth, addresses and places you mention.",
     tradeoff: "An age or a distance computed on a masked value may be off — the composer flags it.",
   },
   strict: {

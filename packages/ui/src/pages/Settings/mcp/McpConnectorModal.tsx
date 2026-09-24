@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { useT } from "../../../i18n";
 import { ModalShell } from "../../../containers/modals";
+import { MaskLevelPicker } from "../../../components/MaskLevelPicker";
+import type { PrivacyLevel } from "../../../privacy/privacyLevel";
+import type { ConnectorLevel } from "../../../privacy/connectorMasking";
 import type { CredMode } from "../../../host";
 import { LockIcon } from "../../../components/brand";
 import { Btn } from "./McpBtn";
@@ -49,9 +52,17 @@ export function McpConnectorModal({
   onAddAccountApiKey,
   onPickDir,
   onSetDirs,
+  masking,
 }: {
   item: McpItem;
   busy: boolean;
+  /** This connector's own masking level, and how to change it. Absent (a caller with no
+   *  settings) ⇒ the row is not drawn, the same way the agent-powers section is not. */
+  masking?: {
+    level: ConnectorLevel;
+    globalLevel: PrivacyLevel;
+    onPick: (level: ConnectorLevel) => void;
+  };
   /** The in-flight connect's OAuth authorize URL (main pushes it during "Connexion…"),
    *  so we can offer "Copier le lien" to open the login in another browser. */
   connectUrl?: string;
@@ -142,6 +153,23 @@ export function McpConnectorModal({
           </div>
         )}
         <McpHint item={item} />
+
+        {/* A connector's OWN masking level — offered only once it is connected, because it
+            is about what its RESULTS become on the way to the model, and an unconnected
+            connector returns none. "Default" is the absence of an override, which is what
+            nearly every connector keeps (`components/MaskLevelPicker.tsx`). */}
+        {masking && item.connected && (
+          <div className="mcp-modal-masking">
+            <span className="mcp-modal-masking-label">
+              {t.leaves.privacyLevels.perConnector.label}
+            </span>
+            <MaskLevelPicker
+              value={masking.level}
+              globalLevel={masking.globalLevel}
+              onPick={masking.onPick}
+            />
+          </div>
+        )}
 
         {/* While a connect is in flight, the body's own button reads "Connexion…"
             (disabled). Offer an escape: cancelling tears the OAuth loopback / device

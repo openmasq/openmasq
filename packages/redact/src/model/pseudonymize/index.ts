@@ -11,7 +11,8 @@ import { keyFromHex } from "../fakes/prf";
 // loop lives in ./allocate over an explicit context.
 import type { RedactionMatch, RedactionResult, RedactionType } from "../../types";
 import { keepSet, isKept, capitalize, entityKey } from "../../util";
-import { applyVault, applyVaultVariants, disabledVaultTokens } from "../../engine/vault";
+import { applyVault, applyVaultVariants } from "../../engine/vault";
+import { forwardExclusions } from "./exclusions";
 import { extendEdges } from "./extendEdges";
 import { detectHostedUrlSpans, detectUrlSpans, detectEmailSpans, urlOccurrenceGuard } from "../../engine/urls";
 import { resolveGeoBlocks } from "../../engine/geo/geoBlocks";
@@ -25,6 +26,7 @@ import { filterCandidates, deNest, dropUnanchoredProseGeo, disabledValueSpans } 
 import { splitLineCrossing } from "./lineSplit";
 import { allocateEntities } from "./allocate";
 import { allocateTokens } from "./allocateTokens";
+import { applyTokenFragments } from "./tokenFragments";
 import type { PseudonymizeOptions } from "./options";
 
 export type { PseudonymizeOptions };
@@ -71,7 +73,7 @@ export async function pseudonymize(
 
   const disabled = new Set(options.disabledKinds ?? []);
   const keep = keepSet(options.keep);
-  // UI categories the org mandates — `keep` must NOT override them (audit). Empty ⇒ unchanged.
+  // UI categories the org mandates — `keep` must NOT override them. Empty ⇒ unchanged.
   const unrevealable = new Set(options.unrevealableCategories ?? []);
   // `url` category OFF (default) ⇒ never redact a value that only occurs inside a URL.
   // …plus, INDEPENDENTLY of that toggle, the URLs addressing a CONNECTED integration's
@@ -88,9 +90,8 @@ export async function pseudonymize(
   // A NAME/COMPANY span glued ACROSS list lines ("Laure\nDPO\nVergnaud" → one NER span)
   // is split at its line boundaries FIRST — else the variant expansion below would
   // faithfully redact two people and a role label as ONE fake (`lineSplit.ts`).
-  // ⚠️ COPY before clearing: on a single-line input `splitLineCrossing` returns its
-  // input array UNCHANGED — same reference — and `length = 0` would wipe every
-  // candidate before the push re-read it (the aliasing bug the forced tests caught).
+  // ⚠️ COPY before clearing: on a single-line input `splitLineCrossing` returns its input
+  // array UNCHANGED (same reference), and `length = 0` would wipe every candidate.
   const lineSafe = [...splitLineCrossing(candidates, input)];
   candidates.length = 0;
   candidates.push(...lineSafe);
@@ -146,16 +147,9 @@ export async function pseudonymize(
     if (direct) return direct;
     const lc = real.toLowerCase();
     for (const [orig, token] of reverse) if (orig.toLowerCase() === lc) return token;
-    // ⚠️ …and the GLUED form of the same entity, which is what a domain name or an
-    // identifier looks like. Measured 16/08/2026 (personas benchmark IN CONVERSATION): turn 1
-    // vaults « Karl Studio », the tool returns « karlstudio.fr » at turn 2, and the allocator
-    // was minting a NEW identity — the company behind two unrelated fakes, one of them a
-    // PERSON, and a website attributed to someone else.
-    //
-    // This is not a widening: `applyVaultVariants` was ALREADY mapping this spelling to
-    // the entity's token, at the end of the pass. The two were simply in DISAGREEMENT —
-    // the allocator was claiming the value before the variants pass saw it. They are
-    // aligned on the same identity definition (`entityKey`: casing + separators folded).
+    // …and the GLUED form of the same entity (« Karl Studio » vaulted at turn 1,
+    // « karlstudio.fr » returned by a tool at turn 2 must be the same identity). Aligned
+    // with `applyVaultVariants` on one identity definition (`entityKey`).
     const glue = entityKey(real);
     if (glue.length >= 4) {
       for (const [orig, token] of reverse) if (entityKey(orig) === glue) return token;
@@ -163,9 +157,6 @@ export async function pseudonymize(
     return undefined;
   };
 
-  // `salary` was RETIRED as a redaction category (its amounts are left in clear), so the
-  // n-token path it used to own is gone with it — a salary amount is now an ordinary
-  // number, governed by the `numbers` toggle like any other.
   const entityCandidates = deNested;
 
   // Phase 3 — allocate a reversible substitute per entity (mutates the vault, fail-closed).
@@ -217,23 +208,18 @@ export async function pseudonymize(
     }
   }
 
-  // Apply every mapping in one safe pass — skip vault entries whose category the user
-  // turned off (or numbers, when disabled), and never re-apply an allow-listed original.
-  const exclude = disabledVaultTokens(vault, {
+  // Apply every mapping in one safe pass — minus what must not take part in it
+  // (`exclusions.ts` says which, and why a path SEGMENT is among them).
+  const exclude = forwardExclusions(vault, {
     numbers: tokenizeNumbers,
     disabledKinds: options.disabledKinds,
     kinds: options.kinds,
+    keep,
+    isKept,
   });
-  if (keep.size) {
-    for (const [token, value] of Object.entries(vault)) {
-      if (isKept(value, keep)) exclude.add(token);
-    }
-  }
   // A vaulted value must not rewrite the INSIDE of a URL — see `urlOccurrenceGuard`. The
   // kind comes from the caller's map ⊕ THIS pass's own matches (a value vaulted a moment
-  // ago is in neither `options.kinds` nor the conversation's, and it is precisely the one
-  // that corrupted the host of every link in the same result). No proven kind ⇒ EXEMPT,
-  // i.e. substituted as before: unknown fails CLOSED, like `disabledVaultTokens`.
+  // ago is in neither). No proven kind ⇒ EXEMPT, i.e. substituted: unknown fails CLOSED.
   const kindOf = new Map<string, string>(Object.entries(options.kinds ?? {}));
   for (const m of matches) if (m.value && m.category) kindOf.set(m.value, m.category);
   const urlGuard = urlSpans
@@ -242,14 +228,15 @@ export async function pseudonymize(
         return k === undefined || URL_EXEMPT_KINDS.has(redactionCategory(k));
       })
     : undefined;
-  // Exact pass first (longest-first), then the TOLERANT residual pass: an entity the
-  // vault already knows routinely comes back as a variant — "KARL_STUDIO" in a filename,
-  // a slug, an upper-cased heading — and the exact pass alone shipped it in CLEAR.
-  // ⚠️ The variant pass gets NO url guard on purpose: a slugified real value inside a URL
-  // (`…/Compte-rendu-jean-rebour-36db…`) is the user's data wearing a URL's clothes, and
-  // sparing it would be a leak. Only the EXACT spelling is spared, which is what the
-  // structural parts of a link (host, id, query flag) actually are.
-  const text = applyVaultVariants(applyVault(input, vault, exclude, urlGuard), vault, exclude);
+  // Exact pass first (longest-first), then the TOLERANT residual pass for the variants an
+  // entity comes back as ("KARL_STUDIO" in a filename, a slug, an upper-cased heading).
+  // ⚠️ The variant pass gets NO url guard on purpose: a slugified real value inside a URL is
+  // the user's data wearing a URL's clothes. Only the EXACT spelling is spared, which is
+  // what the structural parts of a link (host, id, query flag) actually are.
+  const replayed = applyVaultVariants(applyVault(input, vault, exclude, urlGuard), vault, exclude);
+  // Token mode has no per-word aliases in the vault (`tokenFragments.ts` says why), so the
+  // standalone surname of a known person is caught by a forward-only pass of its own.
+  const text = options.mode === "token" ? applyTokenFragments(replayed, vault, exclude) : replayed;
 
   // POSTCONDITION — "reported ⇒ vaulted ⇒ substituted". `matches` is what the UI
   // shows as redacted, what `redactedSpans` persists and what the privacy report

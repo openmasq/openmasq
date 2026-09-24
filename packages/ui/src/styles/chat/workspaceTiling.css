@@ -1,0 +1,181 @@
+/* ── Tiling workspace (WorkspaceView): recursive split panes ──
+   `.ws-root` fills the left region of `.chat-split`; splits nest row/column with a
+   `.ws-gutter` between children; each `.ws-pane` = a tab strip + a ChatView body. */
+.ws-root {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+}
+.ws-split {
+  flex: 1;
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+}
+.ws-split.row { flex-direction: row; }
+.ws-split.column { flex-direction: column; }
+.ws-cell {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+}
+.ws-pane {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  position: relative;
+  overflow: hidden;
+}
+/* `.chat` is the pane's direct flex child and must be able to shrink below its content
+   (min-height: 0), or the messages area cannot scroll and the composer is pushed off-screen. */
+.ws-pane > .chat {
+  flex: 1;
+  min-height: 0;
+  min-width: 0;
+}
+/* Focus cue on the ACTIVE pane — a thin lime line along its top edge (only in a
+   multi-pane split; a single pane needs no "which pane" hint). Non-interactive. */
+.ws-pane { position: relative; }
+.ws-split .ws-pane.focused::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--accent);
+  z-index: 6;
+  pointer-events: none;
+}
+/* Resize gutter — same look as `.chat-gutter`, in either orientation. */
+.ws-gutter {
+  flex: 0 0 6px;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  touch-action: none;
+  z-index: 3;
+}
+.ws-gutter.row { cursor: col-resize; }
+.ws-gutter.column { cursor: row-resize; }
+.ws-gutter-grip {
+  background: var(--border-default);
+  transition: background var(--dur-fast);
+}
+.ws-gutter.row .ws-gutter-grip { width: 2px; height: 100%; }
+.ws-gutter.column .ws-gutter-grip { height: 2px; width: 100%; }
+.ws-gutter:hover .ws-gutter-grip,
+body.resizing-split .ws-gutter-grip { background: var(--brand); }
+/* Per-pane tab strip: a natural-height row at the top of the pane (overrides the
+   `flex:1` that `.conv-tabs` uses inside the single-pane top bar). */
+.pane-tabs { flex: 0 0 auto; }
+/* Workspace mode hides the in-header tabs → a spacer keeps the actions right-aligned. */
+.chat-topbar-spacer { flex: 1; min-width: 0; }
+/* Drag-a-tab drop affordance inside each `.ws-pane`, above the ChatView, click-through.
+   While a tab is in flight every pane wears the dashed outline, so the targets are legible
+   before the pointer reaches one. */
+.ws-drop-zone {
+  position: absolute;
+  inset: 3px;
+  z-index: 19;
+  pointer-events: none;
+  border: 1px dashed color-mix(in srgb, var(--accent) 60%, transparent);
+  border-radius: var(--radius-md, 10px);
+}
+/* The pane under the pointer gets a lime wash naming the outcome: an EDGE = split there, the
+   CENTRE = move in. These rectangles mirror `regionAt`'s EDGE = 0.25 in WorkspaceDnd.tsx —
+   the halo must paint the zone that decides the outcome. Move one, move the other. */
+.ws-drop-hint {
+  position: absolute;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--accent) 22%, transparent);
+  border: 2px solid var(--accent);
+  border-radius: var(--radius-md, 10px);
+  pointer-events: none;
+  transition: inset var(--dur-fast), width var(--dur-fast), height var(--dur-fast);
+}
+.ws-drop-hint.center { inset: 25%; }
+.ws-drop-hint.left { top: 0; bottom: 0; left: 0; width: 25%; }
+.ws-drop-hint.right { top: 0; bottom: 0; right: 0; width: 25%; }
+.ws-drop-hint.top { left: 25%; right: 25%; top: 0; height: 25%; }
+.ws-drop-hint.bottom { left: 25%; right: 25%; bottom: 0; height: 25%; }
+/* Names the action, because the wash alone can't distinguish move from split. */
+.ws-drop-hint-label {
+  max-width: 92%;
+  padding: 4px 9px;
+  border-radius: 999px;
+  background: var(--brand);
+  color: var(--brand-contrast, #fff);
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+/* The floating chip that follows the pointer while dragging a tab. */
+.ws-drag-ghost {
+  position: fixed;
+  z-index: 9999;
+  transform: translate(10px, 10px);
+  pointer-events: none;
+  max-width: 220px;
+  padding: 5px 10px;
+  border-radius: 8px;
+  background: var(--surface-card, #fff);
+  color: var(--text-strong);
+  border: 1px solid var(--border-default);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+  font-size: 12px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+body.ws-dragging { cursor: grabbing; user-select: none; }
+body.ws-dragging * { cursor: grabbing !important; }
+/* Draggable divider between the chat pane and the right (browser/artifact) pane. A thin
+   flex item with a wider invisible hit area; the visible grip brightens on hover/drag. */
+.chat-gutter {
+  flex: 0 0 6px;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: col-resize;
+  background: transparent;
+  touch-action: none;
+  z-index: 3;
+}
+.chat-gutter-grip {
+  width: 2px;
+  height: 100%;
+  background: var(--border-default);
+  transition: background var(--dur-fast), width var(--dur-fast);
+}
+.chat-gutter:hover .chat-gutter-grip,
+body.resizing-split .chat-gutter-grip {
+  width: 3px;
+  background: var(--brand);
+}
+/* While dragging: force the resize cursor everywhere + kill selection/hover flicker. */
+body.resizing-split {
+  cursor: col-resize;
+  user-select: none;
+}
+.browser-pane {
+  /* Fills its host (the side panel's column body): a `flex` basis here would read as a HEIGHT
+     and pin the browser to the top half. */
+  flex: 1 1 auto;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface-page);
+}

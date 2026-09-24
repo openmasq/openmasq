@@ -42,8 +42,8 @@ export function UpdatesSection() {
     install,
   } = useUpdates();
   const host = useHost();
-  // Release notes copy comes from Contentful via analytics-fn (`/release-notes`),
-  // matched to each build version — so "what's new" lives in the CMS, not the app.
+  // Release notes come from the published-notes endpoint, matched to each build version —
+  // "what's new" lives outside the app.
   const { notes } = useReleaseNotes();
   const noteFor = noteLookup(notes);
   // Which environment the privileged picker is showing. `null` = "not chosen yet",

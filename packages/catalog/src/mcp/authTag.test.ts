@@ -3,8 +3,7 @@ import { mcpAuthTag } from "./authTag";
 import { MCP_CONNECTORS, findConnector } from "./index";
 
 /**
- * The auth chip is a PROMISE about what connecting will get you, on the two surfaces
- * that show it (desktop Settings + the admin console). These pin the cases where the
+ * The auth chip is a PROMISE about what connecting will get you. These pin the cases where the
  * generic "1-clic, aucun secret à fournir" would overstate it.
  */
 describe("mcpAuthTag — what the app's own client can actually do", () => {

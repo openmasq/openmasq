@@ -2,9 +2,8 @@
  * Client-side timeout for a single redaction call, sized to the input length.
  *
  * A short chat message stays snappy while a large document (a multi-page PDF's
- * extracted text) gets room to finish. This matters because the remote Scaleway
- * engine (`apps/gateway`) runs its GPT-OSS detector with its OWN budget of
- * ~30 s (`GPTOSS_TIMEOUT_MS`): a client that aborts sooner gives up before the
+ * extracted text) gets room to finish. This matters because the remote engine
+ * runs its detector with its OWN budget of about 30 s: a client that aborts sooner gives up before the
  * server even replies — which is exactly what produced "timed out after 12s" on
  * a big PDF, turning a would-be (possibly regex-degraded) SUCCESS into a hard
  * failure. So the ceiling here sits ABOVE the server budget (server time + cold

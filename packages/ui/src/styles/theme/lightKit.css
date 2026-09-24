@@ -1,0 +1,224 @@
+/* ═══ THE LIGHT THEME — chat-app kit ═══
+   Near-white paper, dark neutral ink, one indigo accent (#3939FA), ink-tinted hairlines,
+   squarer radii, corner-bracket data boxes, labeled redaction pills. The bare `:root` IS the
+   light theme; `[data-theme="dark"]` re-points the ground + accent. Two themes, no more.
+   Placed after the base tokens so it wins. */
+:root {
+  /* Fonts — Space Grotesk (text + headings) + Space Mono (code), the design reference. */
+  --font-sans: "Space Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Newsreader", Georgia, "Times New Roman", serif;
+  --font-mono: "Space Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  /* ─── THE REDACTION PALETTE — nine hues, one per redaction section ───
+     Which section wears which is decided by `SECTION_HUE`
+     (`packages/redact/src/highlight/sections.ts`), the single source every surface derives
+     from; this block only gives each hue its VALUE, identical in both themes. Every fill is
+     a light pastel so one near-black ink reads on all of them — `styles/contrast.test.ts`
+     re-measures each pair from `SECTION_HUE`. `lime` is the brand accent, not a redaction
+     hue; it stays declared here for the hue-picker and the connector tones. */
+  --hl-violet: #b79cff; --hl-sky: #6fc2ff; --hl-mint: #5fe3c0;
+  --hl-teal: #7ad9e0;   --hl-amber: #ffb85c; --hl-gold: #ffdc7a;
+  --hl-pink: #ff8fa3;   --hl-slate: #b3c2da; --hl-red: #fa7a6b;
+  --hl-lime: #b8e635;
+  /* Soft tints — the low-emphasis register (a suspended mark, a tinted chip, a warning
+     banner). Mixed toward WHITE, never toward the surface: consumers pair them with
+     `--ink-on-hl-soft`, dark in every theme. */
+  --hl-violet-soft: #ece3ff; --hl-sky-soft: #dceeff; --hl-mint-soft: #d5f7ec;
+  --hl-teal-soft: #d5f2f5;   --hl-amber-soft: #ffebcf; --hl-gold-soft: #fff2cd;
+  --hl-pink-soft: #ffe2e7;   --hl-slate-soft: #e4eaf3; --hl-red-soft: #ffe0d8;
+  --hl-lime-soft: #edf7cf;
+
+  /* Pearls (model identity) map onto the highlight set. */
+  --pearl-coral: var(--hl-pink); --pearl-amber: var(--hl-amber);
+  --pearl-emerald: var(--hl-mint); --pearl-azure: var(--hl-sky);
+  --pearl-violet: var(--hl-violet); --pearl-magenta: var(--hl-lime);
+  --pearl-coral-soft: var(--hl-pink-soft); --pearl-amber-soft: var(--hl-amber-soft);
+  --pearl-emerald-soft: var(--hl-mint-soft); --pearl-azure-soft: var(--hl-sky-soft);
+  --pearl-violet-soft: var(--hl-violet-soft); --pearl-magenta-soft: var(--hl-lime-soft);
+  /* Ink for text sitting on a `--pearl-*-soft` fill (Avatar, `.cv-badge`,
+     `.redaction-pill`). The softs are light in BOTH themes, so these inks stay dark
+     everywhere; `styles/textContrast.test.ts` measures every pair. Emerald is deliberately
+     not `--green-ink`, which flips light in dark mode while the pearl soft stays a light
+     mint — a pair must invert together (rule 12). */
+  --pearl-coral-ink: var(--coral-700);
+  --pearl-amber-ink: #8a5a06;
+  --pearl-emerald-ink: #0c6b4f;
+  --pearl-azure-ink: #1e4fb0;
+  --pearl-violet-ink: #5b3bbf;
+  --pearl-magenta-ink: #a01f6b;
+
+  /* Ink for text sitting on a highlight fill (redaction mark, `.om-mark`, a marker sweep).
+     The pastels are the same in both themes, so this stays the dark forest ink and must NOT
+     follow `--text-strong`, which flips near-white in dark mode. */
+  --ink-on-hl: var(--forest-900);
+  /* Per-hue ink for text on that hue's fill. All resolve to the same dark ink today (every
+     fill is a light pastel); they exist per hue for a palette with saturated hues, where
+     only the hue knows whether it needs white or near-black. Always pair `--hl-x` with
+     `--ink-on-hl-x` (rule 12). */
+  --ink-on-hl-violet: var(--ink-on-hl);
+  --ink-on-hl-sky: var(--ink-on-hl);
+  --ink-on-hl-mint: var(--ink-on-hl);
+  --ink-on-hl-teal: var(--ink-on-hl);
+  --ink-on-hl-amber: var(--ink-on-hl);
+  --ink-on-hl-gold: var(--ink-on-hl);
+  --ink-on-hl-pink: var(--ink-on-hl);
+  --ink-on-hl-slate: var(--ink-on-hl);
+  --ink-on-hl-red: var(--ink-on-hl);
+  --ink-on-hl-lime: var(--ink-on-hl);
+  /* Ink for text on a `-soft` tint. The softs are light in every theme (mixed toward
+     white), so this is dark everywhere and exists as ONE token so the invariant has one
+     enforcement point (`styles/contrast.test.ts`). */
+  --ink-on-hl-soft: var(--ink-on-hl);
+
+  /* The forest ramp: the palette's dark ink (`--ink-on-hl`) and the marker swipes' lime.
+     Not an accent — `--brand` is the indigo below. */
+  --forest-900: #0f1c06; --forest-800: #16250b; --forest-700: #18280c; --forest-600: #283518;
+  --forest-500: #3c6b1e; --forest-400: #4c5c3b; --forest-300: #76855f; --forest-200: #b9c2a6; --forest-100: #dcefbe;
+  --lime: #c7f08a; --lime-bright: #a9e15a; --lime-soft: #dcefbe;
+
+  /* ─── CHART SERIES — the categorical ramp, for telling data series apart ───
+     A separate family from `--hl-*` on purpose: the redaction hues are light highlight
+     fills meant to sit behind dark text, which fails as chart series (too light, slate reads
+     grey, contrast under 3:1). These are the same brand families stepped down to
+     mid-lightness. Seven slots in FIXED order, never cycled: an eighth series folds into
+     `--chart-other` (`pages/Settings/billing/usageHue.ts`) — cycling would paint two series
+     the same colour. `styles/chartPalette.test.ts` re-runs the dataviz checks (lightness
+     band, chroma floor, CVD separation, contrast) in both themes. */
+  --chart-1: #7a3ff2;
+  --chart-2: #e0653c;
+  --chart-3: #3939fa;
+  --chart-4: #b0288f;
+  --chart-5: #a16207;
+  --chart-6: #0891b2;
+  --chart-7: #be123c;
+  /* The "everything else" bucket + a series with no identity yet. Deliberately the one
+     near-neutral in the set, so it never competes with a named series. */
+  --chart-other: #64748b;
+
+  /* Surfaces. The greys are neutral-cool, tinted toward the ink (rgba(10,12,30)) rather than
+     toward a green, so a sunken panel stays neutral beside the indigo accent.
+     `--surface-page` and `--surface-shell` are their same-lightness twins from the design
+     source. */
+  --surface-page: #fbfbfd;
+  --surface-card: #ffffff;
+  --surface-sunken: #f2f2f6;
+  --surface-raised: #ffffff;
+  /* Shell tone behind the transparent rail + sidebar; the chat panel floats white on it.
+     Same lightness, cool bias, so the shell agrees with the accent. */
+  --surface-shell: #f1f1f6;
+  --surface-inverse: #0a0c1e;
+  --surface-hover: #f1f1f6;
+  --surface-active: #e8e8f2;
+  /* The SELECTED row stays a neutral grey rather than a brand tint — a coloured
+     selection read as too loud on the light base. */
+  --surface-selected: #e9e9ec;
+
+  /* Text. Encre NEUTRE (source de design), mesurée AA sur `--surface-card` ET
+     `--surface-sunken` (`styles/textContrast.test.ts` mesure les deux thèmes). */
+  --text-strong: #141726;
+  --text-body: #2a2f45;
+  --text-muted: #565c78;
+  /* AA 4.5:1 against every surface it sits on, worst case `--surface-hover`
+     (`styles/textContrast.test.ts` measures both) — darkened from the design source while
+     keeping the hue, because this tone carries timestamps, counters and metadata: text that
+     means something. */
+  --text-faint: #666d87;
+  --text-inverse: #eef0ff;
+  /* Links carry the brand accent. */
+  --text-link: #3939fa;
+
+  /* The neutral ramp — near-white paper, neutral-cool tint (the design source's
+     `tokens/colors.css`), consumed directly by the neutral badge, disabled buttons, the stop
+     button, switch tracks and dividers. ONE home: a second `:root` copy would silently win
+     or lose by load order. */
+  --warm-0: #ffffff; --warm-25: #fbfbfd; --warm-50: #f8f9fc; --warm-100: #eff0f6; --warm-150: #e8e9f0;
+  --warm-200: #dbdce6; --warm-300: #c2c4d4; --warm-400: #9aa0b8; --warm-500: #6e7591;
+  --warm-600: #4c5470; --warm-700: #2e3450; --warm-800: #1e2440; --warm-900: #141726;
+
+  /* Borders + focus. Hairlines are the INK at low alpha; that ink is neutral, so a
+     green-tinted hairline (rgba(24,40,12,…)) read as a second, olive edge colour. */
+  --border-subtle: rgba(10, 12, 30, 0.10);
+  --border-default: rgba(10, 12, 30, 0.20);
+  --border-strong: rgba(10, 12, 30, 0.34);
+  --border-focus: #3939fa;
+  --focus-ring: color-mix(in oklch, #3939fa 38%, transparent);
+
+  /* Brand actions — the ONE accent, #3939FA. Dark enough that ink ON it is white. */
+  --brand: #3939fa;
+  --brand-hover: #2d2de6;
+  --brand-active: #2222c0;
+  --brand-contrast: #ffffff;
+  --brand-tint: #e7e7ff;
+  /* Ink for the light-lime chrome that sits ON a `--brand` fill (the « gratuit » badge, the
+     selected price chip, the marker swipes, the version tile): lime on indigo here, white on
+     the dark theme's lighter indigo. Use this token, never a literal, for anything on
+     `--brand`. Distinct from `--brand-contrast`, the plain white ink. */
+  --ink-on-brand: var(--lime);
+  /* The sent message's hairline — same family as `--border-*`, so it carries the same
+     neutral ink. */
+  --msg-border: rgba(10, 12, 30, 0.22);
+
+  /* Status. The light tones come from the design source: success, danger and alert keep
+     their conventional hue (a meaning no brand colour carries), and the source's green
+     carries white at 4.94:1. `--blue-500` ALIASES the brand, like the source — a second
+     near-identical blue reads as an error. The dark theme keeps its own pair. Measured by
+     `styles/contrast.test.ts` + `textContrast.test.ts`. */
+  --green-500: #278042; --green-soft: #dbf3e3; --green-ink: #0b5a3c;
+  --red-500: #c8392b; --red-soft: #fbe3e0;
+  --amber-500: #e0922b; --amber-soft: #ffebcf; --blue-500: var(--brand); --blue-soft: #dceeff;
+
+  /* Typography scale. */
+  --text-2xs: 11px; --text-xs: 12px; --text-sm: 13px; --text-base: 15px; --text-md: 17px;
+  --text-lg: 20px; --text-xl: 24px; --text-2xl: 30px; --text-3xl: 38px; --text-4xl: 48px; --text-5xl: 62px;
+
+  /* Radii. */
+  --radius-xs: 4px; --radius-sm: 6px; --radius-md: 9px; --radius-lg: 12px;
+  --radius-xl: 16px; --radius-2xl: 22px; --radius-pill: 999px; --radius-pearl: 50%;
+
+  /* Shadows. */
+  --shadow-xs: 0 1px 2px rgba(24, 40, 12, 0.05);
+  --shadow-sm: 0 1px 3px rgba(24, 40, 12, 0.06), 0 1px 2px rgba(24, 40, 12, 0.04);
+  --shadow-md: 0 4px 12px rgba(24, 40, 12, 0.07), 0 2px 4px rgba(24, 40, 12, 0.05);
+  --shadow-lg: 0 12px 32px rgba(24, 40, 12, 0.10), 0 4px 8px rgba(24, 40, 12, 0.05);
+  --shadow-xl: 0 24px 60px rgba(24, 40, 12, 0.13), 0 8px 16px rgba(24, 40, 12, 0.06);
+
+  /* Motion. */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-fast: 120ms; --dur-base: 200ms; --dur-slow: 320ms;
+
+  /* Layout. */
+  --sidebar-w: 264px; --rail-w: 60px; --composer-max: 760px; --reading-max: 680px;
+  --content-max: 1200px; --header-h: 56px;
+}
+
+/* Borderless skin (chat surface): hairlines mostly removed, elevation flattened, panels
+   separate by surface tone. The sent message keeps --msg-border. `#root` covers what the
+   chat renders outside `.app` (login, onboarding, tooltips). */
+.app,
+#root:not(:has(.om-console)) {
+  --border-subtle: transparent;
+  --shadow-xs: none; --shadow-sm: none; --shadow-md: none;
+  --shadow-lg: none; --shadow-xl: none;
+}
+
+/* …EXCEPT a rendered document. The borderless skin zeroes `--border-subtle`, which erased
+   the hairline that delimits a document from its viewer. A document is not a chat surface:
+   re-assert a visible grey edge on the document surfaces (they keep their own radius).
+   After the skin so it wins. */
+.fv-docx,
+.pptxv-slide,
+.pdfv-page,
+.fv-md,
+.fv-sheet-scroll,
+.fv-image img,
+.fv-image canvas {
+  border: 1px solid var(--border-default);
+}
+/* The AttachmentPreviewModal renders the image into a <canvas> (not <img>), so it needs
+   the page radius the `.fv-image img` rule can't reach. */
+.fv-image canvas {
+  border-radius: var(--radius-md);
+}

@@ -1,24 +1,16 @@
 #!/usr/bin/env node
-// Ratcheted duplication guard (hard rule 9 / 13). Two checks, both cheap and both
-// aimed at the ONE failure this repo actually keeps hitting: a fact that lives twice.
+// Ratcheted duplication guard (hard rule 9). Two cheap checks aimed at the ONE failure
+// this repo keeps hitting: a fact that lives twice.
 //
-//   A. UNPINNED SYNC MARKER — a comment saying "keep in sync" / "MUST match" /
-//      "mirror of" / "copied from" with no test named next to it. Rule 9 says a
-//      shared fact is IMPORTED; when it genuinely can't be (HCL ⇄ TS, two runtimes),
-//      the escape hatch is a parity TEST, never a comment. A comment cannot fail CI,
-//      and it rots: this repo shipped two "MUST match apps/backend…" warnings whose
-//      duplicate had already been removed — so the note no longer described reality,
-//      it just invited the next reader to recreate the copy.
+//   A. UNPINNED SYNC MARKER — a comment saying "keep in sync" / "MUST match" / "mirror of" /
+//      "copied from" with no test named next to it. A shared fact is IMPORTED; when it
+//      genuinely can't be (two runtimes), the escape hatch is a parity TEST, never a
+//      comment — a comment cannot fail CI, and once stale it invites the next copy.
+//   B. CROSS-APP REACH — a file in apps/A importing out of apps/B. Apps compose packages.
 //
-//   B. CROSS-APP REACH — a file in apps/A importing out of apps/B. The dependency
-//      graph in CLAUDE.md says apps compose packages; an app reaching into a sibling
-//      is how "copied from apps/web/components/ui" starts.
-//
-// A is ratcheted through dup-allowlist.json (frozen backlog, may only shrink — same
-// contract as check:loc). B has no allowlist: move the shared thing into packages/.
-//
-// Run `node scripts/checks/check-dup.mjs --update` to regenerate the allowlist after an
-// intentional, reviewed change.
+// A is ratcheted through dup-allowlist.json (frozen backlog, may only shrink). B has no
+// allowlist: move the shared thing into packages/. `--update` regenerates the allowlist
+// after a reviewed change.
 import { execSync } from "node:child_process";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -103,10 +95,8 @@ const files = tracked();
 const markers = unpinnedMarkers(files);
 const cross = crossAppImports(files);
 
-// ⚠️ The allowlist key is the file + the marker TEXT, never the line number. Keyed on the
-// line, every edit ABOVE a frozen marker shifted it and the gate cried "new marker" about
-// code nobody touched — a gate that false-alarms gets switched off, which costs more than
-// the drift it was catching. Whitespace is collapsed so a re-wrap doesn't count as new.
+// The allowlist key is the file + the marker TEXT (whitespace collapsed), never the line
+// number: keyed on the line, every edit above a frozen marker would read as a new one.
 const key = (h) => `${h.file}::${h.text.replace(/\s+/g, " ").trim()}`;
 
 if (process.argv.includes("--update")) {

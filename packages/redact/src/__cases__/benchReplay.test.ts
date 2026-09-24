@@ -49,7 +49,7 @@ const runIf = existsSync(MODEL_DIR) ? it : it.skip;
 describe("rejeu du bench manuel du 27/07/2026 — contre le chemin d'ENVOI", () => {
 runIf("classe chaque prompt : par conception / manque réel / faux positif", async () => {
   const predict = await createNerPredict({
-    modelName: "openmasq/bert-base-multilingual-cased-ner-hrl",
+    modelName: "openmasq/ner-multilingual",
     dtype: "q8",
     cacheDir: MODEL_DIR,
     allowLocalModels: true,

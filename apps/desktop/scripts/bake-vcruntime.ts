@@ -1,46 +1,17 @@
 /**
- * Bake the Microsoft Visual C++ runtime DLLs next to the packaged app executable
- * (`apps/desktop/build/win-vcruntime/` → `electron-builder.cjs` `win.extraFiles`).
+ * Bake the Visual C++ runtime DLLs next to the packaged exe (`build/win-vcruntime/` →
+ * `electron-builder.cjs` `win.extraFiles`). The DB driver and the ONNX binding import them,
+ * and they do NOT belong to Windows: without the Redistributable the app dies at launch on
+ * a raw dialog (error 126). Bundled app-local (a Microsoft-documented deployment) because
+ * the per-user, no-UAC installer cannot install the Redistributable itself.
  *
- * WHY, measured and not assumed: `@libsql/win32-x64-msvc/index.node` — the database driver,
- * loaded at STARTUP — imports `VCRUNTIME140.dll`, and `onnxruntime_binding.node` (local NER
- * + embeddings) additionally imports `MSVCP140.dll` and `VCRUNTIME140_1.dll`. These DLLs
- * do NOT belong to Windows: they arrive with the "Visual C++ Redistributable".
- * On a machine without it, Windows refuses the `dlopen` with error 126 ("The specified
- * module could not be found" — which names a DEPENDENCY, not the file), and the app dies
- * at launch on a raw Electron dialog, before a single line of ours has run.
+ * Source: Visual Studio's `VC\Redist\MSVC\<version>\x64\Microsoft.VC*.CRT\`, on the
+ * Windows runner. ⚠️ Integrity is a RECORD, not a gate: the redistributable installer is a
+ * burn bundle we cannot extract on the runners, so `integrity.json` records the sha256 and
+ * version of what was bundled and the bake FAILS if the source is missing. A real pin means
+ * VENDORING the three files. RESIDUAL: a bundled copy receives no Windows Update servicing.
  *
- * CI couldn't see it: the `windows-latest` image embeds Visual Studio, hence the
- * redistributable. It took a REAL install on a clean machine.
- *
- * WHY BUNDLE THEM rather than have the installer install the redistributable:
- * `nsis.oneClick` + `perMachine: false` = per-user install WITHOUT elevation, which
- * is what lets auto-update apply without ever interrupting. The
- * redistributable, on the other hand, installs as administrator: making it a prerequisite would bring back a
- * UAC prompt at install AND on every update. The "app-local" deployment of these DLLs is
- * an option documented by Microsoft, and it's the only one consistent with this installer.
- *
- * WHERE THEY COME FROM, and what that's worth. Microsoft ships these DLLs, for this exact
- * app-local deployment, in the `VC\Redist\MSVC\<version>\x64\Microsoft.VC*.CRT\` folder of
- * Visual Studio. That's the source we read, on the Windows runner that already has it.
- *
- * ⚠️ What we could NOT do, and why it's written here: starting from `VC_redist.x64.exe`
- * pinned by sha256 would have been better (a fingerprint WE choose). The installer is a
- * self-contained "burn" bundle — `/layout` drops nothing (run 31501188537) and 7-Zip only
- * sees the PE, sections and resources, never the payloads (run 31502110203).
- * Extracting it would require `dark.exe` (WiX), absent from the runners. Integrity here is therefore a
- * RECORD, not a gate: `integrity.json` records the sha256 and the version of what was
- * bundled, and the bake FAILS if the source can't be found. The day we want a
- * real pin, the next step is to VENDOR these three files (like `vendor/`), once.
- *
- * ⚠️ RESIDUAL to state: servicing. A bundled copy doesn't receive the patches
- * Windows Update applies to the central redistributable.
- *
- * ⚠️ WINDOWS-ONLY, and it LOUDLY skips elsewhere (like `bake-win-jail.ts`): the source
- * only exists there. The fail-closed half lives at RUNTIME, where it makes sense:
- * `src/main/db/driver.ts` turns an impossible native load into a readable and
- * SURFACED error, instead of the raw dialog.
- *
+ * WINDOWS-ONLY, LOUDLY skipped elsewhere; the fail-closed half is `src/main/db/driver.ts`.
  * Run: `pnpm --filter @openmasq/desktop bake:vcruntime` (part of `pnpm bake`).
  */
 import { spawnSync } from "node:child_process";
@@ -52,16 +23,13 @@ import { fileURLToPath } from "node:url";
 const HERE = dirname(fileURLToPath(import.meta.url));
 const OUT = join(HERE, "..", "build", "win-vcruntime");
 
-/** The three DLLs our native modules depend on, read from their PE import tables.
- *  A missing one FAILS the bake: shipping two thirds of the runtime means shipping a
- *  startup that works and a local NER that falls over silently. */
+/** The three DLLs our native modules import. A missing one FAILS the bake: two thirds of
+ *  the runtime is a startup that works and a local NER that falls over silently. */
 const WANTED = ["vcruntime140.dll", "vcruntime140_1.dll", "msvcp140.dll"];
 
 const log = (m: string): void => console.log(`[bake:vcruntime] ${m}`);
 
-/** Visual Studio's install path, asked from the tool Microsoft provides for
- *  this (`vswhere`) — never a hardcoded path: the edition (Enterprise/Community) and the year
- *  change from one runner image to the next. */
+/** Visual Studio's install path via `vswhere`, never hardcoded (edition and year change). */
 function vsInstallPath(): string | null {
   const vswhere = join(
     process.env["ProgramFiles(x86)"] || "C:\\Program Files (x86)",
@@ -88,8 +56,7 @@ async function walk(dir: string): Promise<string[]> {
   return found;
 }
 
-/** The bundled redistributable's version, for the record — the `MSVC\<ver>\` folder name
- *  carries it, and it's the only thing readable without parsing the PE's resources. */
+/** The redistributable's version, from the `MSVC\<ver>\` folder name. */
 function versionFromPath(p: string): string {
   const m = /\\MSVC\\([^\\]+)\\/i.exec(p);
   return m ? m[1] : "inconnue";
@@ -107,9 +74,8 @@ async function main(): Promise<void> {
   const redistRoot = join(vs, "VC", "Redist", "MSVC");
   log(`source : ${redistRoot}`);
 
-  // We look for the DLLs BY NAME under the `x64\Microsoft.VC*.CRT` folders: neither the
-  // toolset version (`14.44.x`), nor the CRT number (`VC143`) are hardcoded — they change on
-  // every runner image update.
+  // BY NAME under `x64\Microsoft.VC*.CRT`: neither the toolset version nor the CRT number
+  // is hardcoded.
   const all = (await walk(redistRoot)).filter((f) => /\\x64\\Microsoft\.VC\d+\.CRT\\/i.test(f));
   const record: Record<string, { sha256: string; version: string }> = {};
   const missing: string[] = [];
@@ -118,8 +84,7 @@ async function main(): Promise<void> {
   await mkdir(OUT, { recursive: true });
 
   for (const want of WANTED) {
-    // Several toolset versions can coexist: we take the most recent by path
-    // order, which correctly sorts the `14.xx` ones.
+    // Several toolset versions can coexist: the most recent by path order.
     const hits = all.filter((f) => f.toLowerCase().endsWith(`\\${want}`)).sort();
     const hit = hits[hits.length - 1];
     if (!hit) {

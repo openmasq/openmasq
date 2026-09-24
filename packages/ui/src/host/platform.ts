@@ -69,7 +69,7 @@ export interface LinkPreviewData {
 export interface LinksHost {
   preview(url: string): Promise<LinkPreviewData | null>;
   /** Push the user's `linkPreviews` opt-in to the platform so it can ALSO enforce it
-   *  at the fetch boundary (main tracks it authoritatively, default OFF — audit M4).
+   *  at the fetch boundary (main tracks it authoritatively, default OFF).
    *  Optional: a platform with no main-side gate (browser preview) can omit it. */
   setEnabled?(on: boolean): Promise<void>;
 }

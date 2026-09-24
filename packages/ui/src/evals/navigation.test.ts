@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from "vitest";
+import { WEBNAV_OFFER_KEYS } from "../state/browserPolicy/webNavReveal";
 import { BROWSER } from "./servers";
 import { calls, mockModel, says, type MockModel, type MockRequest } from "./mockModel";
 import { runWorkflow, type WorkflowRun } from "./workflow";
@@ -39,9 +40,11 @@ describe("the pre-search reveal card (what the MODEL may see)", () => {
     ]);
     run = await runWorkflow({
       model: model(), ner: NER, servers: [BROWSER],
-      // Explicit OFFs, not "everything else defaults off": the AI categories default ON
-      // (catalog.test.ts), so relying on the default here would put all five on offer.
-      rules: { company: true, location: true, name: false, dob: false, address: false },
+      // Explicit OFFs, DERIVED from the offerable set — not "everything else defaults off":
+      // the offerable categories default ON (catalog.test.ts), so relying on the default
+      // would put every one of them on offer, and a hand-kept list of five broke the day the
+      // handles joined the set (`FROM_RENFORCE`).
+      rules: Object.fromEntries(WEBNAV_OFFER_KEYS.map((k) => [k, k === "company" || k === "location"])),
     });
     await run.send("Cherche des infos sur « Karl Studio » à Évreux.");
     // ONE offer for the whole conversation (two browse calls), listing ONLY the

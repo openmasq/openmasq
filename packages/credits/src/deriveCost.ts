@@ -49,7 +49,7 @@ export const CACHE_WRITE_MULTIPLIER = 1.25;
  *
  * The bug this exists to close: metering Anthropic's raw `input_tokens` charged
  * NOTHING for a cached prompt — the app paid for the cache write (1.25×) and read
- * (0.1×) and billed neither. Pinned in `apps/gateway .../anthropicUpstream.test.ts`.
+ * (0.1×) and billed neither. The server pins the same rule.
  */
 export function meterCachedUsage(usage: TokenUsage): { tokensIn: number; tokensOut: number } {
   const read = usage.cachedInputTokens ?? 0;

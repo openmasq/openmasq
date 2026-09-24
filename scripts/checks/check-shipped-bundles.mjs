@@ -1,22 +1,17 @@
 #!/usr/bin/env node
 // What ships to a user must not EXPLAIN the code it contains.
 //
-// None of what follows is protection: a `.crx` is a zip, an `.asar` is a tar, a Capacitor
-// bundle sits in the clear inside the IPA/APK. All of that can be read, and always will be.
-// What this gate forbids is SHIPPING the explanation WITH it — the sourcemap that renders
-// the original TypeScript verbatim, and the comments which, in this repository, describe
-// the threat model and the guard that covers it. Both used to ship: 16 `.map` files with
-// `sourcesContent` in the published extension, and 806 intact comments in
-// `apps/desktop/out/main/index.js`.
+// This is not protection — an `.asar` is readable and always will be. What this gate
+// forbids is SHIPPING the explanation WITH it: the sourcemap that renders the original
+// TypeScript verbatim, and the comments which, in this repository, describe the threat
+// model and the guard that covers it.
 //
 // Two properties, checked on the BUILT artefacts (a vite setting is an intention; only the
-// deliverable file is proof):
-//   1. aucune sourcemap, ni fichier `.map`, ni `sourceMappingURL` (y compris `data:`) ;
-//   2. a near-zero comment density = the bundle really is minified.
+// deliverable is proof): no sourcemap (no `.map` file, no `sourceMappingURL`, `data:`
+// included), and a near-zero comment density, i.e. a really minified bundle.
 //
 // A target that is not built is SKIPPED, not an error: `pnpm verify` must stay useful
-// without having packaged everything. It is `.github/workflows/verify.yml` that runs
-// `pnpm build` first, so CI sees all three. `--require-all` forces all three to be present.
+// without having packaged everything; CI builds first. `--require-all` forces every target.
 import { readFileSync, readdirSync, statSync, existsSync } from "node:fs";
 import { join, dirname, resolve, relative } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -39,20 +34,12 @@ const requireAll = process.argv.includes("--require-all");
 const TARGETS = [
   {
     name: "desktop",
-    // ⚠️ Desktop is the intended EXCEPTION: its maps are produced as `hidden`
-    // (electron.vite.config.ts) as artefacts for the Sentry UPLOAD (release.yml) — in
-    // `out/`, never inside the app.
-    //
-    // ⛔ WHAT IS NOT ENOUGH, and proved it: this gate long checked that the line
-    // `!out/**/*.map` APPEARED in electron-builder.yml. It did appear, the gate was green —
-    // and the app shipped the 26 maps anyway, plus `src/`, `e2e/` and the `.env` files,
-    // because the whole allowlist had stopped applying (the shape of `mac.files`; see that
-    // block's comment in electron-builder.yml). Grepping a config file = checking an
-    // INTENTION, which is exactly what this file reproaches vite settings for.
-    //
-    // So the guarantee lives where the artefact exists: `apps/desktop/scripts/afterPack.cjs`
-    // reads back the produced app.asar and breaks packaging (mac AND Windows, every path,
-    // before signing). Here we only re-check if an `.app` already sits on the disk.
+    // Desktop is the intended EXCEPTION: its maps are produced as `hidden`
+    // (electron.vite.config.ts) for the crash-reporter upload — in `out/`, never inside the
+    // app. Grepping the packager config for the exclusion would check an INTENTION, so the
+    // guarantee lives where the artefact exists: `apps/desktop/scripts/afterPack.cjs` reads
+    // back the produced app.asar and breaks packaging before signing. Here we only re-check
+    // an `.app` that already sits on the disk.
     maps: [],
     asarGuard: "apps/desktop/release",
     code: ["apps/desktop/out/main", "apps/desktop/out/preload", "apps/desktop/out/renderer/assets"],
@@ -61,15 +48,10 @@ const TARGETS = [
 ];
 
 /**
- * The minification signal is BYTES PER LINE, not comment density. Counting comments looks
- * more direct and does not work: esbuild PRESERVES licence headers while minifying
- * (`legalComments: "eof"` by default — 40 lines of `@license React` in the renderer's big
- * chunk), and a stylesheet embedded in a template literal looks line for line like a
- * comment. Both used to fail a perfectly minified bundle.
- *
- * Measured on this repository's artefacts: minified = 732 to 8,342 bytes/line; in the
- * clear, ~50. So the threshold is wide on both sides — it does not discriminate finely, it
- * separates two regimes that have nothing to do with each other.
+ * The minification signal is BYTES PER LINE, not comment density: esbuild PRESERVES licence
+ * headers while minifying, and a stylesheet embedded in a template literal looks line for
+ * line like a comment. Minified bundles sit in the hundreds-to-thousands of bytes per line,
+ * clear ones around fifty — the threshold separates two regimes, it does not discriminate finely.
  */
 const MIN_BYTES_PER_LINE = 200;
 /** Below that, the average means nothing (an entry shim is 2 lines). */

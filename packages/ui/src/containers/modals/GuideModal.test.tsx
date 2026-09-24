@@ -88,7 +88,7 @@ describe("GuideModal — sommaire par thème", () => {
 });
 
 /**
- * VERSION HISTORY IN THE HELP — the published notes (Contentful) can be read without
+ * VERSION HISTORY IN THE HELP — the published notes can be read without
  * leaving the app. Two things are worth pinning: that the chapter RENDERS the cache's
  * notes, and that it DISAPPEARS where this source doesn't exist — a tab that can display
  * nothing reads as an app failure, not as an absence of content.

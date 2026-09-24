@@ -16,12 +16,14 @@ machine — and puts it back in the reply.**
 *Every screenshot on this page is a real run of the app, captured on a seeded profile
 with fixture data — never anyone's real conversation.*
 
-> **Download, or build.** A signed and notarised **macOS** build (Apple silicon and
-> Intel) is at [openmasq.com/telecharger](https://openmasq.com/telecharger); it updates
-> itself. No Windows or Linux build is published. Building from source takes two commands,
-> see [Getting started](#getting-started) — and note that the downloadable build is this
-> repository's release workflow run *with* the brand's service addresses, so it carries the
-> account, sync and included-model features that a build from these sources alone leaves out.
+> **Download** — [openmasq.com/telecharger](https://openmasq.com/telecharger): macOS, signed
+> and notarised, Apple silicon and Intel, self-updating. No Windows or Linux build is
+> published.
+>
+> **Or build from source** — two commands, see [Getting started](#getting-started). The
+> published build runs this repository's release workflow *with* the brand's service
+> addresses, so it also has accounts, sync and included models. A build from these sources
+> alone has none of them.
 
 The model never sees the real thing. Values the engine detects are replaced with
 believable substitutes before any network call; the reply is restored locally from a
@@ -39,12 +41,12 @@ you type:   "Call Jean Rebour (SAS Acme) on 06 12 34 56 78 — revenue 850 000 �
 ```
 
 Identities are swapped; **figures stay real by default**, so a model can still compute
-with them. The vault is stable across turns — the same value always maps to the same
-substitute, which is what makes the reply reversible.
+with them. The vault is stable across turns: the same value always maps to the same
+substitute, and that is what makes the reply reversible.
 
 Models are reached with **your own API keys**, a local model, or a Claude Code, Codex or
-Antigravity CLI subscription. (The code also supports reaching them on the app's key through a metered
-gateway; that service is not part of this build — see *Running it* below.)
+Antigravity CLI subscription. A metered gateway on the app's key exists in the code; it needs a
+backend this build does not include ([Getting started](#getting-started)).
 
 > **The redaction boundary governs what the *model* sees, and nothing else.** Connected
 > services — a mailbox, a calendar, a search — receive the **real** value, because a
@@ -56,9 +58,11 @@ gateway; that service is not part of this build — see *Running it* below.)
 ## What's in the box
 
 - **Redaction engine** — deterministic rules, checksums and shape detectors, then a local
-  NER model. Runs on-device. Names, dates of birth, e-mails, phones, addresses, places,
-  companies, cards, IBANs, national identifiers, IPs, file paths, health data, handles,
-  URLs, keys and secrets.
+  NER model. Runs on-device. On by default: names, dates of birth, e-mails, phones,
+  addresses, places, companies, cards, IBANs, national and company identifiers, IPs,
+  handles, keys and secrets. Off by default, one switch away: file paths, URLs and plain
+  dates. [`SECURITY.md`](SECURITY.md) says what each costs to turn on; the Strict level
+  raises all three.
 - **Documents** — PDF, Office and image attachments are extracted (pdf.js, OCR via a
   vendored, hardened Tesseract + docTR) and redacted before they are sent.
 - **MCP connectors** — Gmail, Google Drive, Docs, Sheets, Calendar, Outlook, OneDrive,
@@ -103,36 +107,38 @@ Two questions are measured, because they are not the same question:
 - **Did the value leave the machine?** A truth counts as found when most of its tokens were
   replaced. That is what a redaction product owes you.
 - **Where exactly did the engine draw the line?** Every annotated character counts on its
-  own — a name found but cut short scores partly, and paint past the edge of a value is paid
-  for. That is how the literature judges a detector; the protocol is the one in Perplexity's
+  own: a name found but cut short scores partly, and overshooting a value costs. That is how
+  the literature judges a detector; the protocol is the one in Perplexity's
   [PII-TRACE](https://www.perplexity.ai/hub/blog/pii-trace-detecting-personal-data-before-it-leaves-the-device)
   paper, so these numbers can sit beside the ones it publishes.
 
 **Values — did it leave?** Our corpus: 18 document families, 14 languages, real layouts, OCR
-damage, 907 cases, 3 357 annotated truths.
+damage, 907 cases, 3 364 annotated truths.
 
 | corpus | truths | `patterns` (no model) | **the product** (`ner`) | PII-Tracer | Presidio (default) |
 |---|---:|---:|---:|---:|---:|
-| **ours** | 3 357 | 89 % · 91 FP | **95 %** · 258 FP | 92 % · 530 FP | 46 % · 847 FP |
-| **Presidio's** — its own evaluation set, English, template + faker | 2 523 | 31 % · 6 FP | **74 %** · 115 FP | — | 58 % · 196 FP |
+| **ours** | 3 364 | 89 % · 89 FP | **95 %** · 251 FP | 92 % · 530 FP † | 46 % · 845 FP |
+| **Presidio's** — its own evaluation set, English, template + faker | 2 523 | 32 % · 6 FP | **75 %** · 111 FP | — | 58 % · 196 FP |
 
 A truth counts as *found* when ≥ 60 % of its significant tokens were replaced; a *false
-positive* (FP) is a detection overlapping no annotated value.
+positive* (FP) is a detection overlapping no annotated value. † PII-Tracer was measured on
+the corpus at 3 357 truths and has not been re-run since; the other columns come from the
+same run of `pnpm bench:compare`.
 
 **Characters — where was the line?** Five corpora, six engines, one scorer. Scored on **the
-categories this app actually has a switch for**: each corpus annotates its own idea of
-personal data — Gretel counts a company name, Nemotron annotates occupation and religion, TAB
-marks every date — so every upstream label is mapped onto one of the app's categories, and
+categories this app actually has a switch for**. Each corpus annotates its own idea of
+personal data: Gretel counts a company name, Nemotron annotates occupation and religion, TAB
+marks every date. So every upstream label is mapped onto one of the app's categories, and
 what no category covers is shown but not counted. A single number pooled over "whatever this
 corpus happened to annotate" mostly measures the distance between four taxonomies.
 
-| corpus | cases | `patterns` | **`ner`** (the product) | `ner` (Strict) | PII-Tracer | OpenAI PF | Presidio |
+| corpus | cases | `patterns` | **`ner`** (the product, Strict) | `ner` (Renforcé) | PII-Tracer | OpenAI PF | Presidio |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| OpenMasq | 907 | 0.931 | **0.931** | 0.923 | 0.888 | 0.833 | 0.547 |
-| TAB | 127 | 0.425 | **0.606** | 0.855 | 0.742 | 0.435 | 0.815 |
+| OpenMasq | 907 | 0.931 | **0.923** | 0.931 | 0.888 | 0.833 | 0.547 |
+| TAB | 127 | 0.425 | **0.855** | 0.606 | 0.742 | 0.435 | 0.815 |
 | Gretel | 2000 | 0.575 | **0.646** | 0.646 | 0.611 | 0.565 | 0.422 |
-| ai4privacy | 2000 | 0.756 | **0.796** | 0.827 | 0.952 | 0.945 | 0.579 |
-| Nemotron | 2000 | 0.627 | **0.735** | 0.928 | 0.887 | 0.736 | 0.768 |
+| ai4privacy | 2000 | 0.756 | **0.827** | 0.796 | 0.952 | 0.945 | 0.579 |
+| Nemotron | 2000 | 0.627 | **0.928** | 0.735 | 0.887 | 0.736 | 0.768 |
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="packages/redact/bench/spans/figures/f1-by-corpus-en-dark.png">
@@ -145,21 +151,20 @@ corpus happened to annotate" mostly measures the distance between four taxonomie
   with no model at all: a checksum decides. Names, addresses and companies are where an
   engine is actually tested, and where the local model earns its cost — on Chinese, Japanese
   and Korean the rules alone reach 24–26 %, the model 66–88 %.
-- **A card number we miss is one no bank could issue.** 89 % of Nemotron's card numbers and
-  52 % of Gretel's fail the Luhn check — drawn at random by a generator. Split the gold on
-  that: **every value whose key verifies is found**, 100 % on both corpora. The engine refuses
-  the rest on purpose; accepting any sixteen digits is how a redaction tool starts eating order
+- **Most card numbers in these corpora could not be issued.** 89 % of Nemotron's and 52 % of
+  Gretel's fail the Luhn check, drawn at random by a generator. Split the gold standard on that:
+  **every value whose key verifies is found**, 100 % on both corpora. The engine refuses the
+  rest on purpose; accepting any sixteen digits is how a redaction tool starts eating order
   numbers.
-- **A corpus that under-annotates punishes recall AND precision.** Gretel leaves the account
-  numbers in its MT940/SWIFT/XBRL documents unlabelled: on those 320 documents every engine
-  marks numbers nobody annotated, and precision collapses — 0.24 for PII-Tracer, 0.43 for
-  ours. It is a property of the corpus, not of the detectors.
-- **Partial credit flatters everyone, and it flatters us most.** F1 rewards a value found
+- **Gretel under-annotates.** Its MT940/SWIFT/XBRL documents leave account numbers
+  unlabelled. On those 320 documents every engine flags numbers nobody annotated, and
+  precision collapses: 0.24 for PII-Tracer, 0.43 for ours.
+- **F1 gives partial credit, and we benefit from it too.** It rewards a value found
   half-way; a redaction product has to find *every* mention. That stricter number is on the
   bench page beside this one, and it is lower for all six columns.
-- **Presidio here is a default `pip install`** — Presidio *and* spaCy `en_core_web_lg`, run
-  with `language="en"` on all fourteen languages, which is what a user gets out of the box,
-  not Presidio's ceiling. Its 41 % on our **English** cases says the gap is real layouts, not
+- **Presidio here is a default `pip install`**: Presidio *and* spaCy `en_core_web_lg`, run
+  with `language="en"` on all fourteen languages. That is what a user gets out of the box,
+  not Presidio's ceiling. Its 41 % on our **English** cases points at real layouts, not
   the language.
 
 **Whatever the numbers, detection is not a guarantee.** The Vault — terms you mark yourself —
@@ -241,40 +246,45 @@ vLLM), or point the app at a local model. Your Claude Code, Codex or Antigravity
 subscription works too.
 
 **This build has no backend.** No billing, no sync, no organizations, no included
-models: those services are not part of it — they live in a private repository, behind the
-`OPENMASQ_BILLING` gate — and the app runs on your machine: your keys, a local model, or a
-CLI subscription. Redaction is on-device.
+models: those services live in a private repository, behind the `OPENMASQ_BILLING` gate. The
+app runs on your machine, on your keys, a local model, or a CLI subscription. Redaction is
+on-device.
 
-**So why does the source mention subscriptions at all?** You will find a tier catalogue
-(`packages/credits/src/tiers.ts`), a Paiement tab and its wording in the translation
-catalogues. They exist for one case only: someone who deploys the private stack and chooses
-to charge for it. The OpenMasq the brand publishes is built **without** that gate — the
-binaries on the releases page sell nothing, show no plan, hold no credits, and the word
-« subscription » never appears except for your own Claude Code, Codex or Antigravity CLI.
+**Subscriptions in the source.** A tier catalogue (`packages/credits/src/tiers.ts`), a
+Paiement tab and its wording in the translation catalogues exist for one case: someone who
+deploys the private stack and charges for it. The OpenMasq the brand publishes is built
+**without** that gate — the binaries on the releases page sell nothing, show no plan, hold
+no credits, and the word « subscription » never appears except for your own Claude Code,
+Codex or Antigravity CLI.
 Release notes older than the open-source launch (September 2026) describe the earlier hosted
 offer; they are kept as history, not as a promise.
 
 **Five small services stay hosted by the brand, and a build from these sources
-reaches them by default** (`apps/desktop/scripts/publicServices.ts`): sign-in (a
-Supabase project — magic link or Google; the account only identifies you, nothing sits
-behind it), the Slack relay (the code→token exchange Slack forbids on-device), the
-analytics relay (pseudonymous counters — ON by default, tied to a stable install id,
-turned off in Settings, and never sent when Do Not Track or GPC is set — plus the release notes
-the app displays, plus the feature-flag read — that last one is a configuration request,
-not measurement, so it runs outside consent and carries the install id and, when you are
-signed in, your account token: `packages/analytics/src/flags.ts` says so in full), crash reports (Sentry — an allow-list of a few machine
-fields, never a key or a vault value; the exception message and the frame names cannot be
-allow-listed field by field, so they are scrubbed and truncated instead — a mitigation, not
-a guarantee, and `apps/desktop/src/sentry/policy.ts` states the residual it accepts) and
-the update feed (where a packaged build checks for new versions, carrying a per-install
-identifier so a staged rollout can be held back). Their code is not in this
-repository. Each is one variable, and a variable set **empty** at build time
-(`OPENMASQ_SENTRY_DSN=`, `VITE_UPDATES_URL=`) opts out of it — a fork that ships under
-its own identity should empty the feed so it never updates itself with the brand's
-signed binary (`SELF_HOSTING.md`). `pnpm dev` applies them too — except error reports:
-only a binary the CI built and signed reports crashes; an unpackaged app or a package
-built outside the CI reports no error at all, only its usage to analytics (stamped
-`env:"local"`), since its code may differ from any release.
+reaches them by default** (`apps/desktop/scripts/publicServices.ts`):
+
+- **Sign-in** — a Supabase project, magic link or Google. The account only identifies you;
+  nothing sits behind it.
+- **The Slack relay** — the code→token exchange Slack forbids on-device.
+- **The analytics relay** — pseudonymous counters, ON by default, tied to a stable install
+  id, turned off in Settings, and never sent when Do Not Track or GPC is set. It also serves
+  the release notes the app displays and the feature-flag read. That last one is a
+  configuration request, not measurement: it runs outside consent and carries the install id
+  and, when you are signed in, your account token (`packages/analytics/src/flags.ts` says so
+  in full).
+- **Crash reports** — Sentry, on an allow-list of a few machine fields, never a key or a
+  vault value. The exception message and the frame names cannot be allow-listed field by
+  field, so they are scrubbed and truncated instead: a mitigation, not a guarantee, and
+  `apps/desktop/src/sentry/policy.ts` states the residual it accepts.
+- **The update feed** — where a packaged build checks for new versions, carrying a
+  per-install identifier so a staged rollout can be held back.
+
+Their code is not in this repository. Each is one variable, and a variable set **empty** at
+build time (`OPENMASQ_SENTRY_DSN=`, `VITE_UPDATES_URL=`) opts out of it; a fork that ships
+under its own identity should empty the feed so it never updates itself with the brand's
+signed binary (`SELF_HOSTING.md`). `pnpm dev` applies them too, with one exception: only a
+binary the CI built and signed reports crashes. An unpackaged app, or a package built outside
+the CI, reports no error at all — only its usage to analytics, stamped `env:"local"` — since
+its code may differ from any release.
 
 Running a local stack is an explicit choice: the overrides go in a gitignored
 `apps/desktop/.env.development.local`, and the committed `.env.development` says which
@@ -287,7 +297,9 @@ overrides go there.
 ```bash
 pnpm test              # unit tests — free, run them constantly
 pnpm test:changed      # only what the change graph touches
-pnpm test:redact       # the redaction engine alone (~4 s)
+pnpm test:redact       # the redaction engine alone (~20 s)
+pnpm test:pure         # every pure package, no isolation (~20 s)
+pnpm test:apps         # ui + desktop, isolated
 pnpm typecheck
 pnpm build
 pnpm verify            # the full local gate suite
@@ -313,7 +325,7 @@ Read the root one before a first change.
 
 ## Security
 
-The threat model, the guarantees, and — at the same length — the **known limitations**
+The threat model, the guarantees and the **known limitations**, at the same length,
 are in [`SECURITY.md`](SECURITY.md). It is written to be checked against this source, not
 taken on faith: redaction is detection and detection is imperfect, prompt injection is
 bounded rather than solved, encryption at rest is not guaranteed on every install, and
@@ -350,13 +362,14 @@ and shipped inside the app are listed in [`NOTICE`](NOTICE).
 **Une application de chat de bureau multi-modèles qui masque les données sensibles avant
 qu'elles ne quittent votre machine — et les rétablit dans la réponse.**
 
-> **Téléchargez, ou construisez.** Un build **macOS** signé et notarisé (Apple silicon et
-> Intel) est sur [openmasq.com/telecharger](https://openmasq.com/telecharger) ; il se met à
-> jour seul. Aucun build Windows ni Linux n'est publié. Construire depuis les sources tient
-> en deux commandes, voir [Démarrer](#démarrer) — et le build téléchargeable est le workflow
-> de publication de ce dépôt exécuté *avec* les adresses des services de la marque : il porte
-> le compte, la synchronisation et les modèles inclus qu'un build issu des seules sources
-> n'a pas.
+> **Téléchargez** — [openmasq.com/telecharger](https://openmasq.com/telecharger) : macOS,
+> signé et notarisé, Apple silicon et Intel, mis à jour tout seul. Aucun build Windows ni
+> Linux n'est publié.
+>
+> **Ou construisez depuis les sources** — deux commandes, voir [Démarrer](#démarrer). Le
+> build publié est le workflow de publication de ce dépôt exécuté *avec* les adresses des
+> services de la marque : il porte donc aussi le compte, la synchronisation et les modèles
+> inclus. Un build issu des seules sources n'a rien de tout cela.
 
 Le modèle ne voit jamais la vraie valeur. Ce que le moteur détecte est remplacé par un
 substitut crédible avant tout appel réseau ; la réponse est rétablie localement depuis un
@@ -374,12 +387,12 @@ vous tapez :  « Relance Jean Rebour (SAS Acme) au 06 12 34 56 78 — CA 850 000
 ```
 
 Les identités sont permutées ; **les chiffres restent vrais par défaut**, pour qu'un modèle
-puisse encore calculer avec. Le coffre est stable d'un tour à l'autre — une même valeur
+puisse encore calculer avec. Le coffre est stable d'un tour à l'autre : une même valeur
 donne toujours le même substitut, et c'est ce qui rend la réponse réversible.
 
 Les modèles sont atteints avec **vos propres clés d'API**, un modèle local, ou un abonnement
-Claude Code, Codex ou Antigravity CLI. (Le code sait aussi passer par la passerelle facturée de la marque ;
-ce service ne fait pas partie de ce build — voir *Le faire tourner* plus bas.)
+Claude Code, Codex ou Antigravity CLI. La passerelle facturée de la marque existe dans le
+code ; il lui faut un backend qui ne fait pas partie de ce build ([Démarrer](#démarrer)).
 
 > **La frontière de masquage gouverne ce que le *modèle* voit, et rien d'autre.** Les
 > services connectés — une boîte mail, un agenda, une recherche — reçoivent la **vraie**
@@ -390,10 +403,12 @@ ce service ne fait pas partie de ce build — voir *Le faire tourner* plus bas.)
 ## Ce qu'il y a dedans
 
 - **Le moteur de masquage** — des règles déterministes, des sommes de contrôle et des
-  détecteurs de forme, puis un modèle NER local. Tout s'exécute sur la machine. Noms, dates
-  de naissance, e-mails, téléphones, adresses, lieux, entreprises, cartes, IBAN,
-  identifiants nationaux, IP, chemins de fichiers, données de santé, pseudos, URL, clés et
-  secrets.
+  détecteurs de forme, puis un modèle NER local. Tout s'exécute sur la machine. Actifs par
+  défaut : noms, dates de naissance, e-mails, téléphones, adresses, lieux, entreprises,
+  cartes, IBAN, identifiants nationaux et d'entreprise, IP, pseudos, clés et secrets.
+  Inactifs par défaut, à un interrupteur : chemins de fichiers, URL et dates ordinaires.
+  [`SECURITY.md`](SECURITY.md) dit ce que chacun coûte à activer ; le niveau Strict lève
+  les trois.
 - **Les documents** — les pièces jointes PDF, Office et images sont extraites (pdf.js, OCR
   par un Tesseract durci et vendorisé + docTR) puis masquées avant l'envoi.
 - **Les connecteurs MCP** — Gmail, Google Drive, Docs, Sheets, Agenda, Outlook, OneDrive,
@@ -419,36 +434,38 @@ Deux questions sont mesurées, parce que ce ne sont pas les mêmes :
 - **La valeur est-elle sortie de la machine ?** Une vérité compte comme trouvée quand
   l'essentiel de ses tokens a été remplacé. C'est ce qu'un produit de masquage vous doit.
 - **Où le moteur a-t-il posé la limite, exactement ?** Chaque caractère annoté compte pour
-  lui-même — un nom trouvé mais coupé ne marque qu'en partie, et déborder d'une valeur se
+  lui-même : un nom trouvé mais coupé ne marque qu'en partie, et déborder d'une valeur se
   paie. C'est ainsi que la littérature juge un détecteur ; le protocole est celui de l'article
   [PII-TRACE](https://www.perplexity.ai/hub/blog/pii-trace-detecting-personal-data-before-it-leaves-the-device)
   de Perplexity, pour que ces chiffres puissent se poser à côté des siens.
 
 **Les valeurs — est-ce sorti ?** Notre corpus : 18 familles de documents, 14 langues, vraies
-mises en page, dégât OCR, 907 cas, 3 357 vérités annotées.
+mises en page, dégât OCR, 907 cas, 3 364 vérités annotées.
 
 | corpus | vérités | `patterns` (sans modèle) | **le produit** (`ner`) | PII-Tracer | Presidio (par défaut) |
 |---|---:|---:|---:|---:|---:|
-| **le nôtre** | 3 357 | 89 % · 91 FP | **95 %** · 258 FP | 92 % · 530 FP | 46 % · 847 FP |
-| **celui de Presidio** — son propre jeu d'évaluation, anglais, gabarits + faker | 2 523 | 31 % · 6 FP | **74 %** · 115 FP | — | 58 % · 196 FP |
+| **le nôtre** | 3 364 | 89 % · 89 FP | **95 %** · 251 FP | 92 % · 530 FP † | 46 % · 845 FP |
+| **celui de Presidio** — son propre jeu d'évaluation, anglais, gabarits + faker | 2 523 | 32 % · 6 FP | **75 %** · 111 FP | — | 58 % · 196 FP |
 
 Une vérité compte comme *trouvée* quand ≥ 60 % de ses tokens significatifs ont été remplacés ;
-un *faux positif* (FP) est une détection qui ne chevauche aucune valeur annotée.
+un *faux positif* (FP) est une détection qui ne chevauche aucune valeur annotée. † PII-Tracer a
+été mesuré sur le corpus à 3 357 vérités et n'a pas été rejoué depuis ; les autres colonnes
+viennent d'une même exécution de `pnpm bench:compare`.
 
 **Les caractères — où était la limite ?** Cinq corpus, six moteurs, un seul scoreur. Notés sur
-**les catégories que cette app a vraiment en réglage** : chaque corpus annote sa propre idée
-de la donnée personnelle — Gretel compte un nom d'entreprise, Nemotron annote le métier et la
-religion, TAB marque toutes les dates — alors chaque étiquette amont est ramenée à une
+**les catégories que cette app a vraiment en réglage**. Chaque corpus annote sa propre idée
+de la donnée personnelle : Gretel compte un nom d'entreprise, Nemotron annote le métier et la
+religion, TAB marque toutes les dates. Chaque étiquette amont est donc ramenée à une
 catégorie de l'app, et ce qu'aucune catégorie ne couvre est montré sans être compté. Un chiffre
 unique agrégé sur « ce que ce corpus a annoté » mesure surtout l'écart entre quatre taxonomies.
 
-| corpus | cas | `patterns` | **`ner`** (le produit) | `ner` (Strict) | PII-Tracer | OpenAI PF | Presidio |
+| corpus | cas | `patterns` | **`ner`** (le produit, Strict) | `ner` (Renforcé) | PII-Tracer | OpenAI PF | Presidio |
 |---|---:|---:|---:|---:|---:|---:|---:|
-| OpenMasq | 907 | 0.931 | **0.931** | 0.923 | 0.888 | 0.833 | 0.547 |
-| TAB | 127 | 0.425 | **0.606** | 0.855 | 0.742 | 0.435 | 0.815 |
+| OpenMasq | 907 | 0.931 | **0.923** | 0.931 | 0.888 | 0.833 | 0.547 |
+| TAB | 127 | 0.425 | **0.855** | 0.606 | 0.742 | 0.435 | 0.815 |
 | Gretel | 2000 | 0.575 | **0.646** | 0.646 | 0.611 | 0.565 | 0.422 |
-| ai4privacy | 2000 | 0.756 | **0.796** | 0.827 | 0.952 | 0.945 | 0.579 |
-| Nemotron | 2000 | 0.627 | **0.735** | 0.928 | 0.887 | 0.736 | 0.768 |
+| ai4privacy | 2000 | 0.756 | **0.827** | 0.796 | 0.952 | 0.945 | 0.579 |
+| Nemotron | 2000 | 0.627 | **0.928** | 0.735 | 0.887 | 0.736 | 0.768 |
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="packages/redact/bench/spans/figures/f1-by-corpus-fr-dark.png">
@@ -462,24 +479,23 @@ unique agrégé sur « ce que ce corpus a annoté » mesure surtout l'écart ent
   entreprises sont là où un moteur est réellement mis à l'épreuve, et où le modèle local paie
   son coût — en chinois, japonais et coréen les règles seules atteignent 24 à 26 %, le modèle
   66 à 88 %.
-- **Un numéro de carte que nous ratons est un numéro qu'aucune banque n'émettrait.** 89 % des
-  numéros de carte de Nemotron et 52 % de ceux de Gretel échouent au Luhn — tirés au hasard par
-  un générateur. Séparez l'or là-dessus : **toute valeur dont la clé se vérifie est trouvée**,
-  100 % sur les deux corpus. Le moteur refuse les autres volontairement ; accepter n'importe
-  quels seize chiffres, c'est ainsi qu'un outil de masquage se met à manger des numéros de
-  commande.
-- **Un corpus qui sous-annote punit le rappel ET la précision.** Gretel laisse sans étiquette
-  les numéros de compte de ses documents MT940/SWIFT/XBRL : sur ces 320 documents, tous les
-  moteurs marquent des nombres que personne n'a annotés, et la précision s'effondre — 0,24
-  pour PII-Tracer, 0,43 pour nous. C'est une propriété du corpus, pas des détecteurs.
-- **Le crédit partiel flatte tout le monde, et nous en premier.** Le F1 récompense une valeur
+- **La plupart des numéros de carte de ces corpus ne pourraient pas être émis.** 89 % de
+  ceux de Nemotron et 52 % de ceux de Gretel échouent au Luhn, tirés au hasard par un
+  générateur. Séparez le jeu de référence là-dessus : **toute valeur dont la clé se
+  vérifie est trouvée**, 100 % sur les deux corpus. Le moteur refuse les autres volontairement ;
+  accepter n'importe quels seize chiffres, c'est ainsi qu'un outil de masquage se met à
+  manger des numéros de commande.
+- **Gretel sous-annote.** Ses documents MT940/SWIFT/XBRL laissent sans étiquette les
+  numéros de compte. Sur ces 320 documents, tous les moteurs marquent des nombres que
+  personne n'a annotés, et la précision s'effondre : 0,24 pour PII-Tracer, 0,43 pour nous.
+- **Le F1 donne un crédit partiel, et nous en profitons aussi.** Il récompense une valeur
   trouvée à moitié ; un produit de masquage doit trouver *chaque* mention. Ce chiffre-là,
   plus sévère, est sur la page du banc à côté de celui-ci, et il est plus bas pour les six
   colonnes.
-- **Presidio est ici un `pip install` par défaut** — Presidio *et* spaCy `en_core_web_lg`,
-  lancé en `language="en"` sur les quatorze langues, c'est-à-dire ce qu'un utilisateur obtient
-  sans rien régler, pas le plafond de Presidio. Ses 41 % sur nos cas **anglais** disent que
-  l'écart tient aux vraies mises en page, pas à la langue.
+- **Presidio est ici un `pip install` par défaut** : Presidio *et* spaCy
+  `en_core_web_lg`, lancé en `language="en"` sur les quatorze langues. C'est ce qu'un
+  utilisateur obtient sans rien régler, pas le plafond de Presidio. Ses 41 % sur nos cas
+  **anglais** désignent les vraies mises en page, pas la langue.
 
 **Quels que soient les chiffres, la détection n'est pas une garantie.** Le Coffre — les termes
 que vous marquez vous-même — est la seule promesse de couverture que le produit fait sur une
@@ -555,43 +571,49 @@ Ollama, LM Studio, vLLM), ou pointez l'app sur un modèle local. Votre abonnemen
 Codex ou Antigravity CLI fonctionne aussi.
 
 **Ce build n'a pas de backend.** Ni facturation, ni synchronisation, ni organisations, ni
-modèles inclus : ces services n'en font pas partie — ils vivent dans un dépôt privé,
-derrière la porte `OPENMASQ_BILLING` — et l'app tourne sur votre machine : vos clés, un
-modèle local, ou un abonnement CLI. Le masquage s'exécute sur l'appareil.
+modèles inclus : ces services vivent dans un dépôt privé, derrière la porte
+`OPENMASQ_BILLING`. L'app tourne sur votre machine, sur vos clés, un modèle local, ou un
+abonnement CLI. Le masquage s'exécute sur l'appareil.
 
-**Pourquoi le code parle-t-il alors d'abonnements ?** Vous trouverez un catalogue de paliers
+**Les abonnements dans le code.** Un catalogue de paliers
 (`packages/credits/src/tiers.ts`), un onglet Paiement et son vocabulaire dans les catalogues
-de traduction. Ils ne servent qu'à un cas : quelqu'un qui déploie la pile privée et choisit
-de la facturer. L'OpenMasq que publie la marque est construit **sans** cette porte — les
+de traduction ne servent qu'à un cas : quelqu'un qui déploie la pile privée et choisit de la
+facturer. L'OpenMasq que publie la marque est construit **sans** cette porte — les
 binaires de la page des versions ne vendent rien, n'affichent aucune offre, ne comptent aucun
 crédit, et le mot « abonnement » n'y apparaît que pour votre propre CLI Claude Code, Codex ou
 Antigravity. Les notes de version antérieures au passage en open source (septembre 2026)
 décrivent l'ancienne offre hébergée ; elles sont gardées comme historique, pas comme promesse.
 
 **Cinq petits services restent hébergés par la marque, et un build issu de ces sources les
-atteint par défaut** (`apps/desktop/scripts/publicServices.ts`) : la connexion (un projet
-Supabase — lien magique ou Google ; le compte ne fait que vous identifier, rien ne se cache
-derrière), le relais Slack (l'échange code→jeton que Slack interdit sur l'appareil), le
-relais analytics (des compteurs pseudonymes — ACTIFS par défaut, liés à un identifiant
-d'installation stable, désactivables dans les Réglages, et jamais envoyés si Do Not Track ou
-GPC est posé — plus les notes
-de version que l'app affiche, plus la lecture des drapeaux de fonctionnalité — celle-ci est
-une requête de configuration, pas une mesure : elle s'exécute hors consentement et porte
-l'identifiant d'installation et, si vous êtes connecté, votre jeton de compte ;
-`packages/analytics/src/flags.ts` l'énonce en entier), les rapports de plantage (Sentry — une liste d'autorisation
-de quelques champs machine, jamais une clé ni une valeur du coffre ; le message d'exception
-et les noms de frames ne peuvent pas être autorisés champ par champ, ils sont donc épurés
-puis tronqués — une atténuation, pas une garantie, et `apps/desktop/src/sentry/policy.ts`
-énonce le résidu qu'il accepte) et le flux de mises à jour (là où un build empaqueté cherche
-les nouvelles versions, en portant un identifiant par installation pour qu'un déploiement
-progressif puisse être retenu). Leur code n'est pas dans ce dépôt. Chacun tient en une
-variable, et une variable posée **vide** au build (`OPENMASQ_SENTRY_DSN=`,
-`VITE_UPDATES_URL=`) le débranche — un fork qui publie sous sa propre identité devrait vider
-le flux, pour ne jamais se mettre à jour avec le binaire signé de la marque
-(`SELF_HOSTING.md`). `pnpm dev` les applique aussi — sauf les rapports d'erreur : seul un
-binaire construit et signé par la CI signale ses plantages ; une app non empaquetée, ou un
-paquet construit hors CI, ne signale aucune erreur, seulement son usage à l'analytics
-(estampillé `env:"local"`), puisque son code peut différer de toute version publiée.
+atteint par défaut** (`apps/desktop/scripts/publicServices.ts`) :
+
+- **La connexion** — un projet Supabase, lien magique ou Google. Le compte ne fait que vous
+  identifier ; rien ne se cache derrière.
+- **Le relais Slack** — l'échange code→jeton que Slack interdit sur l'appareil.
+- **Le relais analytics** — des compteurs pseudonymes, ACTIFS par défaut, liés à un
+  identifiant d'installation stable, désactivables dans les Réglages, et jamais envoyés si
+  Do Not Track ou GPC est posé. Il sert aussi les notes de version que l'app affiche et la
+  lecture des drapeaux de fonctionnalité. Cette dernière est une requête de configuration,
+  pas une mesure : elle s'exécute hors consentement et porte l'identifiant d'installation
+  et, si vous êtes connecté, votre jeton de compte (`packages/analytics/src/flags.ts`
+  l'énonce en entier).
+- **Les rapports de plantage** — Sentry, sur une liste d'autorisation de quelques champs
+  machine, jamais une clé ni une valeur du coffre. Le message d'exception et les noms de
+  frames ne peuvent pas être autorisés champ par champ : ils sont donc épurés puis tronqués,
+  une atténuation et non une garantie, et `apps/desktop/src/sentry/policy.ts` énonce le
+  résidu qu'il accepte.
+- **Le flux de mises à jour** — là où un build empaqueté cherche les nouvelles versions, en
+  portant un identifiant par installation pour qu'un déploiement progressif puisse être
+  retenu.
+
+Leur code n'est pas dans ce dépôt. Chacun tient en une variable, et une variable posée
+**vide** au build (`OPENMASQ_SENTRY_DSN=`, `VITE_UPDATES_URL=`) le débranche ; un fork qui
+publie sous sa propre identité devrait vider le flux, pour ne jamais se mettre à jour avec le
+binaire signé de la marque (`SELF_HOSTING.md`). `pnpm dev` les applique aussi, à une
+exception près : seul un binaire construit et signé par la CI signale ses plantages. Une app
+non empaquetée, ou un paquet construit hors CI, ne signale aucune erreur — seulement son
+usage à l'analytics, estampillé `env:"local"` — puisque son code peut différer de toute
+version publiée.
 
 Faire tourner une pile locale est un choix explicite : les surcharges vont dans un
 `apps/desktop/.env.development.local` ignoré par git, et le `.env.development` versionné dit
@@ -602,7 +624,9 @@ lesquelles y mettre.
 ```bash
 pnpm test              # tests unitaires — gratuits, à lancer sans cesse
 pnpm test:changed      # seulement ce que le graphe de changement touche
-pnpm test:redact       # le moteur de masquage seul (~4 s)
+pnpm test:redact       # le moteur de masquage seul (~20 s)
+pnpm test:pure         # tous les paquets purs, sans isolation (~20 s)
+pnpm test:apps         # ui + desktop, isolés
 pnpm typecheck
 pnpm build
 pnpm verify            # toute la série de contrôles, en local
@@ -628,7 +652,7 @@ première modification.
 
 ## Sécurité
 
-Le modèle de menace, les garanties et — avec la même longueur — les **limites connues** sont
+Le modèle de menace, les garanties et les **limites connues**, avec la même longueur, sont
 dans [`SECURITY.md`](SECURITY.md). Il est écrit pour être vérifié contre ces sources, pas
 pour être cru sur parole : masquer c'est détecter, et détecter est imparfait ; l'injection de
 prompt est bornée, pas résolue ; le chiffrement au repos n'est pas garanti sur toutes les

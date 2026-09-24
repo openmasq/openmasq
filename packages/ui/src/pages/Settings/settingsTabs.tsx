@@ -57,8 +57,8 @@ export function settingsNav(t: Messages): { id: TabId; label: string; icon: Reac
 
 /**
  * The capabilities of THIS instance, read from the host. A missing slot = the build did
- * not receive the service's address (or the platform cannot do it): the private `infra`
- * repo. Exposed so the ⌘K palette asks the same question as the rail, without copying it.
+ * not receive the service's address (or the platform cannot do it). Exposed so the ⌘K
+ * palette asks the same question as the rail, without copying it.
  *
  * `_orgProfile` is accepted and IGNORED: no tab depends on an organisation any more (the
  * Organisation block lives inside Compte, drawn when the profile exists). The parameter

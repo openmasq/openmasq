@@ -6,11 +6,35 @@ import {
   usNpiValid,
 } from "../validators/validators.international";
 import { mxClabeValid, mxCurpValid } from "../validators/validators.world";
+import { US_STATE_ABBR_TO_NAME, US_STATE_NAME_TO_ABBR } from "../geo/usStates";
 
 // North-American identity / financial schemes ported from presidio-ts. All map
 // to the "national_id" category (on by default). US SSN and US EIN are already
 // covered by the built-in RULES, so they are NOT duplicated here.
+// A ZIP code has no shape a rule may trust on its own: five digits is a price, a count,
+// a year and a day. `addresses/` takes one inside a complete street address; the Nemotron
+// corpus showed what that leaves out — 201 postcodes on their own, written three ways:
+//   « Antioch, CA, 94509 »        a state CODE, then a comma, then the ZIP
+//   « Jeddo, Michigan, 48032 »    the state NAME
+//   « Los Gatos, postcode 95030 » the word itself as a label
+// Each anchor is literal — a real state (`geo/usStates.ts`, plus the territories the USPS
+// serves) or the label word — which is what lets five banal digits fire. A state code that
+// is also a word (« OR », « IN », « ME », « OK ») counts only after the comma prose does not
+// put before it. « Tulsa, 74146 » — city, ZIP — has no anchor a rule may trust and is left
+// to the address detector and the model.
+const US_ZIP_AREAS = ["DC", "PR", "VI", "GU", "AS", "MP"];
+const US_STATE_ALT = [...new Set([...Object.keys(US_STATE_ABBR_TO_NAME), ...US_ZIP_AREAS])].join("|");
+const US_STATE_NAMES = Object.keys(US_STATE_NAME_TO_ABBR).sort((a, b) => b.length - a.length).join("|");
+const ZIP = String.raw`\d{5}(?:-\d{4})?\b`;
+
 export const US_RULES: RedactionRule[] = [
+  // « , CA 94509 » / « , CA, 94509 » — the code, comma-anchored.
+  { type: "zipcode", pattern: re(String.raw`(?<=,[ ]{0,3}(?:${US_STATE_ALT}),?[ ]{1,2})${ZIP}`) },
+  // « Michigan, 48032 » — the name; a state name followed by a comma and five digits is
+  // an address line and nothing else.
+  { type: "zipcode", pattern: re(String.raw`(?<=\b(?:${US_STATE_NAMES}),?[ ]{1,2})${ZIP}`, "gi") },
+  // « postcode 95030 », « a postcode of 95030 », « ZIP: 95030 » — the label is the gate.
+  { type: "zipcode", pattern: re(String.raw`(?<=\b(?:post(?:al)?[ ]?code|zip(?:[ ]?code)?)(?:[ ]+(?:of|is|was))?[ :=]{1,3})${ZIP}`, "gi") },
   // Canada SIN — spaced/dashed form, Luhn-validated (bare \d{9} dropped: too common).
   {
     type: "national_id",

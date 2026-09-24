@@ -9,20 +9,15 @@ import type {
   AllDesktopReleases,
 } from "../types";
 
-/** Microphone access. The renderer calls `ensureMicAccess()` before recording
- *  so macOS shows/refreshes its OS-level (TCC) mic prompt — a granted Chromium
- *  permission alone still fails under the hardened runtime. */
+/** Microphone access: macOS needs its OS-level (TCC) prompt, a Chromium grant alone
+ *  fails under the hardened runtime. */
 export const media = {
   ensureMicAccess: (): Promise<boolean> => ipcRenderer.invoke("media:ensure-mic"),
 };
 
 /**
- * SYSTEM notification when a reply arrives out of view. Main posts it
- * (the renderer has no window to focus); on click it shows and focuses the window
- * THEN sends the thread id back here, so the app can open it.
- *
- * ⚠️ No content ever transits: `title`/`body` are composed on the renderer side with no
- * conversation text (`state/replyNotice.ts`) and the id is never displayed.
+ * SYSTEM notification when a reply arrives out of view. ⚠️ No content ever transits:
+ * `title`/`body` carry no conversation text (`state/replyNotice.ts`).
  */
 export const notify = {
   supported: (): Promise<boolean> => ipcRenderer.invoke("notify:supported"),
@@ -36,30 +31,23 @@ export const notify = {
   },
 };
 
-/** This machine's Claude Code skills. The renderer passes NO path at all:
- *  main enumerates its own roots and reads only `SKILL.md` files. */
+/** This machine's Claude Code skills. The renderer passes NO path: main enumerates. */
 export const claudeSkills = {
   list: (): Promise<{ folder: string; text: string; siblings: string[]; from: "home" | "project" }[]> =>
     ipcRenderer.invoke("claude-skills:list"),
 };
 
-/** OpenGraph link-unfurl (opt-in). Main fetches the page + og:image safely and
- *  returns a card with the image already inlined as a `data:` URL. */
+/** Link-unfurl (opt-in). Main fetches safely and inlines the image as a `data:` URL. */
 export const links = {
   preview: (url: string): Promise<LinkPreviewData | null> =>
     ipcRenderer.invoke("links:preview", url),
-  // Push the renderer's `linkPreviews` opt-in to main, which tracks it as the
-  // AUTHORITATIVE flag (default OFF, fail-closed — audit M4). `links:preview` is
-  // refused in main until this turns it on, so a renderer XSS can't unfurl links.
+  // Main tracks the opt-in as the AUTHORITATIVE flag (default OFF, fail-closed).
   setEnabled: (on: boolean): Promise<void> =>
     ipcRenderer.invoke("links:set-enabled", on),
 };
 
-/** Sandboxed Python execution. Main ensures the runtime (download-on-first-use)
- *  and runs the code jailed; returns stdout/stderr + any matplotlib PNGs (base64).
- *  `onProgress` streams a live status over `python:progress` for the call duration.
- *  `files` = deliverables generated earlier in the conversation, seeded into the
- *  run's working dir (main re-sanitizes them) so the code can load + modify them. */
+/** Sandboxed Python. `files` = earlier deliverables seeded into the run's working dir
+ *  (main re-sanitizes them). */
 export const python = {
   run: (
     code: string,
@@ -76,18 +64,15 @@ export const python = {
   },
 };
 
-/** Typeset a model-authored document (HTML + print CSS) to PDF bytes. Main renders it
- *  in an isolated, script-less, network-less window — nothing leaves the machine and
- *  nothing touches the disk (see `main/pdf/CLAUDE.md`). Rejects on any failure, so the
- *  caller falls back to the in-renderer pdf-lib exporter. */
+/** HTML → PDF bytes in an isolated, script-less, network-less window. Rejects on any
+ *  failure, so the caller falls back to the in-renderer exporter. */
 export const pdf = {
   renderHtml: (req: { html: string; css: string; title: string }): Promise<Uint8Array> =>
     ipcRenderer.invoke("pdf:render-html", req),
 };
 
-/** Batch web reader: fetch several URLs' text IN PARALLEL over main's hardened
- *  `safeFetch` (SSRF-guarded, no cookies, no JavaScript). Returns one row per URL.
- *  The renderer passes already-un-redacted (real) URLs; main never sees the vault. */
+/** Batch web reader over main's hardened `safeFetch`. The renderer passes REAL URLs;
+ *  main never sees the vault. */
 export const web = {
   fetchMany: (
     urls: string[],
@@ -95,21 +80,17 @@ export const web = {
     ipcRenderer.invoke("web:fetch-many", urls),
 };
 
-/** Live model catalogue (OpenRouter). Main fetches its public `/api/v1/models`
- *  endpoint and returns the normalized list; on any failure it resolves `[]`. */
+/** Live model catalogue; `[]` on any failure. */
 export const models = {
   listOpenRouter: (): Promise<DynamicModel[]> => ipcRenderer.invoke("models:list-openrouter"),
   /** The ids the user's OWN openai-compat server serves (`/models`); [] on any failure. */
   listLocal: (baseUrl: string): Promise<string[]> => ipcRenderer.invoke("models:list-local", baseUrl),
 };
 
-/** Account auth bridge: receive the `<protocol>://auth/callback` magic-link deep
- *  link forwarded by the main process. The renderer (auth.ts) exchanges the
- *  PKCE code in the URL for a Supabase session. */
+/** The `<protocol>://auth/callback` deep link forwarded by main; the renderer exchanges
+ *  its PKCE code. */
 export const auth = {
-  /** Subscribe to magic-link callback URLs. Signals readiness so the main
-   *  process flushes any link that arrived before the renderer mounted.
-   *  Returns an unsubscribe function. */
+  /** Signals readiness so main flushes a link that arrived before the renderer mounted. */
   onCallback: (cb: (url: string) => void): (() => void) => {
     const handler = (_e: IpcRendererEvent, url: string) => cb(url);
     ipcRenderer.on("auth:callback", handler);
@@ -118,9 +99,7 @@ export const auth = {
   },
 };
 
-/** Billing bridge: receive the `<protocol>://billing/callback` deep link the web
- *  `/billing/return` page bounces after Stripe Checkout, so the app refocuses
- *  and refreshes the subscription. Returns an unsubscribe. */
+/** The `<protocol>://billing/callback` deep link bounced after checkout. */
 export const billing = {
   onCallback: (cb: (url: string) => void): (() => void) => {
     const handler = (_e: IpcRendererEvent, url: string) => cb(url);
@@ -131,8 +110,7 @@ export const billing = {
   },
 };
 
-/** Subscribe to main-process errors, forwarded for the renderer's anonymised
- *  error-tracking channel (`captureError`). Returns an unsubscribe fn. */
+/** Main-process errors, forwarded to the renderer's anonymised `captureError`. */
 export const onAppError = (
   cb: (e: { scope: string; code: string; name?: string; status?: number; message?: string }) => void,
 ): (() => void) => {
@@ -144,10 +122,8 @@ export const onAppError = (
   return () => ipcRenderer.removeListener("app:error", handler);
 };
 
-/** Subscribe to main-process ANALYTICS events (the auto-update funnel), forwarded for
- *  the renderer's consent-gated, allow-listed `captureEvent`. Loosely typed at the wire
- *  (like `onAppError`); the renderer casts it back to the `TrackEvent` catalogue, which
- *  is also what main emits against. Returns an unsubscribe fn. */
+/** Main-process analytics events, forwarded to the consent-gated `captureEvent`; the
+ *  renderer casts them back to the `TrackEvent` catalogue main emits against. */
 export const onAppEvent = (
   cb: (e: { name: string } & Record<string, unknown>) => void,
 ): (() => void) => {
@@ -160,18 +136,13 @@ export const onAppEvent = (
 /** App + runtime component versions (for the Versions settings tab). */
 export const app = {
   versions: (): Promise<AppVersions> => ipcRenderer.invoke("app:versions"),
-  /** Report the theme's shell tone so the WINDOW's own background (the contour at the
-   *  rounded corners, and the strip a resize exposes) matches the app instead of a fixed
-   *  near-white. Send the COMPUTED `--surface-shell` — main keeps no theme→colour table,
-   *  so `styles.css` stays the single home for those values. Resolves `false` when the
-   *  value isn't `#rrggbb`: main refuses it rather than repairing it. */
+  /** The COMPUTED `--surface-shell`, so the WINDOW's own background matches the theme
+   *  without main keeping a colour table. `false` when not `#rrggbb`: main refuses it. */
   setWindowTone: (tone: string): Promise<boolean> =>
     ipcRenderer.invoke("window:set-tone", tone),
 };
 
-/** Auto-update controls (electron-updater ↔ the apps/updates Worker feed).
- *  `pin` forces an exact build (rollback / forced version). `onStatus`
- *  streams progress; returns an unsubscribe. */
+/** Auto-update controls. `pin` forces an exact build. */
 export const updates = {
   current: (): Promise<UpdatesCurrent> => ipcRenderer.invoke("updates:current"),
   revealLog: (): Promise<void> => ipcRenderer.invoke("updates:reveal-log"),
@@ -193,10 +164,8 @@ export const updates = {
     ipcRenderer.on("updates:status", handler);
     return () => ipcRenderer.removeListener("updates:status", handler);
   },
-  /** The auto-install QUIESCENCE probe (`updates/autoInstall.ts`): main
-   *  asks "are you busy?" at the moment it decides on an automatic restart; the
-   *  renderer answers via `replyQuiescence`. No reply ⇒ main reads "busy"
-   *  (fail-closed), so a non-restarted preload degrades to "never auto-install". */
+  /** The auto-install QUIESCENCE probe (`updates/autoInstall.ts`). No reply ⇒ main reads
+   *  "busy" (fail-closed). */
   onQuiescenceAsk: (cb: (askId: string) => void): (() => void) => {
     const handler = (_e: IpcRendererEvent, askId: string) => cb(askId);
     ipcRenderer.on("updates:quiescence", handler);
@@ -207,13 +176,11 @@ export const updates = {
   },
 };
 
-/** Build/runtime flags surfaced to the renderer. */
-/** The resolved environment, as main hands it back to the renderer. The types live here (the
- *  preload is the contract) rather than imported from main: it only depends on `electron`. */
+/** The resolved environment, as main hands it back. The types live HERE (the preload is
+ *  the contract, and depends only on `electron`). */
 export type EnvName = "production" | "staging" | "custom";
 
-/** The SELF-HOSTED stack entered by the user — public addresses and a
- *  PUBLISHABLE key, nothing secret. Only exists in a build that honors it. */
+/** The SELF-HOSTED stack entered by the user: public addresses and a PUBLISHABLE key. */
 export interface CustomStack {
   backend: string;
   gateway: string;
@@ -248,23 +215,13 @@ export type SetCustomStackResult =
   | { ok: false; reason: "custom_not_allowed" | "invalid" | "declined" | "write_failed"; field?: keyof CustomStack; detail?: string };
 
 export const env = {
-  /** True only under a TEST launch (main's `OPENMASQ_E2E`). Async because a
-   *  sandboxed preload has no `process.env` — main is the only source. Gates the
-   *  renderer `E2eBridge`; false (and inert) in every shipped build. */
+  /** True only under a TEST launch. Async: a sandboxed preload has no `process.env`. */
   isE2e: (): Promise<boolean> => ipcRenderer.invoke("app:is-e2e"),
-  /** Retired: gated the Cloudflare-loop watchdog of the removed keyless webview.
-   *  Kept as a constant `false` (nothing reads it) so the preload has ZERO Node
-   *  dependency and can run under `sandbox:true` (audit M-1) — `process.env` is
-   *  not reliably available in a sandboxed preload. */
+  /** Retired flag, kept a constant `false` so the preload has ZERO Node dependency. */
   disableCfWatchdog: false,
   /**
-   * The RESOLVED environment of this instance (name + public addresses), read
-   * **synchronously**. The renderer needs it when `appEnv.ts` loads, before
-   * `auth.ts` builds the Supabase client — an `invoke` would arrive too late.
-   * A single exchange, at the very start of boot. Nothing secret transits here.
-   *
-   * `null` when main hasn't wired up the namespace yet (a non-restarted preload in
-   * dev): the caller then falls back to the baked values, as before.
+   * The RESOLVED environment, read SYNCHRONOUSLY: `appEnv.ts` needs it at load, before
+   * the auth client is built. Nothing secret transits. `null` ⇒ the baked values.
    */
   resolved: (): ResolvedEnv | null => {
     try {
@@ -273,17 +230,12 @@ export const env = {
       return null;
     }
   },
-  /** Request the environment switch. The decision is made and verified in MAIN
-   *  (allow-list + server permission, fail-closed) — this only requests it.
-   *  `token` is the account's Supabase token: main carries it to the production backend,
-   *  which answers for THIS account (`staging_tester` flag); without it, only
-   *  per-machine troubleshooting (`allow_self_pin`) can authorize it. */
+  /** Request the environment switch; decided and verified in MAIN (fail-closed). `token`
+   *  lets the API answer for THIS account; without it only the per-machine permission can. */
   switchTo: (env: string, token?: string): Promise<EnvSwitchResult> =>
     ipcRenderer.invoke("env:switch", { env, token }),
-  /** Write a SELF-HOSTED stack and switch to it. Everything is decided in main: the
-   *  validation (https, no credentials, Supabase pair), then a NATIVE dialog
-   *  box only a human can click. The handler only exists in a build that
-   *  honors it — elsewhere the call fails, and that's the correct behavior. */
+  /** Write a SELF-HOSTED stack and switch to it: validated in main, then a NATIVE dialog
+   *  only a human can click. The handler only exists in a build that honors it. */
   setCustomStack: (stack: CustomStack): Promise<SetCustomStackResult> =>
     ipcRenderer.invoke("env:set-custom-stack", stack),
   /** Forget the entered stack and revert to the default environment (native dialog too). */

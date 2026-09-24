@@ -1,0 +1,217 @@
+/* Scan this package's own components for utility classes: Tailwind v4 skips node_modules,
+   and the apps consume @openmasq/ui through it, so without this no utility used inside a
+   ui component is generated. Paths are relative to this file. */
+@source "./**/*.{ts,tsx}";
+
+/* OpenMasq UI tokens — near-white paper, model logos, pearls/highlights. Type: Space
+   Grotesk (sans + display), Space Mono (mono), Newsreader (serif), bundled locally. */
+
+/* Map the redact tokens into Tailwind's theme so utilities (bg-brand,
+   text-strong, rounded-xl, font-display, …) resolve to the design system. */
+@theme inline {
+  --color-brand: var(--brand);
+  --color-brand-contrast: var(--brand-contrast);
+  --color-brand-tint: var(--brand-tint); /* `bg-brand-tint`: the admin kit's active nav */
+  --color-surface-page: var(--surface-page);
+  --color-surface-card: var(--surface-card);
+  --color-surface-sunken: var(--surface-sunken);
+  --color-surface-hover: var(--surface-hover);
+  --color-surface-active: var(--surface-active);
+  --color-surface-selected: var(--surface-selected);
+  --color-surface-inverse: var(--surface-inverse);
+  --color-strong: var(--text-strong);
+  --color-body: var(--text-body);
+  --color-muted: var(--text-muted);
+  --color-faint: var(--text-faint);
+  --color-inverse: var(--text-inverse);
+  --color-link: var(--text-link);
+  --color-border-subtle: var(--border-subtle);
+  --color-border-default: var(--border-default);
+  --color-border-strong: var(--border-strong);
+  --color-lime: var(--lime);
+  /* The nine redaction hues, Tailwind-addressable (`bg-hl-violet`, `text-hl-red`…) so a
+     utility-built surface uses the same palette as a mark — plus `lime`, a token but not a
+     redaction hue. */
+  --color-hl-violet: var(--hl-violet);
+  --color-hl-sky: var(--hl-sky);
+  --color-hl-mint: var(--hl-mint);
+  --color-hl-teal: var(--hl-teal);
+  --color-hl-amber: var(--hl-amber);
+  --color-hl-gold: var(--hl-gold);
+  --color-hl-pink: var(--hl-pink);
+  --color-hl-slate: var(--hl-slate);
+  --color-hl-red: var(--hl-red);
+  --color-hl-lime: var(--hl-lime);
+  --color-pearl-coral: var(--pearl-coral);
+  --color-pearl-azure: var(--pearl-azure);
+  --color-pearl-emerald: var(--pearl-emerald);
+  --color-pearl-violet: var(--pearl-violet);
+  --color-pearl-amber: var(--pearl-amber);
+  --color-pearl-magenta: var(--pearl-magenta);
+  --color-red-500: var(--red-500);
+  --color-green-500: var(--green-500);
+  --radius-xs: var(--radius-xs);
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-lg: var(--radius-lg);
+  --radius-xl: var(--radius-xl);
+  --radius-2xl: var(--radius-2xl);
+  --radius-pill: var(--radius-pill);
+  --font-sans: var(--font-sans);
+  --font-display: var(--font-display);
+  --font-mono: var(--font-mono);
+  --font-serif: var(--font-serif);
+  --ease-out: var(--ease-out);
+  --default-font-family: var(--font-sans);
+}
+
+:root {
+  /* Brand: coral */
+  --coral-50: #fff1ec;
+  --coral-100: #ffe0d4;
+  --coral-200: #ffc2ac;
+  --coral-300: #ff9d7c;
+  --coral-400: #ff7a52;
+  --coral-500: #fb5c2e;
+  --coral-600: #e8430f;
+  --coral-700: #be330a;
+  --coral-800: #8f2708;
+  --coral-900: #5e1b07;
+
+  /* Pearls (one hue per model) + soft tints */
+  --pearl-coral: #fb5c2e;
+  --pearl-amber: #f5a524;
+  --pearl-emerald: #15b881;
+  --pearl-azure: #3b82f6;
+  --pearl-violet: #8b5cf6;
+  --pearl-magenta: #ec4899;
+  --pearl-coral-soft: #ffe3d8;
+  --pearl-amber-soft: #fdefcf;
+  --pearl-emerald-soft: #d2f4e7;
+  --pearl-azure-soft: #dbe9fe;
+  --pearl-violet-soft: #e9e1fd;
+  --pearl-magenta-soft: #fbdcec;
+
+  /* The neutral ramp lives in the LAST `:root` of the sheet and only there — one home. */
+
+  --green-500: #15b881;
+  --green-soft: #d2f4e7;
+  --green-ink: #0c6b4f;
+  --red-500: #e5484d;
+  --red-soft: #fce0e0;
+
+  /* Surfaces */
+  --surface-page: var(--warm-25);
+  --surface-card: var(--warm-0);
+  /* Shell tone behind the transparent rail + sidebar. Defined here as well as in the theme
+     kit so it never falls back to --surface-page, which would make the sidebar read as the page. */
+  --surface-shell: #f6f6f3;
+  --surface-sunken: var(--warm-50);
+  --surface-hover: var(--warm-100);
+  --surface-active: var(--warm-150);
+  --surface-selected: var(--pearl-coral-soft);
+  --surface-inverse: var(--warm-900);
+
+  /* Text */
+  --text-strong: var(--warm-900);
+  --text-body: var(--warm-800);
+  --text-muted: var(--warm-500);
+  --text-faint: var(--warm-400);
+  --text-inverse: var(--warm-0);
+  --text-link: var(--coral-600);
+
+  /* Borders */
+  --border-subtle: var(--warm-150);
+  --border-default: var(--warm-200);
+  --border-strong: var(--warm-300);
+  --border-focus: var(--coral-500);
+
+  /* Brand actions */
+  --brand: var(--coral-500);
+  --brand-hover: var(--coral-600);
+  --brand-active: var(--coral-700);
+  --brand-tint: var(--pearl-coral-soft);
+  --focus-ring: color-mix(in oklch, var(--coral-500) 40%, transparent);
+
+  /* Fonts — Space Grotesk (text + headings) + Space Mono (code), per the
+     chat-app design reference. */
+  --font-sans: "Space Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Newsreader", Georgia, "Times New Roman", serif;
+  --font-mono: "Space Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --weight-regular: 400;
+  --weight-medium: 500;
+  --weight-semibold: 600;
+
+  --text-2xs: 11px;
+  --text-xs: 12px;
+  --text-sm: 13px;
+  --text-base: 15px;
+  --text-md: 17px;
+  --text-lg: 20px;
+  --text-xl: 24px;
+  --text-2xl: 30px;
+  --text-3xl: 38px;
+
+  --tracking-tight: -0.02em;
+  --tracking-caps: 0.08em;
+
+  /* Radius */
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+  --radius-pill: 999px;
+
+  /* Shadows */
+  --shadow-xs: 0 1px 2px rgba(40, 28, 18, 0.05);
+  --shadow-sm: 0 1px 3px rgba(40, 28, 18, 0.06), 0 1px 2px rgba(40, 28, 18, 0.04);
+  --shadow-md: 0 4px 12px rgba(40, 28, 18, 0.07), 0 2px 4px rgba(40, 28, 18, 0.05);
+  --shadow-lg: 0 12px 32px rgba(40, 28, 18, 0.1), 0 4px 8px rgba(40, 28, 18, 0.05);
+  --shadow-xl: 0 24px 60px rgba(40, 28, 18, 0.14), 0 8px 16px rgba(40, 28, 18, 0.06);
+  --shadow-focus: 0 0 0 3px var(--focus-ring);
+  --glow-coral: 0 0 0 4px var(--pearl-coral-soft);
+  /* Paper "page" for the extracted-document text view — a white sheet + dark ink in BOTH
+     themes, like the PDF viewer's rendered pages. One home for the sheet colour. */
+  --doc-paper: #fdfdfc;
+  --doc-ink: #1c1b18;
+  --doc-edge: rgba(40, 28, 18, 0.12);
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+
+  /* Layout */
+  --sidebar-w: 264px;
+  --composer-max: 760px;
+  --reading-max: 680px;
+  --header-h: 56px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--text-base);
+  line-height: 1.45;
+  color: var(--text-body);
+  background: var(--surface-page);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "ss01", "cv01";
+}

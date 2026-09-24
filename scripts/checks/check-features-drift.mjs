@@ -1,37 +1,12 @@
 #!/usr/bin/env node
-// FEATURES.md drift NUDGE — the half `check-features.mjs` can't do (root rule 13).
-//
-// `check-features.mjs` validates the CURRENT state (paths exist, counters match, every
-// section/tab/screen/modal is named) — it has no notion of a commit or a diff, so it
-// cannot catch a feature that shipped with real UI changes but no matching prose. Measured
-// 2026-07-30: 20+ `feat` commits touched `packages/ui/src/{pages,memory,...}` without
-// touching FEATURES.md in the same diff — the mechanical gate stayed green throughout
-// because every path it already knew about was still valid.
-//
-// This script is a NUDGE, not a gate: it diffs the current branch against a base ref, and
-// if FEATURE-SHAPED files changed without FEATURES.md changing alongside them, it prints a
-// warning naming them. It NEVER fails the build — a doc reminder that blocks CI is worse
-// than the drift it's trying to catch (a refactor with no user-facing change would false-
-// positive constantly), and root rule 13 already has a real ratchet in check-features.mjs
-// for the part that CAN be verified mechanically.
-//
-// Base ref resolution, in order: FEATURES_DRIFT_BASE env (CI sets this to the PR base SHA
-// / previous push SHA) → merge-base with origin/main → merge-base with origin/dev →
-// HEAD~1. Any failure (shallow clone, no such ref, detached HEAD with no history) means
-// "can't tell" — the script prints nothing and exits 0, never crashes CI over its own
-// plumbing.
+// Rule 13 NUDGE, never a gate: a diff that changes feature-carrying UI without touching the
+// master file (FEATURES.md or a features/*.md section) gets a reminder on stderr. Exit 0
+// always — a refactor legitimately trips it, and a base it cannot resolve is not a doc fault.
 import { execSync } from "node:child_process";
 
 const root = new URL("../..", import.meta.url).pathname;
 const run = (cmd) => execSync(cmd, { cwd: root, encoding: "utf8" }).trim();
 
-// Directories that are FEATURES.md's actual subject matter — a change here is either a
-// new/changed capability or, often enough, worth a doc glance either way. Deliberately
-// narrower than "anything under packages/ui/src": `agent/`, `send/`, `state/store.ts` are
-// touched by nearly every change (routing, redaction, orchestration) and would make this
-// fire on almost every PR, which is exactly the false-positive-fatigue failure mode a nudge
-// must avoid. Under-catching here is the safe direction — the mechanical gate in
-// check-features.mjs still catches a genuinely NEW screen/tab/setting/modal regardless.
 const FEATURE_DIRS = [
   "packages/ui/src/pages/",
   "packages/ui/src/memory/",
@@ -45,53 +20,41 @@ const FEATURE_DIRS = [
 ];
 const isFeatureFile = (f) =>
   FEATURE_DIRS.some((d) => f.startsWith(d)) && !/\.test\.tsx?$/.test(f) && !f.endsWith(".css");
+const isMasterFile = (f) => f === "FEATURES.md" || /^features\/[^/]+\.md$/.test(f);
 
 function resolveBase() {
   const candidates = [
-    process.env.FEATURES_DRIFT_BASE,
+    () => process.env.FEATURES_DRIFT_BASE,
     () => run("git merge-base HEAD origin/main"),
     () => run("git merge-base HEAD origin/dev"),
     () => run("git rev-parse HEAD~1"),
   ];
   for (const c of candidates) {
     try {
-      const ref = typeof c === "function" ? c() : c;
+      const ref = c();
       if (ref) return ref;
-    } catch {
-      // Try the next candidate — a missing remote ref or a shallow clone is expected
-      // in some environments, not a reason to fail.
-    }
+    } catch {}
   }
   return null;
 }
 
 function main() {
-  let base;
-  try {
-    base = resolveBase();
-  } catch {
-    base = null;
-  }
-  if (!base) return; // Can't determine a base — silently skip, never block.
-
+  const base = resolveBase();
+  if (!base) return;
   let changed;
   try {
     changed = run(`git diff --name-only ${base}...HEAD`).split("\n").filter(Boolean);
   } catch {
-    return; // Same — a diff failure is a plumbing problem, not a doc problem.
+    return;
   }
-  if (!changed.length) return;
-
   const featureFiles = changed.filter(isFeatureFile);
-  if (!featureFiles.length) return;
-  if (changed.includes("FEATURES.md")) return; // Already touched it — nothing to nudge.
+  if (!featureFiles.length || changed.some(isMasterFile)) return;
 
   console.warn(
-    `\n⚠️  ${featureFiles.length} feature-shaped file(s) changed without FEATURES.md in the same diff:\n` +
+    `\n⚠️  ${featureFiles.length} feature-shaped file(s) changed without FEATURES.md / features/*.md in the same diff:\n` +
       featureFiles.map((f) => `    ${f}`).join("\n") +
-      `\n\n  This is NOT blocking — just a reminder (rule 13). If this change adds or alters a\n` +
-      `  user-visible capability, one line in FEATURES.md keeps it from disappearing. If it\n` +
-      `  is pure internal refactoring, ignore this message.\n`,
+      `\n\n  Not blocking (rule 13 reminder). A user-visible capability added or altered gets its\n` +
+      `  line in the matching features/*.md section; pure internal refactoring can ignore this.\n`,
   );
 }
 

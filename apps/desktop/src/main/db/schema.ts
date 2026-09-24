@@ -1,18 +1,17 @@
 import type { Client } from "@libsql/client";
 
 /**
- * Local-only libSQL (SQLite) schema + its tiny in-code migration runner (no Knex):
- * each MIGRATIONS entry is applied once and recorded in schema_migrations. libSQL
- * gives us native vector search (F32_BLOB + vector_distance_cos) for the embeddings store.
+ * Local-only libSQL schema + its in-code migration runner: each entry is applied once and
+ * recorded in schema_migrations. Migrations are append-only; a column's meaning is in its
+ * migration comment, once.
  */
 
 /** Embedding dimension. Must match your embedding model (OpenAI 3-small = 1536). */
 export const EMBED_DIM = 1536;
 
-/** The MÉMOIRE's on-device embedding dimension (multilingual-e5-small = 384). Separate
- *  from EMBED_DIM on purpose: `embeddings` is the remote-endpoint message store, while
- *  `memory_embeddings` may only ever be fed by the LOCAL embedder — a memory card is
- *  real PII whose text must never reach a network embeddings API. */
+/** The MEMORY's on-device embedding dimension. Separate from EMBED_DIM on purpose:
+ *  `memory_embeddings` may only ever be fed by the LOCAL embedder (a memory card is real
+ *  PII that must never reach a network embeddings API). */
 export const MEMORY_EMBED_DIM = 384;
 
 const MIGRATIONS: { name: string; statements: string[] }[] = [
@@ -53,15 +52,12 @@ const MIGRATIONS: { name: string; statements: string[] }[] = [
     ],
   },
   {
-    // Persist each redacted value's category (name/email/phone/company/number)
-    // so per-type highlight colours survive a reload.
+    // Each redacted value's category, for per-type highlight colours.
     name: "0003_redaction_kind",
     statements: [`ALTER TABLE redactions ADD COLUMN kind TEXT`],
   },
   {
-    // created_at / updated_at (epoch ms) on every table. conversations already
-    // had both; add to the rest and backfill old rows from their conversation
-    // (or now() when there's no parent timestamp).
+    // created_at / updated_at (epoch ms) on every table, backfilled from the conversation.
     name: "0005_timestamps",
     statements: [
       `ALTER TABLE messages ADD COLUMN created_at INTEGER`,
@@ -89,9 +85,8 @@ const MIGRATIONS: { name: string; statements: string[] }[] = [
     ],
   },
   {
-    // Attached files: the BYTES live on disk under userData/files; the DB only
-    // keeps the PATHS (to the user's original and to the redacted version sent to
-    // the model — scrubbed_path is null for a blocked format never uploaded).
+    // Attached files: the BYTES live under userData/files, the DB keeps the PATHS
+    // (scrubbed_path is null for a blocked format).
     name: "0006_files",
     statements: [
       `CREATE TABLE IF NOT EXISTS files (
@@ -108,16 +103,12 @@ const MIGRATIONS: { name: string; statements: string[] }[] = [
     ],
   },
   {
-    // Attached-file references on each message (the chips: name/kind/mime), as
-    // JSON — so they survive a reload (DB is the source of truth). The bytes live
-    // in the `files` table; this restores the message's display references.
+    // Attached-file references on each message (the chips), as JSON.
     name: "0007_message_attachments",
     statements: [`ALTER TABLE messages ADD COLUMN attachments TEXT`],
   },
   {
-    // Content hash (sha256 of the original bytes) so the SAME file attached to
-    // several conversations is recognised as one — powers the library's "used in
-    // N conversations" + re-attach. Old rows stay null (no bytes re-hashed).
+    // sha256 of the original bytes, so the SAME file across conversations is one.
     name: "0008_file_hash",
     statements: [
       `ALTER TABLE files ADD COLUMN content_hash TEXT`,
@@ -125,18 +116,13 @@ const MIGRATIONS: { name: string; statements: string[] }[] = [
     ],
   },
   {
-    // Per-message token usage ({model,inputTokens,outputTokens}) as JSON, so the
-    // usage stats / prompt counts survive a reload instead of being dropped when
-    // the DB load overwrites the localStorage copy. Old rows stay null.
+    // Per-message token usage ({model,inputTokens,outputTokens}) as JSON.
     name: "0009_message_usage",
     statements: [`ALTER TABLE messages ADD COLUMN usage TEXT`],
   },
   {
-    // The model id that ACTUALLY produced each assistant reply (pinned at send
-    // time) + the tool-struggle hint (JSON) — so switching the conversation's
-    // model later doesn't rewrite older badges, and the "try a stronger model"
-    // banner survives a reload. Old rows stay null (fall back to usage.model /
-    // the current model). Both were previously localStorage-only.
+    // The model that ACTUALLY produced each reply (pinned at send time) + the
+    // tool-struggle hint (JSON).
     name: "0010_message_model",
     statements: [
       `ALTER TABLE messages ADD COLUMN model TEXT`,
@@ -144,78 +130,48 @@ const MIGRATIONS: { name: string; statements: string[] }[] = [
     ],
   },
   {
-    // The failed-turn error DETAIL. The `error` flag was persisted but its text
-    // wasn't, so after a reload an errored bubble lost WHY it failed — it showed
-    // the generic "La réponse a échoué." with no clue (the specific provider
-    // message only lived in the transient send-time state). Persist it so the
-    // reason survives a reload. Old rows stay null (fall back to the generic text).
+    // The failed-turn error DETAIL (null ⇒ the generic text).
     name: "0011_message_error_text",
     statements: [`ALTER TABLE messages ADD COLUMN error_text TEXT`],
   },
   {
-    // The agentic MCP workflow trace (JSON): the ordered tool calls made while
-    // producing an assistant reply (connector + tool + ok + result blurb). It was
-    // persisted only in localStorage, so a DB-backed reload dropped the trace card
-    // entirely. Persist it so the succession of tool calls survives a reload. Old
-    // rows stay null (no trace shown, as before).
+    // The agentic workflow trace (JSON): the ordered tool calls behind a reply.
     name: "0012_message_tool_calls",
     statements: [`ALTER TABLE messages ADD COLUMN tool_calls TEXT`],
   },
   {
-    // Whether the assistant reply was cut off (stream interrupted by a quit/reload
-    // mid-answer). The DB had NO pending/incomplete column, so a DB-backed reload
-    // brought the interrupted reply back as a BLANK, "completed" bubble with no way
-    // to retry — the user had to recopy their message. Persist it (folding the
-    // transient `pending` into it on save) so the "Réponse interrompue — Réessayer"
-    // notice survives a reload. Old rows stay 0 (complete, as before).
+    // Whether the reply was cut off mid-stream (the transient `pending` folds into it
+    // on save), so the "Réessayer" notice survives a reload.
     name: "0013_message_incomplete",
     statements: [`ALTER TABLE messages ADD COLUMN incomplete INTEGER DEFAULT 0`],
   },
   {
-    // Per-file masked count (distinct redacted values IN that file) so the library
-    // card can show "N masqués" without re-deriving it. Old rows stay 0 → the card
-    // falls back to a shield with no number until the file is re-saved.
+    // Distinct redacted values IN that file, for the library card.
     name: "0014_file_redacted_count",
     statements: [`ALTER TABLE files ADD COLUMN redacted_count INTEGER DEFAULT 0`],
   },
   {
-    // Per-conversation REDACTION config (JSON): the "Cette conversation" category
-    // override (`redactCategories`), the values sent in clear (`revealedValues`) and
-    // the manual "Redact" redactions (`forcedRedactions`). These were localStorage-
-    // ONLY, so a DB-backed reload (or the DB-wins merge on account load) DROPPED them —
-    // the per-conversation redaction rules silently reverted to the global defaults.
-    // Persist so they survive a reload. Old rows stay null (fall back to global).
+    // Per-conversation REDACTION config (JSON): category override, revealed values,
+    // forced redactions. Null ⇒ the global defaults.
     name: "0015_conversation_redaction_config",
     statements: [`ALTER TABLE conversations ADD COLUMN redaction_config TEXT`],
   },
   {
-    // The compétence sent with a user message (JSON `{id, name, prompt}`): its prompt
-    // rides the model payload, not `content`, so the tag on the bubble is its only
-    // trace. The DB had no column, and the load merge is "DB wins" — so a reload
-    // dropped the tag entirely, even though localStorage deliberately keeps `id`/`name`
-    // (`send/sendGuards.ts` strips only the `prompt`, which is real user text and
-    // belongs here, encrypted). Old rows stay null → no tag, as before.
+    // The skill sent with a user message (JSON `{id, name, prompt}`). The `prompt` is
+    // real user text: it belongs here, encrypted, never in localStorage.
     name: "0016_message_competence",
     statements: [`ALTER TABLE messages ADD COLUMN competence TEXT`],
   },
   {
-    // The file's EXTRACTION (JSON `{text, ocrText?, words?, ocr?}`) — the OCR/parse result,
-    // persisted so a RE-ATTACH reuses it instead of re-running OCR. Raw real PII, so it
-    // rides the ENCRYPTED DB (never localStorage). Old rows stay null → the reattach path
-    // falls back to re-extraction. Sits in the DB (not a sidecar) because the DB column is
-    // already encrypted at rest; `words` can be bulky for a multi-page scan (accepted).
+    // The file's EXTRACTION (JSON), so a RE-ATTACH skips OCR. Raw real PII: it rides the
+    // ENCRYPTED DB, never localStorage.
     name: "0017_file_extraction",
     statements: [`ALTER TABLE files ADD COLUMN extraction TEXT`],
   },
   {
-    // Semantic-recall cache for the MÉMOIRE: one vector per card (or the "profile"
-    // sentinel), computed ON-DEVICE. Deliberately NO raw-text column — the card text
-    // lives in Settings; this table holds only the vector plus what invalidation
-    // needs (`model` = which local embedder produced it, `text_hash` = sha256 of the
-    // embedded surface, so an edited card re-embeds and a model upgrade drops the
-    // cache wholesale). Re-derivable ⇒ best-effort in the encrypted migration, like
-    // `embeddings`. No ANN index: a memory holds tens-to-hundreds of cards, and an
-    // exact vector_distance_cos scan at that scale is faster than maintaining one.
+    // Semantic-recall cache for the MEMORY, computed ON-DEVICE. NO raw-text column: only
+    // the vector plus what invalidation needs (`model`, `text_hash`). No ANN index: an
+    // exact scan over hundreds of cards beats maintaining one.
     name: "0018_memory_embeddings",
     statements: [
       `CREATE TABLE IF NOT EXISTS memory_embeddings (
@@ -228,21 +184,14 @@ const MIGRATIONS: { name: string; statements: string[] }[] = [
     ],
   },
   {
-    // The model's REFLECTION for an assistant turn — the chain of thought a reasoning
-    // model streams beside its answer, un-redacted through the conversation's vault.
-    // It used to be dropped the instant the answer landed, so the one thing explaining
-    // a 40-second turn vanished exactly when the user could have read it. This DB is
-    // its ONLY at-rest home: it holds real values and is unbounded, so the plaintext
-    // localStorage mirror strips it (`ui` `stripVaultForLocal`). Old rows stay null →
-    // no « Réflexion » line, as before.
+    // The model's REASONING for a turn, un-redacted through the vault. This DB is its
+    // ONLY at-rest home (real values, unbounded): the localStorage mirror strips it.
     name: "0019_message_reasoning",
     statements: [`ALTER TABLE messages ADD COLUMN reasoning TEXT`],
   },
   {
-    // How an AUTO-mode turn was billed ("free" | "byo" | "metered"), stamped at send
-    // time. It is a claim about MONEY (« via votre abonnement »), so it must survive a
-    // reload — deriving it later from the conversation's current mode would mislabel
-    // turns sent before a switch to Auto. Old rows stay null → no caption, as before.
+    // How an AUTO-mode turn was billed, stamped at send time: a claim about MONEY,
+    // never re-derived from the conversation's current mode.
     name: "0020_message_auto_routed",
     statements: [`ALTER TABLE messages ADD COLUMN auto_routed TEXT`],
   },

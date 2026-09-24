@@ -9,12 +9,11 @@ import type { DesktopRelease } from "../../../host";
 
 import { useT } from "../../../i18n";
 // The version HISTORY list of the Versions tab — a card list of published builds,
-// each expandable to its Contentful release notes (fetched from analytics-fn and
-// matched by version). Mirrors the design-system `VersionsSection`. Split out of
-// `UpdatesSection` to keep both files under the 300-LOC limit.
+// each expandable to its published release note (matched by version). Mirrors the
+// design-system `VersionsSection`.
 
 /** Build a `version → ReleaseNote` lookup that tolerates the build's pre-release
- *  suffix (the Contentful note is keyed on the base X.Y.Z). The rule « one note per
+ *  suffix (the published note is keyed on the base X.Y.Z). The rule « one note per
  *  version, the most recent » is `latestPerVersion` — shared with the help
  *  center's history, which applies it to the same list (rule 9). */
 export function noteLookup(notes: ReleaseNote[]): (version: string) => ReleaseNote | undefined {
@@ -55,7 +54,7 @@ export function ReleaseTable({
   isCurrent: (r: DesktopRelease) => boolean;
   /** The running build's version, to classify each row as newer/older. */
   currentVersion?: string;
-  /** The Contentful release note for a build version (from analytics-fn), if any. */
+  /** The published release note for a build version, if any. */
   noteFor: (version: string) => ReleaseNote | undefined;
   action: (r: DesktopRelease, cur: boolean) => React.ReactNode;
 }) {

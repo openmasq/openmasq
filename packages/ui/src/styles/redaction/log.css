@@ -1,0 +1,95 @@
+/* Tones mirror the mark highlights. */
+/* The mark's popover wears its category's hue (border + header band), so it takes the
+   SAME tokens as the mark itself — including the per-hue ink, since the header text
+   sits ON the fill. */
+/* (The popover's tone and the mark's soft fill both read the `.hl-<hue>` map's tokens —
+   see `--rmark-tone` / `--mark-fill` where they are declared.) */
+
+/* Redaction-log modal (per-conversation: messages + 📎 files). */
+.rlog-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border-default);
+}
+.rlog-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-default);
+  color: var(--text-strong);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.rlog-head-text {
+  flex: 1;
+}
+.rlog-title {
+  font-size: var(--text-md);
+  font-weight: 600;
+  color: var(--text-strong);
+}
+.rlog-sub {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+.rlog-body {
+  overflow-y: auto;
+  padding: 16px 22px 22px;
+}
+.rlog-empty {
+  text-align: center;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  padding: 30px 0;
+}
+.rlog-entry {
+  margin-bottom: 18px;
+}
+.rlog-entry .cv-eyebrow {
+  margin-bottom: 8px;
+}
+.rlog-card {
+  background: var(--surface-sunken);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+  font-size: var(--text-sm);
+  line-height: 1.6;
+  color: var(--text-body);
+}
+.rlog-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+/* Redaction MAPPING rows (fake the model saw → real value) in the redaction log. */
+.rlog-maps {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.rlog-map {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+.rlog-map-arrow {
+  color: var(--text-faint);
+  flex-shrink: 0;
+}
+.rlog-map-real {
+  color: var(--text-strong);
+  font-weight: 500;
+  word-break: break-word;
+}
+.rlog-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}

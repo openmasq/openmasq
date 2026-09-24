@@ -27,9 +27,21 @@ describe("credentials embedded in a URL are still redacted (url gate off)", () =
 // so exempting them costs no precision and closes a real leak.
 describe("contact identity embedded in a URL is still redacted (url gate off)", () => {
   const cases: Array<[string, string, string]> = [
-    ["e-mail dans une query string", "Fiche : https://crm.acme.fr/c?email=jean.rebour@acme.fr", "jean.rebour@acme.fr"],
-    ["e-mail dans un mailto", "Écris via https://acme.fr/x?to=jean.rebour@acme.fr", "jean.rebour@acme.fr"],
-    ["téléphone dans une query string", "Appel : https://crm.acme.fr/contact?tel=0612345678", "0612345678"],
+    [
+      "e-mail dans une query string",
+      "Fiche : https://crm.acme.fr/c?email=jean.rebour@acme.fr",
+      "jean.rebour@acme.fr",
+    ],
+    [
+      "e-mail dans un mailto",
+      "Écris via https://acme.fr/x?to=jean.rebour@acme.fr",
+      "jean.rebour@acme.fr",
+    ],
+    [
+      "téléphone dans une query string",
+      "Appel : https://crm.acme.fr/contact?tel=0612345678",
+      "0612345678",
+    ],
   ];
 
   for (const [label, input, secret] of cases) {
@@ -102,5 +114,59 @@ describe("chaîne de connexion : le span ENTIER, jamais son fragment e-mail", ()
     });
     expect(text).toContain("jean@exemple.fr");
     expect(Object.values(vault)).not.toContain("jean@exemple.fr");
+  });
+});
+
+// A documentation PLACEHOLDER is not a credential: a coding agent walking a repo reads
+// `postgres://user:pass@host` in a README and a compaction summary constantly, and faking it
+// into a name (`… -> Clotilde`) corrupts the very text the agent reasons on. The discriminant
+// is the host: a real connection points at an FQDN or an IP, so a dot-less host beside a
+// placeholder password is an example. A real DSN stays masked. `rules.connection.ts`.
+describe("the connection-string rule skips a placeholder and masks a real DSN", () => {
+  const placeholders = [
+    "postgres://user:pass@host",
+    "mongodb://user:pass@host",
+    "mongodb+srv://user:pass@cluster",
+    "redis://admin:changeme@cache",
+    "postgres://user:secret@host",
+    "mysql://root:root@localhost",
+  ];
+  for (const p of placeholders)
+    it(`keeps ${p}`, async () => {
+      const { text, matches } = await pseudonymize("connect with " + p, { vault: {} });
+      expect(matches.some((m) => m.type === "connection_string")).toBe(false);
+      expect(text).toContain(p);
+    });
+
+  // A real DSN — real host, real password — is masked. The category label is not the point
+  // (an aggressive secret rule may claim it before connection_string); the value leaving is.
+  const real = [
+    "postgres://acme_ro:S3cr3t-Prod-2026@db-prod.internal:5432/app",
+    "mongodb+srv://svc:Xk9pQ2mn@cluster0.ab12.mongodb.net/prod",
+    "redis://default:AJ8kd0Lm2@10.0.4.7:6379",
+  ];
+  for (const dsn of real)
+    it(`masks ${dsn.slice(0, 24)}`, async () => {
+      const { text } = await pseudonymize("DSN " + dsn, { vault: {} });
+      expect(text).not.toContain(dsn);
+    });
+});
+
+// An SRI / npm-lockfile integrity hash is a PUBLIC content checksum, never a secret — the
+// algorithm name is its prefix. The token rule renamed it and corrupted the lockfile the agent
+// reads (`codeTerms.ts` `isIntegrityHash`). A real key of the same base64 shape still masks.
+describe("an integrity hash is not a secret", () => {
+  const hashes = [
+    "sha512-9f8e7d6c5b4a3f2e1d0c9b8a7f6e5d4c3b2a1908f7e6d5c4b3a2910ffeeddcc",
+    "sha384-oqVuAfXRKap7fdgcXWz3iyb2K7uMxO1a9pQ",
+    "sha256-abcDEF123456ghijklMNOP789",
+  ];
+  for (const h of hashes)
+    it(`keeps ${h.slice(0, 12)}`, () => {
+      expect(redact(`"integrity":"${h}"`).text).toContain(h);
+    });
+  it("still masks a bare base64 token with no algorithm prefix", () => {
+    const clean = "AbcDEfGh123456789jklMNOpqRStuVWxyz0";
+    expect(redact(`token ${clean}`).text).not.toContain(clean);
   });
 });

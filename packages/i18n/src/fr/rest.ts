@@ -7,8 +7,7 @@ import type { Messages } from "../messages";
 export const login = {
   heading: "Content de vous revoir.",
   headingFirst: (brand) => `Connexion à ${brand}`,
-  subheading:
-    "Entrez votre e-mail : nous vous envoyons un lien de connexion, sans mot de passe.",
+  subheading: "Entrez votre e-mail : nous vous envoyons un lien de connexion, sans mot de passe.",
   inviteOnly:
     "Accès sur invitation : votre adresse doit avoir été ouverte de notre côté avant la première connexion.",
   checkYourEmail: "Consultez vos e-mails",
@@ -59,7 +58,8 @@ export const orgShares = {
     termNote:
       "Le terme et son substitut deviennent communs avec les destinataires : ce nom sera masqué de la même façon dans vos conversations.",
     redactedNote: (n) => `${n} élément${n > 1 ? "s" : ""} masqué${n > 1 ? "s" : ""}`,
-    redactedTail: " avant le partage — le texte ci-dessus est exactement ce que verront les autres.",
+    redactedTail:
+      " avant le partage — le texte ci-dessus est exactement ce que verront les autres.",
     clean: "Aucune donnée sensible détectée dans ce contenu.",
     send: "Envoyer la demande",
   },
@@ -190,15 +190,22 @@ export const modelPicker = {
       loading: "Lecture du compte…",
       unavailable: "La CLI n'a pas répondu — est-elle connectée ?",
       plan: (plan) => `Offre : ${plan}`,
-      windowOf: (minutes) => (minutes >= 1440 ? `${Math.round(minutes / 1440)} j` : `${Math.round(minutes / 60)} h`),
+      windowOf: (minutes) =>
+        minutes >= 1440 ? `${Math.round(minutes / 1440)} j` : `${Math.round(minutes / 60)} h`,
       quotaUsed: (percent, window) => `${percent} % de la fenêtre ${window} utilisés`,
       resets: (date) => `réinitialisation ${date}`,
       statusOk: "Quota disponible",
       statusWarning: "Quota presque atteint",
       statusExhausted: "Quota épuisé",
-      windowName: (window) => (window === "five_hour" ? "fenêtre 5 h" : window === "weekly" ? "fenêtre hebdomadaire" : window),
+      windowName: (window) =>
+        window === "five_hour"
+          ? "fenêtre 5 h"
+          : window === "weekly"
+            ? "fenêtre hebdomadaire"
+            : window,
       lastTurn: "Vu au dernier envoi",
-      claudeNoData: "Le quota s'affichera après un premier envoi : cette CLI ne le donne qu'en cours de tour.",
+      claudeNoData:
+        "Le quota s'affichera après un premier envoi : cette CLI ne le donne qu'en cours de tour.",
       modelsTitle: "Modèles du compte",
       defaultTag: "défaut",
       noModels: "Liste non fournie par cette CLI.",
@@ -224,6 +231,12 @@ export const leaves = {
     custom: "Sur mesure",
     customNote:
       "Vos réglages, catégorie par catégorie. Choisir un niveau ci-dessus les remplacera.",
+    perConnector: {
+      label: "Niveau de masquage de ce connecteur",
+      followsDefault: "Défaut",
+      followsDefaultHint: (globalLevel) =>
+        `Suit votre niveau général (${globalLevel}). C'est le cas de presque tous les connecteurs.`,
+    },
   },
   demo: { youWrite: "CE QUE VOUS ÉCRIVEZ", modelReceives: "CE QUE LE MODÈLE REÇOIT" },
   toolTrace: "APPEL D'OUTILS",

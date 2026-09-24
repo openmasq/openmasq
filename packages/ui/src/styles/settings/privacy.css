@@ -1,0 +1,178 @@
+/* Settings → Privacy report (data-driven type colour + bar width stay inline). */
+/* ── Privacy: the level, the empty state, the rules fold ────────────────────────
+   Three cards for ONE decision, so the page opens on a choice instead of on a
+   eighteen-row matrix. */
+/* « Avancé » — the rail's one disclosure. */
+.settings-rail-more { color: var(--text-muted); }
+.settings-rail-more .settings-rail-ico {
+  transition: transform 140ms var(--ease-out, ease);
+}
+.settings-rail-more.on .settings-rail-ico { transform: rotate(180deg); }
+.privacy-levels {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 10px;
+  margin-bottom: 12px;
+}
+.privacy-level {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px 16px;
+  text-align: left;
+  background: var(--surface-card);
+  /* `--border-default`, NOT `--border-subtle`, which the borderless skin renders transparent:
+   with no visible outline an unselected card no longer reads as a card. Selection is said
+   by the BACKGROUND, not by the outline colour. */
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition: border-color 120ms var(--ease-out, ease), background 120ms var(--ease-out, ease);
+}
+.privacy-level:hover { border-color: var(--text-muted); }
+.privacy-level.on {
+  border-color: var(--brand);
+  background: var(--surface-hover);
+}
+.privacy-level-custom { cursor: default; }
+.privacy-level-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-strong);
+}
+/* A level that protects less is signalled only by its icon (the eye instead of the shield,
+   `PrivacyLevelPicker`) and by the matrix unfolded under the cards. The three cards wear
+   the same neutral hairline; the fill says which one is chosen. */
+.privacy-level-name { font-weight: 600; font-size: var(--text-md); }
+.privacy-level-check { margin-left: auto; color: var(--brand-text); display: inline-flex; }
+.privacy-level-desc {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+/* The level's trade-off — always shown (rule 8): more discreet than the
+   description, never hidden. */
+.privacy-level-tradeoff {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  font-style: italic;
+  line-height: 1.4;
+  opacity: 0.9;
+}
+.privacy-empty {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 18px 20px;
+  color: var(--text-muted);
+}
+.privacy-empty p { margin: 0; font-size: var(--text-sm); line-height: 1.5; }
+.privacy-audit-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 10px;
+  padding: 0;
+  background: none;
+  border: none;
+  color: var(--brand-text);
+  font-size: var(--text-sm);
+  cursor: pointer;
+}
+.privacy-audit-link:hover { text-decoration: underline; }
+/* The category matrix is a DISCLOSURE now: closed on a preset, open when hand-tuning. */
+.settings-rules-toggle {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 18px;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+}
+.settings-rules-toggle .row-body { display: flex; flex-direction: column; gap: 2px; }
+/* The page's one way into the category matrix is a <button>, so `.toggle-row .row-title`
+   sizes do not apply to it and its scale is set here. It sits under the level cards and
+   reads as one of them, so it takes their tokens (`--text-md` / `--text-sm`, weight 600) —
+   the same as `.privacy-level-name` / `-desc`. */
+.settings-rules-toggle .row-title {
+  font-size: var(--text-md);
+  font-weight: 600;
+  color: var(--text-strong);
+  line-height: 1.25;
+}
+.settings-rules-toggle .row-desc {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  line-height: 1.45;
+}
+.settings-rules-chev {
+  margin-left: auto;
+  color: var(--text-muted);
+  display: inline-flex;
+  transition: transform 140ms var(--ease-out, ease);
+}
+.settings-rules-chev.on { transform: rotate(180deg); }
+.privacy-stats {
+  display: flex;
+  gap: 16px;
+  align-items: stretch;
+}
+.privacy-card-stat,
+.privacy-card-types {
+  padding: 18px;
+  box-shadow: none;
+}
+.privacy-card-stat {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+/* The stat card is now a button that opens the by-type modal. */
+.privacy-card-btn {
+  width: 100%;
+  text-align: left;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  transition: background 0.14s ease, border-color 0.14s ease;
+}
+.privacy-card-btn:hover:not(:disabled) {
+  background: var(--surface-hover);
+  border-color: var(--border-strong);
+}
+.privacy-card-btn:disabled {
+  cursor: default;
+}
+.privacy-stat-textcol {
+  display: flex;
+  flex-direction: column;
+}
+.privacy-card-cta {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+.chev-rot-90 {
+  display: inline-flex;
+  transform: rotate(-90deg);
+}
+.privacy-modal-body {
+  padding: 18px 20px 20px;
+}
+/* Settings → Compte: the signed-in account card (+ `styles/accountOrg.css`). */
+.account-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 18px;
+}

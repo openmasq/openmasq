@@ -1,26 +1,17 @@
 name: audit
 
-# Dependency-audit GATE. Runs `pnpm audit` and fails ONLY on high/critical
-# advisories that reach a SHIPPED or internet-facing surface (see
-# scripts/checks/audit-gate.mjs — SERVED_WORKSPACES + the dev-tool denylist). Dev/build/
-# test tooling (electron-builder, vitest, wrangler, vite, react-email's Next, …)
-# is reported but never fails the build, so the signal isn't drowned by noise.
+# Dependency-audit GATE. Runs `pnpm audit` and fails ONLY on high/critical advisories that
+# reach a SHIPPED surface (scripts/checks/audit-gate.mjs). Dev/build/test tooling is
+# reported but never fails the build.
 #
-# ⚠️ NOT a required status check yet. Today it is RED on real existing debt
-# (Electron 43 · xlsx vendored at 0.20.3 under vendor/ · Hono 4.9 on apps/updates · path-to-regexp ReDoS).
-# It's informational until that debt is cleared; once it goes green, add `audit`
-# to the branch-protection required checks (Terraform-managed
-# required_status_checks, outside this repo) to make it blocking.
+# ⚠️ NOT a required status check yet: it is RED on known, existing debt. Informational until
+# that debt is cleared; once green, add `audit` to the branch-protection required checks.
 on:
-  # NEITHER on push NOR on pull_request: this gate deploys nothing, isn't a required check,
-  # and it's RED on known debt (see above) — a run per PR was therefore adding
-  # 25 failures out of 300 runs that taught nobody anything and drowned the real reds.
-  # Security advisories are TIME-BASED anyway (a CVE arrives with no code
-  # change): the weekly cron tracks the debt better than a run per commit, and the workflow
-  # stays launchable by hand before a dependency change.
-  # ⚠️ The day it turns green and becomes a required check (branch protection,
-  # on the Terraform side), PUT BACK `pull_request: branches: [main, dev]` on it — a
-  # required check that never triggers blocks every PR.
+  # NEITHER on push NOR on pull_request: this gate is not a required check and is red on
+  # known debt, so a run per PR would only drown the real reds. Advisories are TIME-BASED
+  # anyway: a weekly cron tracks the debt better than a run per commit. ⚠️ The day it becomes
+  # a required check, PUT BACK `pull_request: branches: [main, dev]` — a required check that
+  # never triggers blocks every PR.
   schedule:
     - cron: "0 6 * * 1" # Mondays 06:00 UTC
   workflow_dispatch:

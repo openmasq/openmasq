@@ -1,0 +1,93 @@
+/* Onboarding (3-step). Accent/tone/per-item highlight colours stay inline (data). */
+/* Onboarding floats over the blurred app in the shared `.auth-scrim` (like LoginScreen),
+   using this wider card. */
+.ob-card {
+  margin: auto;
+  width: 600px;
+  max-width: 94vw;
+  /* Bounded to the viewport, with `.ob-body` as the only scroller, so the footer
+     (Passer / Commencer) is always on screen even when the category list outgrows a laptop
+     display. */
+  max-height: calc(100dvh - 40px);
+  flex-shrink: 0;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-xl);
+  box-shadow: 0 12px 32px rgba(24, 40, 12, 0.1), 0 4px 8px rgba(24, 40, 12, 0.05);
+  padding: 26px 30px 24px;
+  display: flex;
+  flex-direction: column;
+}
+.ob-word {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  margin-bottom: 16px;
+  flex-shrink: 0;
+}
+.ob-word-ch {
+  font-size: 20px;
+  line-height: 1;
+  color: var(--text-strong);
+}
+.ob-progress {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 24px;
+}
+.ob-progress-track {
+  flex: 1;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--surface-sunken);
+  overflow: hidden;
+}
+.ob-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--mk);
+  transition: width 0.35s var(--ease-out);
+}
+.ob-body {
+  position: relative;
+  /* The card's ONE scroll area (see `.ob-card`): grows to fill, shrinks to fit. */
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+.ob-body-inner {
+  padding-top: 4px;
+}
+.ob-eyebrow {
+  margin-bottom: 10px;
+}
+.ob-title {
+  font-size: var(--text-2xl);
+  color: var(--text-strong);
+  line-height: 1.12;
+  margin-bottom: 8px;
+}
+/* A hue travels with its own ink: the highlight paints `--mk`, so the text on it is
+   `--mk-ink`, not `--text-strong`, which flips near-white in dark mode (rule 12). */
+.ob-title-hl {
+  padding: 0 6px;
+  border-radius: 5px;
+  background: var(--mk);
+  color: var(--mk-ink);
+}
+.ob-sub {
+  font-size: var(--text-md);
+  color: var(--text-muted);
+  margin-bottom: 22px;
+  line-height: 1.5;
+}
+.ob-footer {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(24, 40, 12, 0.1);
+  /* Never squeezed out by the scrolling body above it. */
+  flex-shrink: 0;
+}

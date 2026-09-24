@@ -17,16 +17,16 @@ import { join } from "node:path";
 const repo = join(__dirname, "..", "..", "..", "..", "..");
 const halo = readFileSync(join(__dirname, "browser", "haloOverlay.ts"), "utf-8");
 const card = readFileSync(join(repo, "packages/ui/src/styles/auth/card.css"), "utf-8");
-const styles = readFileSync(join(repo, "packages/ui/src/styles.css"), "utf-8");
+const styles = readFileSync(join(repo, "packages/ui/src/styles/theme/lightKit.css"), "utf-8");
 
 /** Whitespace-insensitive CSS compare: strip spaces/newlines, drop trailing `;` in blocks. */
 const norm = (s: string): string => s.replace(/\s+/g, "").replace(/;}/g, "}");
 
-/** The FIRST definition of a token in styles.css is the `:root` base (the later ones are
+/** The FIRST definition of a token in the light-theme kit sheet is the `:root` base (the later ones are
  *  theme re-points — the login screen renders on the base theme by default). */
 function rootToken(name: string): string {
   const m = styles.match(new RegExp(`${name}:\\s*(#[0-9a-fA-F]{3,8})`));
-  if (!m) throw new Error(`token ${name} not found in styles.css`);
+  if (!m) throw new Error(`token ${name} not found in the light-theme kit sheet`);
   return m[1].toLowerCase();
 }
 

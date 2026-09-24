@@ -1,0 +1,221 @@
+/* (`--mk` comes from the `.hl-<hue>` map — nothing to repeat here.) */
+
+/* The action tag injected into the composer from the selection menu. */
+.composer-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  height: 24px;
+  margin: 0 0 8px;
+  padding: 0 6px 0 9px;
+  border-radius: var(--radius-pill, 999px);
+  border: 1px solid var(--border-default);
+  background: var(--surface-hover);
+  color: var(--text-strong);
+  font-size: 12px;
+  font-weight: 600;
+}
+.composer-tag svg {
+  flex-shrink: 0;
+}
+.composer-tag.tone-lime {
+  border-color: var(--hl-lime);
+  color: var(--brand-text);
+}
+.composer-tag.tone-lime svg {
+  color: var(--brand-text);
+}
+.composer-tag.tone-forest svg {
+  color: var(--text-muted);
+}
+/* Staged WORKFLOW chip (violet) + its scoped-connector mini chips — the visible
+   half of the guidance line the payload carries. Shared hue system (--hl-*). */
+.composer-tag.tone-violet {
+  border-color: var(--hl-violet);
+}
+.composer-tag.tone-violet > svg {
+  color: var(--text-strong);
+}
+.composer-tag-srvs {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  overflow: hidden;
+}
+.composer-tag-srv {
+  display: inline-flex;
+  align-items: center;
+  height: 16px;
+  padding: 0 6px;
+  border-radius: var(--radius-pill, 999px);
+  background: var(--mk, var(--hl-violet));
+  color: var(--mk-ink, var(--text-strong));
+  font-size: 10.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.composer-tag-srv.tone-violet { --mk: var(--hl-violet); --mk-ink: var(--ink-on-hl-violet); }
+.composer-tag-srv.tone-sky { --mk: var(--hl-sky); --mk-ink: var(--ink-on-hl-sky); }
+.composer-tag-srv.tone-lime { --mk: var(--hl-lime); --mk-ink: var(--ink-on-hl-lime); }
+.composer-tag-srv.tone-mint { --mk: var(--hl-mint); --mk-ink: var(--ink-on-hl-mint); }
+.composer-tag-srv.tone-amber { --mk: var(--hl-amber); --mk-ink: var(--ink-on-hl-amber); }
+.composer-tag-srv.tone-coral { --mk: var(--hl-pink); --mk-ink: var(--ink-on-hl-pink); }
+/* The values to fill in for a staged workflow (`{date}`, `{sujet}`): an outline, not a
+   filled dot — a blank to fill, not an acquired capability like a connector. */
+.composer-tag-slot {
+  display: inline-flex;
+  align-items: center;
+  height: 16px;
+  padding: 0 6px;
+  border-radius: var(--radius-pill, 999px);
+  border: 1px dashed var(--border-strong);
+  color: var(--text-muted);
+  font-size: 10.5px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+/* Passive MÉMOIRE hint (« sera noté en mémoire ») — quieter than an intent tag: no ×,
+   violet accent, padding closes symmetrically since there is no trailing button. */
+.composer-memhint {
+  padding-right: 9px;
+  border-color: var(--hl-violet);
+}
+.composer-memhint svg {
+  color: var(--hl-violet);
+}
+/* The label as a deep-link to what the tag stands for. It inherits the chip's type and
+   colour on purpose — it must read as the chip, not as a link glued inside it; only the
+   hover underline says it is clickable. */
+.composer-tag-edit {
+  border: none;
+  padding: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+.composer-tag-edit:hover {
+  text-decoration: underline;
+}
+.composer-tag-x {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 14px;
+  line-height: 1;
+}
+.composer-tag-x:hover {
+  color: var(--text-strong);
+}
+.composer-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  /* The row must be able to go narrower than its content: the send button morphs into a
+     « ⟳ Masquage » pill while redaction runs, `.flex-spacer` absorbs that down to 0, and past
+     that the model chip yields (see `.model-chip-label`) — otherwise the row scrolls sideways. */
+  min-width: 0;
+}
+/* Everything except the chip keeps its size: the glyph controls are pinned so the whole
+   squeeze goes to the chip, which absorbs it down to a 220px composer. */
+.composer-row > .composer-skill-wrap,
+.composer-row > .icon-btn,
+.composer-row > .send-btn {
+  flex-shrink: 0;
+}
+/* The « N à masquer » pill is the second thing to give, and it CLIPS rather than
+   spilling — the same failure the send button had, one element further left. */
+.composer-row > .protected-pill {
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
+}
+/* Token counter — floated into the composer-wrap's existing bottom padding
+   (bottom-right), so it adds NO vertical row (precious on a split pane). */
+.composer-note {
+  position: absolute;
+  bottom: 3px;
+  left: 0;
+  right: 0;
+  margin: 0;
+  font-size: 11px;
+  color: var(--text-faint);
+  text-align: center;
+  pointer-events: none;
+}
+
+.send-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 36px;
+  height: 36px;
+  padding: 0;
+  /* A circle at 36px; morphs to a rounded pill when it shows a label (framer
+     `layout` animates the width). */
+  border-radius: 18px;
+  /* The morph is a projection: framer sets the final box at once and fakes the old one with a
+     scaleX. A transform contributes to scrollable overflow, and a centred origin would push
+     half of it past the composer's right edge for the length of the animation. Anchoring the
+     origin to the right edge makes it expand inward. */
+  transform-origin: right center;
+  border: none;
+  background: var(--brand);
+  /* Inverts with `--brand` (rule 12). */
+  color: var(--ink-on-brand);
+  cursor: pointer;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  white-space: nowrap;
+  /* Transform is driven by framer (layout + whileTap) — don't also transition it. */
+  transition: background var(--dur-fast) var(--ease-out);
+}
+/* Label states widen the button (framer `layout` tweens the change). */
+.send-btn.has-text {
+  padding: 0 14px;
+}
+/* Redaction running: the button is disabled → give it a readable "working" look
+   (the base disabled style hides white text on the light greyed background). */
+.send-btn.is-busy:disabled {
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+}
+/* Redaction done: a brief green "✓ Redacted". */
+.send-btn.is-done {
+  background: var(--green-soft);
+  color: var(--green-ink);
+}
+.send-btn-content {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.send-btn:hover {
+  background: var(--brand-hover);
+}
+.send-btn:active {
+  transform: scale(0.94);
+}
+.send-btn:disabled {
+  background: var(--warm-200);
+  cursor: default;
+}
+.send-btn.stop {
+  background: var(--warm-800);
+}
+.send-btn.stop:hover {
+  background: var(--warm-900);
+}

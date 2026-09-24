@@ -40,7 +40,8 @@
   "dependencies": {
     "@openmasq/branding": "workspace:*",
     "@openmasq/llm": "workspace:*",
-    "@openmasq/redact": "workspace:*"
+    "@openmasq/redact": "workspace:*",
+    "simple-icons": "^16.24.1"
   },
   "devDependencies": {
     "@openmasq/connectors": "workspace:*",

@@ -40,42 +40,32 @@ export interface AllocateCtx {
 /**
  * Phase 3 — allocate a reversible fake for each de-nested entity, mutating the vault. Keeps
  * ONE atomic identity across casings/fragments/tool-rounds (emails, names, glued handles,
- * recased entities), stays collision- and avoid-free, and — on pool exhaustion — falls back
- * to a GUARANTEED-unique suffixed fake so a real value is NEVER left in the wire (audit M-11,
- * fail-closed). Byte-identical to the former inline loop; state comes via {@link AllocateCtx}.
+ * recased entities), stays collision- and avoid-free, and on pool exhaustion falls back to
+ * a GUARANTEED-unique suffixed fake so a real value is NEVER left in the wire (fail-closed).
  */
 export function allocateEntities(deNested: Detection[], ctx: AllocateCtx): void {
   const {
     vault, reverse, taken, entityValues, entityCanon, record, input, geoFakes, geoAnchors,
     resolveFakeCI, resolveEntityFakeCI, collidesAvoid, salt, convKey,
   } = ctx;
-  // No word may serve two identities (see fakeWordIndex.ts — the «Ajaccio»/«Rouen»/«hugo»
-  // incident): seeded from the fakes already in the vault (a PREVIOUS pass on the same
-  // conversation), maintained at every mint site below so an intra-pass batch is guarded
-  // the same way.
+  // No word may serve two identities (`fakeWordIndex.ts`): seeded from the fakes already in
+  // the vault, maintained at every mint site below so an intra-pass batch is guarded too.
   const fakeIndex = buildFakeWordIndex(vault);
   // Words present in the INPUT, case-insensitive — a NAME/EMAIL word-fake must never be
-  // minted equal to one (the notarial-deed collision: fake surname "Laurent" while the
-  // REAL "Maître GERMAIN" sits untouched in the text → un-redaction rewrites the real
-  // person into the faked one). `accept`'s `!input.includes` can't see it (case-sensitive,
-  // whole-candidate), and NAME/EMAIL skip `collidesAvoid` BY DESIGN (canonical reuse must
-  // not be rejected) — so the check rides the MINT-time `isTaken` predicate instead, which
-  // buildFakeName/buildFakeEmail only consult when picking a NEW word-fake.
+  // minted equal to one (a fake surname "Laurent" while a REAL "Maître GERMAIN" sits in the
+  // text: un-redaction rewrites the real person into the faked one). NAME/EMAIL skip
+  // `collidesAvoid` BY DESIGN (canonical reuse must not be rejected), so the check rides the
+  // MINT-time `isTaken` predicate, consulted only when picking a NEW word-fake.
   const WORD = /\p{L}[\p{L}\p{M}'’-]*/gu;
   const inputWords = new Set<string>();
   for (const w of input.match(WORD) ?? [])
     for (const seg of [w, ...w.split(/['’]/)]) // elision: "d'Amiens" also indexes "Amiens"
       if (seg.length >= 3) inputWords.add(seg.toLowerCase());
-  // `fakeIndex.wordTaken` closes the casing hole: `taken.has(c.toLowerCase())` lowercases
-  // the CANDIDATE but the set stores original-case keys — «hugo» sailed past «Hugo» and the
-  // un-redaction of a bare «hugo» then rewrote the OTHER identity's real value.
-  // ⚠️ `collidesAvoid` RIGHT HERE, nowhere else for a NAME. The NAME/EMAIL exemption
-  // from the `avoid` guard holds (rejecting the CANONICAL fake would split the person in
-  // two), but it left a hole: a NEW fake word could land on a word from a PREVIOUS
-  // turn — `inputWords` only sees the current send — and the global vault then re-redacts
-  // that word everywhere. `mintTaken` is consulted ONLY to choose a new word,
-  // never to reuse a canonical: the reason for the exemption is intact, and the
-  // guaranteed-unique fallback of the loop covers an exhausted pool. `guards.test.ts` pins both.
+  // `fakeIndex.wordTaken` closes the casing hole (`taken` stores original-case keys).
+  // ⚠️ `collidesAvoid` RIGHT HERE, nowhere else for a NAME: `inputWords` only sees the
+  // current send, and a NEW fake word landing on a word from a PREVIOUS turn would be
+  // re-redacted everywhere by the global vault. `mintTaken` chooses a new word only, never
+  // decides a canonical reuse, so the exemption's reason is intact. `guards.test.ts` pins both.
   const mintTaken = (c: string): boolean =>
     taken.has(c) || taken.has(c.toLowerCase()) || inputWords.has(c.toLowerCase()) ||
     fakeIndex.wordTaken(c) || collidesAvoid(c);
@@ -86,16 +76,13 @@ export function allocateEntities(deNested: Detection[], ctx: AllocateCtx): void 
       continue;
     }
     const cat = redactionCategory(category);
-    // A NAME re-detected in a DIFFERENT casing, or reappearing whole after its parts
-    // were faked (both routine when a tool RESULT echoes the person back), must reuse
-    // the SAME identity — not mint a new one (the "remapping involontaire": one real
-    // person behind a dozen fakes). When every word already has a canonical fake, the
-    // per-word aliases already substitute it via `applyVault`, so no new vault entry
-    // is needed — reuse the reconstructed placeholder for the match chip only.
+    // A NAME re-detected in a DIFFERENT casing, or reappearing whole after its parts were
+    // faked (a tool RESULT echoing the person), must reuse the SAME identity — never one
+    // real person behind a dozen fakes. When every word already has a canonical fake, the
+    // per-word aliases substitute via `applyVault`; only the chip's placeholder is needed.
     if (cat === "name") {
-      // The fake ALREADY assigned to this person — by WORDS, or by WHOLE VALUE when the
-      // vault knows them under another casing and another category. Both paths and
-      // what they fix: `../identity/reuse.ts`.
+      // The fake ALREADY assigned to this person — by WORDS, or by WHOLE VALUE under another
+      // casing and category (`../identity/reuse.ts`).
       const cased = reuseNameFake(value, input, { resolveFakeCI, resolveEntityFakeCI });
       if (cased !== undefined) {
         if (!entityValues.includes(value)) entityValues.push(value);
@@ -111,13 +98,10 @@ export function allocateEntities(deNested: Detection[], ctx: AllocateCtx): void 
         continue;
       }
     }
-    // GLUED identity: a separatorless handle ("atelierverrier") whose pieces are each
-    // an existing canonical fake (person name-parts "atelier"+"verrier") must reuse
-    // those fakes GLUED ("charlottesavel"), NOT mint a fresh unrelated ORG fake
-    // ("Brantley Systems") — else the same real identity hides behind two disconnected
-    // fakes (the reported ORG-glue "double redaction"). Applies to the identity-ish
-    // kinds; reconstructGlued only fires when the whole value segments into ≥2 known
-    // reals, so an unrelated company falls through to the normal allocator below.
+    // GLUED identity: a separatorless handle ("atelierverrier") whose pieces are each an
+    // existing canonical fake must reuse those fakes GLUED, NOT mint a fresh unrelated ORG
+    // fake — else one real identity hides behind two disconnected fakes. `reconstructGlued`
+    // only fires when the whole value segments into ≥2 known reals.
     if (cat === "name" || cat === "company" || cat === "username") {
       const glued = reconstructGlued(value, resolveFakeCI, reverse.keys());
       if (glued && !taken.has(glued) && glued !== value && !input.includes(glued)) {
@@ -213,19 +197,13 @@ export function allocateEntities(deNested: Detection[], ctx: AllocateCtx): void 
       }
     }
     if (!fake) {
-      // Fake pool exhausted (60 straight collisions — the main loop also enforces
-      // `collidesAvoid`, which this fallback deliberately relaxes: best-effort avoid,
-      // never a leak). NEVER leave the real value in the wire — but never mint a
-      // case-twin or word-twin of ANOTHER identity's fake either. The old fallback
-      // suffixed ONE base checked against `taken` CASE-SENSITIVELY and skipped the
-      // word index entirely — so two unrelated companies ended up as «BRANTLEY
-      // Systems» / «Brantley Systems», and a model normalising the casing of its echo
-      // made `unredact` restore the WRONG company (the exact cross-identity corruption
-      // `fakeWordIndex` exists to prevent). So: try successive BASES through the word
-      // index first (`clashes` folds case by construction).
-      // ⚠️ A base must not CONTAIN the value: some fakers are identity pass-throughs
-      // on an off-shape input (fakeDigits on a digitless "phone"), and emitting THAT
-      // ships the real value verbatim inside its own "fake".
+      // Fake pool exhausted (60 straight collisions; this fallback relaxes `collidesAvoid`:
+      // best-effort avoid, never a leak). NEVER leave the real value in the wire — but never
+      // mint a case-twin or word-twin of ANOTHER identity's fake either, or a model
+      // normalising the casing of its echo makes `unredact` restore the WRONG entity. So: try
+      // successive BASES through the word index first (`clashes` folds case).
+      // ⚠️ A base must not CONTAIN the value: some fakers are identity pass-throughs on an
+      // off-shape input, and emitting THAT ships the real value inside its own "fake".
       for (let k = 0; !fake && k < 40; k++) {
         const raw = fakeFor(category, value, k, country, salt, geoAnchors, convKey);
         if (!raw || raw.toLowerCase().includes(value.toLowerCase())) continue;
@@ -234,13 +212,10 @@ export function allocateEntities(deNested: Detection[], ctx: AllocateCtx): void 
         }
       }
       if (!fake) {
-        // TOTAL exhaustion — the guaranteed-terminating neutral series (audit M-11):
-        // opaque and not length-matched, but a size hint beats a plaintext PII leak,
-        // and the span is vaulted + recorded below so it stays reversible. The neutral
-        // base is constant-case and carries no other identity's root, so the twins
-        // guarded above cannot reappear; `clashes` is deliberately NOT consulted here
-        // (each earlier «masqué-N» would flag the shared word forever — no free
-        // candidate would exist and the loop would never terminate).
+        // TOTAL exhaustion — the guaranteed-terminating neutral series: opaque, not
+        // length-matched, but a size hint beats a plaintext leak, and the span stays
+        // reversible. `clashes` is deliberately NOT consulted (each earlier suffix would flag
+        // the shared word forever and the loop would never terminate).
         const base = "redacted"; // then suffixed until free
         let n = 2;
         fake = base;

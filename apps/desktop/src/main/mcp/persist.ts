@@ -7,27 +7,21 @@ import { withCatalogUrl } from "./presetUrl";
 import { assertPlaintextAllowed } from "../store/atRestPolicy";
 
 /**
- * Durable storage for MCP connectors, in `${userData}/mcp.json`. Server specs are
- * plain; each server's OAuth state (registered client, tokens, PKCE verifier) is
- * encrypted with Electron `safeStorage` (OS keychain) and stored base64. Falls
- * back to base64 plaintext with a warning when encryption is unavailable.
+ * Durable, PER-ACCOUNT storage for MCP connectors. Specs are plain; OAuth state, tokens
+ * and keys are `safeStorage`-encrypted, base64. Plaintext fallback only where the at-rest
+ * policy allows it.
  */
 export interface ServerSpec {
-  /** The connection INSTANCE id. For the first/only account of a connector this IS
-   *  the catalog connector id; ADDITIONAL accounts (multi-account, direct connectors)
-   *  are stored as `${connectorId}--${suffix}`. Tokens/oauth/etc. are all keyed by
-   *  this id, so two accounts of the same connector never collide. */
+  /** The connection INSTANCE id: the connector id for the first account, then
+   *  `${connectorId}--${suffix}`. Everything is keyed by it, so accounts never collide. */
   id: string;
   name: string;
   /** The catalog connector id this instance is an account OF (multi-account). Absent
    *  ⇒ this spec's `id` IS the connector id (the first/only account). */
   connectorId?: string;
-  /** Human account label (email / "Compte N") shown in the UI + injected into the
-   *  connector's tool descriptions so the model can pick the right account. */
+  /** Human account label, shown in the UI and injected (masked) into tool descriptions. */
   label?: string;
-  /** STABLE per-account identity (Gmail email / GitHub login / Dropbox account_id…),
-   *  used to DEDUPE — adding an account that resolves to an already-connected one is
-   *  refused. Best-effort: absent when the provider has no cheap identity endpoint. */
+  /** STABLE per-account identity, used to DEDUPE. Best-effort. */
   accountKey?: string;
   /** "http" = remote connector (OAuth); "stdio" = local catalog server;
    *  "local-oauth" = desktop-direct connector (OAuth on-device, tools in-process);
@@ -42,32 +36,22 @@ export interface ServerSpec {
   params?: Record<string, string | string[]>;
   /** Credential mode (local-oauth): the app's own public client vs the user's. */
   credMode?: CredMode;
-  /** OAuth client id for a `byo` local-oauth connector (public — not a secret;
-   *  the built-in mode reads its id from env). */
+  /** OAuth client id for a `byo` local-oauth connector (public). */
   clientId?: string;
-  /** OAuth client secret for a `byo` local-oauth connector that needs one
-   *  (Google "Desktop app" clients ship a NON-confidential secret; PKCE is the
-   *  real protection). Absent for device-flow connectors (GitHub) which have none.
-   *  The built-in mode reads its secret from env. */
+  /** OAuth client secret for a `byo` connector that needs one ("Desktop app" secrets are
+   *  NON-confidential; PKCE is the real protection). */
   clientSecret?: string;
 }
 
-/**
- * A stored OAuth token for a desktop-direct connector. `refreshToken`/`expiresAt`
- * are only set for OAuth2-with-refresh providers (Google); a device-flow token
- * (GitHub) is access-only and never expires, so it stores just `accessToken`.
- */
+/** A stored OAuth token for a desktop-direct connector; refresh fields only where the
+ *  provider has them. */
 export interface StoredToken {
   accessToken: string;
   refreshToken?: string;
   /** Epoch ms when `accessToken` expires (Google); absent = no known expiry. */
   expiresAt?: number;
-  /** The scopes the server actually GRANTED (its token response's `scope`), which
-   *  is not always what we asked for — granular consent lets the user untick one.
-   *  Drives the tool-listing filter via `connectors/scopes.ts` `effectiveScopes`.
-   *  Absent for a connection stored before this was captured, and for the flows
-   *  that never report it (Slack relay, GitHub device) → the requested list is
-   *  used instead. */
+  /** The scopes the server actually GRANTED (granular consent lets the user untick one);
+   *  drives the tool-listing filter (`connectors/scopes.ts`). Absent ⇒ the requested list. */
   scopes?: string[];
 }
 
@@ -77,8 +61,7 @@ interface Raw {
   oauth: Record<string, string>;
   /** id → encrypted env values (stdio servers). */
   secrets: Record<string, string>;
-  /** id → loopback redirect port (http servers). Plain: not a secret, and it
-   *  must stay stable so the registered OAuth redirect URI keeps matching. */
+  /** id → loopback redirect port. Plain: not a secret, and it must stay stable. */
   ports?: Record<string, number>;
   /** id → encrypted access token (local-oauth desktop-direct connectors). */
   tokens?: Record<string, string>;
@@ -87,20 +70,14 @@ interface Raw {
 }
 
 /**
- * PER-ACCOUNT storage (privacy isolation, mirrors the per-account DB in `main/db.ts`).
- * The MCP store is NOT one shared file — it is scoped to the signed-in account at
- * `${userData}/accounts/mcp-<uid>.json` via {@link setPersistUser}, so a shared machine
- * never leaves one account's connected integrations (and their OAuth tokens) usable by
- * another. Signed out (`null`) ⇒ an in-memory empty store that is NEVER written to disk.
+ * Scoped to the signed-in account (`accounts/mcp-<uid>.json`, {@link setPersistUser}), so a
+ * shared machine never leaves one account's tokens usable by another. Signed out ⇒ an
+ * in-memory store NEVER written to disk.
  */
 let currentUserId: string | null = null;
 let cache: Raw | null = null;
 
-/**
- * SECURITY (audit M10 — path traversal): `uid` comes from the RENDERER (`mcp:set-user`) and
- * is interpolated into `mcp-<uid>.json`, so a crafted value could escape `accounts/`.
- * Sanitize to `[A-Za-z0-9_-]` (same as `keys.ts` `safeUid` / `db.ts` `setDbUser`).
- */
+/** `uid` comes from the RENDERER and is interpolated into a path: sanitize it. */
 const safeUid = (uid: string) => uid.replace(/[^a-zA-Z0-9_-]/g, "");
 const accountFile = (uid: string) => join(app.getPath("userData"), "accounts", `mcp-${safeUid(uid)}.json`);
 const legacyFile = () => join(app.getPath("userData"), "mcp.json");
@@ -144,8 +121,7 @@ function write(r: Raw): void {
   if (!path) return; // signed out — keep it in memory, never write tokens to disk
   try {
     mkdirSync(dirname(path), { recursive: true });
-    // 0600 like keys.enc — owner-only. The contents are safeStorage-encrypted, but a
-    // restrictive mode is cheap defence-in-depth (esp. the plaintext-fallback case).
+    // Owner-only, like keys.enc: cheap defence-in-depth for the plaintext-fallback case.
     writeFileSync(path, JSON.stringify(r, null, 2), { mode: 0o600 });
   } catch (err) {
     console.error("[mcp] failed to write mcp.json:", err);
@@ -153,22 +129,20 @@ function write(r: Raw): void {
 }
 
 /**
- * Re-point the MCP store at THIS account's file (or a memory-only store when signed out)
- * and drop the in-memory cache so the next read hydrates the new scope. The FIRST account
- * to sign in after this per-account upgrade ADOPTS the legacy shared `mcp.json` ONCE
- * (marker-gated), so existing users keep their connectors and no OTHER account inherits
- * them. Callers must close live connections BEFORE this (see `mcp/index.ts setMcpUser`).
+ * Re-point the store at THIS account's file (memory-only when signed out). The FIRST
+ * account to sign in ADOPTS the legacy shared `mcp.json` ONCE (marker-gated), so no OTHER
+ * account inherits it. Callers close live connections BEFORE this (`mcp/index.ts`).
  */
 export function setPersistUser(userId: string | null): void {
-  // Sanitize before it reaches a path (audit M10); an all-illegal uid ⇒ signed-out (fail closed).
+  // An all-illegal uid ⇒ signed-out (fail closed).
   const safe = userId == null ? null : safeUid(userId) || null;
   if (safe) maybeAdoptLegacy(safe);
   currentUserId = safe;
   cache = null;
 }
 
-/** One-time: copy the pre-isolation shared `mcp.json` into the first signing-in account,
- *  then mark it claimed so no one else inherits it (mirrors `maybeAdoptLegacyDb`). */
+/** One-time: the legacy shared `mcp.json` goes to the first signing-in account, then the
+ *  marker stops anyone else inheriting it. */
 function maybeAdoptLegacy(userId: string): void {
   try {
     const dest = accountFile(userId);
@@ -181,9 +155,8 @@ function maybeAdoptLegacy(userId: string): void {
   }
 }
 
-// A catalog preset's endpoint URL is refreshed from the catalog on every read — a vendor
-// that moves its endpoint would otherwise leave every ALREADY-connected user on the dead
-// one (see `presetUrl.ts`). User-added servers are untouched.
+// A catalog preset's endpoint URL is refreshed from the catalog on every read, so a vendor
+// moving its endpoint doesn't strand already-connected users (`presetUrl.ts`).
 export function listServers(): ServerSpec[] {
   return read().servers.map(withCatalogUrl);
 }
@@ -232,29 +205,23 @@ function decrypt<T>(enc: string | undefined, label: string, onCorrupt?: () => vo
     const json = keychain ? safeStorage.decryptString(buf) : buf.toString("utf8");
     return JSON.parse(json) as T;
   } catch (err) {
-    // (a) Recover a PLAINTEXT-FALLBACK entry: it was written as base64(JSON) while the
-    //     keychain was unavailable, and a later launch WITH a keychain tries
-    //     `decryptString` on it and throws. Parse it as plaintext base64-JSON before
-    //     giving up — and NEVER drop it (it's perfectly readable, just not encrypted).
+    // (a) A PLAINTEXT-FALLBACK entry (written without a keychain) is readable as
+    //     base64-JSON: recover it, never drop it.
     try {
       return JSON.parse(Buffer.from(enc, "base64").toString("utf8")) as T;
     } catch {
       /* not plaintext JSON either — fall through */
     }
-    // (b) Only DROP when the keychain IS available and the ciphertext still won't
-    //     decrypt — a real key↔ciphertext mismatch (orphaned by a keychain rotation),
-    //     genuinely unreadable. When the keychain is UNAVAILABLE (a transient/memoized
-    //     miss), KEEP the entry and skip it this session — matching dbCrypto's
-    //     non-destructive stance; the "needs reconnect" state drives recovery. Dropping
-    //     on a transient miss silently destroyed credentials (audit M-8).
+    // (b) DROP only when the keychain IS available and still can't decrypt (a real
+    //     key↔ciphertext mismatch). A keychain MISS is transient: keep the entry, skip
+    //     it this session (non-destructive, like dbCrypto).
     console.warn(`[mcp] unreadable ${label}: ${err instanceof Error ? err.message : String(err)}`);
     if (keychain) onCorrupt?.();
     return undefined;
   }
 }
 
-/** Remove a permanently-unreadable encrypted entry from a store section (a keychain
- *  change orphaned its ciphertext) so it stops failing to decrypt on every reconnect. */
+/** Remove a permanently-unreadable encrypted entry. */
 function dropStored(section: "oauth" | "secrets" | "tokens" | "apiKeys", id: string): void {
   const r = read();
   if (section === "oauth") {
@@ -321,9 +288,7 @@ export function saveToken(id: string, token: StoredToken): void {
   write({ ...r, tokens: { ...(r.tokens ?? {}), [id]: encrypt(token) } });
 }
 
-/** Drop ONLY the stored token for `id` (keep the spec + its credMode/client id/
- *  secret) — so a "Reconnecter" re-runs OAuth with fresh consent (new scopes)
- *  without the user re-entering their BYO keys. */
+/** Drop ONLY the token (keep the spec + BYO client), so a reconnect re-runs OAuth. */
 export function clearToken(id: string): void {
   const r = read();
   const tokens = { ...(r.tokens ?? {}) };

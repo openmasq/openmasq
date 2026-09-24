@@ -5,14 +5,9 @@ import { join } from "node:path";
 import { logUpdate, logUpdateError } from "./log";
 import { BRAND } from "@openmasq/branding";
 
-// Detect a FAILED ShipIt (Squirrel.Mac) install on the NEXT launch and report it.
-//
-// A ShipIt swap failure (e.g. "App Still Running Error", SQRLInstaller Code=-9) happens
-// in the SEPARATE ShipIt helper process AFTER our app has already quit for the update —
-// so electron-updater never emits it and no in-process `error` hook can see it. The only
-// trace is ShipIt's own stderr log. This reads that log on launch, decides whether the
-// LAST install attempt failed, and (once per distinct failure) routes it into the same
-// `$exception` telemetry channel as every other main-process error.
+// Detect a FAILED ShipIt (Squirrel.Mac) install on the NEXT launch: the swap fails in the
+// SEPARATE helper AFTER we quit, so no in-process hook sees it. The only trace is ShipIt's
+// stderr log, read at launch and reported once per distinct failure.
 
 // The macOS app bundle id (electron-builder.cjs `appId`). ShipIt keys its cache dir on it.
 const BUNDLE_ID = BRAND.desktopBundleId;
@@ -53,11 +48,7 @@ export interface ShipItFailure {
 // A ShipIt line is prefixed `YYYY-MM-DD HH:MM:SS.mmm ShipIt[…] <message>`.
 const TS = /^(\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}\.\d+)/;
 
-/**
- * Parse the ShipIt stderr log and return the LAST install attempt's failure, or null if
- * the last outcome was a success (or there's no log / no decisive outcome). Pure over the
- * log text so it's unit-testable without a real ShipIt run.
- */
+/** The LAST install attempt's failure, or null (a later success supersedes). Pure. */
 export function parseShipItFailure(log: string): ShipItFailure | null {
   const lines = log.split("\n");
   let lastSuccessIdx = -1;
@@ -82,10 +73,7 @@ export function parseShipItFailure(log: string): ShipItFailure | null {
   return { code: failCode || (instances != null ? "instances" : "unknown"), instances, at: failAt };
 }
 
-/**
- * On launch (macOS packaged only), report a failed ShipIt install once. `reportError`
- * is injected (→ `reportMainError`) so this module stays free of the error bridge.
- */
+/** On launch (macOS packaged only), report a failed install once. `reportError` injected. */
 export function detectAndReportShipItFailure(reportError: (code: string, err: unknown) => void): void {
   if (process.platform !== "darwin" || !app.isPackaged) return;
   let failure: ShipItFailure | null = null;

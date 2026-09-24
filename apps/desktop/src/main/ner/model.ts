@@ -1,5 +1,5 @@
-// The DESKTOP-only offline NER model: the **multilingual mBERT** token-classification model
-// (q8), BUNDLED with the app and loaded 100% offline. The desktop NEVER downloads it — see
+// The DESKTOP-only offline NER model: our **6-layer multilingual student** (q8), BUNDLED with
+// the app and loaded 100% offline. The desktop NEVER downloads it — see
 // `worker.ts` (no remote branch) and `scripts/bake-ner-models.ts` (fetch-once at BUILD time,
 // sha256-verified). Mobile/bench still download via `@openmasq/redact` `NER_MODELS`; this
 // override lives here so the shared package stays generic.
@@ -10,24 +10,33 @@
 import { NER_WEIGHTS_SHA256 as SHARED_NER_SHA256 } from "@openmasq/redact/ner";
 import { BRAND } from "@openmasq/branding";
 
-/** Bundled-folder id for the desktop mBERT NER weights (NOT an HF repo). */
-export const NER_MODEL_ID = `${BRAND.hfOrg}/bert-base-multilingual-cased-ner-hrl`;
+/** Bundled-folder id for the desktop NER weights (NOT an HF repo). */
+export const NER_MODEL_ID = `${BRAND.hfOrg}/ner-multilingual`;
 
 /**
  * The IMMUTABLE upstream the bake fetches the weights from, once, at BUILD time.
  *
- * ⚠️ Provenance residual (root rule 7): `Xenova/*` is a COMMUNITY ONNX re-upload of Davlan's
- * official `bert-base-multilingual-cased-ner-hrl`, not the model author's own repo. What makes
- * it safe here is that we no longer TRUST the host: the bake pins an exact commit AND verifies
- * every byte against `NER_WEIGHTS_SHA256` below, so a repointed/compromised repo cannot
- * substitute bytes — it can only fail the build. The rule's preferred end state is a
- * first-party re-export from Davlan's weights, vendored + pinned the same way; that is a
- * tracked follow-up, not a blocker, because the sha256 pin already carries the integrity.
+ * **Provenance: first-party.** These weights are OURS — a 6-layer distillation of Davlan's
+ * mBERT, trained in the `openmasq-model` repository and published from it. That closes the
+ * root-rule-7 residual this comment used to carry: the bake no longer reads a `Xenova/*`
+ * COMMUNITY re-upload of somebody else's fine-tune, a repo that declared no licence of its own.
+ * What has NOT changed, and must not: the pin. A repo we control is still a remote host, an
+ * account is still credentials, and the sha256 gate below is what makes a repointed or
+ * compromised repo able only to FAIL a build, never to substitute bytes.
+ *
+ * **LICENCE: Apache-2.0.** The student is initialised from
+ * `google-bert/bert-base-multilingual-cased` (Apache-2.0) and contains no parameter of any
+ * other model; it was trained to imitate the OUTPUTS of Davlan's AFL-3.0 fine-tune. Whether
+ * learning from a model's answers makes a derivative of it is a contested question this
+ * comment does not settle — the model card states the provenance so a reader can judge, and
+ * the previous release in the same repo (initialised FROM Davlan's weights) said AFL-3.0 for
+ * exactly that reason. What is settled: the terms now come from us, not from a third-party
+ * re-upload that stated none.
  */
 export const NER_UPSTREAM = Object.freeze({
-  repo: "Xenova/bert-base-multilingual-cased-ner-hrl",
+  repo: "openmasq/ner-multilingual",
   /** Reviewed commit — an immutable, content-addressed ref (never `main`). */
-  revision: "263e82c06569c8c2ac46238a7ae5107598934234",
+  revision: "8cf72739a75da1de5680ea6c30c381660e740303",
 });
 
 /**

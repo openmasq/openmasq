@@ -219,29 +219,16 @@ export interface Host {
   /** Optional live model-catalogue reader (OpenRouter today). Absent ⇒ the pickers use
    *  the static registry baseline only. Fetch runs in main; DEGRADE, never fail. */
   models?: ModelsHost;
-  /**
-   * Optional build-time URL of the remote redaction function (`apps/gateway`).
-   * When set (and the user picks the "remote" engine), model-grade redaction runs
-   * server-side with the current Supabase token (`auth.getAccessToken`). A user
-   * setting (`Settings.redactFnUrl`) overrides this. Absent while the "remote"
-   * engine is selected = FAIL-CLOSED: the send is blocked (never downgraded).
-   */
+  /** Optional build-time URL of the remote redaction endpoint (retired "remote" engine).
+   *  `Settings.redactFnUrl` overrides it. Absent while that engine is selected =
+   *  FAIL-CLOSED: the send is blocked, never downgraded. */
   redactFnUrl?: string;
-  /**
-   * Optional base URL of the backend's OpenAI-compatible INFERENCE proxy
-   * (`<VITE_BACKEND_URL>/v1/inference`). Platform-provided models
-   * (`isPlatformProvider`, e.g. Scaleway) send here with the user's Supabase
-   * token as the bearer — the platform holds the provider key and meters credits.
-   * Absent = platform models can't send (they have no user key).
-   */
+  /** Optional base URL of the platform's OpenAI-compatible INFERENCE endpoint. Platform
+   *  models (`isPlatformProvider`) send here with the user's session token as bearer; the
+   *  platform holds the provider key and meters credits. Absent = platform models can't send. */
   inferenceUrl?: string;
-  /**
-   * Optional URL of the release-notes endpoint served by `apps/analytics-fn`
-   * (`https://analytics.<domain>/release-notes`). Powers the "Nouveautés"
-   * panel in Settings → Versions. The renderer derives it from the analytics-fn
-   * base (VITE_ANALYTICS_RELAY_URL minus its `/e` suffix). Absent = the panel
-   * degrades to a "unavailable" notice (browser preview, or relay not deployed).
-   */
+  /** Optional URL of the published release-notes endpoint, for Settings → Versions.
+   *  Absent = the panel degrades to an "unavailable" notice. */
   releaseNotesUrl?: string;
 }
 

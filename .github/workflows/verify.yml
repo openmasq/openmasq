@@ -13,18 +13,9 @@ name: Verify
 #
 # Two families of callers, and that is this file's whole purpose:
 #   • `ci.yml` — the feedback on PR and on push.
-#   • EVERY deployment workflow, which puts it in `needs:` — it is THIS dependency that
-#     prevents a deployment from going out without tests, and as of 02/09/2026 it is the
-#     ONLY thing that does.
-#     ⚠️ This comment used to say that `main`'s branch protection "ALSO exists (mandatory
-#     PR + `ci` check)". It does not, and it never did on this repository: the API answers
-#     404 "Branch not protected" on `main` as on `dev`, and no ruleset is defined
-#     (infra's `modules/github` has the resource COMMENTED OUT for want of an admin token —
-#     its own CLAUDE.md says so). A safety net described but absent is worse than an
-#     acknowledged gap: it gets counted on. What actually holds is written above, in
-#     `needs:`, and it holds with no GitHub setting at all — which is also why a direct
-#     push to `main` is, today, nobody's error but the pusher's.
-#
+#   • the release workflow, which puts it in `needs:` — it is THIS dependency that prevents a
+#     release from going out without tests, and the ONLY thing that does: no branch protection
+#     exists on this repository, so a direct push to `main` is nobody's error but the pusher's.
 # ⚠️ Secrets are OPTIONAL and only serve `ci.yml`'s baked values. A
 # caller that doesn't pass any gets a build with empty values — perfectly sufficient
 # to typecheck and test, since this build PUBLISHES nothing. A gate that receives no
@@ -87,24 +78,20 @@ jobs:
           echo "backend=https://$HOST" >> "$GITHUB_OUTPUT"
           echo "admin=https://$HOST/admin" >> "$GITHUB_OUTPUT"
 
-      # turbo build first: the workspace packages must emit their
-      # dist/ (the apps consume that, not src). VITE_BACKEND_URL / VITE_ADMIN_URL set
-      # the sync/org + admin origin in the built bundles: main →
-      # production, any other ref → staging. Public config (like the Supabase URL),
-      # so a var, not a secret. Left unset, the source falls back to production.
+      # turbo build first: the workspace packages must emit their dist/ (the apps consume
+      # that, not src). VITE_BACKEND_URL / VITE_ADMIN_URL set the API + admin origin in the
+      # built bundles: main → production, any other ref → staging. Public config, so a var,
+      # not a secret. Left unset, the source falls back to production.
       - name: Build
         env:
           VITE_BACKEND_URL: ${{ steps.origins.outputs.backend }}
           VITE_ADMIN_URL: ${{ steps.origins.outputs.admin }}
-          # Cloud redact-fn engine → the container SPECIFIC to the branch (one per env).
-          # Var absent ⇒ empty ⇒ the remote engine stays off and the app falls back to the
-          # local regex.
+          # Remote redaction engine for the branch's environment. Var absent ⇒ empty ⇒ the
+          # remote engine stays off and the app falls back to the local rules.
           VITE_REDACT_FN_URL: ${{ github.ref_name == 'main' && vars.SCW_REDACT_URL || vars.SCW_REDACT_URL_STAGING }}
-          # Usage analytics: PostHog ingestion key baked into the
-          # built bundles — DIRECT transport. Secret absent ⇒ empty ⇒ analytics does nothing
-          # (it never launders anything). To switch to the compliant Scaleway
-          # relay, set the ANALYTICS_RELAY_URL var: it wins over the key, and the
-          # client no longer embeds any of it (no code change).
+          # Usage analytics: ingestion key baked into the built bundles — DIRECT transport.
+          # Secret absent ⇒ empty ⇒ analytics does nothing. To route through the analytics
+          # relay instead, set ANALYTICS_RELAY_URL: it wins over the key (no code change).
           VITE_POSTHOG_KEY: ${{ secrets.POSTHOG_INGEST_KEY }}
           VITE_POSTHOG_HOST: https://eu.i.posthog.com
           VITE_ANALYTICS_RELAY_URL: ${{ vars.ANALYTICS_RELAY_URL }}
@@ -113,8 +100,10 @@ jobs:
           # identity). Empty value ⇒
         run: pnpm build
 
+      # `typecheck` reads every workspace package from SOURCE (tsconfig.workspace.json);
+      # `typecheck:built` is the two Node apps that check against the packages' `dist/*.d.ts`.
       - name: Typecheck
-        run: pnpm typecheck
+        run: pnpm typecheck && pnpm typecheck:built
 
       # Lint (Biome), the whole tree: the classes of errors the typecheck cannot see —
       # a hook after a conditional return, a dead import, a cast optional chain. The
@@ -131,19 +120,16 @@ jobs:
         run: pnpm check:tests
 
       # Rule-9 parity: the package → source resolution table exists in the
-      # vitest/electron-vite module AND in apps/desktop/tsconfig.json (JSON cannot import
+      # vitest/electron-vite module AND in tsconfig.workspace.json (JSON cannot import
       # TS). A drift resolves a package to src here, to dist there.
       - name: Workspace alias parity
         run: pnpm check:alias
 
 
 
-      # Supply-chain guard, CI layer: every `uses:` must name a commit
-      # SHA, not a tag. A tag is a mutable pointer its owner can
-      # redirect to new code, which then runs here with the job's secrets
-      # (signing certificates, store credentials, Vercel/Neon tokens). The
-      # lockfile layer is minimumReleaseAge in pnpm-workspace.yaml; this is the same idea
-      # one notch up.
+      # Supply-chain guard, CI layer: every `uses:` must name a commit SHA, not a tag. A tag
+      # is a mutable pointer its owner can redirect to new code, which then runs here with
+      # the job's secrets. The lockfile layer is minimumReleaseAge in pnpm-workspace.yaml.
       - name: Action-pin guard
         run: pnpm check:actions
 

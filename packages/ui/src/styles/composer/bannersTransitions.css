@@ -1,0 +1,157 @@
+/* ============================================================== Composer === */
+/* ── Bottom feedback banners (the "kb" treatment) ──
+   Full-bleed, square corners, an accent top hairline and an upward shadow; soft-tint
+   semantic skin + solid icon tile. Stacks above the composer; the entrance rises into place. */
+.kb {
+  --ac: var(--text-strong);
+  --bg: var(--surface-card);
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  width: 100%;
+  padding: 14px 20px;
+  background: var(--bg);
+  border: none;
+  border-top: 1px solid color-mix(in oklch, var(--ac) 32%, transparent);
+  border-radius: 0;
+  box-shadow: 0 -10px 30px -18px rgba(15, 28, 6, 0.3);
+}
+.kb-ic {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--ac);
+  color: #fff;
+}
+.kb-ic svg {
+  width: 19px;
+  height: 19px;
+}
+.kb-body {
+  flex: 1;
+  min-width: 0;
+  line-height: 1.35;
+}
+.kb-title {
+  font-size: 14.5px;
+  font-weight: var(--weight-bold);
+  color: var(--text-strong);
+}
+.kb-msg {
+  font-size: 13.5px;
+  color: var(--text-muted);
+}
+.kb-act {
+  flex-shrink: 0;
+  height: 34px;
+  padding: 0 14px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  border: none;
+  background: var(--ac);
+  color: #fff;
+  font-family: var(--font-sans);
+  font-size: 13.5px;
+  font-weight: var(--weight-semibold);
+}
+.kb-act.ghost {
+  background: color-mix(in oklch, var(--ac) 12%, transparent);
+  color: var(--ac);
+}
+.kb-x {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: var(--text-faint);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.kb-x:hover {
+  background: color-mix(in oklch, var(--text-strong) 7%, transparent);
+  color: var(--text-strong);
+}
+
+/* semantic skins — soft tint bg + solid accent */
+.kb--error {
+  --ac: var(--red-500);
+  --bg: var(--red-soft);
+}
+.kb--warning {
+  --ac: var(--amber-500);
+  --bg: var(--amber-soft);
+}
+.kb--success {
+  --ac: var(--green-500);
+  --bg: var(--green-soft);
+}
+.kb--info {
+  --ac: var(--blue-500);
+  --bg: var(--blue-soft);
+}
+/* brand redaction banner — forest ink + lime text icon */
+.kb--redact {
+  --ac: var(--forest-700);
+  --bg: var(--surface-card);
+  border-top-color: var(--border-default);
+}
+.kb--redact .kb-ic {
+  background: var(--forest-700);
+  /* Fill = palette constant, so a light ink across all FOUR themes: `--lime` is worth
+     #11160b on the dark ones (invisible glyph), `--lime-bright` stays light everywhere. */
+  color: var(--lime-bright);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .kb {
+    animation: kb-rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+}
+@keyframes kb-rise {
+  from {
+    transform: translateY(18px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Screen transitions — each top-level screen blurs + fades in as it mounts. Default
+   fill-mode (not `both`) so the element reverts to `filter: none`: a lingering
+   `filter: blur(0)` creates a containing block and breaks fixed-position modals. The base
+   state is the visible end-state, so reduced-motion users never see a blur. */
+@media (prefers-reduced-motion: no-preference) {
+  .sidebar,
+  .chat,
+  .library-page,
+  .settings-page,
+  .login,
+  .ob-grid {
+    animation: screen-blur-in 0.34s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+@keyframes screen-blur-in {
+  from {
+    opacity: 0;
+    filter: blur(8px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0);
+  }
+}
+
+/* API-key modal body */
+.akm-body {
+  padding: 4px 22px 8px;
+}

@@ -1,0 +1,261 @@
+// What the console is fed: the `Reporter` sees every model request and every MCP tool
+// call; this turns that into a stream a browser can read, and it is the ONLY place that
+// decides what a page is allowed to know.
+//
+// ⚠️ The reveal decision lives here, not in the page. An HTTP endpoint is reachable by every
+// process on the machine, so the real value goes on the wire only when the run was started
+// with `--reveal`; otherwise a subscriber gets the substitute and the counts. A page cannot
+// ask for more than the run granted, because the server never sends it.
+import { categoriesForLevel, REDACTION_CATEGORIES, type RedactionLevel } from "@openmasq/catalog";
+import { MCP_CATEGORIES, MCP_CONNECTORS, MCP_LOGO_IMAGES, MCP_LOGOS } from "@openmasq/catalog/mcp";
+import { getMessages } from "@openmasq/i18n";
+import {
+  CATEGORY_SECTION,
+  REDACTION_SECTIONS,
+  redactionCategory,
+  type RedactionMatch,
+} from "@openmasq/redact";
+import type { RequestEvent } from "../../lib/ui/index.js";
+
+export interface ConsoleItem {
+  /** The redaction SECTION's slug (`identite`, `financier`…), also the design token that
+   *  colours it. `CATEGORY_SECTION` is the one home of the category → section mapping. */
+  cat: string;
+  /** What the model saw. */
+  fake: string;
+  /** The real value — present ONLY under `--reveal`. */
+  real?: string;
+  /** The fine category's own label (`E-mail`, `IBAN`), from `@openmasq/catalog`. */
+  type: string;
+  /** How many times this value occurred in the call. */
+  n: number;
+}
+
+export interface ConsoleEvent {
+  t: string;
+  method: string;
+  path: string;
+  family: string;
+  status: number;
+  ms: number;
+  stream: boolean;
+  session?: string;
+  items: ConsoleItem[];
+}
+
+export interface ConsoleBus {
+  /** Feed one reported request. */
+  publish(e: RequestEvent): void;
+  /** Subscribe; the returned function unsubscribes. */
+  subscribe(fn: (e: ConsoleEvent) => void): () => void;
+  /** What a page gets on connect, so a tab opened late is not blank. */
+  backlog(): ConsoleEvent[];
+  readonly reveal: boolean;
+  subscribers(): number;
+}
+
+const MAX_BACKLOG = 500;
+
+/**
+ * A section label (`Identité`) → the token slug the design system uses (`identite`).
+ * Deterministic, so `console.test.ts` can check that every section the product declares
+ * lands on an id the page paints instead of the grey "systeme" bucket.
+ */
+export const sectionSlug = (label: string): string =>
+  label
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase();
+
+/** The section a match belongs to, or the neutral bucket when the category is unknown. */
+export function sectionOf(match: RedactionMatch): string {
+  const section = CATEGORY_SECTION[fineOf(match)];
+  return section ? sectionSlug(section) : "systeme";
+}
+
+const fineOf = (match: RedactionMatch): ReturnType<typeof redactionCategory> =>
+  redactionCategory(match.category ?? match.type ?? "");
+
+/** The console is in English — the CLI's language — so its labels come from the product's
+ *  English catalogue (`@openmasq/i18n`). Never a table of its own. */
+const EN = getMessages("en").redactionCatalog;
+/** The app's OWN names for the two sides of the crossing. Read, never retyped (rule 9). */
+const SIDES = getMessages("en").modals.transparency;
+const enCategory = (key: string) =>
+  (EN.categories as Record<string, { label: string; detail?: string } | undefined>)[key];
+const enSection = (fr: string) => (EN.sections as Record<string, string | undefined>)[fr] ?? fr;
+
+/** `email` → `E-mail`. The catalogue owns these labels; the console only reads them. */
+const LABELS = new Map(
+  REDACTION_CATEGORIES.map((c) => [c.key, enCategory(c.key)?.label ?? c.label]),
+);
+export const typeOf = (match: RedactionMatch): string => {
+  const fine = fineOf(match);
+  return LABELS.get(fine) ?? fine;
+};
+
+const clock = (at: number): string => {
+  const d = new Date(at);
+  const p = (n: number) => String(n).padStart(2, "0");
+  return `${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+};
+
+/** One match → one item, minus the real value unless the run revealed. De-duplicated by value. */
+function itemsOf(matches: RedactionMatch[], reveal: boolean): ConsoleItem[] {
+  const seen = new Map<string, ConsoleItem>();
+  for (const m of matches) {
+    if (!m.placeholder) continue;
+    const already = seen.get(m.value);
+    // Folded rather than dropped: the per-value view counts occurrences.
+    if (already) {
+      already.n += 1;
+      continue;
+    }
+    seen.set(m.value, {
+      cat: sectionOf(m),
+      fake: m.placeholder,
+      type: typeOf(m),
+      n: 1,
+      ...(reveal ? { real: m.value } : {}),
+    });
+  }
+  return [...seen.values()];
+}
+
+export function createConsoleBus(reveal: boolean, now: () => number = Date.now): ConsoleBus {
+  const listeners = new Set<(e: ConsoleEvent) => void>();
+  const backlog: ConsoleEvent[] = [];
+
+  return {
+    reveal,
+    subscribers: () => listeners.size,
+    backlog: () => [...backlog],
+    subscribe(fn) {
+      listeners.add(fn);
+      return () => {
+        listeners.delete(fn);
+      };
+    },
+    publish(e) {
+      const event: ConsoleEvent = {
+        t: clock(now()),
+        method: e.method,
+        // The query string is dropped, here as on the terminal: a Gemini key travels in
+        // `?key=`, and a console is not a reason to start showing it.
+        path: e.path.split("?")[0],
+        family: e.family,
+        status: e.status,
+        ms: Math.round(e.ms),
+        stream: e.stream,
+        ...(e.session ? { session: e.session } : {}),
+        items: itemsOf(e.matches, reveal),
+      };
+      backlog.push(event);
+      if (backlog.length > MAX_BACKLOG) backlog.shift();
+      for (const fn of listeners) fn(event);
+    },
+  };
+}
+
+/** The sections the page paints, in the product's own order and labels. Sent on connect so
+ *  the page carries no list of its own. */
+export const sections = (): { id: string; label: string }[] =>
+  REDACTION_SECTIONS.map((fr) => ({ id: sectionSlug(fr), label: enSection(fr) }));
+
+/**
+ * WHICH SIDE of the crossing this page shows. A mark colours the redacted SPAN of what is
+ * displayed: the app's composer shows what you wrote (mark on the REAL value), this page is
+ * a log of what left (mark on the SUBSTITUTE). Sent rather than typed, so a rewording
+ * upstream reaches this page.
+ */
+export const sideShown = (): { here: string; there: string } => ({
+  here: SIDES.modelReceived,
+  there: SIDES.youWrote,
+});
+
+/**
+ * The MCP connector CATALOG — the same list the desktop app shows, so the console lists
+ * every service that CAN be connected. One home (`@openmasq/catalog/mcp`), sent on connect.
+ * Display metadata only — id, name, category, hue, brand MARK — never a credential.
+ *
+ * The mark travels WITH the list because the page fetches nothing from anywhere: `logo` is a
+ * 24×24 single path plus its official hex, `img` a `data:` PNG for brands that publish no
+ * monochrome glyph. A connector with neither keeps the coloured letter tile, like the desktop.
+ */
+export const connectorCatalog = (): {
+  categories: { id: string; label: string }[];
+  connectors: {
+    id: string;
+    name: string;
+    category: string;
+    tone: string;
+    logo?: { path: string; hex: string };
+    img?: string;
+  }[];
+} => ({
+  categories: MCP_CATEGORIES.map((c) => ({ id: c.id, label: c.label })),
+  connectors: MCP_CONNECTORS.map((c) => {
+    const logo = MCP_LOGOS[c.id];
+    const img = MCP_LOGO_IMAGES[c.id];
+    return {
+      id: c.id,
+      name: c.name,
+      category: c.category ?? "autres",
+      tone: c.tone ?? "slate",
+      ...(logo ? { logo } : {}),
+      ...(img ? { img } : {}),
+    };
+  }),
+});
+
+/**
+ * The masking RULES the page may show: the product's sections, each with its categories,
+ * labels and the sentence the app shows beside them. STRUCTURE only — what is on right now
+ * is `activeCategories`, re-read while the run's level changes under the `l` key. Sent
+ * rather than known: the page has no list of its own.
+ */
+export const rules = (): {
+  id: string;
+  label: string;
+  items: { key: string; label: string; detail?: string; ai: boolean }[];
+}[] =>
+  REDACTION_SECTIONS.map((fr) => ({
+    id: sectionSlug(fr),
+    label: enSection(fr),
+    items: REDACTION_CATEGORIES.filter((c) => c.group === fr).map((c) => {
+      const en = enCategory(c.key);
+      const detail = en?.detail ?? c.detail;
+      return { key: c.key, label: en?.label ?? c.label, ...(detail ? { detail } : {}), ai: !!c.ai };
+    }),
+  }));
+
+/**
+ * Which categories this run actually masks: the level's own arithmetic
+ * (`categoriesForLevel`), minus what `--disable` turned off — the SAME two inputs the
+ * masker reads, never a second reading of the rules.
+ */
+export const activeCategories = (level: RedactionLevel, disabled: readonly string[]): string[] => {
+  const on = categoriesForLevel(level);
+  return REDACTION_CATEGORIES.filter((c) => on[c.key] && !disabled.includes(c.key)).map(
+    (c) => c.key,
+  );
+};
+
+/**
+ * The reporter, teed to the page. The terminal keeps printing exactly what it printed; each
+ * request line is also published on the bus. One wrapper, not a second reporter: the page is
+ * a WINDOW onto the log, not a second account of it.
+ */
+export function teeToConsole<R extends { request(e: RequestEvent): void }>(
+  reporter: R,
+  bus: ConsoleBus | undefined,
+): R {
+  if (!bus) return reporter;
+  return {
+    ...reporter,
+    request(e: RequestEvent) {
+      reporter.request(e);
+      bus.publish(e);
+    },
+  };
+}

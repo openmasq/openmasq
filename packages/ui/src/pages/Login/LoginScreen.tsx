@@ -50,10 +50,9 @@ function useOnline(): boolean {
  * On a code-first platform the code field is shown immediately (`codeSupported`).
  *
  * `heading`/`subheading` re-title the FIRST step for a caller whose
- * sign-in isn't a return but an ARRIVAL (`apps/web`'s invitation page,
- * where it must say to sign in with the invited address). Everything else — the code
- * field, the resend, the errors, the offline state — stays the product's own; that's
- * exactly what a copy-pasted card used to lose.
+ * sign-in isn't a return but an ARRIVAL (an invitation flow, where it must say to sign in
+ * with the invited address). Everything else — the code field, the resend, the errors, the
+ * offline state — stays the product's own.
  */
 export function LoginScreen({
   heading,

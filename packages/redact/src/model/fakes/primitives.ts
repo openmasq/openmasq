@@ -143,8 +143,10 @@ export function mod97(s: string): number {
 
 /** Scramble every alphanumeric char PRESERVING each character's CLASS (lower stays
  *  lower, upper stays upper, digit stays digit) — a handle/pseudo whose fake keeps the
- *  original's silhouette instead of the full-scramble's ransom-note casing. NOT for
- *  secrets: `fakeToken` deliberately destroys everything there. */
+ *  original's silhouette instead of the full-scramble's ransom-note casing. A CREDENTIAL
+ *  goes through `credentials.ts`, which keeps its vendor prefix and redraws the rest the
+ *  same class-for-class way; `fakeToken` below is the full scramble that remains right for
+ *  a private key body, a BIC or a MAC. */
 export function fakeHandle(value: string, seed: number): string {
   const LOWER = "abcdefghijklmnopqrstuvwxyz";
   let h = seed >>> 0;

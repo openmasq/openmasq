@@ -1,0 +1,107 @@
+/* ======================== A masking level, per connector ==
+   The compact picker on a connector's row (`components/MaskLevelPicker.tsx`).
+   Family `.mask-level*`, declared NOWHERE else — that is what makes this file's
+   position in the cascade indifferent (cf. ../CLAUDE.md).
+
+   The THIRD size of the same decision, and deliberately the smallest: Réglages
+   weighs it in cards (`.privacy-level`), the composer changes it in passing
+   (`.crm-*`), and here it rides a row among ten others. So it is a segmented
+   control, not a card — the words come from the same vocabulary
+   (`privacyLevelMeta`), only the room differs.
+
+   ⚠️ The glyph is NOT decoration. A `reduced` level wears the eye, never the
+   shield, exactly as the full-size picker does: a control that asserted a
+   protection the level removes would be the trust bug rule 8 is about, at a
+   smaller size. That choice is made in the component; this only has to not
+   flatten the two into one look. */
+
+.mask-levels {
+  display: inline-flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+  flex-shrink: 0;
+}
+
+.mask-level {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  height: 24px;
+  padding: 0 8px;
+  border-radius: calc(var(--radius-sm) - 2px);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color var(--dur-fast) var(--ease-out);
+}
+
+.mask-level svg {
+  flex-shrink: 0;
+  opacity: 0.75;
+}
+
+.mask-level:hover:not(:disabled) {
+  color: var(--text-strong);
+}
+
+/* The selected one lifts onto the card surface — the same way the level cards
+   read as chosen, without borrowing their size. */
+.mask-level.on {
+  background: var(--surface-card);
+  color: var(--ink-on-blue);
+  box-shadow: var(--shadow-sm);
+}
+
+.mask-level.on svg {
+  opacity: 1;
+}
+
+/* Read-only: the state still SHOWS, because what a connector masks matters
+   whether or not this surface may change it — but nothing reads as pressable. */
+.mask-level:disabled {
+  cursor: default;
+}
+
+.mask-level:disabled:not(.on) {
+  opacity: 0.5;
+}
+
+/* The Confidentialité summary: the connectors that do NOT follow the level above
+   (`pages/Settings/privacy/ConnectorLevelsSection.tsx`). Rows, not cards — the section
+   lists EXCEPTIONS, usually one or two, and a card each would give them the weight of a
+   catalogue. It renders nothing at all when there are none, so there is no empty state
+   to style. */
+.connector-levels {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 6px;
+}
+
+.connector-level-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 8px 8px 6px;
+  border-radius: var(--radius-sm);
+}
+
+.connector-level-row:hover {
+  background: var(--surface-sunken);
+}
+
+/* Takes the room, so the picker stays flush right whatever a connector is called. */
+.connector-level-name {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--text-sm);
+  color: var(--text-strong);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}

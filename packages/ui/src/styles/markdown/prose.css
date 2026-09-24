@@ -1,0 +1,240 @@
+/* ── Markdown rendering of model replies ──────────────────────────────────── */
+.md {
+  font-family: var(--font-sans);
+  font-size: 15px;
+  line-height: 1.72;
+  word-break: break-word;
+}
+.md > :first-child { margin-top: 0; }
+.md > :last-child { margin-bottom: 0; }
+.md p { margin: 0 0 15px; }
+.md del { color: var(--text-faint); }
+/* Images relayed from the web session (e.g. ChatGPT search-result thumbnails),
+   each wrapped in a .md-img with a shimmering skeleton until it loads. */
+.md-img {
+  position: relative;
+  display: inline-block;
+  margin: 0.3em 0;
+  max-width: 100%;
+  vertical-align: bottom;
+  border-radius: 8px;
+}
+.md-img img {
+  display: block;
+  max-width: 100%;
+  max-height: 340px; /* a lone image stays reasonable, never full-bleed huge */
+  height: auto;
+  border-radius: 8px;
+}
+
+/* A run of reply images (ChatGPT's results grid) → square thumbnail mosaic. */
+.md-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 6px;
+  margin: 0.5em 0;
+  max-width: 540px;
+}
+.md-gallery .md-img {
+  margin: 0;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+}
+.md-gallery .md-img img {
+  width: 100%;
+  height: 100%;
+  max-height: none;
+  object-fit: cover;
+}
+/* Tiles get their box from the aspect-ratio, so no min-size reservation needed. */
+.md-gallery .md-img.is-loading img {
+  min-width: 0;
+  min-height: 0;
+}
+/* Reserve space + hide the image until it loads, so the skeleton fills the box
+   and the layout doesn't jump. */
+.md-img.is-loading img {
+  min-width: 180px;
+  min-height: 135px;
+  visibility: hidden;
+}
+.md-img-skeleton {
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  background: linear-gradient(
+    90deg,
+    var(--surface-sunken) 25%,
+    var(--surface-hover) 37%,
+    var(--surface-sunken) 63%
+  );
+  background-size: 400% 100%;
+  animation: md-img-shimmer 1.4s ease infinite;
+}
+/* A failed load collapses to nothing rather than a broken-image icon. */
+.md-img.is-failed {
+  display: none;
+}
+/* An image whose URL carries a REAL vault value is not fetched on sight — the fetch alone
+   hands the value to whoever serves the URL (`blocks/MarkdownImage.tsx`). The shell keeps
+   the slot; the click inside it loads the image. */
+.md-img-withheld {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  max-width: 100%;
+  padding: 7px 11px;
+  border: 1px dashed var(--border-default);
+  border-radius: 8px;
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  line-height: 1.35;
+  text-align: left;
+  cursor: pointer;
+}
+.md-img-withheld:hover {
+  background: var(--surface-hover);
+  color: var(--text-strong);
+}
+.md-img-withheld b {
+  color: var(--brand);
+  font-weight: 600;
+}
+@keyframes md-img-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: 0 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .md-img-skeleton {
+    animation: none;
+  }
+}
+/* Headings — filet motif, matching the chat-app reference. */
+.md h1 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 27px;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  color: var(--text-strong);
+  margin: 0 0 6px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid var(--border-subtle);
+}
+.md h2 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+  color: var(--text-strong);
+  margin: 30px 0 13px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.md h2::before {
+  content: "";
+  width: 22px;
+  height: 3px;
+  border-radius: 2px;
+  /* Neutral grey accent bar. Explicit hex, not a theme token: the base tokens are
+     forest-tinted and would read greenish. */
+  background: #9aa0a8;
+  flex-shrink: 0;
+}
+.md h3 {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin: 24px 0 10px;
+}
+.md h4 {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 12.5px;
+  letter-spacing: 0.04em;
+  color: var(--text-strong);
+  margin: 18px 0 8px;
+}
+/* Lists — custom ▸ bullets and lime numbered chips (chat-app reference). */
+.md ul { list-style: none; margin: 0 0 16px; padding: 0; }
+.md ul li { position: relative; padding-left: 24px; margin-bottom: 8px; }
+.md ul li::before {
+  content: "▸";
+  position: absolute;
+  left: 5px;
+  top: 0;
+  color: var(--forest-700, var(--text-strong));
+  font-size: 13px;
+}
+.md ul ul { margin: 8px 0 0; }
+.md ul ul li::before { content: "–"; color: var(--text-faint); }
+.md ol { list-style: none; margin: 0 0 16px; padding: 0; counter-reset: li; }
+/* Nested lists indent one level (mirrors `.md ul ul`) — the compound number below
+   already encodes the depth; this gives it a matching vertical rhythm. */
+.md ol ol,
+.md ol ul,
+.md ul ol { margin-top: 8px; }
+.md ol li {
+  position: relative;
+  padding-left: 40px;
+  margin-bottom: 8px;
+  counter-increment: li;
+}
+/* Numbering follows the indentation: `counters(li, ".")` prints the ancestor chain
+   (2 → 2.1 → 2.1.1). A top-level list stays "1/2/3". Horizontal padding so a compound label
+   is not clipped. */
+.md ol li::before {
+  content: counters(li, ".");
+  position: absolute;
+  left: 0;
+  top: 1px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  /* Neutral grey number badge. */
+  color: var(--text-strong);
+  background: color-mix(in oklch, #9aa0a8 26%, transparent);
+  border-radius: 6px;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.md li > p { margin: 0; }
+.md strong { font-weight: 700; color: var(--text-strong); }
+.md em { font-style: italic; }
+/* Links — themed link colour with a grey underline-border; hover fills grey. */
+.md a {
+  color: var(--text-link);
+  text-decoration: none;
+  border-bottom: 1.5px solid #9aa0a8;
+  font-weight: 500;
+}
+.md a:hover {
+  background: color-mix(in oklch, #9aa0a8 24%, transparent);
+  color: var(--text-strong);
+}
+/* The full URL is only on PROLONGED hover (native `title` tooltip). */
+.md-link {
+  transition: background 0.14s ease, color 0.14s ease;
+}
+@media (prefers-reduced-motion: reduce) {
+  .md-link { transition: none; }
+}
+.md-link-wrap {
+  position: relative;
+}

@@ -5,42 +5,29 @@ import { helperSpawnArgs } from "../appEntry";
 import type { NodeSpawn } from "./nodeSpawn";
 import { BRAND } from "@openmasq/branding";
 
-// The controllable-browser connector's SECURITY surface, isolated so the C1/ELEC-2
-// allow-list + URL gate are auditable in one place (rule 10). Pure/const — no live
-// connection state (that stays in index.ts); index imports these back.
+// The browser connector's SECURITY surface: the tool allow-list + URL gate, auditable in one
+// place (rule 10). Pure/const, no live connection state.
 
-// Where @playwright/mcp writes its output files (page snapshots + logs). Ephemeral,
-// OS-cleaned, never the repo. Shared by the spawn env (OPENMASQ_PWMCP_OUTPUT_DIR) and
-// the result-inlining in index.ts, so they can never point at different dirs.
+// Where @playwright/mcp writes its snapshots + logs: ephemeral, OS-cleaned, never the repo.
+// ONE function for the spawn env and the result-inlining, so they can't diverge.
 export function browserMcpOutputDir(): string {
   return join(app.getPath("temp"), `${BRAND.slug}-agent-browser-mcp`);
 }
 
-// @playwright/mcp is a declared dependency, so in production it spawns from its
-// BUNDLED bin via Electron's own Node (ELECTRON_RUN_AS_NODE — no `npx`, no network),
-// resolved by the shared nodeSpawnFor helper; falls back to npx only in a dev tree
-// without the dep. It drives the ISOLATED agent-browser process over CDP.
+// @playwright/mcp drives the ISOLATED agent-browser process over CDP.
 export function playwrightMcpSpawn(cdpEndpoint: string): NodeSpawn {
-  // PRIVACY: @playwright/mcp writes page snapshots (full accessibility tree of the
-  // authenticated SaaS the model browses) + console logs to `<cwd>/.playwright-mcp`
-  // by default — unencrypted, and in a dev tree that folder sits in the repo (risk
-  // of committing real user data). Pin its output to Electron's per-app temp dir
-  // (ephemeral, OS-cleaned, never the repo) instead.
+  // PRIVACY: by default @playwright/mcp writes the authenticated page's snapshots to
+  // `<cwd>/.playwright-mcp`, unencrypted and, in a dev tree, inside the repo.
   const outputDir = browserMcpOutputDir();
-  // B1 (audit): run @playwright/mcp in Electron APP mode (NO ELECTRON_RUN_AS_NODE) so the
-  // browser connector doesn't rely on the RunAsNode fuse. Re-enter THIS binary via the
-  // OPENMASQ_PWMCP env flag — NOT an argv script: a PACKAGED Electron IGNORES an argv
-  // entry and would relaunch the normal app (which quits on the single-instance lock →
-  // a dead browser connector in production). Same env-branch as the agent browser
-  // (process.ts spawnArgs). The child (index.ts PLAYWRIGHT_MCP_MODE branch) runs
-  // @playwright/mcp PROGRAMMATICALLY over stdio (createConnection — no CLI argv to
-  // mis-parse), with the CDP endpoint + output dir passed via env (not argv → not in `ps`).
+  // Electron APP mode (NO ELECTRON_RUN_AS_NODE, so no reliance on the RunAsNode fuse),
+  // re-entering THIS binary via the OPENMASQ_PWMCP env flag, NOT an argv script (a
+  // PACKAGED Electron ignores an argv entry and relaunches the app). The child runs
+  // @playwright/mcp PROGRAMMATICALLY over stdio; endpoint + output dir via env (not in `ps`).
   return {
     command: process.execPath,
     args: helperSpawnArgs(),
-    // Allow-list, never inheritance: this process runs @playwright/mcp — third-party
-    // code, with the product's most dangerous tools just below it (C1). It
-    // receives ITS three variables and the bare minimum, nothing from the shell (childEnv.ts).
+    // Allow-list, never inheritance: third-party code with the product's most dangerous
+    // tools below it receives ITS three variables and the bare minimum (childEnv.ts).
     env: minimalChildEnv({
       OPENMASQ_PWMCP: "1",
       PLAYWRIGHT_MCP_CDP_ENDPOINT: cdpEndpoint,
@@ -49,27 +36,15 @@ export function playwrightMcpSpawn(cdpEndpoint: string): NodeSpawn {
   };
 }
 
-// HARDENING (audit C1): @playwright/mcp (playwright-core coreBundle) ships ~75 tools,
-// including cookie/localStorage/sessionStorage/storage-state READERS, raw network
-// request + request-log readers, request routing, tracing/video capture, arbitrary-JS
-// (`browser_evaluate`/`browser_run_code_unsafe`), file upload and page close. A
-// prompt-injected page could steer the model into `browser_storage_state` /
-// `browser_cookie_list` / `browser_network_requests` to lift the auth tokens of the
-// authenticated SaaS the agent is driving, then exfiltrate them. A NAME DENYLIST is
-// fail-open — every new/renamed tool a package bump adds is exposed by default (the old
-// 5-name denylist missed all of the above). So we ALLOW-LIST instead: ONLY the tools
-// below (ordinary page automation + read-only page inspection) are ever routed to the
-// model; everything else — known-dangerous or newly-introduced — is denied by default.
-// `browser_tabs` is safe: every tab is a WebContentsView in the ISOLATED agent process
-// (no app-UI page, no IPC), navigations still pass `isAllowedBrowserUrl` + the child's
-// per-view SSRF/scheme guards. Deliberately EXCLUDED (never add without a security
-// review): browser_evaluate, browser_run_code_unsafe, browser_file_upload, browser_close,
-// browser_pdf_save, browser_get_config/context_args/generate_locator (introspection),
-// browser_network_request(s)/network_clear/network_state_set/route/route_list/unroute
-// (raw net + header/token-bearing request logs + request interception),
-// browser_cookie_*/localstorage_*/sessionstorage_*/storage_state/set_storage_state
-// (auth-material read/write), browser_start_tracing/stop_tracing/*_video/video_*
-// (on-disk capture of the authenticated page), browser_console_clear/resume.
+// @playwright/mcp ships ~75 tools, including cookie/storage READERS, raw network logs,
+// request routing, tracing/video capture, arbitrary JS, file upload: a prompt-injected page
+// could lift the authenticated SaaS's tokens. A NAME DENYLIST is fail-open (every tool a
+// package bump adds is exposed by default), so this is an ALLOW-LIST: ONLY ordinary page
+// automation + read-only inspection reach the model. `browser_tabs` is safe: every tab is a
+// view in the ISOLATED agent process and navigations still pass the URL gates. Deliberately
+// EXCLUDED, never add without a security review: evaluate / run_code, file_upload, close,
+// pdf_save, introspection, network_* / route_*, cookie_* / *storage_* / storage_state,
+// tracing / video, console_clear / resume.
 export const BROWSER_TOOL_ALLOWLIST = new Set([
   // Navigation (still gated by isAllowedBrowserUrl + assertPublicUrl on the tool path).
   "browser_navigate",
@@ -110,27 +85,18 @@ export const BROWSER_TOOL_ALLOWLIST = new Set([
   "browser_tabs",
 ]);
 
-// The agent may only navigate to real web origins (http/https) — never file://,
-// chrome://, devtools://, data:, etc. (defence in depth atop @playwright/mcp's own
-// file:// block). A future step adds a user-configurable domain allow-list.
+// Real web origins only (http/https), never file:// chrome:// devtools:// data:.
 export function isAllowedBrowserUrl(url: string): boolean {
   const u = url.trim().toLowerCase();
   if (u === "about:blank") return true;
   return u.startsWith("http://") || u.startsWith("https://");
 }
 
-// Google `/search` aggressively CAPTCHAs automated browsers (the `/sorry` page), so
-// a browser-agent web search on google.com almost always fails. Transparently rewrite
-// a Google web-search navigation to DuckDuckGo — the product's default engine
-// (`packages/ui/src/state/searchEngines.ts` DEFAULT_SEARCH_ENGINE) — preserving the
-// exact query. ⚠️ Target the MAIN `duckduckgo.com` SERP, never `html.duckduckgo.com`:
-// the no-JS SERP serves a Cloudflare "Just a moment…" bot challenge to the automated
-// browser (which is why this rewrite once pointed at Brave instead). If the main SERP
-// ever starts challenging automation too, fall back to `search.brave.com/search?q=`.
-// The URL is already UN-redacted here (real query), and the rewritten URL is
-// re-checked by the SSRF guard. Non-Google/non-`/search` URLs pass through unchanged.
-// `duckduckgo.com` is in `browserPolicy.SEARCH_ENGINE_HOSTS` so a long `?q=` stays
-// exfil-exempt.
+// Google `/search` CAPTCHAs automated browsers, so a Google web search is rewritten to
+// DuckDuckGo (the product's default engine), exact query preserved. ⚠️ The MAIN SERP, never
+// `html.duckduckgo.com` (its no-JS page serves a bot challenge). The rewritten URL is
+// re-checked by the SSRF guard; `duckduckgo.com` is in `SEARCH_ENGINE_HOSTS` so a long
+// `?q=` stays exfil-exempt.
 export function rewriteSearchEngine(url: string): string {
   try {
     const u = new URL(url);

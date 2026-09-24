@@ -1,8 +1,7 @@
 /**
  * @openmasq/catalog — the SINGLE source of truth for the three governable lists:
- * models, MCP connectors, and redaction categories. Consumed by both the desktop
- * UI (`@openmasq/ui`) and the org admin console (`apps/web`) so the two never
- * drift and org access policy is expressed against the exact same ids.
+ * models, MCP connectors, and redaction categories. Consumed by every surface that
+ * governs them, so org access policy is expressed against the exact same ids.
  *
  * Sub-entries (also importable directly): `./models`, `./mcp`, `./redaction`.
  */

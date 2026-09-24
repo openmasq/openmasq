@@ -45,7 +45,7 @@ export interface AllocateTokensCtx {
 
 /** `[PERSON12]` → its family + its index. Used to resume the numbering of an existing
  *  vault: casing is ignored, the three variants of an entity sharing the index. */
-const TOKEN_RE = /^\[([A-Za-z][A-Za-z_]*?)(\d+)([a-z]?)\]$/;
+export const TOKEN_RE = /^\[([A-Za-z][A-Za-z_]*?)(\d+)([a-z]?)\]$/;
 
 /** The family word of a fine-grained category, via the SAME table as the display (rule 9).
  *  `INFO` is the neutral fallback: a value with no usable category must not inherit
@@ -83,7 +83,7 @@ function caseMirror(word: string, n: number, value: string, cat: string): string
 
 /** The words by which two spellings of a person are recognised: ≥4 letters, which
  *  rules out particles (de/la/du/van) and initials without having to list them. */
-function linkWords(value: string): string[] {
+export function linkWords(value: string): string[] {
   return value
     .split(/[\s._-]+/)
     .filter((w) => /^\p{L}{4,}$/u.test(w))

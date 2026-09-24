@@ -6,55 +6,33 @@ import type { ProviderId } from "@openmasq/llm";
 import { BRAND } from "@openmasq/branding";
 
 /**
- * "Connect my OpenRouter account" — OAuth PKCE, run ENTIRELY in main.
+ * "Connect my OpenRouter account" — OAuth PKCE, run ENTIRELY in main: the key is BORN here
+ * and never crosses the IPC boundary (in `store/` because it feeds the secrets store, rule 10).
  *
- * Why it lives in `store/`: it MINTS a provider key and writes it to the encrypted
- * keychain, so it belongs to the secrets family (root rule 10 — the flow sits next to
- * the store it feeds). And why it runs in main rather than the renderer: the key is
- * BORN here and never crosses the IPC boundary. That is strictly better than the paste
- * path, where the renderer necessarily sees the key once before `keys:set` — and it is
- * why there is no `keys:get` to undo it.
+ * ⚠️ PKCE is the mitigation, not a refinement: the deep-link callback can be intercepted by
+ * any app registering the scheme, so an intercepted `code` is assumed and useless without
+ * the in-memory, single-use, expiring `verifier`.
  *
- * ⚠️ PKCE is not a refinement here, it is the mitigation. The callback comes back over
- * the app's custom URL scheme, which ANY other application on the machine can also
- * register. An intercepted `code` is therefore assumed, and useless without the
- * `verifier` — which is generated here, kept in memory only, single-use, and expires.
- *
- * The key obtained belongs to the USER's OpenRouter account: their credits, their free-
- * model quota. That is the whole point — OpenRouter governs free-model rate limits per
- * ACCOUNT ("making additional accounts or API keys will not affect your rate limits"),
- * so a key minted under the app's own account would hand the user a slice of ONE shared
- * bucket, not a quota of their own.
+ * The key belongs to the USER's account: their credits, their own free-model quota (which
+ * OpenRouter governs per ACCOUNT).
  */
 
 const AUTHORIZE_URL = "https://openrouter.ai/auth";
 const EXCHANGE_URL = "https://openrouter.ai/api/v1/auth/keys";
 
 /**
- * Where OpenRouter sends the user back.
- *
- * PRIMARY: a LOCAL LOOP `http://127.0.0.1:<ephemeral port>/callback` (RFC 8252, the
- * recommended return for a native app). The custom scheme deep link was the weak link that
- * broke: LaunchServices only routes a custom scheme to ONE application — with an
- * app installed alongside the dev instance (or the reverse), the return went to
- * the other app and the flow waited for nothing (log 02/08). The loopback socket, meanwhile,
- * belongs to THIS process: no registration race, no interception by a
- * third-party app (already better than the scheme, which anyone can register) — and PKCE
- * remains the belt: an intercepted code is useless without the verifier in memory.
- *
- * FALLBACK: if the port doesn't open, the old deep link takes over — same
- * behaviour as before, nothing regresses.
+ * Where OpenRouter sends the user back. PRIMARY: a LOOPBACK listener (RFC 8252), which
+ * belongs to THIS process (a custom scheme routes to ONE application, so an installed app
+ * beside a dev instance steals the return). FALLBACK: the deep link, if the port won't open.
  */
 export const CALLBACK_URL = `${BRAND.protocol}://openrouter/callback`;
 const LOOPBACK_HOST = "127.0.0.1";
 const LOOPBACK_PATH = "/callback";
 
-/** How long a started flow stays valid. Long enough to sign in and authorise, short
- *  enough that an abandoned flow cannot be completed by a later stray callback. */
+/** Long enough to sign in, short enough that a stray callback can't complete an abandoned flow. */
 const FLOW_TTL_MS = 5 * 60_000;
 
-/** The provider id the key is stored under. TYPED from the registry rather than described
- *  by a comment: a rename in `@openmasq/llm` is then a red build here, not a stale note. */
+/** TYPED from the registry, so a rename is a red build here. */
 const PROVIDER: ProviderId = "openrouter";
 
 export interface PkcePair {
@@ -62,11 +40,7 @@ export interface PkcePair {
   challenge: string;
 }
 
-/**
- * A fresh PKCE pair. The verifier is 32 random bytes base64url-encoded (43 chars — the
- * RFC 7636 floor is 43, the ceiling 128), and the challenge is its SHA-256, so the
- * value on the wire proves knowledge of a secret it does not reveal.
- */
+/** A fresh PKCE pair (RFC 7636: 43-char verifier, S256 challenge). */
 export function createPkcePair(): PkcePair {
   const verifier = randomBytes(32).toString("base64url");
   const challenge = createHash("sha256").update(verifier).digest("base64url");
@@ -82,12 +56,8 @@ export function authorizeUrl(challenge: string, callbackUrl = CALLBACK_URL): str
   return u.toString();
 }
 
-/**
- * The `code` carried by a callback deep link, or null.
- *
- * Strict on the shape: this is reachable by any app-scheme URL an attacker can get the
- * user to open, so an unexpected host/path is dropped rather than parsed leniently.
- */
+/** The `code` of a callback deep link, or null. Strict: any app-scheme URL an attacker gets
+ *  the user to open reaches this. */
 export function codeFromCallback(url: string): string | null {
   try {
     const u = new URL(url);
@@ -100,10 +70,8 @@ export function codeFromCallback(url: string): string | null {
   }
 }
 
-/** The single in-flight flow. One at a time on purpose: a second "Connect" click
- *  must not leave two verifiers alive, either of which a stray callback could complete.
- *  `server` = the loopback listener of THIS flow (absent on the deep-link fallback);
- *  it lives exactly as long as the flow. */
+/** The single in-flight flow: two live verifiers would each accept a stray callback.
+ *  `server` = this flow's loopback listener (absent on the deep-link fallback). */
 let pending: { verifier: string; at: number; settle: (ok: boolean) => void; server?: Server } | null = null;
 
 /** Drop the pending flow, resolving it as failed if it was still awaited. */
@@ -114,8 +82,7 @@ function abandon(): void {
   p?.settle(false);
 }
 
-/** Monotonic flow generation: since listen is asynchronous, only the LATEST `begin`
- *  has the right to set its flow — a launch from an outdated generation closes itself. */
+/** Listen is asynchronous: only the LATEST `begin` may set its flow. */
 let flowSeq = 0;
 
 /** Test seam: forget any in-flight flow — settled false, loopback listener freed. */
@@ -141,10 +108,7 @@ const PAGE_MISS =
 
 /**
  * Start the flow: mint a pair, open a single-use LOOPBACK listener, send the browser to
- * OpenRouter with that listener as `callback_url`, and resolve when the callback
- * completes (true) or the flow fails/expires (false). If the loopback port cannot be
- * opened, the app-scheme deep-link callback takes over (previous behaviour) — the flow
- * degrades, it never breaks harder than before.
+ * OpenRouter, resolve on completion (true) or failure/expiry (false). No port ⇒ deep link.
  */
 export function beginOpenRouterConnect(): Promise<boolean> {
   abandon(); // a new attempt supersedes an abandoned one
@@ -164,8 +128,7 @@ export function beginOpenRouterConnect(): Promise<boolean> {
     }, FLOW_TTL_MS);
     const launch = (callbackUrl: string, server?: Server) => {
       if (done || gen !== flowSeq) {
-        // Settled (Stop/TTL) or SUPERSEDED by a more recent `begin`: this launch no
-        // longer has the right to set a flow or open the browser.
+        // Settled or SUPERSEDED: no right to set a flow or open the browser.
         server?.close();
         settle(false);
         return;
@@ -195,8 +158,7 @@ export function beginOpenRouterConnect(): Promise<boolean> {
       server.close();
       void exchangeAndStore(code, flow.verifier).then((ok) => flow.settle(ok));
     });
-    // Any listener/socket error ⇒ deep-link fallback (unless already launched: `pending`
-    // still holding this server means the browser is already pointed at it — abandon).
+    // A listener error ⇒ deep-link fallback, unless the browser is already pointed at it.
     server.on("error", () => {
       if (pending?.server === server) abandon();
       else launch(CALLBACK_URL);
@@ -213,13 +175,8 @@ export function beginOpenRouterConnect(): Promise<boolean> {
   });
 }
 
-/**
- * Complete the flow from a callback deep link: exchange `code` + the in-memory verifier
- * for the user's key and store it encrypted. Returns true only when a key was stored.
- *
- * The pending flow is consumed FIRST, whatever happens next: a code is single-use, and
- * leaving the verifier alive after one attempt would let a replayed callback try again.
- */
+/** Complete the flow from a deep link; true only when a key was stored. The pending flow is
+ *  consumed FIRST: a replayed callback must not get a second attempt. */
 export async function completeOpenRouterConnect(url: string): Promise<boolean> {
   const code = codeFromCallback(url);
   if (!code || !hasPendingFlow()) {
@@ -234,8 +191,7 @@ export async function completeOpenRouterConnect(url: string): Promise<boolean> {
   return ok;
 }
 
-/** Exchange `code` + `verifier` for the user's key and store it encrypted — the shared
- *  tail of BOTH callback legs (loopback + deep link). */
+/** The shared tail of BOTH callback legs. */
 async function exchangeAndStore(code: string, verifier: string): Promise<boolean> {
   try {
     const res = await fetch(EXCHANGE_URL, {
@@ -255,8 +211,7 @@ async function exchangeAndStore(code: string, verifier: string): Promise<boolean
     await setKey(PROVIDER, key);
     return true;
   } catch (err) {
-    // Never log the code, the verifier or the key — only that it failed, and why in
-    // shape terms. The user sees an honest failure and can retry.
+    // Never the code, the verifier or the key.
     console.warn(`[openrouter] connect failed: ${err instanceof Error ? err.message : "unknown"}`);
     return false;
   }

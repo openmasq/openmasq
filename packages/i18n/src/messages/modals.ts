@@ -2,7 +2,7 @@
  * The MODALS — the panels that take the screen, and the vocabulary they present.
  *
  * A SLICE of the contract (`../messages.ts`), which stays the only list of namespaces.
- * The split holds the 300-LOC cap (rule 1) — same shape as `packages/emails/i18n/`.
+ * The split holds the 300-LOC cap (rule 1).
  */
 export interface ModalsMessages {
   /** The side-by-side comparison: your text / what actually left. */

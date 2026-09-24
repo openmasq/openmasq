@@ -1,0 +1,39 @@
+{
+  // The ONE table that points every `@openmasq/*` specifier at its SOURCE entry, so a
+  // typecheck reads the code in front of you and never the `dist/` of the last build.
+  // Every `tsconfig.json` in `apps/` and `packages/` extends this file; the test runner's
+  // copy is `scripts/vitest/vitest.workspaceAlias.ts` and `pnpm check:alias` holds the two
+  // equal. A subpath added to a package's `exports` is added to BOTH.
+  // `paths` resolve relative to THIS file (no `baseUrl`), so the targets are repo-relative.
+  "compilerOptions": {
+    "paths": {
+      "@openmasq/redact": ["./packages/redact/src/index.ts"],
+      "@openmasq/redact/remote": ["./packages/redact/src/remote/remote.ts"],
+      "@openmasq/redact/ner": ["./packages/redact/src/local/ner.ts"],
+      "@openmasq/redact/documents": ["./packages/redact/src/documents/documents.ts"],
+      "@openmasq/redact/documents.browser": ["./packages/redact/src/documents/browser.ts"],
+      "@openmasq/redact/inplace": ["./packages/redact/src/documents/inplace.ts"],
+      "@openmasq/redact/pdf-redact": ["./packages/redact/src/viewer/pdfRedact.ts"],
+      "@openmasq/redact/image-redact": ["./packages/redact/src/viewer/imageRedact.ts"],
+      "@openmasq/llm": ["./packages/llm/src/index.ts"],
+      "@openmasq/llm/wire": ["./packages/llm/src/wire.ts"],
+      "@openmasq/llm/pricing": ["./packages/llm/src/pricing.ts"],
+      "@openmasq/catalog": ["./packages/catalog/src/index.ts"],
+      "@openmasq/catalog/mcp": ["./packages/catalog/src/mcp/index.ts"],
+      "@openmasq/catalog/models": ["./packages/catalog/src/models/index.ts"],
+      "@openmasq/catalog/redaction": ["./packages/catalog/src/redaction/index.ts"],
+      "@openmasq/mcp": ["./packages/mcp/src/index.ts"],
+      "@openmasq/mcp/transport": ["./packages/mcp/src/transport/index.ts"],
+      "@openmasq/mcp/node": ["./packages/mcp/src/node/index.ts"],
+      "@openmasq/ui": ["./packages/ui/src/index.ts"],
+      "@openmasq/ui/tooltip": ["./packages/ui/src/components/brand/tooltipPlacement.ts"],
+      "@openmasq/sync": ["./packages/sync/src/index.ts"],
+      "@openmasq/credits": ["./packages/credits/src/index.ts"],
+      "@openmasq/analytics": ["./packages/analytics/src/index.ts"],
+      "@openmasq/branding": ["./packages/branding/src/index.ts"],
+      "@openmasq/i18n": ["./packages/i18n/src/index.ts"],
+      "@openmasq/schema": ["./packages/schema/src/index.ts"],
+      "@openmasq/connectors": ["./packages/connectors/src/index.ts"]
+    }
+  }
+}

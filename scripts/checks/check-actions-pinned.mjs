@@ -1,15 +1,10 @@
 #!/usr/bin/env node
 // A GitHub Action referenced by TAG (`actions/checkout@v4`) is a MUTABLE pointer: whoever
-// controls the action's repository can re-point `v4` at new code, and that code then runs
-// in our CI with whatever secrets the job holds — signing certs, store credentials, the
-// Vercel and Neon tokens. Pinning to a commit SHA makes the reference immutable; the
-// trailing `# v4` comment is what a human (or Dependabot) reads to know what it tracks.
-//
-// This is the same class of hardening as `minimumReleaseAge` in pnpm-workspace.yaml, one
-// layer up: that one gates what enters the lockfile, this one gates what runs the CI.
-//
-// A pinned SHA is not automatically UPDATED, which is the trade: bumping is a deliberate
-// commit. Dependabot understands SHA pins with a version comment and opens that PR itself.
+// controls that repository can re-point the tag, and the new code runs in our CI with the
+// job's secrets. Pinning to a commit SHA makes the reference immutable; the trailing `# v4`
+// comment is what a human (or Dependabot) reads to know what it tracks. Same class of
+// hardening as `minimumReleaseAge` in pnpm-workspace.yaml, one layer up. Bumping a pin is a
+// deliberate commit; Dependabot understands SHA pins with a version comment.
 import { readFileSync, readdirSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
@@ -26,11 +21,8 @@ const SHA = /^[0-9a-f]{40}$/;
 const problems = [];
 let pinned = 0;
 
-/** ⚠️ The `secrets` context is FORBIDDEN inside an `if:` — neither on a job nor on a
- *  step. GitHub does not report it at run time: it refuses to LOAD the workflow, and the
- *  run appears failed WITH ZERO JOBS. A whole release (mac included) fell that way over a
- *  condition that only concerned Windows, and nothing local had seen it — hence this rule,
- *  added to the guard that already reads every workflow. The workaround is one line: pass
+/** The `secrets` context is FORBIDDEN inside an `if:` (job or step): GitHub refuses to LOAD
+ *  the workflow and the run appears failed WITH ZERO JOBS, which nothing local can see. Pass
  *  the secret through the job's `env:`, which `if:` can read. */
 const secretInIf = (line) => /^\s*if:\s*.*\bsecrets\./.test(line);
 

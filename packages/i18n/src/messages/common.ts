@@ -2,7 +2,7 @@
  * The words EVERYTHING renders: action verbs, main navigation, billing.
  *
  * A SLICE of the contract (`../messages.ts`), which stays the only list of namespaces.
- * The split holds the 300-LOC cap (rule 1) — same shape as `packages/emails/i18n/`.
+ * The split holds the 300-LOC cap (rule 1).
  */
 
 /** Verbs and action words reused everywhere — the first thing not to duplicate. */

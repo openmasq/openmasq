@@ -1,0 +1,266 @@
+/* ── The selector's SIMPLIFIED view ──
+   The Finder's frame (`.model-finder` carries fill, border, shadow, clip) but a single
+   column and a free height: `max-height` here, `height` over there, because a short list has
+   no stable viewport to scroll. */
+.model-finder.simple {
+  height: auto;
+  display: flex;
+  flex-direction: column;
+}
+/* The heading of a BLOCK in the short list (`simpleMenuSections`): mono, small, faint
+   ink — it ORGANIZES, it doesn't attract. Its top margin: `styles/modelPickerRow.css`. */
+.model-simple-sep {
+  padding: 8px 10px 3px;
+  color: var(--text-faint);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.model-simple-list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 4px;
+}
+/* The way back to the full view: a full-width row, always visible, separated
+   from the list — not a discreet link. A toggle nobody can find is a dead end. */
+.model-simple-all {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  padding: 9px;
+  border: none;
+  border-top: 1px solid var(--border-subtle);
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 0 0 var(--radius-md) var(--radius-md);
+}
+.model-simple-all:hover {
+  background: var(--surface-card);
+  color: var(--text-strong);
+}
+.model-finder-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 9px;
+  border: none;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--text-body);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  text-align: left;
+  cursor: pointer;
+}
+.model-finder-item:hover,
+.model-finder-item.on {
+  background: var(--surface-hover);
+}
+.model-finder-item.on {
+  color: var(--text-strong);
+  font-weight: 600;
+}
+.model-finder-label {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.model-finder-count {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+/* Platform group header inside the model dropdown (OpenAI / Anthropic / la marque…). */
+.model-group + .model-group {
+  margin-top: 2px;
+}
+.model-group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 8px 10px 4px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+/* The group-level "Clé requise / Abonnement requis" chip sits flush right, said once
+   for the whole group instead of repeated on every row. */
+.model-group-header .model-unavailable {
+  flex: none;
+}
+/* Platform group in the Settings "Default model" grid — one per credit platform. A
+   full-width hairline marks the boundary, in `--border-default`: `--border-subtle` is
+   invisible on the white panel, `--border-strong` too heavy. */
+.model-platform-group + .model-platform-group {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border-default);
+}
+/* A thin neutral left rail per PROVIDER delimits the groups without enlarging the header;
+   the vendor-family sub-headers stay the visual step below it. */
+.model-platform-group {
+  border-left: 1px solid var(--border-subtle);
+  padding-left: 14px;
+}
+.model-platform-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+/* Right side of a provider group header: the group-level unavailability chip (said once,
+   not per card) next to the key controls. */
+.model-platform-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+/* Per-PROVIDER key controls, right of the group label: a "clé enregistrée / aucune
+   clé" chip + the single settings gear that opens that provider's key modal. */
+.model-platform-key {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+.model-key-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 8px;
+  border-radius: var(--radius-pill, 999px);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-subtle);
+}
+.model-key-status.on {
+  color: var(--brand-text);
+  background: var(--hl-lime-soft, var(--surface-sunken));
+  border-color: color-mix(in srgb, var(--brand) 40%, transparent);
+}
+/* Needs unlocking (add a key ⚙ right here, or subscribe). INFORMATIONAL, not a warning:
+   a calm neutral with slightly stronger text than the plain "Aucune clé" — no amber. */
+.model-key-status.blocked {
+  color: var(--text-strong);
+  background: var(--surface-sunken);
+  border-color: var(--border-default, var(--border-subtle));
+}
+/* Sticky search at the top of the model dropdown. */
+.model-search {
+  position: sticky;
+  top: -6px;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  flex-shrink: 0; /* the finder frame is FIXED-height; the bar must never squash */
+  gap: 8px;
+  margin: -6px -6px 6px;
+  padding: 10px 12px;
+  background: var(--surface-card);
+  border-bottom: 1px solid var(--border-subtle);
+  color: var(--text-faint);
+}
+.model-search input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  color: var(--text-strong);
+}
+.model-search input::placeholder {
+  color: var(--text-faint);
+}
+.model-empty {
+  padding: 18px 12px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+.model-option {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  width: 100%;
+  padding: 10px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out);
+}
+.model-option:hover {
+  background: var(--surface-hover);
+}
+/* Keyboard highlight (↑/↓): same fill as hover + an inset ring so it reads as the
+   focused row even when the pointer is elsewhere. */
+.model-option.focus {
+  background: var(--surface-hover);
+  box-shadow: inset 0 0 0 1.5px var(--brand);
+}
+.model-option.active {
+  background: var(--surface-selected);
+}
+/* A model you cannot send with (no key / no credits / no local endpoint) is shown but
+   greyed + inert, so the catalogue stays legible while the reason is explicit. The keyboard
+   nav skips these rows. */
+.model-option.unavailable,
+.model-card.unavailable {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+.model-option.unavailable:hover,
+.model-card.unavailable:hover {
+  background: transparent;
+}
+/* The « gratuit » badge on a zero-priced model (`isFreeModel`) — the one positive chip: it
+   never consumes credits. It does not imply keyless: an OpenRouter :free model still needs
+   the user's key (the chip beside says so). */
+.model-free-badge {
+  font-size: 9.5px;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  /* Brand pill + the ink that inverts with it (`--ink-on-brand`) — in the dark-GREEN
+     theme `--brand` IS the light lime, so a hardcoded lime made the word disappear. */
+  color: var(--ink-on-brand);
+  background: var(--brand);
+  border-radius: var(--radius-pill, 999px);
+  padding: 1px 6px;
+  margin-left: 6px;
+  white-space: nowrap;
+  flex: none;
+}
+/* Clickable badge → the « Modèles gratuits » explainer (usage limité, abonnement / clés). */
+.model-free-badge.clickable {
+  cursor: pointer;
+  transition: filter 0.12s, box-shadow 0.12s;
+}
+.model-free-badge.clickable:hover {
+  filter: brightness(0.94);
+  box-shadow: 0 0 0 1px var(--brand) inset;
+}

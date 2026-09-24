@@ -1,0 +1,71 @@
+/* Search-engine picker (in the nav bar) — current engine logo + a dropdown. */
+.vb-engine {
+  position: relative;
+  flex-shrink: 0;
+  margin-bottom: 3px;
+}
+.vb-engine-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 28px;
+  padding: 0 7px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  background: var(--surface-card);
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.vb-engine-btn:hover {
+  background: var(--surface-hover);
+  color: var(--text-strong);
+}
+.vb-engine-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 40;
+  min-width: 184px;
+  padding: 5px;
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  box-shadow: var(--shadow-lg, 0 12px 32px rgba(15, 28, 6, 0.18));
+}
+.vb-engine-menu-head {
+  padding: 5px 8px 6px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.vb-engine-item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 8px 9px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-body);
+  cursor: pointer;
+  text-align: left;
+}
+.vb-engine-item:hover {
+  background: var(--surface-hover);
+}
+.vb-engine-item.on {
+  color: var(--text-strong);
+}
+.vb-engine-item-name {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 600;
+}
+.vb-engine-item-check {
+  display: inline-flex;
+  color: var(--brand-text);
+}

@@ -1,39 +1,17 @@
 import { connectorIdFromInstance, findConnector } from "@openmasq/catalog/mcp";
 
 /**
- * MAIN's copy of the organisation's MCP policy — which connectors a member MAY use.
+ * MAIN's replay of the organisation's MCP policy: which connectors a member MAY use. The
+ * renderer's filter is UX (rule 7); this closes the custom-server re-add and the direct
+ * IPC call.
  *
- * Until now this list lived **only in the renderer** (applied when the agent loop assembles
- * its tool set). That made it a UX filter rather than a policy: a member could re-add the
- * very same service as a CUSTOM server and get its tools back, and anything calling
- * `mcp:call-tool` directly bypassed it entirely. This module is the privileged-side replay
- * the trust model asks for (root rule 7: a renderer gate is UX, the real check runs in main
- * too).
+ * An ALLOW-list, and two absences that do NOT mean the same thing: `null` = not told yet
+ * (gate OPEN: a member with no organisation must not lose their connectors); `[]` = the
+ * organisation opened nothing (gate CLOSED). Collapsing them turns the allow-list back
+ * into "everything permitted".
  *
- * ## ALLOW-list, and the two absences that do NOT mean the same thing
- *
- * The policy is now what the org PERMITS, not what it forbids (root rule 7 again: a
- * deny-list is fail-open — a connector added to the catalogue after the policy was written
- * used to be usable everywhere). That makes the distinction below load-bearing:
- *
- * - **`null` = we have not been told yet** (no push since launch, or a policy read that
- *   failed). The gate stays OPEN — a member with no organisation, or one whose fetch is
- *   still in flight, must not have their connectors silently cut.
- * - **`[]` = the organisation opened nothing.** The gate is CLOSED. This is a real policy,
- *   not an absence, and it is exactly what a freshly-created organisation looks like.
- *
- * Collapsing the two (the old `Set` where empty ≡ missing) is how an allow-list quietly
- * turns back into "everything is permitted".
- *
- * ## What this closes, and what it does NOT — read before trusting it
- *
- * The list arrives FROM the renderer (it is part of the org profile the renderer fetches).
- * Main cannot verify it, so a renderer compromised badly enough to push a fabricated list
- * still moves the policy. What is closed is everything short of that: the custom-server
- * re-add, a direct IPC call, a tool the loop's filter missed, a route that appeared after
- * the renderer last looked. Strictly more than before and strictly less than a policy main
- * could prove — say so rather than implying otherwise. The authoritative control for the
- * platform path is server-side, in the gateway.
+ * RESIDUAL: the list arrives FROM the renderer, so a renderer compromised enough to push
+ * a fabricated list still moves the policy. The authoritative control is server-side.
  */
 
 /** `null` = never published (open gate); a Set = the policy (even when empty). */
@@ -51,12 +29,8 @@ function hostOf(url: string | undefined): string | null {
   }
 }
 
-/**
- * Publish the org's allowed connector ids. `null`/`undefined` (or anything that is not an
- * array) CLEARS the policy back to "not told yet" rather than being guessed at — a
- * half-parsed policy is worse than none, because it reads as enforced. An empty ARRAY is a
- * real, closed policy and is kept as such.
- */
+/** Publish the allowed ids. A non-array CLEARS the policy to "not told yet" (a half-parsed
+ *  policy reads as enforced); an empty ARRAY is a real, closed policy. */
 export function setOrgAllowedConnectors(value: unknown): string[] | null {
   if (!Array.isArray(value)) {
     allowed = null;
@@ -86,18 +60,15 @@ export function isConnectorBlocked(instanceId: string | undefined): boolean {
   return !(allowed.has(instanceId) || allowed.has(connectorIdFromInstance(instanceId)));
 }
 
-/** Is this URL a service the org has NOT opened, re-added by hand? This is the hole the
- *  renderer-only list left open: the policy names an id, the member adds a URL. Under an
- *  allow-list a URL matching no permitted connector is refused — including a service that
- *  is not in the catalogue at all, which is what a managed account should not be reaching. */
+/** A service the org has NOT opened, re-added by URL: a URL matching no permitted connector
+ *  is refused, including one not in the catalogue at all. */
 export function isConnectorUrlBlocked(url: string | undefined): boolean {
   if (!allowedHosts) return false; // policy unknown ⇒ open gate
   const host = hostOf(url);
   return !host || !allowedHosts.has(host);
 }
 
-/** The refusal the model sees. Names the connector, not the policy internals — the member
- *  needs to know to stop trying, and their admin is who can change it. */
+/** The refusal the model sees: the connector's name, never the policy internals. */
 export function blockedConnectorError(instanceId: string): Error {
   const id = connectorIdFromInstance(instanceId);
   const name = findConnector(id)?.name ?? id;

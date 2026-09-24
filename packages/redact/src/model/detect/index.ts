@@ -46,21 +46,17 @@ export interface DiscoverOptions {
    *  e.g. names of the user's connected integrations the model needs verbatim. */
   keep?: string[];
   /** Surface a detector failure (unreachable model, unparseable reply, thrown local
-   *  detector). Without it a failed model pass is INDISTINGUISHABLE from "nothing
-   *  found" (audit H1) — callers that need model-grade coverage MUST pass this and
-   *  fail closed on it, exactly like `pseudonymize`'s `modelError`. */
+   *  detector). Without it a failed pass is INDISTINGUISHABLE from "nothing found" —
+   *  callers MUST pass this and fail closed on it, like `pseudonymize`'s `modelError`. */
   onError?: (err: unknown) => void;
 }
 
 /**
- * Best-effort parse of a JSON array out of a model reply (tolerates fences/prose).
- * Returns `null` when NO valid JSON array can be found (unparseable / truncated / a prose
- * refusal) — distinct from `[]`, a literal "found nothing". The caller uses that distinction
- * to fail CLOSED on an unparseable reply instead of mistaking it for a clean empty result
- * (audit H1). A non-array JSON value (e.g. `{}`) is also `null` (not a valid findings array),
- * and so is a NON-EMPTY array with no findings-shaped element: the first-`[`/last-`]` slice
- * of a reasoning reply can grab an unrelated array in prose ("the top items are [1, 2, 3]"),
- * which then read as zero detections WITHOUT raising the fail-closed signal.
+ * Best-effort parse of a JSON array out of a model reply. Returns `null` when NO valid
+ * findings array can be found (unparseable, truncated, a prose refusal, a non-array value,
+ * or a NON-EMPTY array with no findings-shaped element — the first-`[`/last-`]` slice can
+ * grab an unrelated array in prose) — distinct from `[]`, a literal "found nothing". The
+ * caller fails CLOSED on `null`.
  */
 function parseFindings(reply: string): Array<{ value: unknown; category: unknown }> | null {
   const start = reply.indexOf("[");
@@ -79,9 +75,7 @@ function parseFindings(reply: string): Array<{ value: unknown; category: unknown
   }
 }
 
-// `caseInsensitiveOccurrences` lives in `../util` (with `isWordGlued`/`isCjkText`, which
-// it depends on, and from where `variantOccurrences` can finally use it) — re-exported here
-// so existing importers don't have to move.
+// `caseInsensitiveOccurrences` lives in `../util`; re-exported here.
 export { caseInsensitiveOccurrences } from "../../util";
 
 /** Turn a model category into a safe placeholder label, e.g. "Phone #" -> "PHONE". */
@@ -122,12 +116,9 @@ export async function detectWithModel(
 
   const primary = await ask(input);
   if (primary === null) return []; // model unreachable → onError already fired → callers fail closed
-  // The model REPLIED (200) but produced no parseable JSON array — truncated mid-reasoning
-  // (a reasoning model burning its token budget), a safety refusal, or prose. At the value
-  // level this is INDISTINGUISHABLE from "found nothing" (`[]`), so without this the send
-  // would ship regex-only coverage under the "model-grade" label with modelError UNSET —
-  // a silent PII leak (audit H1). Treat an unparseable primary reply as a FAILURE so callers
-  // fail CLOSED (block the send / mask the tool result), exactly like an unreachable model.
+  // The model REPLIED but produced no parseable JSON array (truncated mid-reasoning, a
+  // refusal, prose). INDISTINGUISHABLE from "found nothing" at the value level, so it is a
+  // FAILURE: callers fail CLOSED exactly like on an unreachable model.
   if (parseFindings(primary) === null) {
     console.warn("[redact] redaction model reply was not a parseable JSON array — failing closed (not treating as 'nothing found').");
     onError?.(new Error("redaction model reply was not parseable (no JSON array)"));
@@ -161,15 +152,14 @@ export async function detectWithModel(
       // "la Sacem" → "Sacem" (+ "de Karl Studio" → "Karl Studio" for an ORG): the
       // determiner/preposition stays in clear + a single atomic identity.
       let value = stripLeadingArticle(raw, isOrgCategory(category));
-      // "société KARL STUDIO" / "KARL STUDIO Forme" → "KARL STUDIO": strip the legal
-      // form / descriptor so one company is ONE identity (the "plusieurs mappings" bug).
+      // "société KARL STUDIO" / "KARL STUDIO Forme" → "KARL STUDIO": one company, ONE identity.
       if (isOrgCategory(category)) value = stripOrgAffixes(value);
       if (value.length < 2) continue;
       // Universal non-PII, dropped for EVERY caller (both the `discoverSecrets`
       // marker path AND the `pseudonymize` fake path go through here): an ultra-common
       // function word ("tes"), a generic document/type word ("CV", "Facture") OR a bare
       // company legal form/role ("SASU", "Associé Unique") the detector over-flagged.
-      if (isNonPiiTerm(value)) continue;
+      if (isNonPiiTerm(value, undefined, input)) continue;
       // Case-insensitive reconciliation: redact each REAL-cased occurrence, so an
       // UPPERCASE name/city the model reported in normal case is still caught.
       for (const actual of caseInsensitiveOccurrences(input, value)) {
@@ -193,20 +183,13 @@ export async function detectWithModel(
  * Only values that appear verbatim in `input` are accepted, so a hallucinating
  * model can never corrupt the text. Safe to run alongside the regex rules.
  */
-// A LEADING lowercase article/determiner ("la Sacem", "l'Afdas", "the Sacem") is a
-// determiner in running text, NOT part of the entity name. Strip it so the article
-// stays in CLEAR and, crucially, does NOT split the entity's identity: "la Sacem" and
-// "Sacem" would otherwise get DIFFERENT `entityKey`s → two unrelated fakes for one org
-// (the reported "différents redactions pour un même mot avec un le/la devant").
-// LOWERCASE-ONLY (no `i` flag): a proper name whose FIRST word IS the article is
-// capitalised — "La Rochelle", "Le Mans", "Les Sables", "The Times" — so those stay
-// intact. `l['’]` covers the elided form ("l'Afdas", no space); the rest need a space.
+// A LEADING lowercase article ("la Sacem", "l'Afdas") is a determiner, NOT part of the
+// entity: stripped so "la Sacem" and "Sacem" share ONE `entityKey`. LOWERCASE-ONLY (no `i`
+// flag): a proper name whose FIRST word IS the article is capitalised ("La Rochelle").
 const LEADING_ARTICLE_RE = /^(?:(?:les?|la|du|des|aux?|the)\s+|l['’]\s*)(?=\p{L})/u;
-// ORG-only extra: the lowercase PREPOSITION a NER swallows from running text
-// (« résultats de Karl Studio » → span "de Karl Studio", 01/08 log: grammar
-// broken on the wire AND a SECOND identity for the org, the entityKey diverging from the
-// vault). NEVER applied to persons — a lowercase particle there is part of the name
-// ("de Gaulle"). Looped with the article strip so "de la Sacem" fully sheds.
+// ORG-only extra: the lowercase PREPOSITION a NER swallows (« résultats de Karl Studio »).
+// NEVER applied to persons — a lowercase particle there is part of the name ("de Gaulle").
+// Looped with the article strip so "de la Sacem" fully sheds.
 const LEADING_ORG_PREP_RE = /^(?:de\s+|d['’]\s*)(?=\p{L})/u;
 /** Drop a leading lowercase article/determiner from an entity value, keeping ≥2 chars.
  *  `org` additionally sheds a leading preposition (de/d'), repeatedly. */
@@ -241,10 +224,8 @@ export async function discoverSecrets(
   const seen = new Set<string>();
 
   const detections: Detection[] = [];
-  // Thread the failure signal through: an unreachable model / unparseable reply
-  // used to be silently swallowed here (no onError), so this marker-mode path
-  // degraded to regex-only under the "model-grade" label — the exact H1 fail-open
-  // detectFailClosed.test.ts pins for the pseudonymize path.
+  // Thread the failure signal through: an unreachable model / unparseable reply must not
+  // degrade this marker-mode path to regex-only (`detectFailClosed.test.ts`).
   if (options.complete)
     detections.push(...(await detectWithModel(input, options.complete, options.onError)));
   if (options.detectLocal) {
@@ -258,9 +239,8 @@ export async function discoverSecrets(
   for (const { value, category } of detections) {
     if (known.has(value)) continue;
     if (isKept(value, keep)) continue; // allow-listed → never redact
-    // Never PII on its own — the SAME test the fake path uses. This path used to check a
-    // strict SUBSET, so a value spared as a fake was still redacted as a marker.
-    if (isNonPiiTerm(value)) continue;
+    // Never PII on its own — the SAME test the fake path uses (rule 9).
+    if (isNonPiiTerm(value, undefined, input)) continue;
     if (disabled.has(redactionCategory(category))) continue;
     const placeholder = alloc.ensure(category, value);
     if (!seen.has(placeholder)) {

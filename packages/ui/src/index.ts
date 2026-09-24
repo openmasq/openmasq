@@ -42,9 +42,8 @@ export type { AuthState } from "./state/auth/useAuth";
 export { LoginScreen } from "./pages/Login";
 
 // Brand primitives + icon set (Avatar, Badge, Switch, IconButton, ModelLogo,
-// CMark/RedactMark, and the redact line-icon set). Exported so other surfaces —
-// notably the org-scoped admin console in apps/web — compose the SAME primitives
-// rather than re-implementing them. Purely additive to the public surface.
+// CMark/RedactMark, and the redact line-icon set). Exported so other surfaces compose
+// the SAME primitives rather than re-implementing them.
 export * from "./components/brand";
 
 export { AppShell } from "./containers/shell/AppShell";

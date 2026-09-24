@@ -1,13 +1,8 @@
 #!/usr/bin/env node
 /**
  * The PRE-COMMIT LOC gate — on the STAGED files only, and on their STAGED content
- * (`git show :path`), never on the whole working tree.
- *
- * Why not `check:loc` as-is: several sessions work in parallel on this tree — an overrun
- * in *another* session's WIP would block this one's commit, and a gate that is red
- * permanently teaches nobody anything. Here, red = YOUR commit would push a file past the
- * cap — exactly the useful information, at the moment fixing it costs least. (CI keeps
- * `check:loc` on the full tree.)
+ * (`git show :path`): several sessions share this tree, and an overrun in another
+ * session's WIP must not block this one's commit. CI keeps `check:loc` on the full tree.
  */
 import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";

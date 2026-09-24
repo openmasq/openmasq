@@ -90,11 +90,9 @@ export function detectAddresses(text: string): Detection[] {
     new RegExp(`\\b\\d{1,4}(?:${H}?(?:bis|ter|quater))?${W}(?:${PRE})\\.?${H}+${NAME}${TAIL_ZIPCITY}`, "giu"),
     "ADDRESS", out, seen, 6, romance,
   );
-  // Shape B — type → name → number (+ optional "CP Ville"): "Calle Mayor 3 28013
-  // Madrid". ES/IT/PT types ONLY — that order is theirs; letting the FRENCH types
-  // in read a legal-article reference ("articles R. 5312-38 … du code du travail",
-  // type "r" + number) and schedule prose ("entre le 28 du mois en cours et le 15",
-  // type "cours") as ADDRESSES and faked them into street addresses.
+  // Shape B — type → name → number (+ optional "CP Ville"): "Calle Mayor 3 28013 Madrid".
+  // ES/IT/PT types ONLY: with the FRENCH types, a legal-article reference ("articles R.
+  // 5312-38") and schedule prose ("le 28 du mois en cours") read as addresses.
   const PRE_B =
     "calle|avenida|avda|paseo|plaza|camino|carretera|via|viale|corso|piazza|vicolo|largo|strada|rua|travessa|pra[çc]a";
   pushAll(
@@ -174,27 +172,19 @@ export function detectAddresses(text: string): Detection[] {
     for (const mm of d.value.matchAll(/\b\d{5}\b/g)) consumedCp.add(mm[0]);
   }
 
-  // FR — the NOTARIAL/administrative order, city BEFORE its parenthesised CP:
-  // "demeurant à ASNIÈRES-SUR-SEINE (92600)", "Né à PARIS 18ÈME ARRONDISSEMENT
-  // (75018)", "situé à SAINT-OUEN (SEINE-SAINT-DENIS 93400". The "CP Ville" PLACE
-  // rule below cannot see this shape, so the NER faked the city while the REAL
-  // postal survived inside the parens — re-identifying the place. One span (city +
-  // parens), gated on the preceding "à" (demeurant à / né à / situé à) so a bare
-  // "NAME (12345)" elsewhere never matches. The parens may carry a department
-  // before the CP, and OCR routinely drops the closing paren — both tolerated (the
-  // 5-digit CP anchors the end, so nothing can be swallowed past it).
-  // Tokens may START with a digit ("PARIS 17ÈME ARRONDISSEMENT") and the run may
-  // wrap once per joiner (a deed's narrow column breaks "17ÈME\nARRONDISSEMENT").
+  // FR — the NOTARIAL/administrative order, city BEFORE its parenthesised CP: "demeurant
+  // à ASNIÈRES-SUR-SEINE (92600)", "situé à SAINT-OUEN (SEINE-SAINT-DENIS 93400". One
+  // span (city + parens) so the REAL postal never survives beside a faked city, gated on
+  // the preceding "à" so a bare "NAME (12345)" never matches. A department before the CP
+  // and a dropped closing paren (OCR) are tolerated; the 5-digit CP anchors the end.
+  // Tokens may START with a digit ("PARIS 17ÈME") and wrap once per joiner.
   const CITY_TOK = "[\\p{Lu}\\d][\\p{Lu}\\p{L}\\d'’-]*";
   const CITY_JOIN = "(?:[ \\t]+|\\r?\\n[ \\t]*)";
-  // …and the labels that introduce the same place WITHOUT « à »: « agence de NANTES
-  // (44000) », « Lieu de signature : BORDEAUX (33000) », « au siège, DIJON (21000) ».
-  // An ALLOW-list, never a loosening of the context: the guard stays the
-  // label, exactly like for the identifiers. Opening the door to a bare separator
-  // (« : » or « , ») would turn « Référence : DOSSIER (12345) » into a place.
-  // ⚠️ The casing CANNOT be carried by a flag: `i` would make `\p{Lu}` match lowercase
-  // in `CITY_TOK` and the rule would catch « il habite (75008) ». Each letter of the
-  // label is therefore made case-insensitive one at a time, the VALUE staying capitalised.
+  // …and the labels that introduce the same place WITHOUT « à » (« agence de NANTES
+  // (44000) », « Lieu de signature : BORDEAUX (33000) »). An ALLOW-list: a bare separator
+  // would turn « Référence : DOSSIER (12345) » into a place. ⚠️ The casing CANNOT be a
+  // flag: `i` would make `\p{Lu}` match lowercase in `CITY_TOK`. Each letter of the label
+  // is made case-insensitive one at a time, the VALUE staying capitalised.
   const ci = (w: string): string =>
     [...w].map((c) => (c.toLowerCase() === c.toUpperCase() ? c : `[${c.toLowerCase()}${c.toUpperCase()}]`)).join("");
   const PLACE_CUE = ["siège", "siege", "domiciliation", "domiciliée", "domiciliee", "domicilié",
@@ -217,31 +207,24 @@ export function detectAddresses(text: string): Detection[] {
     out.push({ value, category: "PLACE", country: "FR", start: m.index });
   }
 
-  // FR — a STANDALONE "CP + Ville" (no street on the line) as ONE coherent PLACE, so
-  // the code and city are faked TOGETHER from ONE real place (they used to be split —
-  // the code to POSTAL_CODE, the city left to the NER, which faked them apart or
-  // mistyped an ALL-CAPS city like "MALAKOFF" as a NAME → "37000 Nathan"). A bare
-  // 5-digit is ambiguous FR/DE/ES/IT — a standalone one assumes FR (the primary case;
-  // a foreign "PLZ Stadt" glued to a street is already handled by that shape above).
+  // FR — a STANDALONE "CP + Ville" as ONE coherent PLACE, so code and city are faked
+  // TOGETHER from ONE real place (split, the NER fakes them apart or mistypes an ALL-CAPS
+  // city as a NAME). A bare 5-digit is ambiguous FR/DE/ES/IT — standalone assumes FR; a
+  // foreign "PLZ Stadt" glued to a street is handled by that shape above.
   const PLACE_RE = new RegExp(
     // Separator HORIZONTAL and city ≥2 letters: a « CP Ville » is a one-line shape, and
-    // `\\s+` let a code take the next LINE's first character as its commune
-    // (« …12345\\nE. Numéro d'identification » on a carte grise).
+    // `\\s+` would let a code take the next LINE's first character as its commune.
     `\\b([0-9OoIl]{5})[ \\t\u00A0\u202F]+((?:(?:Le|La|Les|L['’]|Saint[e]?|Sainte|St[e]?|Mont)[ -])?\\p{L}[\\p{L}]+(?:[-'’]\\p{L}+)*)` +
-      // SPACE-separated commune continuation, connector-led ("ST OUEN SUR SEINE",
-      // "VITRY LE FRANCOIS" — administrative docs drop the hyphens): each chunk is
-      // a French toponym connector then a word. Without it the span stopped after
-      // the first word and the tail shipped in clear beside the faked city
-      // ("29200 BREST SUR SEINE" — "SUR SEINE" narrowing the real location).
+      // SPACE-separated commune continuation, connector-led ("ST OUEN SUR SEINE" —
+      // administrative docs drop the hyphens), else the tail narrows the real location
+      // beside the faked city.
       `((?:[ ](?:SUR|SOUS|LES|L[EÈ]S|EN|AUX?|LE|LA|DU|DE|D['’]?)[ ]\\p{L}[\\p{L}'’-]*)*)`,
     "giu",
   );
   for (const m of text.matchAll(PLACE_RE)) {
-    // OCR tolerance on the CODE itself: a scanned "60000" comes back "6O00O" (O read for
-    // zero, l/I for one), and the postal then survived beside a FAKED city — the exact
-    // split this joint CP+city span exists to prevent. Bounded to ≥2 TRUE digits, so a
-    // capitalised word can never open a place. The value keeps the garbled form verbatim
-    // (it is the vault key); `fakeGeo` emits a clean one.
+    // OCR tolerance on the CODE itself ("6O00O": O for zero, l/I for one). Bounded to ≥2
+    // TRUE digits so a capitalised word can never open a place. The value keeps the garbled
+    // form verbatim (it is the vault key); `fakeGeo` emits a clean one.
     if ((m[1].match(/\d/g) ?? []).length < 2) continue;
     if (consumedCp.has(m[1])) continue;
     const first = m[2].match(/\p{L}/u)?.[0] ?? "";
@@ -271,15 +254,10 @@ export function detectAddresses(text: string): Detection[] {
     out.push({ value: m[1], category: "POSTAL_CODE", start: m.index });
   }
   pushAll(text, new RegExp(`\\b[A-Z]{1,2}\\d[A-Z\\d]?\\s?\\d[A-Z]{2}\\b`, "g"), "POSTAL_CODE", out, seen, 5, "GB");
-  // JP postal. The 〒 marker is distinctive: it's enough on its own. The BARE
-  // `NNN-NNNN` form, on the other hand, isn't — it requires a JAPANESE context (at least one
-  // CJK character in the text).
-  // ⚠️ Without this gate, it claimed the TAIL of any North-American number:
-  // « +1 (555) 123-4567 » came out as « +1 (555) 864-2086 » — the area code left in
-  // clear under a value that looked redacted (reported on 11/08). Half-protection
-  // is worse than none: it's reassuring. And a bare `\d{3}-\d{4}` contradicts the engine's
-  // precision bar ("a bare digit run is never a rule on its own") — an order
-  // reference has exactly this shape.
+  // JP postal. The 〒 marker is distinctive on its own; the BARE `NNN-NNNN` form requires a
+  // JAPANESE context (one CJK character in the text), else it claims the TAIL of any
+  // North-American phone number — half-protection that looks redacted — and a bare
+  // `\d{3}-\d{4}` contradicts the precision bar anyway.
   const hasCjk = /[\p{sc=Han}\p{sc=Hiragana}\p{sc=Katakana}]/u.test(text);
   pushAll(
     text,

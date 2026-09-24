@@ -22,13 +22,11 @@
 //     (≤5 tokens, each cased or a particle) so a table label ("Total des
 //     produits d'exploitation") above a fused number column never qualifies.
 //
-// The name tokens pass the shared stopword/generic/country/affix guards, so
-// "la sarl", "une petite sarl" never yield a candidate. The gate word stays in
-// clear, and the emitted value is canonicalised through `stripOrgAffixes` HERE —
-// exactly like the NER/LLM detector paths — so "berlioz sarl" and the LLM's
-// "Berlioz" share ONE `entityKey` (one company = one fake); the legal form ships
-// in clear. (The deterministic sources do NOT pass through the detector-level
-// strip, so skipping it here split the identity.)
+// The name tokens pass the shared stopword/generic/country/affix guards, so "la sarl",
+// "une petite sarl" never yield a candidate. The gate word stays in clear, and the emitted
+// value is canonicalised through `stripOrgAffixes` HERE — the deterministic sources do NOT
+// pass through the detector-level strip — so "berlioz sarl" and the LLM's "Berlioz" share
+// ONE `entityKey` (one company = one fake).
 import type { Detection } from "../../types";
 import { isStopword, isGenericTerm, isOrgAffix, stripOrgAffixes } from "../../model/detect";
 import { isCountry } from "../geo/countries";
@@ -38,11 +36,9 @@ import {
 } from "./vocab";
 
 const TOKEN = "\\p{L}[\\p{L}'’-]*\\p{L}";
-// 1-2 spaces, never a RUN: a run of 3+ is the COLUMN GUTTER of a two-column layout, and
-// crossing it glued a company to the next column's label ("SARL BATIRENOV        Matricule"
-// → one ORG whose fake then replaced the word « Matricule » everywhere). The value is
-// normalised to single spaces downstream, so `lineSplit` cannot see the gutter afterwards
-// — it has to be refused HERE. A real multi-word company name never carries one.
+// 1-2 spaces, never a RUN: 3+ is the COLUMN GUTTER of a two-column layout ("SARL BATIRENOV
+//        Matricule"). The value is normalised to single spaces downstream, so the gutter
+// has to be refused HERE. A real multi-word company name never carries one.
 const GAP = "[^\\S\\r\\n]{1,2}";
 
 const byLengthDesc = (a: string, b: string): number => b.length - a.length;
@@ -72,8 +68,12 @@ function* windowed(text: string, probe: RegExp, family: RegExp, before = 80): Ge
   }
 }
 
+// The separator before the legal form is captured (group 2) so it may be a COMMA (`Acme,
+// Inc.`, the American rendering). It cannot live inside the name group: the emitted value
+// must be VERBATIM text at `start`, and "Acme," would key a second identity. `push` drops
+// the trailing punctuation after the affix strip, which only removes from the END.
 const RE_LEGAL = new RegExp(
-  `(?<![\\p{L}'’-])((?:${TOKEN}${GAP}){1,3})(${alt(LEGAL_SUFFIXES)})(?![\\p{L}])`,
+  `(?<![\\p{L}'’-])((?:${TOKEN}${GAP}){0,2}${TOKEN})(,?${GAP})(${alt(LEGAL_SUFFIXES)})(?![\\p{L}])`,
   "giu",
 );
 const RE_PROF = new RegExp(
@@ -141,13 +141,11 @@ function okToken(tok: string): boolean {
 }
 
 /** A CAPITALIZED token is denomination MATERIAL even when the word itself is generic:
- *  French denominations are MADE of ordinary words (« ATELIER VERNE », « KELVEA
- *  SANTÉ », « SCI DU VIEUX PORT ») and the legal form beside them certifies the whole
- *  name — dropping the generic half left « VERNE » alone, under the 60 % coverage the
- *  bench demands. Stopwords, kinship, digits and the org AFFIXES stay excluded
- *  (« La Sarl » must still die), and the callers require a second token or one
- *  distinctive token so a LONE capitalized generic (« société ANONYME ») never
- *  becomes a company on its own. */
+ *  French denominations are MADE of ordinary words (« ATELIER VERNE », « SCI DU VIEUX
+ *  PORT ») and the legal form beside them certifies the whole name. Stopwords, kinship,
+ *  digits and the org AFFIXES stay excluded (« La Sarl » must still die), and the callers
+ *  require a second token or one distinctive token, so a LONE capitalized generic
+ *  (« société ANONYME ») never becomes a company. */
 function nameishToken(tok: string): boolean {
   if (okToken(tok)) return true;
   if (!/^\p{Lu}/u.test(tok) || tok.length < 3 || /\d/.test(tok)) return false;
@@ -188,7 +186,9 @@ export function detectOrgContext(text: string): Detection[] {
     // Canonicalise: drop the trailing legal form so every source agrees on the
     // org's identity key. Only TRAILING affixes can occur here (leading articles
     // are rejected by okToken), so `start` stays valid for the kept prefix.
-    const value = stripOrgAffixes(raw.trim());
+    // The trailing comma of `Acme, Inc.` goes with the legal form: keeping it would give
+    // the same company two identity keys depending on how the writer punctuated.
+    const value = stripOrgAffixes(raw.trim()).replace(/[,;]+$/, "").trimEnd();
     if (value.length < 3 || seen.has(value)) return;
     seen.add(value);
     out.push({ value, category: "ORG", start });
@@ -196,7 +196,8 @@ export function detectOrgContext(text: string): Detection[] {
   for (const m of windowed(text, P_LEGAL, RE_LEGAL)) {
     const lead = survivingLead(m[1] ?? "");
     if (!lead) continue;
-    push(`${lead}${m[2]}`, m.index + m[0].length - (lead.length + m[2].length));
+    const raw = `${lead}${m[2]}${m[3]}`;
+    push(raw, m.index + m[0].length - raw.length);
   }
   for (const m of windowed(text, P_PROF, RE_PROF)) {
     const lead = survivingLead(m[1] ?? "");

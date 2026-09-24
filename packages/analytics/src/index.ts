@@ -30,9 +30,12 @@ export * from "./sanitize";
 export * from "./sink";
 export * from "./createAnalytics";
 export * from "./web";
+// The per-surface vocabularies and the relay's admission rule (`vocabulary/admit.ts`):
+// the list each app sanitises against and the list the relay admits are ONE object.
+export * from "./vocabulary/index";
+export * from "./vocabulary/admit";
 export { scrubMessage } from "./errorTracking";
 // `isOperationalError` steps outside the barrel because it has a SECOND channel: the desktop's
 // Sentry `beforeSend` (`apps/desktop/src/sentry/policy.ts`). What counts as "operational
-// failure, not a bug" is ONE fact — it was already settled here for PostHog, and Sentry
-// had never received it: 93% of its volume was noise already filtered out elsewhere.
+// failure, not a bug" is ONE fact, shared by both channels.
 export { isOperationalError } from "./errorTracking";

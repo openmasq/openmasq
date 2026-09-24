@@ -9,7 +9,7 @@ import { isOperationalError } from "@openmasq/analytics";
  *  • `@openmasq/mcp` `isDeadTransport` — the owner EVICTS the connector
  *    (`apps/desktop` `refreshRoutes`) instead of continuing to probe it;
  *  • `@openmasq/analytics` `isOperationalError` — the error channels (PostHog
- *    `$exception` AND, since 12/08, Sentry's `beforeSend`) DO NOT REPORT.
+ *    `$exception` AND Sentry's `beforeSend`) DO NOT REPORT.
  *
  * `@openmasq/analytics` is DEPENDENCY-FREE by contract: it cannot import
  * `@openmasq/mcp`. The two lists therefore live separately, and this test is what holds

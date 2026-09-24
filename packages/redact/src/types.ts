@@ -37,7 +37,11 @@ export type RedactionType =
   | "phone"
   | "health"
   | "username"
-  | "email";
+  | "email"
+  // A cookie declaration or header line — `rules.tokens.ts`; the product's `secret`.
+  | "cookie"
+  // A ZIP code anchored on a real US state code — `rules.international.us.ts`.
+  | "zipcode";
 
 export interface RedactionRule {
   type: RedactionType;

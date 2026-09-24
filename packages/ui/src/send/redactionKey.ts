@@ -6,7 +6,7 @@
  * (value, fake) pair says nothing about any other value — which an additive shift over a
  * public hash could never claim (`@openmasq/redact` `model/fakes/keyedMapping.test.ts`).
  *
- * It lives here rather than in `sendOrchestrator.ts` because that file is frozen debt: new
+ * It lives here rather than in `sendOrchestrator/` because a key is minted by more than one caller: new
  * code lands in a sibling module (rule 1).
  */
 export function mintRedactionKey(): string {

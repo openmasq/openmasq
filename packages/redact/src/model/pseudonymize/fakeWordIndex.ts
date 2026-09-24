@@ -21,6 +21,7 @@
 // when the two reals are unrelated (neither contains the other), which is exactly the
 // corruption case.
 import type { Vault } from "../../types";
+import { formatHead } from "../fakes/credentialShape";
 import { GENERIC_ORG_WORD } from "./orgFragments";
 
 /** Words that repeat across unrelated fakes BY DESIGN (street types, geo connectors,
@@ -39,7 +40,14 @@ const fold = (w: string) => w.normalize("NFD").replace(/\p{M}+/gu, "").toLowerCa
 
 function distinctiveWords(s: string): string[] {
   const out: string[] = [];
-  for (const w of s.match(WORD) ?? [])
+  // A CREDENTIAL's fake keeps its vendor's public head verbatim (`fakes/credentialShape.ts`),
+  // so that head is the SAME for every credential of that family — `eyJhbGci…` on each of an
+  // issuer's JWTs, `sk_live_` on each Stripe key, `Bearer ` on each scheme. Reading it as a
+  // distinctive word made the family's FIRST fake own it and every later candidate clash on
+  // all 60 attempts, exhausting into the neutral series (`allocate.ts`) — the same failure
+  // `samePlace` fixes for a shared city word. The head is never a vault key either, so it
+  // cannot un-redact to anything: there is no identity in it to defend.
+  for (const w of s.slice(formatHead(s)).match(WORD) ?? [])
     for (const seg of [w, ...w.split(/['’]/)]) { // elision: «l'Yonne» also yields «Yonne»
       const f = fold(seg);
       if (f.length >= 3 && !GENERIC_ORG_WORD.has(f) && !CONNECTOR_WORD.has(f)) out.push(f);

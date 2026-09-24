@@ -1,0 +1,264 @@
+/* Settings → Navigateur: the default-search-engine picker grid. */
+.browser-engine-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+  margin-top: 12px;
+}
+.browser-engine-card {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 13px 14px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  background: var(--surface-card);
+  cursor: pointer;
+  text-align: left;
+}
+.browser-engine-card:hover {
+  background: var(--surface-hover);
+}
+.browser-engine-card.on {
+  border-color: var(--brand);
+  box-shadow: inset 0 0 0 1px var(--brand);
+}
+.browser-engine-logo {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: var(--surface-sunken);
+  flex-shrink: 0;
+}
+.browser-engine-name {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-strong);
+}
+.browser-engine-check {
+  display: inline-flex;
+  color: var(--brand-text);
+}
+/* Drive halo — the "model is driving" glow. The native agent window has no DOM z-order, so
+   the halo is a MAIN-owned click-through overlay window floated over the browser
+   (`main/mcp/browser/haloOverlay.ts`); `.vb-halo-frame` is only the wrapper it pins to. */
+.vb-halo-frame {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.vb-halo-frame > .browser-viewport {
+  flex: 1;
+  min-height: 0;
+}
+/* agent-browser chrome (the native window overlays `.browser-viewport`) —
+   NO tab strip: the right rail is the tab surface. */
+.vb-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 11px;
+  border-bottom: 1px solid var(--border-default);
+  flex-shrink: 0;
+}
+/* Back / forward / reload group (kit `om-vb-nav`). */
+.vb-nav {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+}
+.vb-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.vb-star.on {
+  color: var(--brand-text);
+}
+/* Live page-load progress — the kit's 2px brand sweep, looping while the real page loads. */
+.vb-progress {
+  height: 2px;
+  flex-shrink: 0;
+  background: linear-gradient(90deg, transparent, var(--brand), transparent);
+  background-size: 40% 100%;
+  background-repeat: no-repeat;
+  animation: om-vb-load 0.9s linear infinite;
+}
+@keyframes om-vb-load {
+  from { background-position: -40% 0; }
+  to { background-position: 140% 0; }
+}
+/* Bookmarks row (kit `om-vb-marks`) — pills under the viewport. */
+.vb-marks {
+  display: flex;
+  gap: 7px;
+  padding: 9px 11px;
+  border-top: 1px solid var(--border-subtle);
+  flex-shrink: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.vb-marks::-webkit-scrollbar {
+  display: none;
+}
+.vb-mark {
+  flex-shrink: 0;
+  padding: 5px 11px;
+  border-radius: 999px;
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-card);
+  font-family: var(--font-sans);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+.vb-mark.on,
+.vb-mark:hover {
+  color: var(--text-strong);
+  border-color: var(--border-default);
+}
+@media (prefers-reduced-motion: reduce) {
+  .vb-progress {
+    animation: none;
+    background: var(--brand);
+  }
+}
+.vb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.vb-btn:hover {
+  background: var(--surface-hover);
+  color: var(--text-strong);
+}
+.vb-btn:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.vb-url {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 30px;
+  padding: 0 12px;
+  border-radius: var(--radius-pill);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-default);
+}
+.vb-lock {
+  display: inline-flex;
+  color: var(--text-faint);
+  flex-shrink: 0;
+}
+.vb-url input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-body);
+}
+.browser-viewport {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+  background: var(--surface-page);
+}
+.vb-empty {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  text-align: center;
+  color: var(--text-faint);
+  font-size: var(--text-sm);
+}
+/* Disconnected « browser » connector: the reason + the gesture that lifts it, in place of
+   the page. A state that offers an action is not just one more grey note. */
+.vb-offline {
+  flex-direction: column;
+  gap: 10px;
+  color: var(--text-muted);
+}
+.vb-offline-title {
+  font-family: var(--font-display);
+  font-size: var(--text-md);
+  font-weight: var(--weight-semibold);
+  color: var(--text-strong);
+}
+.vb-offline-sub {
+  max-width: 34ch;
+  line-height: 1.45;
+}
+.vb-note {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 11px;
+  flex-shrink: 0;
+  border-top: 1px solid var(--border-default);
+  background: var(--surface-sunken);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+/* « Demander à propos de cette page » — the footer's only action: full width, quiet at
+   rest, brand tint on hover (an action, not a caption). */
+.vb-ask {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: 100%;
+  padding: 2px 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+  color: var(--text-muted);
+  transition: color var(--dur-fast) var(--ease-out);
+}
+.vb-ask:hover {
+  color: var(--brand-text);
+}
+
+/* Stack the split vertically on narrow widths (browser under the chat). */
+@media (max-width: 879px) {
+  .chat-split {
+    flex-direction: column;
+  }
+  .browser-pane {
+    flex: 1 1 auto;
+    border-left: none;
+    border-top: 1px solid var(--border-default);
+  }
+  /* Stacked vertically → the vertical gutter no longer applies. */
+  .chat-gutter {
+    display: none;
+  }
+  .conv-tab {
+    max-width: 140px;
+  }
+}

@@ -1,9 +1,7 @@
 /**
- * Desktop INDIVIDUAL (per-person) billing host. Talks to the backend
- * `/v1/account + /v1/billing/*` with the signed-in Supabase token, and opens
- * Stripe Checkout / portal URLs in the system browser. Best-effort: signed out or
- * no backend → getters return null. Org (per-seat) billing is administered in the
- * web console, not here.
+ * INDIVIDUAL billing host: the API's `/v1/account` + `/v1/billing/*` with the signed-in
+ * token, checkout / portal URLs opened in the system browser. Best-effort: signed out or no
+ * API ⇒ null. Org billing is administered elsewhere.
  */
 import Debug from "debug";
 import { BillingApiError, captureError } from "@openmasq/ui";
@@ -12,9 +10,7 @@ import { authHost } from "./auth";
 import { backendFetch } from "./backendFetch";
 import { BACKEND_URL } from "./appEnv";
 
-// Enable at runtime with `localStorage.debug = "openmasq:*"` (or `openmasq:billing`)
-// in the devtools console. Privacy: we log method/path/status/codes/booleans and
-// non-sensitive values (tier) — NEVER the token, the URL query, or PII.
+// `localStorage.debug = "openmasq:*"`. NEVER the token, the URL query, or PII.
 const debug = Debug("openmasq:billing");
 
 const BASE_URL = BACKEND_URL;
@@ -38,10 +34,7 @@ async function api<T>(path: string, init?: RequestInit): Promise<T | null> {
     });
     debug("api %s %s ← %d %s", method, path, res.status, res.ok ? "ok" : "non-ok");
     if (!res.ok) {
-      // An HTTP FAILURE is reported like a network failure — status/path only,
-      // never the body. The gap measured on 07/08: two change-tier 502s emitted
-      // NO event at all (only the network was captured), while feedback reported
-      // its 400s — the incident was only seen because a user ran into it.
+      // An HTTP FAILURE is reported like a network failure: status/path only, never the body.
       captureError({ scope: "billing", code: "http", status: res.status, message: path });
       return null;
     }
@@ -65,11 +58,8 @@ function openExternal(url: string): void {
   window.open(url, "_blank", "noopener,noreferrer");
 }
 
-/** Send a billing ACTION and return the parsed body. Unlike `api`, this THROWS a
- *  user-facing Error on any failure (signed out, non-2xx, network) so the caller
- *  can surface it — an action that opens nothing must never fail silently.
- *  The METHOD is a parameter (revoking a self-grant is a DELETE): a
- *  second twin function would mean maintaining the same error handling twice over. */
+/** A billing ACTION. Unlike `api`, THROWS a user-facing Error on any failure: an action
+ *  that opens nothing must never fail silently. */
 async function action<T>(path: string, body?: unknown, method: "POST" | "DELETE" = "POST"): Promise<T> {
   const token = (await authHost.getAccessToken?.()) ?? null;
   debug("action %s %s (token=%s)", method, path, token ? "présent" : "absent");
@@ -95,8 +85,7 @@ async function action<T>(path: string, body?: unknown, method: "POST" | "DELETE"
   if (!res.ok) {
     const detail = (await res.json().catch(() => null)) as { code?: string } | null;
     debug("action %s %s ✕ %d code=%s", method, path, res.status, detail?.code ?? "(none)");
-    // Same rule as `api`: the HTTP failure of a payment ACTION is reported —
-    // status + path + the backend's bounded code, never the body.
+    // Status + path + the API's bounded code, never the body.
     captureError({ scope: "billing", code: detail?.code ?? "http", status: res.status, message: path });
     throw new BillingApiError(res.status, detail?.code);
   }
@@ -117,22 +106,13 @@ export const billingHost: BillingHost = {
       status: s.subscription_status ?? s.status ?? "free",
       cancelAtPeriodEnd: s.cancel_at_period_end ?? false,
       currentPeriodEnd: s.current_period_end ?? undefined,
-      // Grant (included tier / given access) rather than a sale: decides whether a tier
-      // change goes through CHECKOUT or through a Stripe price swap. Absent ⇒ `false`, so
-      // the behavior of a real subscriber — that's what an older backend served.
+      // A grant rather than a sale decides checkout vs price swap. Absent ⇒ a real subscriber.
       isGranted: s.is_granted === true,
-      // Read at the ROOT of the response, not on the subscription: it's a deployment
-      // capability, not an account property. Absent ⇒ `undefined`, which the UI reads
-      // as "unknown, leave the button" (see `BillingSubscription`).
+      // Deployment capabilities, at the ROOT of the response. `billingEnabled` unknown ⇒
+      // `undefined` (leave the button); the two others unknown ⇒ OFF (offering a grant or
+      // "all included" that doesn't exist is the worse lie).
       billingEnabled: typeof d.billing_enabled === "boolean" ? d.billing_enabled : undefined,
-      // Same read, same reason: tester mode is a DEPLOYMENT capability.
-      // Absent ⇒ `undefined` ⇒ the normal offer, never a "Grant myself" button on a
-      // backend that would refuse it — here the unknown reads as off, the opposite of
-      // `billingEnabled`: offering a grant that doesn't exist is a DEAD button.
       selfGrantEnabled: d.self_grant_enabled === true,
-      // Same family: a deployment capability, at the root, and the unknown reads
-      // as OFF — promising "all included" to someone the gateway will answer 402 is the worse
-      // of the two lies.
       freeMode: d.free_mode === true,
     };
     debug("getSubscription → tier=%s status=%s cancelAtEnd=%s", sub.tier, sub.status, sub.cancelAtPeriodEnd);
@@ -162,13 +142,8 @@ export const billingHost: BillingHost = {
   },
 
   async startCheckout(tier: string): Promise<void> {
-    // The backend returns `checkout_url` (Stripe Checkout session URL); keep `url`
-    // as a fallback in case the contract ever changes. Reading the wrong field is
-    // why the button used to "redirect nowhere". Throws on failure (surfaced by UI).
     debug("startCheckout tier=%s", tier);
-    // `origin` tells the backend which surface to send the user back to — here the
-    // web bounce page that deep-links into this app. It is an allow-listed SURFACE
-    // name, never a URL: the server owns the destination.
+    // `origin` is an allow-listed SURFACE name, never a URL: the server owns the destination.
     const d = await action<{ checkout_url?: string; url?: string }>("/billing/checkout", {
       tier,
       origin: "desktop",
@@ -181,8 +156,7 @@ export const billingHost: BillingHost = {
   },
 
   async isTester(): Promise<boolean> {
-    // The flag travels on `/account` (a single route the app reads): we don't
-    // open a separate round trip for it. Fail-closed — any failure counts as "off".
+    // The flag travels on `/account`. Fail-closed: any failure counts as "off".
     try {
       const sub = await billingHost.getSubscription();
       return sub?.selfGrantEnabled === true;
@@ -192,8 +166,7 @@ export const billingHost: BillingHost = {
   },
 
   async selfGrant(tier: string): Promise<void> {
-    // Self-grant: no Stripe, no browser — the tier is set server-side,
-    // which reads the global switch itself. Throws a readable message on refusal.
+    // No checkout, no browser: the tier is set server-side.
     debug("selfGrant tier=%s", tier);
     await action<{ ok: boolean; tier: string }>("/billing/grant", { tier });
     debug("selfGrant → done");
@@ -206,23 +179,19 @@ export const billingHost: BillingHost = {
   },
 
   async changeTier(tier: string): Promise<void> {
-    // In-app upgrade/downgrade of an ACTIVE subscription: an in-place Stripe price
-    // swap (prorated), no browser round-trip. Throws a user-facing message on
-    // failure (surfaced by the UI); the caller refreshes on success.
+    // In-place price swap of an ACTIVE subscription, no browser round-trip.
     debug("changeTier tier=%s", tier);
     await action<{ tier: string; changed: boolean }>("/billing/change-tier", { tier });
     debug("changeTier → done");
   },
 
   onReturn(cb: () => void): () => void {
-    // Fired when the app returns from Stripe Checkout via the
-    // `<protocol>://billing/callback` deep link (bounced by the web return page).
+    // The `<protocol>://billing/callback` deep link after checkout.
     const off = window.openmasq?.billing?.onCallback?.(() => cb());
     return off ?? (() => {});
   },
 
   async openPortal(): Promise<void> {
-    // The backend returns `portal_url` (Stripe Billing Portal URL).
     debug("openPortal");
     const d = await action<{ portal_url?: string; url?: string }>("/billing/portal", { origin: "desktop" });
     const url = d.portal_url ?? d.url;

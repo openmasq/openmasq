@@ -48,7 +48,7 @@ describe("faux positifs mesurés — le mot ordinaire partait en prénom", () =>
 
   withNer("ne redacted plus le verbe qui ouvre la phrase", async () => {
     const predict = await createNerPredict({
-      modelName: "openmasq/bert-base-multilingual-cased-ner-hrl",
+      modelName: "openmasq/ner-multilingual",
       dtype: "q8",
       cacheDir: MODEL_DIR,
       allowLocalModels: true,
@@ -68,7 +68,7 @@ describe("faux positifs mesurés — le mot ordinaire partait en prénom", () =>
 describe("notoriété RATTACHÉE à la personne", () => {
   withNer("« je travaille chez X » l'emporte sur la célébrité de X", async () => {
     const predict = await createNerPredict({
-      modelName: "openmasq/bert-base-multilingual-cased-ner-hrl",
+      modelName: "openmasq/ner-multilingual",
       dtype: "q8",
       cacheDir: MODEL_DIR,
       allowLocalModels: true,

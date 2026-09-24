@@ -1,0 +1,228 @@
+/* Shell tone behind the transparent rail + sidebar: --surface-shell, NOT --surface-page,
+   or the sidebar reads as near-white. This rule is later than `.app` and wins the cascade.
+   The tone is per theme — the literal is only the fallback. */
+.app {
+  background-color: var(--surface-shell, #f6f6f3);
+}
+
+/* Reading column: plain near-white, no panel tint to mute. */
+.spade-readpanel {
+  background: transparent;
+  min-height: 100%;
+}
+/* Hairline between conversation turns for clearer separation. */
+.spade-turn {
+  position: relative;
+  padding-top: 18px;
+}
+.spade-turn::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--border-subtle);
+}
+
+/* Onboarding — smooth height-auto reveal for conditional panels (engine
+   selector and its per-option inputs). grid-rows 0fr→1fr animates to content. */
+.ob-collapse {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition: grid-template-rows .3s var(--ease-out), opacity .25s var(--ease-out);
+}
+.ob-collapse > * {
+  overflow: hidden;
+  min-height: 0;
+}
+.ob-collapse.open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+/* Heavy black grotesk display */
+.cv-display,
+.msg-answer,
+.welcome h1,
+.page-header-title,
+.modal-header h2 {
+  font-family: "Archivo", var(--font-sans);
+  font-weight: 900;
+  letter-spacing: -0.035em;
+  line-height: 1.12;
+}
+
+/* Text selection: a bright lime highlight + dark ink in BOTH themes. `--lime` is a
+   near-black surface tint in dark mode and `--text-strong` flips near-white, so
+   `--lime-bright` (vivid in both) + `--ink-on-hl` keep the selection visible. */
+::selection {
+  /* Blue selection — a light periwinkle so the dark `--ink-on-hl` reads. */
+  background: #aeb8ff;
+  color: var(--ink-on-hl);
+}
+/* On a lime marker title (`.om-mark`) a lime selection is invisible: invert it there — a
+   dark forest block with bright-lime text reads as "selected" in both themes. */
+.om-mark::selection,
+.om-mark ::selection {
+  /* On the blue marker, invert to a dark-blue block with light-lime text. */
+  background: #1c1c4a;
+  color: var(--lime-bright);
+}
+
+/* Corner-bracket data-box motif (Spade tick marks) */
+.spade-corners {
+  --c: var(--text-faint);
+  --s: 11px;
+  --t: 1.5px;
+  background-image:
+    linear-gradient(var(--c), var(--c)), linear-gradient(var(--c), var(--c)),
+    linear-gradient(var(--c), var(--c)), linear-gradient(var(--c), var(--c)),
+    linear-gradient(var(--c), var(--c)), linear-gradient(var(--c), var(--c)),
+    linear-gradient(var(--c), var(--c)), linear-gradient(var(--c), var(--c));
+  background-repeat: no-repeat;
+  background-size:
+    var(--s) var(--t), var(--t) var(--s), var(--s) var(--t), var(--t) var(--s),
+    var(--s) var(--t), var(--t) var(--s), var(--s) var(--t), var(--t) var(--s);
+  background-position:
+    left top, left top, right top, right top,
+    left bottom, left bottom, right bottom, right bottom;
+}
+
+/* Solid brand buttons: `--brand-contrast`, the token that flips with `--brand`. This rule
+   comes after and wins over the ink each button declares; `styles/textContrast.test.ts`
+   measures it — never freeze a colour there. */
+.btn-new,
+.send-btn,
+.primary,
+.welcome-actions button:not(.ghost) {
+  color: var(--brand-contrast);
+}
+.send-btn:disabled {
+  color: var(--text-faint);
+}
+.send-btn.stop {
+  background: var(--warm-700);
+  color: var(--surface-card);
+}
+
+/* The content panels are solid white cards floating on the shell tone. Only the inner
+   message scroll pane stays transparent so the white shows under the blurred header. */
+.chat-workspace,
+.settings-page {
+  background: var(--surface-card);
+}
+.chat {
+  background: transparent;
+}
+.messages {
+  background: transparent;
+}
+.chat-header,
+.page-header {
+  background: color-mix(in oklch, var(--surface-card) 70%, transparent);
+  backdrop-filter: blur(8px);
+}
+
+/* Protected pill + shield card → neutral SPADE (not green) */
+.protected-pill {
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-subtle);
+  color: var(--text-muted);
+}
+.shield-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 0;
+  color: var(--text-strong);
+}
+.shield-card .shield-count {
+  color: var(--text-strong);
+}
+.shield-card .shield-sub,
+.shield-card > svg {
+  color: var(--text-muted);
+  opacity: 0.95;
+}
+
+/* Shield caption = SPADE data box (mono, square, corner ticks) */
+.shield-caption {
+  background: var(--surface-card);
+  border: 1px solid var(--border-subtle);
+  border-radius: 0;
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  padding: 8px 14px;
+}
+
+/* NORMAL weight, including on the active row: a list entirely in bold accents
+   nothing, and the active one reads by its fill (`--surface-selected`) and its ink. */
+.conv-title {
+  font-family: "Archivo", var(--font-sans);
+  font-weight: var(--weight-regular);
+  letter-spacing: -0.01em;
+}
+
+/* Brand wordmark beside the sidebar mark — sized to the design kit's expanded
+   sidebar head (24px, next to the 26px mark). Type comes from `.cv-display`. */
+.cv-wordmark {
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  color: var(--text-strong);
+  cursor: pointer;
+}
+
+/* Labeled redaction pills (SPADE) */
+.redaction-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  vertical-align: baseline;
+  padding: 1px 6px;
+  margin: 0 1px;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 0.74em;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-strong);
+}
+.redaction-pill.tone-coral { background: #ff8fa3; }
+.redaction-pill.tone-blue { background: #3ccfda; }
+.redaction-pill.tone-violet { background: #a99cff; }
+.redaction-pill.tone-emerald { background: #b8e635; }
+.redaction-pill.tone-amber { background: #ffc24d; }
+
+/* Sidebar thread time + delete-on-hover (SPADE) */
+.conv-time {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-faint);
+  flex-shrink: 0;
+  min-width: 46px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.shield-card.spade-corners {
+  box-shadow: none;
+}
+
+/* Redaction shown as the REAL value, highlighted by type. Highlighter look: saturated tint
+   + dark ink. The ink is the theme-stable `--ink-on-hl`, not `--text-strong`, which flips
+   near-white in dark mode. */
+.redaction-mark {
+  color: var(--ink-on-hl);
+  border-radius: 3px;
+  padding: 0 3px;
+  margin: 0 1px;
+  text-decoration: none;
+  box-decoration-break: clone;
+  -webkit-box-decoration-break: clone;
+  font-weight: 500;
+}
+/* Fill + ink come from the mark's own hue tokens, never a literal: the same tokens feed
+   the document canvas painters (`tonePaint`) and the chips — one palette, every surface. */
+.redaction-mark { background: var(--mk); color: var(--mk-ink); }

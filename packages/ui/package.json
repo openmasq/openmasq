@@ -1,7 +1,7 @@
 {
   "name": "@openmasq/ui",
   "version": "0.1.0",
-  "description": "All the React UI, the app state and the design system, platform-agnostic — reaches the outside world only through the injected Host.",
+  "description": "All the React UI, the app state and the design system, platform-agnostic \u2014 reaches the outside world only through the injected Host.",
   "license": "Apache-2.0",
   "private": true,
   "type": "module",
@@ -13,7 +13,12 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     },
-    "./styles.css": "./src/styles.css"
+    "./styles.css": "./src/styles.css",
+    "./tooltip": {
+      "source": "./src/components/brand/tooltipPlacement.ts",
+      "types": "./dist/tooltip.d.ts",
+      "import": "./dist/tooltip.js"
+    }
   },
   "scripts": {
     "build": "tsup",
@@ -50,7 +55,6 @@
     "remark-gfm": "^4.0.0",
     "remark-math": "^6.0.0",
     "rxjs": "^7.8.2",
-    "simple-icons": "^16.24.1",
     "xlsx": "workspace:*"
   },
   "peerDependencies": {

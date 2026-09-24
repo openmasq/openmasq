@@ -1,0 +1,127 @@
+/* FreeModelsModal — the « gratuit » badge's explainer: two upgrade-path option rows. */
+.fm-options {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 0 26px 22px;
+}
+.fm-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+  color: var(--text-muted);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.12s, background 0.12s;
+}
+.fm-option:hover {
+  border-color: var(--brand);
+  background: var(--surface-hover);
+}
+.fm-option-static {
+  cursor: default;
+}
+/* The route the user just bumped into leads the list — the other two stay readable
+   beside it, because the three are only understandable as alternatives. */
+.fm-option.is-focus {
+  border-color: var(--brand);
+  background: var(--surface-hover);
+}
+.fm-note {
+  padding: 0 26px 18px;
+}
+.fm-foot {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 26px 22px;
+}
+.fm-option-static:hover {
+  border-color: var(--border-default);
+  background: var(--surface-card);
+}
+.fm-option-icon {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  background: var(--hl-lime);
+  color: var(--forest-800);
+}
+.fm-option-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.fm-option-title {
+  font-weight: 600;
+  color: var(--text-strong);
+  font-size: var(--text-sm);
+}
+.fm-option-desc {
+  font-size: var(--text-xs);
+}
+
+/* The reason chip beside the provider name ("Clé requise", "Abonnement requis"…). */
+.model-unavailable.clickable {
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+.model-unavailable.clickable:hover {
+  color: var(--text-strong);
+}
+.model-unavailable {
+  font-size: 9.5px;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  /* Neutral, not amber: these are INFORMATIONAL prerequisites (add a key, subscribe,
+     start the local server), not warnings. Amber/red stay reserved for real problems. */
+  color: var(--text-muted);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-pill, 999px);
+  padding: 1px 6px;
+  margin-left: 6px;
+  white-space: nowrap;
+}
+.model-option-body {
+  flex: 1;
+  min-width: 0;
+}
+.model-option-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.model-option-name strong {
+  font-size: var(--text-base);
+  font-weight: var(--weight-medium);
+  color: var(--text-strong);
+}
+.model-option-name .tier {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--text-faint);
+}
+.model-option-desc {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin-top: 2px;
+  line-height: 1.35;
+}
+.model-option .check {
+  color: var(--brand-text);
+  margin-top: 3px;
+}

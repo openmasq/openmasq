@@ -3,7 +3,7 @@ import { openAuthExternal } from "./authOpen";
 
 /**
  * Slack OAuth — desktop-direct, but Slack can't do PKCE and needs an HTTPS
- * redirect, so the single, environment-independent AUTH-ONLY relay (`apps/auth`)
+ * redirect, so the single, environment-independent AUTH-ONLY relay
  * holds the app's own Slack secret and provides the callback. The Slack DATA never
  * transits the relay — only the token exchange. Handoff (token never in a URL):
  *   1. generate a `verifier`; `challenge = SHA256(verifier)` becomes the `state`;
@@ -20,7 +20,7 @@ const AUTHORIZE = "https://slack.com/oauth/v2/authorize";
 const POLL_INTERVAL_MS = 2000;
 const TIMEOUT_MS = 5 * 60 * 1000;
 
-/** The single, environment-independent auth-only relay (apps/auth) that serves /slack/*. */
+/** The single, environment-independent auth-only relay that serves /slack/*. */
 function authBase(): string {
   const u = process.env.OPENMASQ_AUTH_URL;
   if (!u) throw new Error("OPENMASQ_AUTH_URL non configuré (connecteur Slack)");

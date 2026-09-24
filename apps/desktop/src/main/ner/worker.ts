@@ -40,7 +40,7 @@ const parentPort = (process as unknown as { parentPort: ParentPort }).parentPort
 // There is NO second source: the model is BUNDLED or the engine is unavailable.
 const BUNDLED = process.env.NER_BUNDLED_DIR || "";
 
-// `<resources>/ner-models/<hfOrg>/bert-base-multilingual-cased-ner-hrl`.
+// `<resources>/ner-models/<hfOrg>/ner-multilingual`.
 const MODEL_DIR = BUNDLED ? join(BUNDLED, ...NER_MODEL_ID.split("/")) : "";
 const bundled = Boolean(MODEL_DIR) && existsSync(MODEL_DIR);
 

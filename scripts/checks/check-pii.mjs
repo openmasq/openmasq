@@ -3,39 +3,22 @@
  *
  * The product is a redaction engine: its tests need data that LOOKS like PII, and that is
  * legitimate. What they must not be is somebody's. `packages/redact/src/__fixtures__/`
- * carries the convention — invented personas, a README that says so — and this gate is what
- * stops the second convention ("I'll take what I have to hand") from coming back on the
- * evening of a hotfix.
+ * carries the convention (invented personas), and this gate keeps it.
  *
- * ⚠️ **The watch list lives OUTSIDE the tracked tree, and that is the only way this gate can
- * exist in a public repository.** A cleartext denylist would put back exactly the strings
- * just removed from it — the gate would be the leak. Hashing alone does not fix that: a
- * surname, a first-name bigram or an e-mail local-part is a preimage puzzle over a space of
- * a few hundred thousand candidates, and the folding and digest functions are right here in
- * the file. A published fingerprint of a low-entropy human name IS that name, to anyone
- * willing to spend a second on it. So the fingerprints are never committed, and the tracked
- * file carries no entry a reader could attack.
+ * ⚠️ The watch list lives OUTSIDE the tracked tree, and that is the only way this gate can
+ * exist in a public repository. A cleartext denylist would be the leak; a fingerprint of a
+ * low-entropy human name is a preimage puzzle over a few hundred thousand candidates, so it
+ * IS the name. The fingerprints are never committed.
  *
- * The list is read, in order, from:
- *   1. `OPENMASQ_PII_RATCHET` — the JSON itself, base64-encoded (how CI holds it, as a secret)
- *   2. `OPENMASQ_PII_RATCHET_FILE` — a path
- *   3. `scripts/checks/.pii-banned.json` — the local default, git-ignored
- * Shape: `[{ "fp": "<16 hex>", "why": "<category, never the value>" }]`.
- *
- * With no list the gate reports that half as INACTIVE and still runs its self-check. That
- * is the right default rather than a hard failure: the list names the identities ONE
- * publisher removed, so it protects that publisher and no one else — a fork has nothing to
- * compare against, and a clone that cannot build is a worse outcome than a clone that is
- * told which guarantee it is not getting.
+ * The list is read, in order, from `OPENMASQ_PII_RATCHET` (the JSON, base64 — how CI holds
+ * it), `OPENMASQ_PII_RATCHET_FILE` (a path), then `scripts/checks/.pii-banned.json` (local,
+ * git-ignored). Shape: `[{ "fp": "<16 hex>", "why": "<category, never the value>" }]`.
+ * With no list, the gate reports that half as INACTIVE and still runs its self-check: the
+ * list protects ONE publisher, a fork has nothing to compare against.
  *
  * Adding a term: `node scripts/checks/check-pii.mjs --hash "the value"`, then add the
- * fingerprint to the local list with a comment stating the CATEGORY, never the value.
- *
- * What the gate does NOT do: ban a bare first name. First names from the
- * `firstNames.data.ts` lexicon must stay there — it is the identity (surname, glued form,
- * company bigram, identifier) that is forbidden, not a dictionary word.
- *
- *   node scripts/checks/check-pii.mjs        # ou: pnpm check:pii
+ * fingerprint locally with its CATEGORY, never the value. A bare first name is never banned:
+ * the lexicon needs them — the identity (surname, glued form, company bigram) is.
  *
  * Exit codes: 0 = clean; 1 = a real identity has reappeared, or one leaked into the tree.
  */
@@ -91,13 +74,9 @@ const files = execFileSync("git", ["ls-files"], { encoding: "utf8", maxBuffer: 6
   .filter((f) => f && f !== SELF && !BINARY.test(f));
 
 // ── Self-check: the watch list must never become tracked ────────────────────────────────
-// The gate's guarantee is that the repository publishes no fingerprint of a real name — a
-// fingerprint of a surname or an e-mail local-part is a preimage puzzle over a space of a
-// few hundred thousand candidates, so publishing it publishes the value. That holds only
-// while the list stays out of the tree, so it is enforced rather than trusted: the loaded
-// fingerprints are searched for, verbatim, in every tracked file. Exact, not heuristic —
-// the tree legitimately carries other 16-hex tokens (bench corpora, identifier fixtures).
-// With no list loaded there is nothing to leak, and nothing to check.
+// Publishing a fingerprint publishes the value (see the header), so the loaded fingerprints
+// are searched for, verbatim, in every tracked file. Exact, not heuristic — the tree
+// legitimately carries other 16-hex tokens.
 const leaked = [];
 if (files.includes(LOCAL_LIST)) leaked.push(`${LOCAL_LIST} is tracked`);
 if (BANNED.size) {

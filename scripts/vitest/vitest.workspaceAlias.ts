@@ -32,7 +32,9 @@ export const workspaceSrcAlias = [
   { find: /^@openmasq\/catalog\/redaction$/, replacement: r("packages/catalog/src/redaction/index.ts") },
   { find: /^@openmasq\/catalog$/, replacement: r("packages/catalog/src/index.ts") },
   { find: /^@openmasq\/mcp\/transport$/, replacement: r("packages/mcp/src/transport/index.ts") },
+  { find: /^@openmasq\/mcp\/node$/, replacement: r("packages/mcp/src/node/index.ts") },
   { find: /^@openmasq\/mcp$/, replacement: r("packages/mcp/src/index.ts") },
+  { find: /^@openmasq\/ui\/tooltip$/, replacement: r("packages/ui/src/components/brand/tooltipPlacement.ts") },
   { find: /^@openmasq\/ui$/, replacement: r("packages/ui/src/index.ts") },
   { find: /^@openmasq\/sync$/, replacement: r("packages/sync/src/index.ts") },
   { find: /^@openmasq\/credits$/, replacement: r("packages/credits/src/index.ts") },
@@ -43,29 +45,9 @@ export const workspaceSrcAlias = [
   { find: /^@openmasq\/connectors$/, replacement: r("packages/connectors/src/index.ts") },
 ];
 
-/**
- * The corpus BENCHES (recall/precision on real documents) used to live here — they left
- * this repository (corpus and benches stay private). The list survives empty because
- * `vitest.config.ts` spreads it into its `exclude`: a bench that came back one day would be
- * declared HERE, never in the unit suite (its timeout under load is not a test's).
- */
+/** The corpus benches (recall on real documents, `pnpm test:corpus`): their own config, excluded from the unit suite. */
 export const CORPUS_TESTS = [
   "packages/**/src/**/*.recall.test.ts",
   "packages/redact/src/__cases__/benchReplay.test.ts",
   "packages/redact/src/__cases__/benchFixes.test.ts",
-];
-
-/**
- * The files INCOMPATIBLE with `--no-isolate` (the fast lane `pnpm test:redact`): they stub
- * a module with `vi.mock` that other files import FOR REAL, and without isolation the module
- * registry is shared per worker — the first import wins, and file order decides who sees
- * what (measured: `documents.pdfbuf` fails 1 shuffled run out of 6). The fast lane excludes
- * them (via `VITEST_NO_ISOLATE`); they run normally, isolated, in `pnpm test`. A new
- * `vi.mock(` in `packages/redact` gets added HERE, or the fast lane becomes a generator of
- * order-dependent false reds.
- */
-export const NO_ISOLATE_UNSAFE_TESTS = [
-  "packages/redact/src/documents.ocr.test.ts",
-  "packages/redact/src/documents.pdfbuf.test.ts",
-  "packages/redact/src/ocr/ocr.test.ts",
 ];

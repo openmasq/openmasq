@@ -26,6 +26,7 @@ import hashlib
 import json
 import os
 import random
+import re
 import sys
 
 import pyarrow.parquet as pq
@@ -33,17 +34,18 @@ import pyarrow.parquet as pq
 HERE = os.path.dirname(os.path.abspath(__file__))
 DATA = os.path.join(HERE, "data")
 SEED = 20260907
-DEFAULT_N = {"ai4privacy": 6000, "nemotron": 6000, "gretel": 0, "tab": 0}  # 0 = whole split
+DEFAULT_N = {"ai4privacy": 6000, "nemotron": 6000, "gretel": 0, "tab": 0, "uner": 0}  # 0 = whole split
 # The MODEL columns are measured on the first `MODEL_N` of that seeded sample — an hour of
 # laptop each. `run.mts --limit` and `pplx.py <dataset> <n>` take the same number, and a table
 # only ever compares columns on the cases they ALL cover.
-MODEL_N = {"ai4privacy": 2000, "nemotron": 2000, "gretel": 2000, "tab": 0}
+MODEL_N = {"ai4privacy": 2000, "nemotron": 2000, "gretel": 2000, "tab": 0, "uner": 0}
 
 REVISIONS = {
     "ai4privacy": "ai4privacy/pii-masking-300k@c8c77895a005822682b66ab547fc0422579bc1d3 (validation, 47 728 rows — the split the PII-TRACE paper reports on)",
     "nemotron": "nvidia/Nemotron-PII@b70ffaf5ff39e079776134c5bf4381f00a9fd1ed (test)",
     "gretel": "gretelai/synthetic_pii_finance_multilingual@7b844d16738527a04264f50214cb426a4cea0897 (test)",
     "tab": "mattmdjaga/text-anonymization-benchmark-val-test@cb31e803321d83ef623f27e5f35434b844725120 (test)",
+    "uner": "BramVanroy/universal_ner@0dc5199b095f864c619c13190b32341eee0c2ce2 (en_ewt, test + validation — the same corpus as universalner/universal_ner, served as parquet: the upstream repo ships a conllu loading script)",
 }
 
 # ---- what the PRODUCT calls each upstream label ----------------------------------------
@@ -246,7 +248,51 @@ def tab(n):
         out.append({"id": r["doc_id"], "lang": "en", "text": r["text"], "spans": spans, "meta": {"annotator": names[0]}})
     return out
 
-BUILD = {"ai4privacy": ai4privacy, "nemotron": nemotron, "gretel": gretel, "tab": tab}
+# UNER English-EWT: the English Web Treebank — e-mails, newsgroups, customer reviews, weblogs
+# and Yahoo! Answers — hand-annotated PER/ORG/LOC (Mayhew et al. 2024, CC-BY-SA 4.0). The one
+# corpus here whose text is what people actually type: informal, lower-cased, mis-spelt, with
+# signatures and quoted threads. Held out from everything the shipped model and the student
+# were trained on (Davlan: CoNLL; the distillation corpus: Wikipedia + records). Its scoring
+# splits only, both of them (test 316 documents, validation 318), no sampling.
+# `LOC` includes countries, which the product leaves in clear on purpose — the same reading as
+# TAB's `LOC`, and the same known charge against every column alike.
+UNER_CAT = {"PER": "name", "ORG": "company", "LOC": "location"}
+
+def uner(n):
+    tags = ["O", "B-PER", "I-PER", "B-ORG", "I-ORG", "B-LOC", "I-LOC"]
+    docs = {}
+    for split in ("test", "validation"):
+        for r in pq.read_table(os.path.join(DATA, f"uner-en_ewt-{split}.parquet")).to_pylist():
+            docs.setdefault(re.sub(r"-\d+$", "", r["idx"]), []).append(r)
+    out = []
+    for _i, (doc, sents) in sample(sorted(docs.items()), n):
+        text, spans, cur = "", [], None
+        for r in sents:
+            if text:
+                text += "\n"
+            base, pos = len(text), 0
+            text += r["text"]
+            # tokens back onto the untokenised sentence, left to right (every token of every
+            # sentence was found this way when the corpus was profiled)
+            for tok, t in zip(r["tokens"], r["ner_tags"]):
+                at = r["text"].find(tok, pos)
+                if at < 0:
+                    raise SystemExit(f"uner: token {tok!r} not in sentence {r['idx']}")
+                pos = at + len(tok)
+                tag = tags[t]
+                if tag.startswith("B-") or (tag.startswith("I-") and (cur is None or cur["label"] != tag[2:])):
+                    cur = {"start": base + at, "end": base + pos, "label": tag[2:],
+                           "cat": cat(UNER_CAT, tag[2:], "uner")}
+                    spans.append(cur)
+                elif tag.startswith("I-"):
+                    cur["end"] = base + pos
+                else:
+                    cur = None
+        out.append({"id": doc, "lang": "en", "text": text, "spans": spans,
+                    "meta": {"genre": doc.split("-")[0], "sentences": len(sents)}})
+    return out
+
+BUILD = {"ai4privacy": ai4privacy, "nemotron": nemotron, "gretel": gretel, "tab": tab, "uner": uner}
 
 def main():
     which = sys.argv[1:2] or list(BUILD)
@@ -271,7 +317,7 @@ def main():
                 for s in ok:
                     s["start"], s["end"] = m[s["start"]], m[s["end"]]
             c["spans"] = ok
-        files = sorted(glob.glob(os.path.join(DATA, {"ai4privacy": "ai4privacy-val-*.jsonl", "nemotron": "nemotron-test.parquet", "gretel": "gretel-test.parquet", "tab": "tab-test.parquet"}[name])))
+        files = sorted(glob.glob(os.path.join(DATA, {"ai4privacy": "ai4privacy-val-*.jsonl", "nemotron": "nemotron-test.parquet", "gretel": "gretel-test.parquet", "tab": "tab-test.parquet", "uner": "uner-en_ewt-*.parquet"}[name])))
         with open(os.path.join(DATA, f"{name}.spancase.json"), "w", encoding="utf-8") as f:
             json.dump(cases, f, ensure_ascii=False)
         manifest[name] = {

@@ -27,8 +27,6 @@ apps/desktop/e2e/.profile/
 apps/desktop/e2e/tofix/
 apps/desktop/test-results/
 apps/desktop/playwright-report/
-apps/web/test-results/
-apps/web/playwright-report/
 
 
 *.p12*
@@ -82,3 +80,13 @@ scripts/checks/.pii-banned.json
 # Python virtualenv for the benchmark sidecars (`python3.12 -m venv v`, see packages/redact/bench)
 v/
 __pycache__/
+
+# Model TRAINING lives in the private `openmasq-model` repository, not here: the corpora,
+# the checkpoints and the cloud setup are R&D, and a public product repo is not where they
+# belong. The path stays ignored so a stray local checkout of that work can never be
+# committed into this history by accident — a history is forever.
+packages/redact/bench/distil/
+
+# Latency baselines are MACHINE-LOCAL: a millisecond on an M1 is not one on a runner,
+# so a committed absolute would be wrong for everyone but its author.
+packages/redact/bench/spans/results/.latency.baseline.json

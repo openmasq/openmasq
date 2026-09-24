@@ -32,8 +32,12 @@ origin — two are not, and are marked as such:
   Tesseract language data (tesseract-ocr/tessdata_fast), Apache License 2.0
       Vendor origin. apps/desktop/scripts/bake-tesseract-langs.ts
   Multilingual NER weights, Apache License 2.0
-      A community re-export on Hugging Face of Davlan's mBERT NER model, taken at a
-      pinned commit; integrity comes from the sha256 pin, not from the host.
+      openmasq/ner-multilingual — OUR 6-layer student, published by us, initialised from
+      google-bert/bert-base-multilingual-cased (Apache-2.0) and containing no parameter of
+      any other model. It was trained to imitate the OUTPUTS of
+      Davlan/bert-base-multilingual-cased-ner-hrl (AFL-3.0); whether learning from a model's
+      answers makes a derivative of it is a contested question stated, not settled, on the
+      model card. Origin is first-party and integrity comes from the sha256 pin.
       apps/desktop/scripts/bake-ner-models.ts
   A CPython runtime and the wheels of the sandboxed interpreter
       Vendor origin (astral-sh/python-build-standalone, PyPI).

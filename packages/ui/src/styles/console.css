@@ -1,17 +1,12 @@
-/* ── `.om-console` — the shell of admin consoles ──────────────────────────────────────
-   They load the SAME sheet as the chat, but aren't a chat surface: the
-   admin kit (`.claude/skills/design-system/ui_kits/admin`) is made of bordered surfaces,
-   where the chat flattens everything. The brand serves twice.
-
-   1. `styles.css` excludes this shell from the borderless skin (`#root:not(:has(.om-console))`),
-      so the design system's hairlines and elevation stay there — rather than
-      redeclaring them here, which would freeze light under a dark theme.
-   2. Below: a console `<a>` is CHROME (a nav entry, a menu entry),
-      not prose. But `a { color: var(--text-link) }` is OUT OF LAYER and so beats
-      any (layered) Tailwind utility, whatever the specificity — the
-      whole navigation came out indigo, `text-body` or not. `revert-layer` hands the
-      hand back to the lower layers: the utility if it exists, inheritance otherwise.
-
+/* ── `.om-console` — the shell of a console page (the local proxy's /console) ──
+   It loads the SAME sheet as the chat but is not a chat surface: bordered surfaces where
+   the chat flattens everything.
+   1. The borderless skin excludes this shell (`#root:not(:has(.om-console))`), so the
+      hairlines and elevation stay — rather than redeclaring them here, which would freeze
+      light under a dark theme.
+   2. A console `<a>` is CHROME, not prose, but `a { color: var(--text-link) }` is out of
+      layer and beats any layered Tailwind utility; `revert-layer` hands back to the utility
+      if there is one, inheritance otherwise.
    Pinned by `styles/consoleSkin.test.ts`. */
 .om-console a {
   color: revert-layer;

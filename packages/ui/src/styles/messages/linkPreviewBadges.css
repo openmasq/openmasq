@@ -1,0 +1,135 @@
+/* Skeleton while the OG preview is fetched — same footprint as the real card, shimmer bars
+   instead of content. `.sk-shimmer` reuses the `md-img-shimmer` keyframe. */
+.sk-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--surface-sunken) 25%,
+    var(--surface-hover) 37%,
+    var(--surface-sunken) 63%
+  );
+  background-size: 400% 100%;
+  animation: md-img-shimmer 1.4s ease infinite;
+}
+.link-preview-skeleton {
+  cursor: default;
+  pointer-events: none;
+}
+.link-preview-skeleton .link-preview-img {
+  min-height: 74px; /* empty span → give the thumbnail block a visible height */
+}
+.link-preview-skeleton .link-preview-body {
+  gap: 8px;
+  justify-content: center;
+  background: none; /* no scrim over a plain skeleton */
+}
+.link-preview-skeleton .sk-line {
+  display: block;
+  height: 10px;
+  border-radius: 4px;
+}
+.link-preview-skeleton .sk-line-site {
+  width: 34%;
+  height: 8px;
+}
+.link-preview-skeleton .sk-line-title {
+  width: 76%;
+  height: 12px;
+}
+.link-preview-skeleton .sk-line-desc {
+  width: 92%;
+}
+@media (prefers-reduced-motion: reduce) {
+  .sk-shimmer {
+    animation: none;
+  }
+}
+
+/* Ghost icon button (kit IconButton) */
+.icon-btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast);
+}
+/* Background activity (e.g. the agent driving the closed browser panel): tint the
+   glyph + a small pulsing brand dot in the corner, so the user notices without the
+   panel auto-opening. */
+.icon-btn.busy {
+  color: var(--brand-text);
+}
+.icon-btn-dot {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--brand);
+  box-shadow: 0 0 0 2px var(--surface-card);
+  animation: icon-btn-pulse 1.4s ease-in-out infinite;
+}
+@keyframes icon-btn-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(0.7);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .icon-btn-dot {
+    animation: none;
+  }
+}
+.icon-btn.sm {
+  width: 30px;
+  height: 30px;
+}
+.icon-btn.md {
+  width: 36px;
+  height: 36px;
+}
+.icon-btn.lg {
+  width: 42px;
+  height: 42px;
+}
+
+/* Badge (mono pill) */
+.cv-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 22px;
+  padding: 0 9px;
+  border-radius: var(--radius-pill);
+  font-family: var(--font-mono);
+  font-size: var(--text-2xs);
+  font-weight: var(--weight-medium);
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+}
+/* Tone map — each fill travels with the ink made for it (rule 12);
+   `styles/textContrast.test.ts` measures the pearl pairs in both themes. `tone-blue` is
+   literal-on-literal (no theme re-points either side) — rule 12's escape clause. */
+.cv-badge.tone-neutral { background: var(--warm-100); color: var(--warm-600); }
+.cv-badge.tone-coral   { background: var(--pearl-coral-soft); color: var(--pearl-coral-ink); }
+.cv-badge.tone-green   { background: var(--green-soft); color: var(--green-ink); }
+.cv-badge.tone-violet  { background: var(--pearl-violet-soft); color: var(--pearl-violet-ink); }
+.cv-badge.tone-blue    { background: #d9f2f5; color: #0e6b7a; /* theme-checked */ }
+.cv-badge.tone-amber   { background: var(--pearl-amber-soft); color: var(--pearl-amber-ink); }
+.icon-btn:hover {
+  background: var(--surface-hover);
+  color: var(--text-strong);
+}
+.icon-btn.active {
+  background: var(--surface-active);
+  color: var(--text-strong);
+}

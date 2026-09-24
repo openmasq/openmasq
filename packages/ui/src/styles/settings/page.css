@@ -1,0 +1,201 @@
+/* ======================================================== Settings page ==== */
+.settings-page {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  min-width: 0;
+  /* Same floating rounded panel as the chat, full width (no sidebar beside it): a vertical
+     icon rail on the left, the titled content pane fills the rest. NO left margin, like
+     `.chat-workspace` and `.library-page`: the rail is 60px and its icons centre on 30 —
+     any margin here shifts them. */
+  margin: 10px 10px 10px 0;
+  background: var(--surface-card);
+  border-radius: 18px;
+  overflow: hidden;
+}
+/* Content pane to the right of the settings icon rail (header + scrollable body). */
+.settings-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Settings icon rail: a vertical nav of stacked icon + label buttons with a back button on
+   top. Matches `.om-settings-rail`. */
+.settings-rail {
+  flex: 0 0 96px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 16px 8px;
+  gap: 10px;
+  background: var(--surface-page);
+  border-right: 1px solid var(--border-subtle);
+  overflow-y: auto;
+}
+/* "Retour aux conversations" — the kit's `.om-srail-back`: a full-width sunken button
+   spanning the rail, so it reads as the rail's own header. Brand-tinted hover with the
+   chevron nudging left — the affordance is the direction. */
+.settings-rail-back {
+  width: 100%;
+  height: 40px;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: var(--surface-sunken);
+  color: var(--text-muted);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  margin-bottom: 8px;
+  transition: background 0.14s ease, color 0.14s ease, transform 0.14s ease;
+}
+.settings-rail-back:hover {
+  background: color-mix(in oklch, var(--brand) 12%, transparent);
+  color: var(--brand-text);
+}
+.settings-rail-back:active {
+  transform: scale(0.94);
+}
+.settings-rail-back svg {
+  transition: transform 0.18s cubic-bezier(0.5, 0, 0.2, 1);
+}
+.settings-rail-back:hover svg {
+  transform: translateX(-2px);
+}
+@media (prefers-reduced-motion: reduce) {
+  .settings-rail-back,
+  .settings-rail-back svg {
+    transition: none;
+  }
+  .settings-rail-back:active {
+    transform: none;
+  }
+  .settings-rail-back:hover svg {
+    transform: none;
+  }
+}
+.settings-rail-items {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: 100%;
+}
+.settings-rail-btn {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 10px 4px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  border-radius: var(--radius-md);
+  color: var(--text-muted);
+  position: relative;
+  transition: background var(--dur-fast) ease, color var(--dur-fast) ease;
+}
+.settings-rail-btn:hover {
+  background: var(--surface-hover);
+  color: var(--text-strong);
+}
+.settings-rail-btn.active {
+  background: color-mix(in oklch, var(--brand) 12%, transparent);
+  color: var(--brand-text);
+}
+.settings-rail-btn.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 3px;
+  height: 22px;
+  border-radius: 999px;
+  background: var(--brand);
+}
+.settings-rail-ico {
+  display: inline-flex;
+}
+.settings-rail-lab {
+  font-family: var(--font-sans);
+  font-size: 10.5px;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  text-align: center;
+}
+@media (max-width: 720px) {
+  .settings-rail {
+    flex-basis: 60px;
+  }
+  .settings-rail-lab {
+    display: none;
+  }
+}
+/* THE page header (`PageHeader`) — one shell for every full-page surface
+   (Bibliothèque / Coffre / Réglages), mirroring the kit's `PageShell` head. */
+.page-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  /* Kit `PageShell`: ONE compact bar hugging the top — not a hero block. */
+  padding: 14px 32px 16px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--surface-card);
+  flex-shrink: 0;
+}
+.page-header-text {
+  min-width: 0;
+}
+.page-header-title {
+  font-size: var(--text-2xl);
+  color: var(--text-strong);
+}
+.page-header-sub {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+/* On a narrow viewport a 32px gutter and a three-line subtitle turn the compact bar back
+   into a hero block: tighten the gutter and cap the subtitle. */
+@media (max-width: 560px) {
+  .page-header {
+    padding: 10px 16px 12px;
+  }
+  .page-header-sub {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    overflow: hidden;
+  }
+}
+/* Right-aligned page action, pushed to the far edge. */
+.page-header-action {
+  margin-left: auto;
+}
+.settings-page-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 26px 32px 48px;
+}
+.settings-page-inner {
+  max-width: 760px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+}
+/* A tab whose content is a GRID, not prose (Modèles): the 760px reading column
+   squeezes the model cards into ellipsised stubs. */
+.settings-page-inner.wide {
+  max-width: 1100px;
+}
+.page-header .ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}

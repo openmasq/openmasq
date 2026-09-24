@@ -79,7 +79,7 @@ describe("Réglages → Versions — l'historique publié", () => {
 
     expect(ui.findAll(".rn-version").map((v) => v.textContent)).toEqual(["0.5.0", "0.4.2"]);
     expect(ui.find(".rn-title").textContent).toBe("La console change de peau");
-    // The Contentful CONTENT, not just the number: the note's bullet is rendered.
+    // The note's CONTENT, not just the number: its bullet is rendered.
     expect(ui.find(".ver-rellist").textContent).toContain("un onglet dans l'aide");
     // The date is written in French, never the raw ISO.
     expect(ui.find(".rn-date").textContent).toBe("11 août 2026");

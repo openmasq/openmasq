@@ -7,14 +7,12 @@ import type { Messages } from "../messages";
 export const login = {
   heading: "Good to see you again.",
   headingFirst: (brand) => `Sign in to ${brand}`,
-  subheading:
-    "Enter your email: we send you a sign-in link, with no password.",
+  subheading: "Enter your email: we send you a sign-in link, with no password.",
   inviteOnly:
     "Access by invitation: your address must have been opened on our side before the first sign-in.",
   checkYourEmail: "Check your email",
   passwordlessStrip: "NO PASSWORD · A LINK SENT BY EMAIL",
-  offline:
-    "You are offline. Signing in needs a network connection — check yours, then try again.",
+  offline: "You are offline. Signing in needs a network connection — check yours, then try again.",
   email: "Work email",
   emailPlaceholder: "you@company.com",
   sending: "Sending…",
@@ -190,13 +188,15 @@ export const modelPicker = {
       loading: "Reading the account…",
       unavailable: "The CLI did not answer — is it signed in?",
       plan: (plan) => `Plan: ${plan}`,
-      windowOf: (minutes) => (minutes >= 1440 ? `${Math.round(minutes / 1440)} d` : `${Math.round(minutes / 60)} h`),
+      windowOf: (minutes) =>
+        minutes >= 1440 ? `${Math.round(minutes / 1440)} d` : `${Math.round(minutes / 60)} h`,
       quotaUsed: (percent, window) => `${percent}% of the ${window} window used`,
       resets: (date) => `resets ${date}`,
       statusOk: "Quota available",
       statusWarning: "Quota nearly reached",
       statusExhausted: "Quota exhausted",
-      windowName: (window) => (window === "five_hour" ? "5-hour window" : window === "weekly" ? "weekly window" : window),
+      windowName: (window) =>
+        window === "five_hour" ? "5-hour window" : window === "weekly" ? "weekly window" : window,
       lastTurn: "As of the last send",
       claudeNoData: "The quota shows after a first send: this CLI only reports it during a turn.",
       modelsTitle: "Account models",
@@ -223,6 +223,12 @@ export const leaves = {
   privacyLevels: {
     custom: "Custom",
     customNote: "Your settings, category by category. Picking a level above will replace them.",
+    perConnector: {
+      label: "Masking level for this connector",
+      followsDefault: "Default",
+      followsDefaultHint: (globalLevel) =>
+        `Follows your overall level (${globalLevel}). Nearly every connector does.`,
+    },
   },
   demo: { youWrite: "WHAT YOU WRITE", modelReceives: "WHAT THE MODEL RECEIVES" },
   toolTrace: "TOOL CALLS",

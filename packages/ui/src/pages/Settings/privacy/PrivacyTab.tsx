@@ -8,6 +8,7 @@ import type { Conversation, RedactCategoryKey, Settings } from "../../../types";
 import { REDACT_CATEGORIES } from "../../../privacy/redactCategories";
 import { PrivacyReport } from "./PrivacyReport";
 import { PrivacyLevelPicker } from "../../../components/PrivacyLevelPicker";
+import { ConnectorLevelsSection } from "./ConnectorLevelsSection";
 import { activeCount, categoriesForLevel, levelOf, TOTAL_CATEGORIES } from "../../../privacy/privacyLevel";
 
 /**
@@ -84,6 +85,8 @@ export function PrivacyTab({
           )}
         </div>
       </section>
+      {/* Read right after the level it qualifies: what is NOT following it. */}
+      <ConnectorLevelsSection draft={draft} setDraft={setDraft} />
 
       <PrivacyReport conversations={conversations} onOpenAudit={onOpenAudit} />
 

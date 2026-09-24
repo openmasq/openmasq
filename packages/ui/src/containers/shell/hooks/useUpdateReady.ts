@@ -5,21 +5,19 @@ import { noteForVersion, useReleaseNotesFeed, type ReleaseNote } from "../../../
 /**
  * AN UPDATE IS DOWNLOADED, AND READY TO INSTALL.
  *
- * ⚠️ It's the RENDERER that announces it, not the system anymore. An OS dialog
- * used to say "x.y.z is ready to install" in English, didn't say what the version
- * brings, and stole focus mid-sentence. Here we have the published note
- * (Contentful) and know how to wait: the window closes, a button on the right rail
- * reopens it as long as the version stays pending.
+ * ⚠️ It's the RENDERER that announces it, not the system: an OS dialog says nothing of
+ * what the version brings and steals focus. Here we have the published note and know how
+ * to wait: the window closes, a button on the right rail reopens it while the version
+ * stays pending.
  *
  * Three choices that hold up:
  *  · **A single automatic opening per version.** `announcedRef` remembers the versions
  *    already announced, so a second `downloaded` event for the same build — they
  *    repeat, the updater re-signals on every check — doesn't reopen on top of what
  *    is being written right now. Closing doesn't erase the update: the button stays.
- *  · **The note is not waited for.** If Contentful doesn't respond, or the version has no
- *    published note, the window opens anyway with the number and the action — what
- *    matters is "a new version is ready, restart", and staying silent about that because a
- *    CMS is mute would be the only real failure.
+ *  · **The note is not waited for.** If the notes endpoint doesn't respond, or the version
+ *    has no published note, the window opens anyway with the number and the action —
+ *    staying silent because a CMS is mute would be the only real failure.
  *  · **`install()` is the only gesture ONLY main can perform**; everything else
  *    (what to show, when, to whom) is decided here.
  */

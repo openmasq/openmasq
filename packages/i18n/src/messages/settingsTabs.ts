@@ -43,6 +43,9 @@ export interface AccountTabMessages {
 
 export interface PrivacyTabMessages {
   protectedEyebrow: string;
+  /** The connectors that do NOT follow the level above (`privacy/ConnectorLevelsSection`). */
+  perConnectorEyebrow: string;
+  perConnectorNote: (n: number) => string;
   perCategory: string;
   activeCount: (active: number, total: number) => string;
   managedByOrg: (count: number) => string;

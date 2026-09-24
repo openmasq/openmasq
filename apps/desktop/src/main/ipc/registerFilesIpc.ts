@@ -22,8 +22,7 @@ import { makeDocumentScrub } from "./documentScrub";
 import { handle, str, bool, obj, } from "./handle";
 import { devOnly } from "../security/devOnly";
 
-// Minimal ext⇄mime maps for downloaded exports (a signed URL rarely has a real
-// filename; content-type is the fallback). Unknown → octet-stream / no ext.
+// ext⇄mime for downloaded exports (content-type is the fallback for a signed URL).
 const EXT_MIME: Record<string, string> = {
   pdf: "application/pdf",
   png: "image/png",
@@ -43,21 +42,10 @@ const extToMime = (ext: string): string => EXT_MIME[ext] ?? "application/octet-s
 const mimeToExt = (mime: string): string =>
   Object.keys(EXT_MIME).find((e) => EXT_MIME[e] === mime) ?? "";
 
-// OpenGraph link-unfurl opt-in, authoritative in MAIN (audit M4). DEFAULT OFF — a
-// preview requested while off is refused even if the renderer asks (fail closed).
+// Link-unfurl opt-in, authoritative in MAIN. DEFAULT OFF (fail closed).
 let linkPreviewsEnabled = false;
 
-/**
- * Register the file / link IPC — the renderer's local-file and remote-fetch trust
- * boundary, kept in ONE module so the read-gate (audit H-1) and the fetch/preview
- * host allow-list (audit M4) live next to the handlers they protect. The read-grant
- * Set is module-level so a `files:pick` grant and the later `files:read` check share
- * the SAME state (moved verbatim out of index.ts's `registerChatHandlers`). Fail-closed
- * throughout: an ungranted path, an unobserved fetch host, and a not-opted-in preview
- * are each refused, never silently allowed.
- */
-// OCR progress → renderer: the payload carries the NAME (attribution of concurrent
-// extractions); best-effort. Exported: `filesExtractIpc.ts` relays the same progress.
+// OCR progress → renderer, best-effort; `filesExtractIpc.ts` relays the same.
 export const progressTo =
   (sender: Electron.WebContents): OcrProgressFn =>
   (name, page, pages) => {
@@ -68,12 +56,16 @@ export const progressTo =
     }
   };
 
+/**
+ * The renderer's local-file and remote-fetch trust boundary, in ONE module so the read
+ * gate and the fetch/preview host allow-list live next to the handlers they protect.
+ * Fail-closed throughout: an ungranted path, an unobserved fetch host and a not-opted-in
+ * preview are each refused.
+ */
 export function registerFilesIpc(): void {
-  // File attachments: extract plain text so the renderer can redact it before
-  // anything is sent to a model (the raw file never leaves the machine).
-  // E2E hook: the native file picker can't be automated, so a test can point
-  // this at real fixture file(s) (":"-separated) — they're extracted by the same
-  // @openmasq/redact/documents path as a user-chosen file. Inert without the var.
+  // Extract plain text so the renderer redacts it before anything reaches a model. E2E
+  // hook: the native picker can't be automated, so fixture paths (":"-separated) go
+  // through the same extraction path.
   handle("files:pick", [], (e) => {
     const attach = devOnly(process.env.OPENMASQ_E2E_ATTACH);
     if (attach) {
@@ -81,52 +73,38 @@ export function registerFilesIpc(): void {
       paths.forEach(grantRead); // E2E fixture paths → grant (env-set, trusted)
       return extractPaths(paths, progressTo(e.sender));
     }
-    // Hide the alwaysOnTop agent browser while the native picker is up (else it covers it).
     return withAgentBrowserHidden(() => pickAndExtract(progressTo(e.sender))).then((files) => {
-      // The user just chose these via the native dialog → grant reading them this
-      // session (mirrors files:pick-paths), so a later files:read / redact-and-save
-      // by path is allowed (audit H-1). Without this, the bundled `pick()` fallback
-      // produced attachment paths that the read-gate then rejected.
+      // The user chose these via the native dialog → grant reading them this session.
       files.forEach((f) => f.path && grantRead(f.path));
       return files;
     });
   });
   registerExtractIpc();
-  // Dialog-only pick (no extraction) so the renderer can show a chip instantly, then
-  // extract async. E2E: reuse the pre-set fixture paths (no dialog in headless).
+  // Dialog-only pick so the renderer shows a chip instantly, then extracts async.
   handle("files:pick-paths", [], async () => {
     const attach = devOnly(process.env.OPENMASQ_E2E_ATTACH);
     const picked = attach
       ? attach.split(":").map((p) => ({ name: p.split(/[\\/]/).pop() || p, path: p }))
-      : await withAgentBrowserHidden(() => pickPaths()); // hide agent browser over the picker
-    // The user (or the E2E fixture env) just chose these → grant reading them this
-    // session, so the follow-up files:extract / files:read is allowed (audit H-1).
+      : await withAgentBrowserHidden(() => pickPaths());
     picked.forEach((p) => grantRead(p.path));
     return picked;
   });
-  // Read a file's raw bytes for an in-app preview (e.g. rendering a not-yet-stored
-  // composer PDF). CONFINED (audit H-1): only a path the user granted this session
-  // (picked above) or one inside our own userData / OS temp dir — never an arbitrary
-  // absolute path, so a renderer XSS can't read keys.enc / the vault DB / ~/.ssh.
+  // Raw bytes for an in-app preview. CONFINED: only a path the user granted this session
+  // or one inside our own temp dir, so a renderer XSS can't read keys / the vault / ~/.ssh.
   handle("files:read", [str], async (_e, path) => {
     assertReadAllowed(path);
     return new Uint8Array(await readFile(path));
   });
 
-  // Download a remote file (e.g. a tool-returned export URL) to a temp path. Runs
-  // in main (no renderer CSP; keeps the signed URL off the model's path). The
-  // renderer then redacts + stores + displays the bytes via files:redact-and-save.
+  // Download a remote file (a tool-returned export URL) to a temp path; the renderer then
+  // redacts + stores + displays the bytes via files:redact-and-save.
   handle("files:fetch-url", [str], async (_e, url) => {
-    // SECURITY (audit M4): only fetch a host we've OBSERVED in relayed content (a tool
-    // result / message / model reply). A renderer XSS can't turn this into an exfil GET to
-    // an arbitrary `attacker.com/?d=<secret>` — that host was never observed → refuse.
+    // SECURITY: only a host OBSERVED in relayed content, so a renderer XSS can't turn this
+    // into an exfil GET to `attacker.com/?d=<secret>`.
     if (!isFetchHostAllowed(url)) {
       throw new Error("URL non autorisée");
     }
-    // Hardened download: SSRF-safe (private hosts blocked at EVERY redirect hop),
-    // Content-Type validated (media only), body size-capped while streaming, http(s)
-    // only, 20 s timeout — all inside `safeFetch`. The signed URL never touches the
-    // renderer / model path; the renderer redacts + stores + displays the bytes.
+    // `safeFetch`: SSRF-safe at every redirect hop, media-only, size-capped, timed out.
     const { finalUrl, buf, contentType } = await safeFetch(url, {
       source: "fetch-url",
       accept: "media",
@@ -137,68 +115,46 @@ export function registerFilesIpc(): void {
     const base = decodeURIComponent(new URL(finalUrl).pathname.split("/").pop() ?? "");
     const dot = base.lastIndexOf(".");
     const rawExt = dot > 0 ? base.slice(dot + 1).toLowerCase() : mimeToExt(contentType);
-    // Clamp to a plain alnum extension — it is spliced into the generated temp path
-    // below, so a URL-derived `..%2f`-style tail must never reach the filename.
+    // Clamp to a plain alnum extension: it is spliced into the temp path below.
     const ext = /^[a-z0-9]{1,16}$/.test(rawExt) ? rawExt : "";
     const name = base && dot > 0 ? base : `export.${ext || "bin"}`;
     const mime = contentType || extToMime(ext);
 
-    // A 0700 dir + a 0600 file, removed on quit (`appTmpFile.ts`): the downloaded export is
-    // the user's own document, and it used to stay in a world-readable OS temp dir forever.
-    // The random DIRECTORY is what makes the path unguessable, so the file keeps a real name.
+    // A 0700 dir + a 0600 file, removed on quit (`appTmpFile.ts`); the random DIRECTORY
+    // makes the path unguessable, so the file keeps a real name.
     const path = await writeAppTmpFile("export", `export${ext ? `.${ext}` : ""}`, buf);
     return { path, name, mime };
   });
 
-  // OpenGraph link-unfurl. The EXFIL boundary is the host allow-list below (main-side,
-  // audit M4). The `linkPreviews` opt-in is ALSO enforced in main (not only renderer):
-  // main tracks the authoritative flag, DEFAULT OFF (fail closed — no unfurl leaks the
-  // user's IP to a site before they opt in). The renderer pushes its setting via
-  // `links:set-enabled`; a preview requested while OFF is refused even if the renderer
-  // asks for it. Runs in main so the fetch (page + og:image) goes through `safeFetch`
-  // (SSRF-safe, per-hop private-host block, Content-Type + size caps) and the image comes
-  // back as a `data:` URL — the renderer never hits the remote host (CSP blocks it).
+  // Link-unfurl. The opt-in is enforced in MAIN (default OFF: no unfurl leaks the user's
+  // IP before they opt in) and the fetch goes through `safeFetch`; the image comes back
+  // as a `data:` URL so the renderer never hits the remote host.
   handle("links:set-enabled", [bool], (_e, on) => {
     linkPreviewsEnabled = on;
   });
   handle("links:preview", [str], (_e, url) => {
-    // Opt-in enforced in main (audit M4): fail closed when the user hasn't enabled previews.
     if (!linkPreviewsEnabled) throw new Error("Aperçus de liens désactivés");
-    // SECURITY (audit M4): same host allow-list as files:fetch-url — a preview must only
-    // ever unfurl a link main saw in a message/reply, never an XSS-crafted exfil URL.
+    // Same host allow-list as files:fetch-url.
     if (!isFetchHostAllowed(url)) throw new Error("URL non autorisée");
     return previewLink(url);
   });
 
-  // Local file store (`files` table): keep BOTH the user's original bytes and the
-  // redacted version. Same table for both modes:
-  //  - visible mode: the in-page injector already redacted in place → files:save.
-  //  - hidden mode: the renderer has only the path → files:redact-and-save reads
-  //    it, redacts in place with the conversation vault, stores both, and returns
-  //    the merged vault.
+  // Local file store: BOTH the original bytes and the redacted version.
   handle("files:save", [obj], (_e, f) => dbSaveFile(f as unknown as DbFile));
   handle("files:list", [str], (_e, conversationId) => dbListFiles(conversationId));
   handle("files:load", [str], (_e, id) => dbLoadFile(id));
   handle("files:delete", [str], (_e, id) => dbDeleteFile(id));
-  // Conversations that have attached the same file (by content hash) — powers the
-  // library's "used in N conversations" + re-attach.
+  // Conversations that attached the same file (by content hash).
   handle("files:conversations", [str], (_e, hash) =>
     dbConversationsForFile(hash).then((rows) => rows.map((r) => r.conversationId)),
   );
-  // Open a stored file for viewing in the OS default app. The renderer is
-  // sandboxed (CSP `default-src 'self'` blocks `blob:` downloads), so we go
-  // through main: load the ORIGINAL bytes, drop them in a temp file that keeps
-  // the real name/extension, and hand it to `shell.openPath`.
+  // Open a stored file in the OS default app (the renderer's CSP blocks `blob:`).
   handle("files:open", [str], async (_e, id) => {
     const data = await dbLoadFile(id);
     if (!data) return false;
-    // The RANDOM part is now the enclosing directory (`appTmpFile.ts`), which is created
-    // 0700 — so the file below it is unreachable by another local account, keeps the
-    // SANITISED display name (never the renderer-supplied id, which is how a hostile name
-    // used to traverse out of tmpdir — audit: files-store path traversal) and therefore the
-    // real extension the OS handler needs. It is 0600 and is deleted on quit: these are the
-    // DECRYPTED originals, and they used to survive the app that encrypts them at rest.
-    // The slug prefix keeps the path inside the read-gate's temp allow-list.
+    // A 0700 dir holding a 0600 file with the SANITISED display name (never a renderer-
+    // supplied id), deleted on quit: these are the DECRYPTED originals. The slug prefix
+    // keeps the path inside the read-gate's temp allow-list.
     const path = await writeAppTmpFile("open", safeFileName(data.name), Buffer.from(data.original));
     const err = await shell.openPath(path);
     return err === "";
@@ -233,14 +189,9 @@ export function registerFilesIpc(): void {
   };
   handle("files:redact-and-save", [obj], async (_e, raw) => {
     const p = raw as RedactAndSave;
-    // Original bytes come from EITHER inline base64 `data` (RE-ATTACH: the renderer
-    // already holds the DECRYPTED original from db.loadFile — the on-disk blob is
-    // encrypted at rest, so re-reading its path would yield ciphertext AND is denied
-    // by the gate since it lives under the secret userData/files dir) OR a granted
-    // on-disk `path` (native pick). The path branch keeps the same read-gate as
-    // files:read/open — a compromised renderer must not exfiltrate an arbitrary file
-    // (it comes back as `original` bytes in the saved record). `data` grants no new
-    // read capability: the renderer only hands back bytes it already possesses.
+    // Original bytes come from EITHER inline `data` (re-attach: bytes the renderer
+    // already possesses, no new read capability) OR a granted on-disk `path`, which
+    // keeps the same read gate as files:read.
     let original: Uint8Array;
     if (typeof p.data === "string") {
       original = new Uint8Array(Buffer.from(p.data, "base64"));
@@ -250,10 +201,8 @@ export function registerFilesIpc(): void {
       original = new Uint8Array(await readFile(p.path));
     }
     const vault = { ...p.vault };
-    // The classifier lives in `./documentScrub` — it is the half that must agree with the
-    // renderer's message pass on ONE map (`redactionKinds`), and it disagreed for a long
-    // time. Extracted so a test can CALL it rather than read this file: the agreement is
-    // pinned value-for-value by `documentKinds.parity.test.ts`, not by this comment.
+    // The classifier must agree with the renderer's message pass on ONE map; pinned by
+    // `documentKinds.parity.test.ts`.
     const { scrub, kinds, spans } = makeDocumentScrub(vault, p.disabledKinds);
     let scrubbed: Uint8Array | null = null;
     let redacted = false;
@@ -271,20 +220,15 @@ export function registerFilesIpc(): void {
       redacted,
       original,
       scrubbed,
-      // When we scrubbed the bytes in place, `spans` (already deduped by value) IS the
-      // distinct masked-item count. For a BLOCKED format (image/PDF) the in-place pass
-      // threw and `spans` is empty, but the file's OCR/text WAS redacted in the wire —
-      // so fall back to the renderer's drop-time count (clamped; untrusted, display-only).
+      // For a BLOCKED format (image/PDF) `spans` is empty although the text WAS
+      // redacted on the wire: fall back to the renderer's count (clamped, display-only).
       redactedCount: redacted
         ? spans.length
         : Math.max(0, Math.floor(Number(p.redactedCount) || 0)),
-      // Persist the extraction so a re-attach reuses it (skips re-OCR); the reuse path
-      // re-redacted it with the new conversation's vault, so storing the RAW text here
-      // is safe — it never leaves this encrypted DB.
+      // RAW text, safe here: it never leaves this encrypted DB and a re-attach re-redacts it.
       extraction: p.extraction,
     });
-    // `redacted` = were the BYTES rewritten (see the host type: for a PDF the in-place
-    // pass throws by design, so an empty `spans` is NOT « rien de masqué »).
+    // `redacted` = were the BYTES rewritten (an empty `spans` on a PDF is NOT "nothing masked").
     return { vault, kinds, spans, redacted }; // merged into the conversation + log
   });
 }

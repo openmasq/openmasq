@@ -1,0 +1,110 @@
+/* ============================================================ App layout === */
+.app {
+  display: flex;
+  height: 100%;
+  /* Shell tone; the rail + sidebar are transparent over it and the chat is a floating
+     rounded panel. The value is per theme — read the token, never a literal; the fallback
+     only guards a failed resolve and never fires. */
+  background: var(--surface-shell, #f6f6f3);
+  /* Eases the gentle zoom applied by `.app-behind` while an auth/onboarding scrim
+     modal floats over it — and eases it back down when the modal closes. */
+  transition: transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* ================================================================== Rail === */
+.rail {
+  width: 60px;
+  flex-shrink: 0;
+  background: transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 14px 0;
+  gap: 2px;
+}
+/* 40px is THE control height app-wide (`.btn-new`, `.sidebar-search`). The rail is the
+   collapsed sidebar and its "new chat" the same affordance, so it stays on 40 and nothing
+   jumps across the toggle. */
+.rail-btn {
+  position: relative; /* anchors the .rail-note-dot badge */
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: transparent;
+  color: var(--text-muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-out), color var(--dur-fast);
+}
+/* The six section buttons are denser than the controls above them: 32 on the same 2px gap
+   as `.side-nav-item`, so the nav icons hold their y when the sidebar collapses. Only
+   navigation shrinks; « nouveau chat » and search stay on 40. */
+.rail-nav {
+  width: 32px;
+  height: 32px;
+}
+/* « Nouveau » dot on a rail icon (Mémoire: something was noted in the background) —
+   cleared when the section is visited. Anchored to the 32px `.rail-nav` box. */
+.rail-note-dot {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--hl-violet);
+  box-shadow: 0 0 0 2px var(--surface-app, var(--surface-card));
+}
+.rail-btn:hover {
+  background: var(--surface-hover);
+}
+.rail-btn.active {
+  background: var(--surface-selected);
+  color: var(--text-strong);
+}
+/* Logo button — a rail-btn holding the brand mark; a touch more gap below. */
+.rail-logo {
+  margin-bottom: 6px;
+}
+/* Collapsed-rail "new chat" — brand-filled, like the kit. */
+.rail-new {
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: var(--radius-md);
+  background: var(--brand);
+  color: var(--brand-contrast, #fff);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-bottom: 10px;
+  box-shadow: var(--shadow-xs);
+  transition: background var(--dur-fast) var(--ease-out);
+}
+.rail-new:hover {
+  background: var(--brand-hover, var(--brand));
+}
+.rail-spacer {
+  flex: 1;
+}
+.rail-avatar {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 12px;
+  border-radius: var(--radius-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.rail-new {
+  position: relative;
+}

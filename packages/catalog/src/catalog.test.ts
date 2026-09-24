@@ -22,7 +22,7 @@ describe("model catalog", () => {
 
   it("contains no keyless web-session models (removed from the product)", () => {
     // The desktop/mobile product is API-key only; session providers must never
-    // appear in the catalog the picker/admin console list.
+    // appear in the catalog the pickers list.
     for (const m of MODEL_CATALOG) {
       expect(m.provider).not.toMatch(/-session$/);
     }

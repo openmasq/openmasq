@@ -1,0 +1,127 @@
+/* ── Composer file attachments ────────────────────────────────────────────── */
+.attach-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 0 8px;
+}
+.attach-chip {
+  position: relative;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 280px;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm, 10px);
+  background: var(--surface-sunken, var(--warm-50));
+  border: 1px solid var(--border-subtle);
+  font-size: var(--text-xs);
+  color: var(--text-body);
+  cursor: pointer;
+  transition: border-color var(--dur-fast), background var(--dur-fast);
+}
+/* Multi-page document redaction progress — a thin bar along the chip's bottom edge. */
+.attach-chip .attach-progress {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  overflow: hidden; /* clip the indeterminate segment as it slides out */
+  background: var(--border-subtle);
+}
+.attach-chip .attach-progress-fill {
+  display: block;
+  height: 100%;
+  background: var(--brand, var(--hl-lime, #7cb518));
+  transition: width var(--dur-fast, 0.15s) ease-out;
+}
+/* Extraction has no measurable steps — an INDETERMINATE segment sweeping across the
+   track (the determinate `-fill` above drives the redaction phase, which IS chunked). */
+.attach-chip .attach-progress-indet {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 35%;
+  border-radius: 999px;
+  background: var(--brand, var(--hl-lime, #7cb518));
+  animation: attach-indet 1.1s ease-in-out infinite;
+}
+@keyframes attach-indet {
+  0% { left: -35%; }
+  100% { left: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  /* Hold a static half-fill rather than a frozen mid-sweep segment. */
+  .attach-chip .attach-progress-indet {
+    animation: none;
+    left: 0;
+    width: 100%;
+    opacity: 0.5;
+  }
+}
+.attach-chip:not(.err):hover {
+  border-color: var(--border-strong);
+  background: var(--surface-hover);
+}
+.attach-chip.err {
+  border-color: var(--red-500);
+  color: var(--red-500);
+}
+/* Redacted with a now-outdated engine — a nudge to reredact, not an error. */
+.attach-chip.stale {
+  border-color: var(--pearl-amber);
+}
+.attach-chip .attach-name {
+  font-weight: 500;
+  color: var(--text-strong);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.attach-chip .attach-meta {
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+/* Kit `ComposerFileThumb`: the remove is a small × BUBBLE pinned top-right,
+   revealed on hover (and on focus, for keyboards) — not an inline glyph. */
+.attach-chip .attach-x {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: none;
+  border-radius: 50%;
+  background: var(--surface-card);
+  box-shadow: var(--shadow-xs);
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1;
+  padding: 0;
+}
+.attach-chip:hover .attach-x,
+.attach-chip:focus-within .attach-x {
+  display: inline-flex;
+}
+.attach-chip .attach-x:hover {
+  color: var(--red-500);
+}
+.attach-chip .attach-retry {
+  display: inline-flex;
+  align-items: center;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0 2px;
+  line-height: 1;
+}
+.attach-chip .attach-retry:hover {
+  color: var(--brand-text);
+}

@@ -2,16 +2,12 @@ import type { RedactionRule } from "../../types";
 import { frVat, sirenSiret } from "../validators";
 import { gate, WRAP, SP, maxOneWrap } from "./rules.international.util";
 
-// French identity / tax / residency schemes, grouped as ONE family (root rule 10) —
-// the app is FR-first, so this is the coverage that actually meets its users' identity
-// documents (CNI, passport, NIR, driving licence, residence permit). Spread into `RULES` at the
-// SAME position the FR block always occupied: AFTER card/IBAN (so a Luhn-valid PAN is
-// never nibbled) and BEFORE the international spread. All → "national_id".
-//
-// Precision bar (engine/CLAUDE.md): every scheme whose shape is a banal digit/alnum
-// run is CONTEXT-GATED; only the structurally distinctive NIR forms fire bare. And no
-// checksum REQUIREMENT on the NIR key on purpose: these numbers reach us through OCR
-// (the exact scenario this family serves), where one misread digit would fail the key
+// French identity / tax / residency schemes, ONE family (rule 10): the coverage that meets
+// FR users' identity documents. Spread into `RULES` AFTER card/IBAN and BEFORE the
+// international spread. All → "national_id".
+// Precision bar (engine/CLAUDE.md): a banal digit/alnum run is CONTEXT-GATED; only the
+// structurally distinctive NIR forms fire bare. No checksum REQUIREMENT on the NIR key on
+// purpose: these numbers arrive through OCR, where one misread digit would fail the key
 // and LEAK the whole number — structure + separators carry the precision instead.
 const nid = (pattern: RegExp, validate?: (m: string) => boolean): RedactionRule => ({
   type: "national_id",
@@ -19,13 +15,9 @@ const nid = (pattern: RegExp, validate?: (m: string) => boolean): RedactionRule 
   validate,
 });
 
-/** The SPACED/dotted NIR rule's guard: the pattern tolerates optional separators, so
- *  it also matches a BARE 13-digit run — which collides with epoch-milliseconds
- *  timestamps ("1650318742596" parses as sex 1, year 73, month 02). Accept only the
- *  forms that are structurally distinctive: a separator is present (the canonical
- *  "1 65 03 18 742 596 90" grouping), OR the full 15 digits (key included; a bare
- *  15-digit run is already the legacy rule's territory), OR a Corsican 2A/2B
- *  département (letters make it unambiguous). */
+/** The SPACED/dotted NIR rule's guard: the optional separators also match a BARE 13-digit
+ *  run, which collides with epoch-milliseconds. Accept only the distinctive forms: a
+ *  separator present, the full 15 digits, or a Corsican 2A/2B département. */
 export function nirSpacedDistinct(match: string): boolean {
   if (/[ \u00A0\u202F.\n]/.test(match)) return true;
   if (/2[ABab]/.test(match)) return true;
@@ -42,21 +34,16 @@ export const FRANCE_RULES: RedactionRule[] = [
     pattern: /\b[12]\d{2}(?:0[1-9]|1[0-2])\d{10}\b/g,
   },
   {
-    // NIR fully LETTER-SPACED by OCR ("1 8 4 0 3 7 5 1 2 0 0 0 5 1 2") — the
-    // grouped rule below only tolerates separators BETWEEN canonical groups, so a
-    // per-digit spacing shipped the whole number in clear. Shape: 15 single-spaced
-    // digits; the NIR structure (sex + valid month) on the glued digits carries the
-    // precision (a random spaced column rarely starts [12] with a 01-12 month).
+    // NIR fully LETTER-SPACED by OCR ("1 8 4 0 3 7 5 1 2 0 0 0 5 1 2"): 15 single-spaced
+    // digits; the NIR structure (sex + valid month) on the glued digits carries the precision.
     type: "national_id",
     pattern: new RegExp(String.raw`\b[12](?:${SP}\d){14}\b`, "g"),
     validate: (m) => /^[12]\d{2}(?:0[1-9]|1[0-2])\d{10}$/.test(m.replace(/\D/g, "")),
   },
   {
-    // NIR as actually WRITTEN: separator-grouped ("1 65 03 18 742 596 90", dots
-    // tolerated), Corsican 2A/2B département, and the 13-digit form without its key —
-    // all missed by the glued rule above. Separators tolerate ONE mid-value line
-    // wrap (`WRAP` + `maxOneWrap` — a hard-wrapped "1 84 03 75\n120 005 12" used to
-    // pass in CLEAR). `nirSpacedDistinct` rejects the bare-13 epoch-ms collision.
+    // NIR as actually WRITTEN: separator-grouped, Corsican 2A/2B, and the 13-digit form
+    // without its key. ONE mid-value line wrap tolerated (`WRAP` + `maxOneWrap`);
+    // `nirSpacedDistinct` rejects the bare-13 epoch-ms collision.
     type: "national_id",
     pattern: new RegExp(
       String.raw`\b[12]${S}\d{2}${S}(?:0[1-9]|1[0-2])${S}(?:\d{2}|2[ABab])${S}\d{3}${S}\d{3}(?:${S}\d{2})?\b`,
@@ -64,38 +51,29 @@ export const FRANCE_RULES: RedactionRule[] = [
     ),
     validate: (m) => maxOneWrap(m) && nirSpacedDistinct(m),
   },
-  // French intra-community VAT — "FR <key> <SIREN>" ("FR 79 345 360 051"), internal
-  // spaces tolerated. Fires on SHAPE with NO keyword because `frVat` double-checksums
-  // the 2-digit key + embedded SIREN. BEFORE the SIREN/RCS rule so the WHOLE number
-  // (incl. the "FR" prefix) is ONE span — otherwise only its SIREN was grabbed (as an
-  // RCS id in a company doc) and the "FR <key>" prefix leaked.
+  // French intra-community VAT — "FR <key> <SIREN>", spaces tolerated. Fires on SHAPE
+  // because `frVat` double-checksums key + SIREN. BEFORE the SIREN/RCS rule so the WHOLE
+  // number is ONE span, prefix included.
   {
     type: "company_id",
     pattern: new RegExp(String.raw`\bFR(?:${SP}?\d){11}\b`, "gi"),
     validate: frVat,
   },
-  // FR VAT BEHIND its keyword — NO Luhn (the SIREN rule's OCR discipline: keyword +
-  // FR+11 structure carry the precision; shape-only keeps frVat above). Complements the
-  // `gi` EU rule (rules.identifiers.ts): its match can start INSIDE a lowercase word
-  // and the consumed span shadows the real number in its own pass — this independent
-  // scan is the recovery. Residual: the fake VAT is independent of the neighbouring fake SIREN.
+  // FR VAT BEHIND its keyword — NO Luhn (the OCR discipline: keyword + FR+11 structure
+  // carry the precision). Complements the `gi` EU rule (rules.identifiers.ts), whose match
+  // can start INSIDE a lowercase word. Residual: the fake VAT is independent of the
+  // neighbouring fake SIREN.
   {
     type: "company_id",
     pattern: gate("tva|vat|intracom(?:munautaire)?", String.raw`FR(?:${SP}?\d){11}\b`),
     validate: maxOneWrap,
   },
-  // French SIREN(9)/SIRET(14) — context-gated (a bare 9/14-digit run is far too
-  // common). NO Luhn requirement, same discipline as the NIR above: these numbers
-  // reach us through OCR'd company documents, where one misread digit fails the
-  // checksum and LEAKS the whole number — the scheme keyword + the exact 9/14
-  // structure carry the precision instead. Two gates, because French legal
-  // boilerplate writes the keyword on EITHER side: "SIRET 775 384 225 00013"
-  // (keyword first) and "850 861 036 RCS Mulhouse" (number first).
+  // French SIREN(9)/SIRET(14) — context-gated (a bare run is far too common), NO Luhn
+  // (same OCR discipline as the NIR). Two gates: French boilerplate writes the keyword on
+  // EITHER side ("SIRET 775 384 225 00013", "850 861 036 RCS Mulhouse").
   {
     type: "company_id",
-    // gate() (not a raw lookbehind) so the conversational turn reaches it too:
-    // « le numéro SIREN de la société est 863 471 587 » — the linking-words
-    // tolerance lives in ONE place.
+    // gate() (not a raw lookbehind) so the conversational turn reaches it too.
     pattern: gate(
       "siren|siret|rcs",
       String.raw`\d(?:(?:${SP}|${WRAP})?\d){8}(?:(?:(?:${SP}|${WRAP})?\d){5})?\b`,
@@ -110,16 +88,12 @@ export const FRANCE_RULES: RedactionRule[] = [
     ),
     validate: maxOneWrap,
   },
-  // Old-style « RC 424613305 » (registre du commerce, pre-1984 papers still cite it —
-  // and syndic/copro headers copy the mention verbatim). « RC » ALONE is far more
-  // ambiguous than « RCS » (responsabilité civile writes « attestation RC n° … »), so
-  // unlike the rule above this arm demands the SIREN checksum: keyword + Luhn is the
-  // pair that carries the precision, exactly the phase-2 discipline.
+  // Old-style « RC 424613305 » (pre-1984 papers, syndic headers). « RC » ALONE is far more
+  // ambiguous than « RCS » (« attestation RC n° … »), so this arm demands the SIREN
+  // checksum: keyword + Luhn carry the precision.
   // ⚠️ SLIM adjacency lookbehind, NOT gate(): a digit-startable core evaluates its
-  // lookbehind at EVERY digit of a statement's number columns, and gate()'s
-  // linking-words tolerance (backtracking, case-folded) there took redact() from
-  // ~2 s to timeout on the relevé fixtures. « RC » is printed ADJACENT — the
-  // conversational-turn tolerance is the RCS rule's job, not this arm's.
+  // lookbehind at EVERY digit of a statement's number columns, and gate()'s backtracking
+  // tolerance there takes redact() from seconds to timeout. « RC » is printed ADJACENT.
   {
     type: "company_id",
     pattern: new RegExp(
@@ -128,10 +102,9 @@ export const FRANCE_RULES: RedactionRule[] = [
     ),
     validate: (m) => maxOneWrap(m) && sirenSiret(m.replace(/\D/g, "").slice(0, 9)),
   },
-  // Real-estate professional card (loi Hoquet) — « CPI 6902 2018 000 024 618 »:
-  // registry(4) year(4) number(3 3 3). Strict structure + adjacent keyword; no
-  // published checksum for this scheme, the 4-4-3-3-3 form is the second factor. Same
-  // SHORT lookbehind as « RC » above, for the same cost reason.
+  // Real-estate professional card (loi Hoquet) — « CPI 6902 2018 000 024 618 »: strict
+  // 4-4-3-3-3 structure + adjacent keyword (no published checksum). Same SHORT lookbehind
+  // as « RC », for the same cost reason.
   {
     type: "national_id",
     pattern: new RegExp(
@@ -139,15 +112,10 @@ export const FRANCE_RULES: RedactionRule[] = [
       "g",
     ),
   },
-  // EUID (BRIS, on every K-bis) — the REAL French wire form is "FR7501.863471587"
-  // (FR + 4-digit greffe code + "." + SIREN); "FR.RCS.PA.775 384 225" variants also
-  // circulate. The SIREN gate above can't reach either: the register segment sits
-  // between the keyword and the digits. Two rules, the WHOLE identifier as one span:
-  //  • the French forms fire BARE — the checksum is the LAST-9-digits Luhn (the
-  //    embedded SIREN; the full digit string includes the greffe code, so a
-  //    whole-string `sirenSiret` would see 13 digits and always fail);
-  //  • any country's form fires behind the "euid" label (register codes vary too much
-  //    for a safe bare shape — "DEK1101R.HRB147936" is a German one).
+  // EUID (on every K-bis): "FR7501.863471587" (FR + greffe code + "." + SIREN) and
+  // "FR.RCS.PA.775 384 225" variants. The SIREN gate can't reach them (the register segment
+  // sits between keyword and digits). French forms fire BARE on the LAST-9-digits Luhn (the
+  // embedded SIREN); any country's form fires behind the "euid" label.
   {
     type: "company_id",
     pattern:
@@ -158,22 +126,18 @@ export const FRANCE_RULES: RedactionRule[] = [
     type: "company_id",
     pattern: gate("euid", String.raw`[A-Za-z]{2}[A-Za-z0-9.]*\d(?:[ .]?\d{2,}){0,5}\b`),
   },
-  // PDL / PRM — the 14-digit electricity/gas delivery-point id (EDF/Enedis bills,
-  // Linky). Address-linked (it identifies the HOME), banal shape → gated on the
-  // scheme keyword, no checksum (none published).
+  // PDL / PRM — the 14-digit electricity/gas delivery-point id (identifies the HOME); banal
+  // shape → gated on the scheme keyword, no published checksum.
   {
-    // The `\)?` on the acronyms: bills write "point de livraison (PDL) : …" — the
-    // closing paren sits between keyword and digits, outside gate()'s separator class.
+    // `\)?` on the acronyms: bills write "point de livraison (PDL) : …".
     type: "national_id",
     pattern: gate(
       String.raw`pdl\)?|prm\)?|point de livraison|point r[eé]f[eé]rence mesure`,
       String.raw`\d{14}\b|\d{2}(?:${SP}\d{3}){4}\b`,
     ),
   },
-  // CRPCEN — the notary-office registry number ("identifié sous le numéro CRPCEN
-  // 95079"): 5 banal digits, but the scheme keyword IS the precision (same discipline
-  // as AGDREF/CAF below). Left in clear it re-identifies the office even when the
-  // notary's name and the office's address are redacted.
+  // CRPCEN — the notary-office registry number: 5 banal digits, the keyword IS the
+  // precision. Left in clear it re-identifies the office.
   { type: "company_id", pattern: gate("crpcen", String.raw`\d{5}\b`) },
   // French passport — 2 digits + 2 letters + 5 digits ("12AB34567"). The shape
   // reads like any product/order code → context-gated on the document word.
@@ -196,19 +160,15 @@ export const FRANCE_RULES: RedactionRule[] = [
   ),
   // Residence permit / foreign-national number (AGDREF) — 9-10 digits, banal shape → gated.
   nid(gate("titre de s[eé]jour|num[eé]ro [eé]tranger|agdref", String.raw`\d{9,10}\b`)),
-  // CAF beneficiary id (7 digits) / France Travail–Pôle Emploi id (digits, often + a
-  // letter; the post-2024 "numéro France Travail" is 11 digits) — banal shapes, no
-  // published checksum → the scheme keyword IS the precision (same as AGDREF above).
+  // CAF beneficiary id (7 digits) / France Travail id (7-11 digits, often + a letter) —
+  // banal shapes, the keyword IS the precision.
   nid(gate(
     String.raw`caf|allocataires?|p[oô]le[ -]?emploi|france[ -]travail|demandeur d'emploi`,
     String.raw`\d{7,11}[A-Za-z]?\b`,
   )),
   // ── PROCEDURE identifiers (jurisdiction / court officers) ─────────────────────
-  // A court document's own reference numbers. They carry no personal data by
-  // themselves, yet a RG or a Portalis number is a PUBLIC docket key: it
-  // RE-IDENTIFIES the parties whose names the engine just redacted. Banal shapes →
-  // gated on the scheme keyword, which IS the precision (same discipline as CRPCEN
-  // and AGDREF above); no published checksum for any of them.
+  // A RG or a Portalis number is a PUBLIC docket key that RE-IDENTIFIES the parties whose
+  // names were just redacted. Banal shapes → gated on the keyword; no published checksum.
   // « N° RG 23/04871 » — year/sequence number.
   { type: "national_id", pattern: gate(String.raw`r\.?g\.?`, String.raw`\d{2}[\/-]\d{3,6}\b`) },
   // « N° Portalis DB3R-W-B7H-XKLM » — the national case identifier.

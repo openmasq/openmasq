@@ -53,8 +53,7 @@ async function connectStdioServer(spec: ServerSpec): Promise<McpServerInfo> {
   // Re-validate path grants at connect time (the directory may have moved/been deleted).
   const { args: pathArgs, errors } = resolveParams(entry, spec.params ?? {});
   if (errors.length) return { ...infoFor(spec), error: errors.join(", ") };
-  // The filesystem catalog entry runs IN-PROCESS, not as a spawned server — the whole
-  // decision (worker, deny set, live handle) lives in `../../fs/connectLocalFs.ts`.
+  // The filesystem entry runs IN-PROCESS (`../../fs/connectLocalFs.ts`).
   if (spec.catalogId === "filesystem") {
     try {
       connected.set(spec.id, connectLocalFs(spec.id, pathArgs));
@@ -66,19 +65,16 @@ async function connectStdioServer(spec: ServerSpec): Promise<McpServerInfo> {
   }
   try {
     // command + base args come ONLY from the vetted catalog entry; path args are
-    // validated absolute directories; env is filtered. Spawn is shell-less.
-    // `npx -y <pkg>` is rewritten to run the BUNDLED package via Electron's Node
-    // (no `npx` in a packaged app → `spawn npx ENOENT`); env from buildEnv wins.
+    // validated absolute directories; env is filtered; spawn is shell-less. `npx -y <pkg>`
+    // is rewritten to run the BUNDLED package via Electron's Node.
     const spawn = nodeSpawnFor(entry.command, [...entry.args, ...pathArgs]);
     const conn = await connectStdio({
       id: spec.id,
       command: spawn.command,
       args: spawn.args,
-      // Keep buildEnv's SANITIZED env; only add the run-as-Node flag when we rewrote
-      // the command to Electron's Node (the npx passthrough keeps the plain env).
+      // The run-as-Node flag only when we rewrote the command to Electron's Node.
       env: spawn.env ? { ...env, ELECTRON_RUN_AS_NODE: "1" } : env,
-      // The child process dies: we drop it instead of continuing to probe it.
-      // Same wiring as the remote path (`connectRemote.ts`) — it was missing here.
+      // A dead child is dropped, never re-probed.
       onClose: handleConnectorClosed,
     });
     connected.set(spec.id, conn);
@@ -90,21 +86,14 @@ async function connectStdioServer(spec: ServerSpec): Promise<McpServerInfo> {
 }
 
 /**
- * Connect the controllable-browser connector: spawn `@playwright/mcp` and point it
- * at Electron's OWN Chromium via the runtime-resolved CDP endpoint. The spawned
- * server's tools (`browser_navigate/snapshot/click/type…`) register in `connected`
- * like any other, so redaction + routing + the write gate apply uniformly. Requires
- * the browser agent to be opted in AND the CDP endpoint open (a fresh opt-in needs
- * a restart — surfaced as BROWSER_RESTART_REQUIRED).
+ * The browser connector: `@playwright/mcp` pointed at the ISOLATED agent browser's CDP
+ * endpoint (which exposes ONLY agent pages). Its tools register in `connected` like any
+ * other, so redaction + routing + the write gate apply uniformly.
  */
 async function connectBrowserServer(spec: ServerSpec): Promise<McpServerInfo> {
   try {
-    // Spawn the ISOLATED agent-browser process (if not already up) and point
-    // @playwright/mcp at its CDP endpoint — which exposes ONLY the agent page, so
-    // targeting is deterministic and the app's own UI is never reachable.
     const cdpEndpoint = await startAgentBrowser();
-    // `@playwright/mcp` is a stdio child, and it dies with the agent browser —
-    // it's THE server that produced the "Not connected" loop.
+    // A stdio child that dies with the agent browser.
     const conn = await connectStdio({
       id: spec.id,
       ...playwrightMcpSpawn(cdpEndpoint),
@@ -121,19 +110,15 @@ async function connectBrowserServer(spec: ServerSpec): Promise<McpServerInfo> {
   }
 }
 
-// The CDP endpoint the CONNECTED @playwright/mcp child was spawned against. The child
-// reads it from env ONCE, at spawn — it can never follow a new endpoint.
+// The CDP endpoint the CONNECTED @playwright/mcp child was spawned against (read from env
+// ONCE, at spawn: it can never follow a new endpoint).
 let browserConnEndpoint: string | null = null;
 let browserHeal: Promise<void> | null = null;
 
 /**
- * Self-heal the browser connector before a `browser__*` dispatch. The agent-browser
- * child can die or be REPLACED while the @playwright/mcp connection lives on: the main
- * window's `close` handler calls `stopAgentBrowser()` (macOS keeps the app alive), and
- * the human panel later respawns a NEW child with a NEW CDP endpoint + broker secret —
- * pwmcp still points at the dead one, so every navigation fails in ~10 ms with
- * "Target page, context or browser has been closed". When detected, drop the stale
- * pwmcp and reconnect (respawning the child if dead). Shared in-flight promise: heal once.
+ * Self-heal before a `browser__*` dispatch: the agent-browser child can die or be REPLACED
+ * (new CDP endpoint) while the @playwright/mcp connection lives on. Drop the stale one and
+ * reconnect.
  */
 export async function ensureBrowserConnLive(): Promise<void> {
   if (!connected.has(BROWSER_ID)) return; // not connected → nothing to heal
@@ -142,11 +127,8 @@ export async function ensureBrowserConnLive(): Promise<void> {
 }
 
 /**
- * Drop the current @playwright/mcp connection and reconnect it — respawning the child if
- * it's simply dead. Shared in-flight promise so concurrent browser calls heal ONCE. Called
- * by {@link ensureBrowserConnLive} (stale endpoint, BEFORE dispatch) AND by `callTool.ts`
- * AFTER a recoverable-error dispatch (lost page / zero-tab `Target.createTarget` race,
- * `isRecoverableBrowserError`): a fresh connect re-enumerates live tabs so the retry finds one.
+ * Drop and reconnect @playwright/mcp (respawning the child if dead). Shared in-flight
+ * promise: concurrent calls heal ONCE. A fresh connect re-enumerates live tabs.
  */
 export async function reconnectBrowserConn(reason = "recover"): Promise<void> {
   if (!connected.has(BROWSER_ID)) return; // not connected → nothing to reconnect
@@ -175,11 +157,7 @@ async function connectDirectServer(spec: ServerSpec, interactive: boolean): Prom
   }
 }
 
-/**
- * Dispatch a connect by the spec's kind: stdio (re-spawn), local-oauth (on-device
- * OAuth), browser (agent Chromium), else the remote http+OAuth flow. A no-op when
- * already connected (just refreshes routes).
- */
+/** Dispatch a connect by the spec's kind; a no-op when already connected. */
 export async function connectServer(id: string, interactive: boolean): Promise<McpServerInfo> {
   const spec = getServer(id);
   if (!spec) {
@@ -196,20 +174,13 @@ export async function connectServer(id: string, interactive: boolean): Promise<M
 }
 
 export async function mcpConnect(id: string): Promise<McpServerInfo> {
-  // Org policy, main-side (`../orgPolicy.ts`): refuse before any OAuth window opens, so a
-  // blocked connector never reaches a consent screen the member cannot use anyway.
+  // Org policy, main-side: refuse before any OAuth window opens.
   if (isConnectorBlocked(id)) throw blockedConnectorError(id);
-  // Interactive connect → run under a cancellation scope so "Annuler" can tear down
-  // the OAuth loopback / device window (see connectCancel.ts). Keyed by `id`, which is
-  // also what the renderer passes to `cancelConnect`.
+  // A cancellation scope so "Annuler" tears down the OAuth loopback (connectCancel.ts).
   return withConnect(id, () => connectServer(id, true));
 }
 
-/**
- * Enable the controllable-browser connector: persist the opt-in flag + a `browser`
- * spec, then connect if the CDP endpoint is already open this session (env opt-in),
- * else report BROWSER_RESTART_REQUIRED so the UI prompts a relaunch.
- */
+/** Enable the browser connector: persist the opt-in + a `browser` spec, then connect. */
 export async function mcpEnableBrowser(): Promise<McpServerInfo> {
   setBrowserAgentEnabled(true);
   addServer({
@@ -221,8 +192,7 @@ export async function mcpEnableBrowser(): Promise<McpServerInfo> {
   return connectServer(BROWSER_ID, true);
 }
 
-/** Disable + remove the browser connector: disconnect @playwright/mcp, kill the
- *  isolated agent-browser process, drop the spec + opt-in flag. */
+/** Disable + remove the browser connector and kill the agent-browser process. */
 export async function mcpDisableBrowser(): Promise<void> {
   setBrowserAgentEnabled(false);
   await mcpDisconnect(BROWSER_ID);
@@ -232,19 +202,12 @@ export async function mcpDisableBrowser(): Promise<void> {
 }
 
 /**
- * Reconnect every persisted server that can come back WITHOUT user interaction:
- * stdio servers (re-spawn) and http connectors that already hold OAuth tokens
- * (silent token use/refresh — never pops a login window). Called on app start so
- * connections survive a quit/relaunch. Best-effort: a server that needs a fresh
- * login is left disconnected for the user to reconnect manually.
+ * Reconnect every persisted server that can come back WITHOUT user interaction (never a
+ * login window). Best-effort: one that needs a fresh login stays disconnected.
  */
 export async function mcpReconnectStored(): Promise<void> {
-  // Reconnect every stored server CONCURRENTLY, not serially: each connect is a ~1-3s
-  // handshake (OAuth token use, HTTP `initialize`+`listTools`, or a stdio spawn) firing
-  // `mcp:changed` on completion, so a serial `await` loop lit connectors up ONE BY ONE
-  // over N×~2-3s in Settings → MCP; in parallel they surface within ~one handshake.
-  // Best-effort per server (`allSettled` — one failure never blocks the others).
-  // `e2eFilterServers`: only under test, a SUBSET (`OPENMASQ_E2E_MCP_ONLY`) — identity in production.
+  // CONCURRENTLY: each connect is a full handshake, and serial would light connectors
+  // up one by one. `e2eFilterServers` is identity in production.
   await Promise.allSettled(
     e2eFilterServers(listServers()).map(async (spec) => {
       if (connected.has(spec.id)) return;
@@ -255,46 +218,36 @@ export async function mcpReconnectStored(): Promise<void> {
         } else if (spec.kind === "local-oauth") {
           if (loadToken(spec.id)) last = await connectDirectServer(spec, false);
         } else if (spec.kind === "browser") {
-          // Re-connect the agent browser on startup IF the user enabled it (the opt-in flag
-          // persists — survives a relaunch); its window spawns hidden (show:false) until opened.
+          // IF the user enabled it (the opt-in persists); the window spawns hidden.
           if (isBrowserAgentEnabled()) await connectBrowserServer(spec);
         } else if (loadOAuth(spec.id)?.tokens) {
-          // Targeted retry of the transient case (handshake timeout under load) — see reconnectRetry.
+          // Retry of the transient case only (reconnectRetry).
           last = await reconnectRemoteWithRetry(() => connectServer(spec.id, false), () => connected.has(spec.id));
         }
         if (shouldFlagForReconnect(last, connected.has(spec.id))) needsReconnect.add(spec.id);
       } catch (err) {
-        // Best-effort — the user can reconnect from Settings → MCP — but surface it
-        // so a silently-failing startup reconnect shows up in error tracking.
+        // Best-effort, but surfaced so a silently-failing reconnect shows up.
         reportMainError("mcp", "reconnect", err);
       }
     }),
   );
-  // E2E-only fixture connections (double env gate inside; inert in production —
-  // never persisted, dropped by `mcpCloseAll` like any other, gates unweakened).
+  // E2E-only fixture connections (double env gate inside; inert in production).
   maybeRegisterE2eFixtureConnections(connected);
   await refreshRoutes();
   if (needsReconnect.size) emitNeedsReconnect(); // a single emission for the whole batch
 }
 
 /**
- * Re-scope ALL MCP state to a signed-in account (privacy isolation, mirrors the
- * per-account DB `setDbUser`). Closes every live connection + clears the in-memory maps,
- * re-points persistence at the account's own `mcp.json`, then SILENTLY reconnects THAT
- * account's stored servers (no login popups). `null` = signed out → every connector is
- * dropped and nothing is reconnected. Driven by the renderer on sign-in / account switch /
- * sign-out (IPC `mcp:set-user`), alongside `db:set-user`. Always ends by refreshing routes,
- * so the renderer's `mcp:changed` fires even when the new scope is empty.
+ * Re-scope ALL MCP state to a signed-in account: close every live connection, re-point
+ * persistence, SILENTLY reconnect THAT account's servers. `null` = signed out ⇒ everything
+ * dropped. Always ends by refreshing routes, so `mcp:changed` fires even for an empty scope.
  */
 export async function setMcpUser(userId: string | null): Promise<void> {
   await mcpCloseAll();
-  // The pending-reconnect set belonged to the previous account — drop it (and clear
-  // the banner) before reconnecting the new scope.
+  // The pending-reconnect set belonged to the previous account.
   needsReconnect.clear();
   emitNeedsReconnect();
   setPersistUser(userId);
-  healBrowserSpec(userId); // missing browser spec → recreated in the right scope (why: ./browserSpecHeal.ts)
-  // Reconnects the new scope's servers AND calls refreshRoutes() (→ mcp:changed) even for
-  // an empty scope, so the UI drops the previous account's connectors immediately.
+  healBrowserSpec(userId); // a missing browser spec is recreated in the right scope
   await mcpReconnectStored();
 }

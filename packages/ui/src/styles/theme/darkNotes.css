@@ -1,0 +1,92 @@
+/* ── No per-theme redaction palette ──
+   A redaction colour has exactly one value, declared once in `:root`, in both themes: a hue
+   carries MEANING (this is a phone number), so it must not move with the ground. Theme the
+   ground and the accents; leave `--hl-*` alone. */
+
+/* ── The CHART ramp, however, IS per-ground ──
+   A chart colour carries only identity within one chart, preserved as long as the seven
+   stay distinguishable on the ground they are drawn on. The light steps are too faint for a
+   data mark on the dark card, so the dark theme gets its own steps of the same families —
+   selected, not derived. `pages/Settings/billing/usageSeries.test.ts` validates both. */
+[data-theme="dark"] {
+  --chart-1: #8b5cf6;
+  --chart-2: #e26325;
+  --chart-3: #5566f0;
+  --chart-4: #c93aa5;
+  --chart-5: #bf8a10;
+  --chart-6: #0e9ec2;
+  --chart-7: #dc2f52;
+  --chart-other: #7c8a9e;
+}
+/* The brand marker swipes (empty-state titles, the wordmark, modal titles) read like the
+   action buttons: brand fill + light-lime ink. Scoped to these selectors so a lime-category
+   redaction mark (also `--hl-lime`) is untouched. */
+.om-mark,
+.modal-title > span {
+  background: var(--brand);
+  /* The light lime on the light theme, white on the dark one — via the token. */
+  color: var(--ink-on-brand);
+}
+/* De-blue the conversation surfaces: the brand reads too loud beside the pastel redaction
+   marks, so each falls back to the neutral treatment.
+   1. Markdown table headers → the same neutral header the file viewer tables use. */
+.md th {
+  background: var(--surface-sunken);
+  color: var(--text-strong);
+  border-bottom: 1px solid var(--border-default);
+}
+/* 1bis. The marker swipe where it lands on chrome rather than a brand moment (in-chat
+   information headlines, the preview's document title): no fill, strong ink only, padding
+   kept for alignment. Brand moments — empty states, the wordmark, modal titles — keep
+   their swipe. */
+.agent-card-title > .om-mark,
+.fv-title .om-mark {
+  background: none;
+  color: var(--text-strong);
+  padding-inline: 0;
+}
+/* 2. The failed-turn card's « Réessayer » → the neutral outline button. Scoped to
+      `.failed-retry` so the card's real CTAs keep the brand emphasis. */
+.failed-retry.btn-primary {
+  background: transparent;
+  border-color: var(--border-default);
+  color: var(--text-body);
+}
+.failed-retry.btn-primary:hover:not(:disabled) {
+  background: var(--surface-hover);
+}
+/* MCP connector cards: the light-theme hairline is invisible on the dark ground,
+   so the cards had no visible border — give them a cool one (indigo when connected). */
+[data-theme="dark"] .mcp-card {
+  border-color: var(--border-default);
+}
+[data-theme="dark"] .mcp-card.on {
+  border-color: color-mix(in oklch, var(--brand) 55%, var(--border-strong));
+}
+/* Loading skeletons carry a #3939FA glow in the shimmer sweep — the peak leans well
+   into the brand so the sweep clearly reads as the accent. */
+.msg-image-skeleton,
+.md-img-skeleton {
+  background-image: linear-gradient(
+    90deg,
+    var(--surface-sunken) 25%,
+    color-mix(in oklch, #3939fa 52%, var(--surface-hover)) 37%,
+    var(--surface-sunken) 63%
+  );
+  background-size: 400% 100%;
+}
+/* Assistant code blocks: a cool-black in dark. */
+[data-theme="dark"] .msg-answer pre {
+  background: #0a0b12;
+}
+
+/* Focus: no grey halo on form fields — the border already changes colour on focus. Buttons
+   and links keep their ring. Placed last so it wins over the global `:focus-visible`. */
+input:focus,
+input:focus-visible,
+textarea:focus,
+textarea:focus-visible,
+select:focus,
+select:focus-visible {
+  box-shadow: none;
+}

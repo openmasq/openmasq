@@ -20,7 +20,7 @@ import {
 
 /** A note's bullets, sorted into the design system's three coloured groups
  *  (Nouveautés / Améliorations / Corrections), plus its markdown body. `fallback` is
- *  the raw note from the build manifest, when Contentful has none. */
+ *  the raw note from the build manifest, when no published note exists. */
 export function ReleaseNoteBody({ note, fallback }: { note?: ReleaseNote; fallback?: string }) {
   const t = useT();
   const groups = note ? groupHighlights(note.highlights, t) : [];

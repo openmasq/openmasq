@@ -2,7 +2,7 @@
  * The context MENUS and the lists they present.
  *
  * A SLICE of the contract (`../messages.ts`), which stays the only list of namespaces.
- * The split holds the 300-LOC cap (rule 1) — same shape as `packages/emails/i18n/`.
+ * The split holds the 300-LOC cap (rule 1).
  */
 
 /** A download format: its name, and what one gets. */

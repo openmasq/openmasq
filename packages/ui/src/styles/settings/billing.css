@@ -1,0 +1,167 @@
+/* Settings → Billing (static mock). */
+.flex-spacer {
+  flex: 1;
+}
+.bill {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.bill-eyebrow {
+  margin-bottom: 12px;
+}
+.bill-plans {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.bill-plan {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 18px;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  background: var(--surface-card);
+  border: 1.5px solid var(--border-default);
+  transition: border-color 0.14s;
+}
+.bill-plan.selected {
+  border-color: var(--text-strong);
+}
+.bill-plan-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.bill-plan-name {
+  font-size: var(--text-base);
+  font-weight: 700;
+  color: var(--text-strong);
+}
+.bill-reco {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-on-hl); /* frozenInk */
+  background: var(--hl-lime);
+  border-radius: 3px;
+  padding: 2px 6px;
+}
+.bill-plan-check {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--brand);
+  color: var(--brand-contrast);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.bill-price {
+  font-size: 32px;
+  color: var(--text-strong);
+}
+.bill-per {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  font-weight: 600;
+}
+.bill-feats {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.bill-feat {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: var(--text-sm);
+  color: var(--text-body);
+  line-height: 1.4;
+}
+.bill-feat-check {
+  margin-top: 1px;
+  flex-shrink: 0;
+  color: var(--forest-500);
+}
+.bill-card {
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm, 0 1px 3px rgba(24, 40, 12, 0.06));
+}
+.bill-pay-card {
+  padding: 18px;
+}
+.bill-pay-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.bill-visa {
+  width: 46px;
+  height: 32px;
+  border-radius: 6px;
+  background: var(--surface-inverse);
+  /* The ink made for the inverse surface (rule 12) — inverts with it if a theme moves it. */
+  color: var(--text-inverse);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.bill-card-num {
+  font-size: var(--text-base);
+  font-weight: 600;
+  color: var(--text-strong);
+}
+.bill-card-exp {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+.bill-secure {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 10px;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+.bill-invoices {
+  overflow: hidden;
+}
+.bill-invoice-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 13px 18px;
+}
+.bill-invoice-row:not(:last-child) {
+  border-bottom: 1px solid var(--border-subtle);
+}
+.bill-invoice-date {
+  flex: 1;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-strong);
+}
+.bill-invoice-amt {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--text-body);
+}
+.bill-status {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--forest-500);
+  background: var(--hl-lime-soft);
+  border-radius: 3px;
+  padding: 2px 7px;
+}

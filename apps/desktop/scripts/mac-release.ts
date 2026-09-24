@@ -1,34 +1,17 @@
 /**
- * THE macOS RELEASE, with both notarizations IN PARALLEL.
+ * THE macOS RELEASE, with both notarizations IN PARALLEL. electron-builder processes arches
+ * one after another and Apple's wait is pure network, so notarization comes out of its
+ * pipeline; signing stays sequential (CPU work, one temporary keychain).
  *
- * Why this script exists. `electron-builder` processes arches end-to-end, one
- * after another: packaging → signing → submission to Apple → **wait** → stapling →
- * dmg/zip, then the same thing for the second. Apple's wait is pure network, and it was
- * being paid TWICE in series on a macOS runner billed at ten times the rate. Measured in CI on a
- * single arch (run 123): 21 min 55 for this step, versus 58 s of install and 49 s of build
- * — that's 84% of the job, and it doubles with the second arch.
- *
- * What this script changes, and NOTHING else: notarization comes out of the
- * electron-builder pipeline so both submissions wait TOGETHER. Signing stays
- * sequential (it's CPU work, parallelizing it on a 3-core runner gains nothing and
- * would run two certificate imports on the same temporary keychain).
- *
- *   1. `eb --dir` per arch, notarization DISABLED → two signed .apps, fuses set,
- *      `archPrune` run (it runs inside `afterPack`, so none of that guard is lost).
+ *   1. `eb --dir` per arch, notarization DISABLED (fuses + `archPrune` still run in `afterPack`).
  *   2. `ditto` + `notarytool submit --wait` on both, IN PARALLEL.
- *   3. `stapler staple` each one — BEFORE building the distributables, without which the zip and
- *      downloaded dmg would not carry the ticket and Gatekeeper would have to query
- *      Apple online (so: offline failure, at the user's).
- *   4. `eb --prepackaged` per arch → dmg + zip + blockmaps, from the stapled apps.
- *   5. The two partial `latest-mac.yml` files are merged into one, by the ONLY code that
- *      knows how (`apps/updates`, which owns this format) — see below.
+ *   3. `stapler staple` each one BEFORE the distributables, or the dmg/zip carry no ticket
+ *      and Gatekeeper must query Apple online.
+ *   4. `eb --prepackaged` per arch → dmg + zip + blockmaps.
+ *   5. The two partial `latest-mac.yml` are merged by `@openmasq/updates-manifest`.
  *
- * ⚠️ Everything goes through `pnpm run eb`, never `electron-builder` directly: `eb.mjs` computes the
- * Electron version from the resolved dependency and refuses a non-pnpm runner. Straying from
- * this path means reintroducing the two failures it exists to prevent.
- *
- * `OPENMASQ_MAC_RELEASE_DRY_RUN=1` prints the plan (every command, in order) and
- * exits without running anything — how to review this file without paying for a 40-minute build.
+ * ⚠️ Everything goes through `pnpm run eb` (`eb.mjs` computes the Electron version and
+ * refuses a non-pnpm runner). `OPENMASQ_MAC_RELEASE_DRY_RUN=1` prints the plan and exits.
  */
 import { spawn } from "node:child_process";
 import { existsSync, readFileSync, renameSync, writeFileSync } from "node:fs";
@@ -51,8 +34,7 @@ const BRAND = JSON.parse(readFileSync(join(ROOT, "packages", "branding", "brandi
 export const macArches = (config?: EbConfigShape): string[] =>
   shippedTriples("mac", config).map((t) => t.split("-").slice(1).join("-"));
 
-/** The Apple credentials. Absent ⇒ we stop BEFORE signing: discovering that we can't
- *  notarize after 40 minutes of packaging is the worst moment to learn it. */
+/** The Apple credentials. Absent ⇒ stop BEFORE packaging, not after paying for it. */
 function requireNotarizationCreds(): { id: string; pwd: string; team: string } {
   const [id, pwd, team] = ["APPLE_ID", "APPLE_APP_SPECIFIC_PASSWORD", "APPLE_TEAM_ID"].map(
     (k) => process.env[k] ?? "",
@@ -67,8 +49,8 @@ function requireNotarizationCreds(): { id: string; pwd: string; team: string } {
   return { id, pwd, team };
 }
 
-/** Runs a command, inheriting the streams. Rejects on a nonzero code OR a signal —
- *  a killed child has no code, and reading that as a success would ship something non-notarized. */
+/** Runs a command. Rejects on a nonzero code OR a signal: a killed child has no code, and
+ *  reading that as a success would ship something non-notarized. */
 function run(cmd: string, args: string[], opts: { cwd?: string } = {}): Promise<void> {
   if (DRY) {
     console.log(`  $ ${cmd} ${args.join(" ")}`);
@@ -84,12 +66,8 @@ function run(cmd: string, args: string[], opts: { cwd?: string } = {}): Promise<
   });
 }
 
-/**
- * An arch's app folder — VERIFIED, not assumed. electron-builder names
- * `release/mac` and `release/mac-arm64`, but this convention is its own: so we re-read
- * the binary's real arch with `lipo`. A swap of the two folders would deliver each
- * processor the other's app, which no later step would catch.
- */
+/** An arch's app folder, VERIFIED with `lipo` rather than trusted to a folder name: a swap
+ *  would deliver each processor the other's app, and no later step would catch it. */
 async function appDirFor(arch: string): Promise<string> {
   const candidates = [join(RELEASE, `mac-${arch}`), join(RELEASE, "mac")];
   for (const dir of candidates) {
@@ -133,11 +111,8 @@ async function main(version: string): Promise<void> {
   const apps = new Map<string, string>();
   for (const arch of arches) apps.set(arch, await appDirFor(arch));
 
-  // An .app without `app-update.yml` will NEVER be able to update again: every
-  // check dies with ENOENT, and the user's only way out is a manual
-  // reinstall. So we refuse to continue — HERE, before paying for
-  // 20 minutes of notarization for an artifact that will have to be recalled. The file
-  // is written by `afterPack.cjs` (`--dir` packaging alone does not produce it).
+  // An .app without `app-update.yml` can NEVER update again (manual reinstall). Refuse
+  // HERE, before paying for notarization. `afterPack.cjs` writes it.
   for (const arch of arches) {
     const yml = join(apps.get(arch)!, "Contents", "Resources", "app-update.yml");
     if (!DRY && !existsSync(yml)) {
@@ -154,8 +129,7 @@ async function main(version: string): Promise<void> {
   const submissions = arches.map(async (arch) => {
     const app = apps.get(arch)!;
     const zip = join(RELEASE, `notarize-${arch}.zip`);
-    // The same `ditto` electron-builder used to do for us — notarytool doesn't accept a
-    // bare .app folder, it needs an archive.
+    // notarytool needs an archive, not a bare .app folder.
     await run("ditto", ["-c", "-k", "--sequesterRsrc", "--keepParent", app, zip]);
     await run("xcrun", [
       "notarytool",
@@ -171,10 +145,7 @@ async function main(version: string): Promise<void> {
     ]);
     console.log(`[mac-release]   ${arch}: notarized`);
   });
-  // ⚠️ `allSettled`, not `all`: with `all`, the first arch to fail would exit the
-  // process while the other submission is still running, and we'd lose the diagnosis of
-  // the one that might have failed too. We wait for EVERYTHING, then decide — and fail if
-  // any one of them failed.
+  // `allSettled`: wait for EVERYTHING so both diagnoses survive, then fail if any failed.
   const results = await Promise.allSettled(submissions);
   const failed = results.flatMap((r, i) => (r.status === "rejected" ? [`${arches[i]} : ${r.reason}`] : []));
   if (failed.length > 0) {
@@ -202,8 +173,7 @@ async function main(version: string): Promise<void> {
       "--publish",
       "never",
     ]);
-    // Each pass rewrites `latest-mac.yml` with ONLY its own files: we set it aside before
-    // the next one overwrites it.
+    // Each pass rewrites `latest-mac.yml` with ONLY its own files: set it aside.
     const produced = join(RELEASE, "latest-mac.yml");
     const kept = join(RELEASE, `latest-mac.${arch}.yml`);
     if (!DRY) {
@@ -214,12 +184,8 @@ async function main(version: string): Promise<void> {
   }
 
   // ── 5. a single manifest ──────────────────────────────────────────────────────────────
-  // Le format des manifestes a UNE maison, `@openmasq/updates-manifest`, partagée avec le
-  // serveur du flux qui recompose les legs publiés séparément — une seconde
-  // implémentation ici serait exactement le doublon que la règle 9 interdit. Elle vivait
-  // dans `apps/updates` et s'atteignait par CLI (une app n'importe pas sa sœur) ; le
-  // split d'août 2026 a mis cette app dans un AUTRE dépôt et le chemin a disparu, d'où
-  // le paquet — placé du côté CONSOMMÉ, le seul que les deux dépôts peuvent atteindre.
+  // The manifest format has ONE home, `@openmasq/updates-manifest`, shared with the feed
+  // that recomposes separately published legs (rule 9).
   console.log("[mac-release] 5/5 fusion des manifestes");
   writeFileSync(
     join(RELEASE, "latest-mac.yml"),
@@ -229,9 +195,7 @@ async function main(version: string): Promise<void> {
   console.log("[mac-release] terminé.");
 }
 
-// ⚠️ Nothing runs on IMPORT. This module is loaded by its test (which verifies the only
-// pure decision: which arches), and a script that packages the moment it's imported is
-// a script that ends up not being tested at all.
+// Nothing runs on IMPORT: the test loads this module for its one pure decision (which arches).
 const invokedDirectly = process.argv[1] ? fileURLToPath(import.meta.url) === process.argv[1] : false;
 if (invokedDirectly) {
   const version = process.argv[2];

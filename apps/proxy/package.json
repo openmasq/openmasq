@@ -1,0 +1,50 @@
+{
+  "name": "@openmasq/proxy",
+  "version": "0.1.0",
+  "license": "Apache-2.0",
+  "private": true,
+  "type": "module",
+  "description": "Local redaction proxy: an OpenAI- and Anthropic-compatible endpoint on 127.0.0.1 that masks personal data before a request leaves the machine and restores it in the reply.",
+  "main": "./dist/server.js",
+  "bin": {
+    "openmasq-proxy": "./dist/server.js"
+  },
+  "scripts": {
+    "dev": "tsx src/server.ts",
+    "build": "node scripts/build-console.mjs && tsc -p tsconfig.json && node scripts/copy-console-assets.mjs",
+    "start": "node dist/server.js",
+    "bench": "tsx bench/run.ts",
+    "typecheck:built": "tsc --noEmit",
+    "clean": "rm -rf dist .turbo",
+    "tokens": "node scripts/gen-console-tokens.mjs",
+    "preview:ui": "tsx scripts/preview-ui.mts",
+    "console:build": "node scripts/build-console.mjs"
+  },
+  "dependencies": {
+    "@huggingface/transformers": "^4.2.0",
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "@openmasq/branding": "workspace:*",
+    "@openmasq/catalog": "workspace:*",
+    "@openmasq/i18n": "workspace:*",
+    "@openmasq/mcp": "workspace:*",
+    "@openmasq/redact": "workspace:*",
+    "cli-spinners": "^3.4.0",
+    "cli-truncate": "^6.1.1",
+    "express": "^5.2.1",
+    "log-update": "^8.0.0",
+    "onnxruntime-node": "^1.24.3",
+    "string-width": "^8.2.2",
+    "yaml": "^2.9.0"
+  },
+  "devDependencies": {
+    "@openmasq/ui": "workspace:*",
+    "@types/express": "^5.0.0",
+    "@types/node": "^26.4.0",
+    "esbuild": "^0.21.5",
+    "tsx": "^4.23.13",
+    "typescript": "^5.6.3"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

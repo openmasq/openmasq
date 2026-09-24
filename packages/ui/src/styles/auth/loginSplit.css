@@ -1,0 +1,51 @@
+/* Login / OTP split screen. Brand pearl + wordmark colours stay inline (data). */
+/* Auth + onboarding scrim: the app stays mounted behind, blurred; the screens float over it
+   as centred cards. `margin:auto` on the card (not centring on the scrim) so a tall card
+   scrolls fully instead of clipping at the top. */
+.auth-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  display: flex;
+  padding: 20px;
+  overflow-y: auto;
+  /* The veil is the neutral ink (from `--border-*`), not a green-black, so the mint/sky dawn
+     stays true. */
+  background: rgba(10, 12, 30, 0.34);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+/* The backdrop app while a scrim modal is open: non-interactive + gently zoomed. */
+.app-behind {
+  pointer-events: none;
+  transform: scale(1.05);
+  transform-origin: center;
+}
+
+/* Settings header "Back to chats" — a secondary (outline) button. */
+.settings-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 32px;
+  padding: 0 12px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-default);
+  background: var(--surface-card);
+  color: var(--text-strong);
+  font-family: var(--font-sans);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  cursor: pointer;
+}
+.settings-back:hover {
+  background: var(--surface-hover);
+}
+/* Icon-only header buttons (sign-out, back to conversations): square, centred,
+   no text padding — the label lives in aria-label/title (hover tooltip). */
+.settings-back.icon-only {
+  width: 32px;
+  padding: 0;
+  gap: 0;
+  justify-content: center;
+}

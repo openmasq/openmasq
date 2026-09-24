@@ -3,7 +3,7 @@ import type { Connector, ConnectorTool, ConnectorToolCtx } from "./types";
 /**
  * Slack connector — channels, threads, users, search + posting via the Slack Web
  * API with the USER token. `auth:"slack"` routes the login through the auth-only
- * relay (`apps/auth`; Slack can't PKCE + needs an HTTPS redirect), but tool calls
+ * relay (Slack can't PKCE + needs an HTTPS redirect), but tool calls
  * run IN-PROCESS on the desktop with the user token — the Slack DATA never touches
  * the app's servers. Slack has no CASA, so the app's own Slack app works.
  *

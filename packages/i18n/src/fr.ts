@@ -3,7 +3,7 @@
  * most worked-on messages — refusals, `redact` — are written here first).
  *
  * COMPOSED of per-surface slices (`fr/`) to hold the 300-LOC cap (rule 1) —
- * same shape as `packages/emails/i18n/`. `satisfies Messages` validates the whole; each
+ * `satisfies Messages` validates the whole; each
  * slice already validates its own part, so a forgotten key names ITS slice.
  */
 import type { Messages } from "./messages";

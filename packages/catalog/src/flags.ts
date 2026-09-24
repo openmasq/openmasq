@@ -1,6 +1,6 @@
 /**
  * The FOURTH governable list: access to sections that can be closed remotely
- * (PostHog flags, served by the `apps/analytics-fn` relay).
+ * (PostHog flags, served by the analytics relay).
  *
  * It lives HERE, next to models / connectors / categories, for the same reason
  * as them: the flag key is written in PostHog by a human and read by the

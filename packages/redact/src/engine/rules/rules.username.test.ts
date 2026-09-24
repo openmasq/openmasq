@@ -28,3 +28,23 @@ describe("username @handle detector — category 'username'", () => {
     expect(kept("/** @param x the input */", "@param")).toBe(true);
   });
 });
+
+describe("username @handle — code annotations and doc tags are not handles", () => {
+  const out = (t: string): string => redact(t, { disabledKinds: [] }).text;
+  const kept = (t: string, v: string): boolean => out(t).includes(v);
+  const gone = (t: string, v: string): boolean =>
+    !out(t).includes(v) && /\[REDACTED_USERNAME_\d+\]/.test(out(t));
+
+  it("keeps a Java/Kotlin annotation, arg-carrying or not", () => {
+    expect(kept("@Override\npublic void run() {}", "@Override")).toBe(true);
+    expect(kept("@SuppressWarnings(\"unchecked\")", "@SuppressWarnings")).toBe(true);
+    expect(kept("@RequestMapping(\"/x\")", "@RequestMapping")).toBe(true); // arg gate
+  });
+  it("keeps a Doxygen / Javadoc tag", () => {
+    expect(kept("/// @brief does a thing", "@brief")).toBe(true);
+    expect(kept(" * @retval NULL on error", "@retval")).toBe(true);
+  });
+  it("still redacts a real handle", () => {
+    expect(gone("Suis @QuavvoSinatra partout", "@QuavvoSinatra")).toBe(true);
+  });
+});

@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { readFileSync } from "node:fs";
-import { join } from "node:path";
+import { readStylesheet } from "./readStylesheet";
 
 /**
  * The home screen NEVER hides its top — the invariant, pinned on the sheet itself.
@@ -15,7 +14,7 @@ import { join } from "node:path";
  * overflows. A bare `center` coming back here would silently bring the bug back — hence this test
  * rather than a comment, which no CI reads.
  */
-const css = readFileSync(join(__dirname, "..", "styles.css"), "utf8");
+const css = readStylesheet();
 
 const welcome = (() => {
   const at = css.indexOf("\n.welcome {");

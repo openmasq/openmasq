@@ -9,21 +9,10 @@ import { isParticle } from "../../engine/persons";
 import { capitalize } from "../../util";
 import { seedFrom } from "../fakes/primitives";
 
-/**
- * A single name-like word we may fake/alias (letters incl. accents, apostrophes,
- * hyphens; ≥2 chars) — but NEVER an ultra-common function word. A NAME with a particle
- * ("Julien de la Croix", "Jean de La Fontaine") tokenises to include "de"/"la"; without
- * this guard `buildFakeName`/`nameAliases` would fake+alias them, and the alias
- * `<fake> → de` then makes `applyVault` redact EVERY "de"/"la" in the conversation —
- * the reported over-redaction of lowercase words. (The email path already dodges this
- * via its ≥3-char `isNameToken`.)
- */
-/** Civility/qualifier tokens that TRAIL a name in form and travel-industry layouts
- *  ("MARTINEZ/CAROLINE MME", "MARTINEZ/HUGO ENF"). Like a particle, such a token must
- *  never get its own fake or alias — the alias `<fake> → MME` makes `applyVault`
- *  redact every "MME" in the conversation, the same failure the particle guard exists
- *  for. Leading titles are already stripped upstream (`LEAD_HONORIFIC`); this closes the
- *  trailing side, where no detector had a reason to look. */
+/** Civility/qualifier tokens that TRAIL a name in form and travel layouts ("MARTINEZ/CAROLINE
+ *  MME"). Like a particle, such a token must never get its own fake or alias — the alias
+ *  `<fake> → MME` would make `applyVault` redact every "MME" in the conversation. Leading
+ *  titles are stripped upstream (`LEAD_HONORIFIC`); this closes the trailing side. */
 const TITLE_PARTS = new Set([
   "m", "mr", "mme", "mrs", "ms", "mlle", "miss", "sr", "sra", "srta", "herr", "frau",
   "dr", "prof", "me", "enf", "chd", "inf", "adt", "sr.", "jr",
@@ -31,30 +20,18 @@ const TITLE_PARTS = new Set([
 
 /**
  * A WORD-shaped token — the only question that decides whether a token may be shipped
- * VERBATIM inside a fake. Deliberately script-agnostic (`\p{L}\p{M}`): the old
- * `[A-Za-zÀ-ÿ]` class was Latin-1 only, so a combining mark (NFD — what a macOS paste and
- * most PDF extractions emit for every accented French first name), a Cyrillic/Greek
- * homoglyph or a full-width letter made the token "not a name part" and
- * {@link buildFakeName} copied the REAL token into the fake. Measured 05/08: NFD
- * « Élodie Morvan » shipped as « Élodie Delsart » — half the real identity on the wire,
- * with the vault reporting the value as redacted. `\p{M}` is in BOTH classes on purpose:
- * a decomposed accent is a mark, and excluding it truncated the token instead.
+ * VERBATIM inside a fake. Script-agnostic (`\p{L}\p{M}`): a Latin-1 class made an NFD
+ * combining mark (what a macOS paste and most PDF extractions emit) "not a name part", and
+ * the REAL token was copied into the fake. `\p{M}` is in BOTH classes on purpose.
  */
 const isWordToken = (t: string) => /^[\p{L}\p{M}][\p{L}\p{M}'’-]+$/u.test(t);
 
 /**
- * May this REAL token be shipped verbatim inside the fake? Only a PARTICLE may
- * (`de`/`la`/`van` — never the user's data, and faking one would make an absurd fake) and
- * only a trailing civility (`MME`, `ENF`).
- *
- * ⚠️ This is NOT {@link isNamePart}, and conflating the two was the bug. `isNamePart`
- * answers « may I ALIAS this word conversation-wide? », which must stay narrow: aliasing
- * `de`/`FRANCE`/`signé` makes `applyVault` redact every occurrence of that word. But a
- * token that is unsafe to ALIAS is not therefore safe to SHIP — `Petit` and `Sala` are
- * top-French surnames the stopword/vocabulary lists carry, and `France` is a real
- * surname; all three left in clear inside their own fake. Faking them without aliasing
- * them keeps both properties: the whole-value vault entry still reverses the name, and no
- * single word is remapped conversation-wide.
+ * May this REAL token be shipped verbatim inside the fake? Only a PARTICLE (`de`/`van` —
+ * never the user's data) and a trailing civility (`MME`). ⚠️ NOT {@link isNamePart}, which
+ * answers « may I ALIAS this word conversation-wide? » and must stay narrow. A token unsafe
+ * to ALIAS is not therefore safe to SHIP: `Petit`, `Sala`, `France` are surnames the
+ * stopword lists carry. Faking without aliasing keeps both properties.
  */
 const isFakeableToken = (t: string) =>
   isWordToken(t) && !isParticle(t) && !TITLE_PARTS.has(t.replace(/[.'’]/g, "").toLowerCase());
@@ -62,26 +39,19 @@ const isFakeableToken = (t: string) =>
 const isNamePart = (t: string) =>
   isWordToken(t) &&
   !isStopword(t) &&
-  // …nor a COUNTRY: « HSBC FRANCE » read as a name manufactured the alias FRANCE→<fake name>,
-  // and `applyVault` then rewrote EVERY « FRANCE » in the conversation (log
-  // 02/08) — the "countries are never masked" invariant broken by a word alias.
+  // …nor a COUNTRY (« HSBC FRANCE » read as a name would alias FRANCE→<fake>, and
+  // `applyVault` rewrites EVERY « FRANCE »), nor a VOCABULARY word (« Signé Hugo SAVEL »
+  // would alias « signé »). The `filter.ts` choke point judges the WHOLE value and cannot
+  // see this; the guard belongs to the per-word alias.
   !isCountry(t) &&
-  // …nor a VOCABULARY word. Same failure as the particle and the civility, through a
-  // third path: a detector proposes « Signé Hugo SAVEL » or « SARL BATIRENOV »,
-  // the word alias is born anyway, and `applyVault` then redacts EVERY « signé » in
-  // the conversation. The `filter.ts` choke point couldn't see anything wrong — it judges the
-  // WHOLE value, and the whole value is indeed a name. Measured by `bench/sourceFp.bench.ts`.
   !isGenericTerm(t) &&
   !TITLE_PARTS.has(t.replace(/[.'’]/g, "").toLowerCase());
 
 /**
- * Re-shape a pool/canonical fake token to the REAL token's casing. The pools are
- * Title-cased, so a first-seen LOWERCASE name ("madame keller") used to get a
- * Title-cased primary fake ("Nathan") whose vault key then BLOCKED the
- * [capitalize(fake) → capitalize(real)] alias `nameAliases` needs — leaving the
- * Title reading ("Mme Keller") with NO forward mapping, and `applyVault`
- * (case-sensitive) shipped it in CLEAR. Keying the primary in the real casing
- * ("nathan" → "keller") leaves "Nathan" free for the "Keller" alias.
+ * Re-shape a pool fake token to the REAL token's casing. The pools are Title-cased; keying
+ * the primary in the real casing ("nathan" → "keller") leaves "Nathan" free for the
+ * "Keller" alias `nameAliases` needs, else the Title reading has no forward mapping and
+ * `applyVault` (case-sensitive) ships it in CLEAR.
  */
 function matchTokenCase(fake: string, real: string): string {
   if (real === real.toLowerCase()) return fake.toLowerCase();
@@ -91,20 +61,13 @@ function matchTokenCase(fake: string, real: string): string {
 }
 
 /**
- * What JOINS the tokens of ONE name — space, `.`, `_` or `-` — capturing the separator so
- * a split round-trips (`"Julien_Sabourdin"` → `["Julien", "_", "Sabourdin"]`, even index =
- * token, odd = separator). It is the SAME set `util.ts` already treats as one entity's
- * inner separators (`entityKey` / `recaseLike` / `entityVariantRegex`), and that matters:
- * `variantOccurrences` EXPANDS a name candidate to every `[\s._-]`-joined spelling present
- * in the text, so a whitespace-ONLY split here left the engine unable to RECOGNISE the very
- * variants it had just gone looking for. A URL slug ("…/wiki/Julien_Sabourdin"), a dotted
- * handle ("julien.sabourdin") or a kebab slug ("julien-sabourdin") then failed `isNamePart`
- * as one un-resolvable blob, fell all the way through to the length-matched pool fallback,
- * and minted a BRAND-NEW identity for a person the vault already knew — one real person
- * behind several unrelated fakes ("Julien_Sabourdin" → "Anna Volneyhsjqj" while
- * "Julien Sabourdin" → "Louis Berthon"), which is the remapping bug this whole module
- * exists to prevent. Glued spellings ("JulienSabourdin") carry no separator and are
- * {@link reconstructGlued}'s job; whitespace and these separators are ours.
+ * What JOINS the tokens of ONE name — space, `.`, `_` or `-` — capturing the separator so a
+ * split round-trips (even index = token, odd = separator). The SAME set `util.ts` treats as
+ * one entity's inner separators (`entityKey` / `recaseLike` / `entityVariantRegex`):
+ * `variantOccurrences` EXPANDS a candidate to every `[\s._-]`-joined spelling, so a
+ * whitespace-only split here would mint a BRAND-NEW identity for a slug or dotted handle of
+ * a person the vault already knows — the remapping bug this module exists to prevent. Glued
+ * spellings ("JulienSabourdin") are {@link reconstructGlued}'s job.
  */
 const NAME_SEPARATORS = /([\s._-]+)/;
 
@@ -112,17 +75,13 @@ const NAME_SEPARATORS = /([\s._-]+)/;
 const NAME_SEPARATORS_G = /[\s._-]+/;
 
 /**
- * Build a fake full name whose every token keeps its canonical fake STABLE across
- * the whole conversation, the plain-name analogue of {@link buildFakeEmail}: each
- * real word REUSES its existing fake (`resolveFake`, case-insensitive) when one is
- * already in the vault — so "Julien" stays "Nathan" whether it appears standalone,
- * inside an email, or inside "Julien Sabourdin" — and a first-seen word gets a fresh
- * pool pick (first token → FAKE_FIRST, the rest → FAKE_LAST) avoiding `isTaken` and
- * the real value. Whitespace between tokens is preserved, so the fake keeps the same
- * token COUNT (letting {@link nameAliases} align it positionally). Non-name tokens
- * (initials, digits) pass through verbatim. Deterministic given (realName, attempt).
- * Trade-off (as with emails): the fake is no longer strictly length-matched — identity
- * consistency across fragments/casing wins over the size-hint property.
+ * Build a fake full name whose every token keeps its canonical fake STABLE across the
+ * conversation, the plain-name analogue of {@link buildFakeEmail}: each real word REUSES its
+ * existing fake (`resolveFake`, case-insensitive), a first-seen word gets a fresh pool pick
+ * (first element → FAKE_FIRST, the rest → FAKE_LAST) avoiding `isTaken` and the real value.
+ * Separators are preserved so the fake keeps the token COUNT ({@link nameAliases} aligns
+ * positionally). Deterministic given (realName, attempt). Trade-off: no longer strictly
+ * length-matched — identity consistency wins over the size hint.
  */
 export function buildFakeName(
   realName: string,
@@ -135,23 +94,27 @@ export function buildFakeName(
   const h = seedFrom(convKey, `name:${attempt}`, realName, hashString(realName) + salt + attempt * 101);
   const parts = realName.split(NAME_SEPARATORS); // even index = token, odd = separator
   let elementIdx = 0;
-  // Fakes already picked for THIS name. Two tokens drawing from the SAME pool (the halves
-  // of a compound "Jean-Pierre") seed identically off `h`, so without this they collapse
-  // to the same pick — "Jean-Pierre" → "Hugo-Hugo". The vault's `isTaken` can't catch it:
-  // nothing is registered until the whole name is allocated.
+  // Fakes already picked for THIS name: two tokens drawing from the SAME pool (the halves of
+  // "Jean-Pierre") seed identically off `h` and would collapse to "Hugo-Hugo"; the vault's
+  // `isTaken` sees nothing until the whole name is allocated.
   const usedHere = new Set<string>();
   const out = parts.map((part, i) => {
     if (i % 2 === 1 || !part) return part; // keep the separator / empties verbatim
-    // Which name ELEMENT (first / last) is this? A `-` joins the parts of ONE element —
-    // "Jean-Pierre" is a single compound FIRST name, exactly as `gender.ts` reads it
-    // ("compound → lead part") — so both halves stay element 0 and draw from the FIRST
-    // pool. Space / `.` / `_` separate elements, per the first_last convention of a wiki
-    // slug ("Julien_Sabourdin") or a handle ("julien.sabourdin"). Getting this wrong
-    // faked "Pierre" from the SURNAME pool.
+    // Which name ELEMENT (first / last) is this? A `-` joins the parts of ONE element
+    // ("Jean-Pierre" is one compound FIRST name, as `gender.ts` reads it); space / `.` / `_`
+    // separate elements (the first_last convention of a slug or a handle).
     if (i > 0 && /[\s._]/.test(parts[i - 1])) elementIdx++;
-    // Verbatim ONLY for what is not the user's data: initials, digits, punctuation,
-    // a particle, a trailing civility. Everything word-shaped gets a fake — see
-    // `isFakeableToken` for why this is not `isNamePart`.
+    // An INITIAL is the user's data too: in an anonymised ruling « C. » is all that is left
+    // of the person. It gets another letter, seeded like a name token. SAFE for the vault:
+    // `nameAliases` refuses a single letter, so no « C » elsewhere is ever rewritten.
+    if (/^\p{Lu}$/u.test(part)) {
+      const seed = h + attempt + i * 7;
+      for (let k = 0; k < 26; k++) {
+        const cand = String.fromCharCode(65 + ((seed + k) % 26));
+        if (cand !== part) return cand;
+      }
+    }
+    // Verbatim ONLY for what is not the user's data (`isFakeableToken`).
     if (!isFakeableToken(part)) return part;
     const canon = resolveFake(part); // reuse the person's canonical fake for this word…
     if (canon) {
@@ -171,12 +134,9 @@ export function buildFakeName(
         cand.toLowerCase() !== part.toLowerCase() &&
         !isTaken(cand) &&
         !usedHere.has(cand.toLowerCase()) &&
-        // Never pick a fake that fails isNamePart — a pool surname that is ALSO a
-        // stopword ("Petit") can never be aliased by `nameAliases` (aliasing a
-        // stopword would redact every "petit" in the conversation), so the
-        // person's surname canonical stays unresolvable and the next shorter
-        // form ("Bilal BELMADANI" after "Bilal Hassadin BELMADANI") mints a
-        // SECOND surname identity for the same person.
+        // Never pick a fake that fails isNamePart: a pool surname that is ALSO a stopword
+        // ("Petit") can never be aliased, so the surname canonical stays unresolvable and
+        // the next shorter form mints a SECOND identity for the same person.
         isNamePart(cand)
       ) {
         fake = cand;
@@ -190,14 +150,11 @@ export function buildFakeName(
 }
 
 /**
- * Reversible per-word aliases for a faked full name, the plain-name analogue of
- * {@link emailNameAliases}: align the real and fake name tokens positionally and
- * return `[fakeCap, realCap]` + `[fakeLower, realLower]` for each, so a later
- * STANDALONE token or a different CASING of the same person — extremely common in a
- * tool/search RESULT (the surname alone, Title-Cased) — substitutes to, and reverses
- * from, the SAME fake instead of minting a new identity. Only fires when both names
- * split into the SAME number of name-like tokens ({@link buildFakeName} preserves the
- * count); a token whose fake equals the real (unchanged) yields no alias. Pure.
+ * Reversible per-word aliases for a faked full name, the analogue of {@link emailNameAliases}:
+ * align real and fake tokens positionally and return `[fakeCap, realCap]` +
+ * `[fakeLower, realLower]` for each, so a STANDALONE token or another CASING of the same
+ * person (the surname alone in a tool result) reverses to the SAME fake. Only when both
+ * split into the SAME token count; an unchanged token yields no alias. Pure.
  */
 export function nameAliases(realName: string, fakeName: string): [string, string][] {
   const realToks = realName.split(NAME_SEPARATORS_G).filter(Boolean);
@@ -216,15 +173,11 @@ export function nameAliases(realName: string, fakeName: string): [string, string
 }
 
 /**
- * Reconstruct a full name's fake ENTIRELY from tokens the vault already knows
- * (`resolveFake`, case-insensitive) — returns the reconstructed fake when EVERY
- * name token already has a canonical fake, else `null`. Used to reuse an existing
- * identity for a re-detected name (a different casing / the whole name reappearing
- * in a result) WITHOUT minting a new vault entry: the per-word aliases already do
- * the actual substitution, so this only supplies the placeholder for the match
- * chip. A stopword particle ("de"/"la" in "Julien de la Croix") is kept verbatim; any
- * OTHER non-name token (initial, digit) makes it bail (`null`) so only genuine names
- * take this path.
+ * Reconstruct a full name's fake ENTIRELY from tokens the vault already knows — the fake
+ * when EVERY name token has a canonical fake, else `null`. Reuses an identity for a
+ * re-detected name WITHOUT minting a new vault entry (the aliases already substitute; this
+ * only supplies the chip's placeholder). A particle is kept verbatim; any OTHER non-name
+ * token bails, so only genuine names take this path.
  */
 export function reconstructName(
   value: string,
@@ -239,11 +192,8 @@ export function reconstructName(
       continue;
     }
     if (!isNamePart(parts[i])) {
-      // A PARTICLE (de/la/van…) is kept verbatim — it is not the user's data.
-      // ⚠️ Any OTHER stopword is NOT: `Petit`, `Sala`, `France` are real surnames the
-      // stopword/vocabulary lists carry, and pushing one here put the REAL token into
-      // the reconstructed fake — the same leak `isFakeableToken` closes in
-      // `buildFakeName`. Bail instead, so the name goes through full allocation.
+      // A PARTICLE is kept verbatim. Any OTHER stopword is NOT (`Petit`, `Sala`, `France` are
+      // surnames): pushing one would put the REAL token into the fake. Bail instead.
       if (isParticle(parts[i])) {
         out.push(parts[i]);
         continue;

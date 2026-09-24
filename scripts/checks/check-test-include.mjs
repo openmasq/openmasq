@@ -1,12 +1,8 @@
 #!/usr/bin/env node
-// A test file that no `include` pattern matches is SILENTLY never run — and the suite
-// still reports green, so the failure mode is "we thought that invariant was pinned".
-// That trap was live for years and was mitigated the only way a trap can't be: by a
-// WARNING, repeated in two CLAUDE.md files. This gate replaces both.
-//
-// It reads the `include` array out of vitest.config.ts and asserts that every tracked
-// `*.test.ts(x)` file in the repo is either matched by one of those patterns, or listed
-// in KNOWN_UNRUN below with a reason. No third state.
+// A test file that no `include` pattern matches is SILENTLY never run, and the suite still
+// reports green. This gate reads the `include` array out of vitest.config.ts and asserts that
+// every tracked `*.test.ts(x)` file is either matched by one of those patterns, or listed in
+// KNOWN_UNRUN below with a reason. No third state.
 import { execSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
@@ -34,10 +30,8 @@ function includePatterns() {
 }
 
 /**
- * The extra PROJECTS the root config runs beside the `unit` one. A project brings its own
- * config (and its own runtime — `apps/updates` needs workerd, which node/jsdom cannot
- * host), so its tests are covered without appearing in the `include` array. Missing this
- * would make the gate demand a KNOWN_UNRUN entry for tests that do, in fact, run.
+ * The extra PROJECTS the root config runs beside the `unit` one: a project brings its own
+ * config and runtime, so its tests are covered without appearing in the `include` array.
  * Only string entries count: an inline config object is the `unit` project itself.
  */
 function projectRoots() {

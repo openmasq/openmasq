@@ -30,21 +30,26 @@ export const accountTab = {
   statsHint: "Usage counters — never your messages.",
   privacyEyebrow: "Privacy",
   linkPreviews: "Link previews",
-  linkPreviewsHint: "A thumbnail under links. Turning it on reveals your IP address to the linked site.",
+  linkPreviewsHint:
+    "A thumbnail under links. Turning it on reveals your IP address to the linked site.",
   backToChats: "Back to conversations",
   advanced: "Advanced",
 } satisfies Messages["accountTab"];
 
 export const privacyTab = {
   protectedEyebrow: "What is protected",
+  perConnectorEyebrow: "Connectors that differ",
+  perConnectorNote: (n) =>
+    n === 1
+      ? "One connector masks at its own level. Every other follows the one above."
+      : `${n} connectors mask at their own level. Every other follows the one above.`,
   perCategory: "Adjust category by category",
   activeCount: (active, total) => `${active}/${total} active`,
   managedByOrg: (n) => ` · ${n} managed by your organisation`,
   advancedTitle: "Advanced options",
   advancedSub: "Technical log, token display, what the model receives.",
   debugLogTitle: "Detailed technical log",
-  debugLogHint:
-    "Adds “Debug log” to the ⋯ menu of every conversation — kept on this device only.",
+  debugLogHint: "Adds “Debug log” to the ⋯ menu of every conversation — kept on this device only.",
   tokenDisplayTitle: "Show tokens rather than pseudonyms",
   tokenDisplayHint:
     "A protected value reads “[PERSON1]” rather than a fake name. Changes only the display: the model receives what the setting below says.",
@@ -151,7 +156,8 @@ export const modelsTab = {
   keySaved: "Key saved",
   included: "Included",
   addKey: "Add a key",
-  noKeySubscription: (brand) => `Without a key, the ${brand} subscription opens the included models.`,
+  noKeySubscription: (brand) =>
+    `Without a key, the ${brand} subscription opens the included models.`,
   defaultLead: "Your new conversations start on",
   defaultTip: "See this model's card",
   freeBadge: "free",

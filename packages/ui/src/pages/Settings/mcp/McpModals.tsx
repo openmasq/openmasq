@@ -5,10 +5,21 @@ import { ByoKeysModal } from "../byo";
 import { McpConnectorModal } from "./McpConnectorModal";
 import { groupPeers } from "./credGroup";
 import type { useMcpConnectors } from "./useMcpConnectors";
+import type { PrivacyLevel } from "../../../privacy/privacyLevel";
+import type { ConnectorLevel } from "../../../privacy/connectorMasking";
 
 /** What `useMcpConnectors` renders — the contract the two mount points pass
  *  around as-is. Defined HERE and not in the hook: its file is frozen by `check:loc`. */
 export type McpConnectors = ReturnType<typeof useMcpConnectors>;
+
+/** How a caller offers the per-connector masking level. Absent ⇒ the modal draws no such
+ *  row, the same way it draws no agent-powers section without a settings draft: a surface
+ *  that cannot persist a choice must not offer it. */
+export interface MaskingProps {
+  globalLevel: PrivacyLevel;
+  levelOf: (connectorId: string) => ConnectorLevel;
+  onPick: (connectorId: string, level: ConnectorLevel) => void;
+}
 
 /**
  * A connector's modal stack: the detail view, the BYO key form it
@@ -18,7 +29,7 @@ export type McpConnectors = ReturnType<typeof useMcpConnectors>;
  *
  * No host call here: everything goes through the `useMcpConnectors` the caller owns.
  */
-export function McpModals({ c }: { c: McpConnectors }) {
+export function McpModals({ c, masking }: { c: McpConnectors; masking?: MaskingProps }) {
   const host = useHost();
   const {
     openItem, busy, connectUrls, setOpenId, cancelConnect, connectRemote, connectApiKey,
@@ -34,6 +45,13 @@ export function McpModals({ c }: { c: McpConnectors }) {
           <McpConnectorModal
             item={openItem}
             busy={!!busy[openItem.serverId]}
+            masking={
+              masking && {
+                level: masking.levelOf(openItem.id),
+                globalLevel: masking.globalLevel,
+                onPick: (level) => masking.onPick(openItem.id, level),
+              }
+            }
             connectUrl={connectUrls[openItem.serverId] ?? connectUrls[openItem.id]}
             onClose={() => setOpenId(null)}
             onCancelConnect={host.mcp?.cancelConnect ? () => cancelConnect(openItem) : undefined}

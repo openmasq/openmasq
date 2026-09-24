@@ -2,8 +2,8 @@ import { BRAND } from "@openmasq/branding";
 import type { McpConnector, McpAuthTag } from "./types";
 
 /**
- * The auth model of a connector — the SINGLE source both the desktop Settings and the
- * admin console show, so "how do I connect this?" reads the same on both surfaces.
+ * The auth model of a connector — the SINGLE source every surface shows, so "how do I
+ * connect this?" reads the same everywhere.
  * Derived from `transport` + `auth`, refined by the BYO fields (see `mcpAuthTag`).
  *
  * ⚠️ This copy is read by someone deciding whether to hand the app their mailbox. Write

@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { afterAll, describe, expect, it } from "vitest";
 import { bearerFetchJson } from "./fetchJson.js";
 
 /**
@@ -27,6 +27,12 @@ const ok = (status: number, body: string): Response =>
     status,
     text: async () => body,
   }) as unknown as Response;
+
+// The global is shared with the next test file under `--no-isolate`: hand it back.
+const realFetch = globalThis.fetch;
+afterAll(() => {
+  globalThis.fetch = realFetch;
+});
 
 describe("bearerFetchJson (broker) — un corps vide est un succès vide", () => {
   it("202 sans corps ne jette pas — il rend un résultat vide", async () => {

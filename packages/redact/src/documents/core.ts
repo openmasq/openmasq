@@ -32,10 +32,8 @@ export interface ExtractedFile {
   text: string;
   chars: number;
   error?: string;
-  /** The RAW cause behind a generic `error` (`cleanErr` used to hide it in console
-   *  only — unrecoverable for a user, 13/08 audit). NEVER rendered in the UI
-   *  (`cleanErr`'s allow-list remains the display rule); consumed by the debug
-   *  log (`ocrDebug.ts`), which lives in the renderer and can hold it. */
+  /** The RAW cause behind a generic `error`. NEVER rendered in the UI (`cleanErr`'s
+   *  allow-list is the display rule); consumed by the debug log (`ocrDebug.ts`). */
   rawCause?: string;
   /** Set when the SAFETY guard REFUSED the file (oversize / type-mismatch / bomb)
    *  — a deliberate rejection, not a parse failure. The UI shows it distinctly and
@@ -49,14 +47,10 @@ export interface ExtractedFile {
    *  boxes, so the renderer can paint the redaction on the image (see
    *  `imageRedact.renderRedactedImage`). Absent when OCR gave no geometry. */
   words?: OcrWord[];
-  /** THE SECOND LAYER. A PDF is ALWAYS OCR'd (not only when its text layer is thin):
-   *  content baked into page IMAGES — a stamp, a signature, a scanned insert, a form
-   *  field — is INVISIBLE to the pdf.js text layer, so PII there would slip through
-   *  un-redacted. `text` is the primary layer (the exact text layer, model-facing; or the
-   *  OCR result for a true scan), and `ocrText` is what the PIXELS actually say. When they
-   *  differ, BOTH are surfaced: the union drives detection (`redactExtracted`) so nothing
-   *  in either layer escapes, and the UI shows both so a discrepancy (hidden/altered text,
-   *  OCR-only PII) is visible. Absent when the OCR layer adds nothing over `text`. */
+  /** THE SECOND LAYER. A PDF is ALWAYS OCR'd: content baked into page IMAGES (a stamp, a
+   *  scanned insert) is INVISIBLE to the text layer. `text` is the primary layer, `ocrText`
+   *  what the PIXELS say; when they differ the union drives detection (`redactExtracted`)
+   *  and the UI shows both. Absent when OCR adds nothing over `text`. */
   ocrText?: string;
   /** How the text was EXTRACTED + how long, surfaced to the renderer's Debug Log
    *  (Développeur → Journal de débogage): the OCR engine for an image / scanned PDF, or
@@ -93,10 +87,9 @@ export interface OcrMeta {
 
 // A PDF whose text-layer is shorter than this is treated as scanned → OCR.
 export const PDF_TEXT_MIN = 16;
-// …AND a PDF whose text layer is TOO SPARSE per page is a scan too: a scanned form/RIB
-// often carries a THIN layer (header/footer, page number) clearing `PDF_TEXT_MIN` while the
-// real content sits in the image — OCR was skipped and nothing was redacted. A digital page
-// has HUNDREDS of chars; a scan's layer has almost none.
+// …AND a PDF whose text layer is TOO SPARSE per page is a scan too: a scanned form often
+// carries a THIN layer (header, page number) clearing `PDF_TEXT_MIN` while the content sits
+// in the image. A digital page has HUNDREDS of chars.
 export const PDF_MIN_CHARS_PER_PAGE = 120;
 
 // Marker inserted between the pages of a multi-page document (PDF text / OCR) so page
@@ -191,11 +184,8 @@ export async function extractFromBytes(
       // paint-image op. The image check separates a scan from a short-but-correct digital page.
       const sparseScan = text.length < pages * PDF_MIN_CHARS_PER_PAGE && imagePages > 0;
 
-      // ALWAYS OCR (blocking) — a privacy product must never trust the text layer to be
-      // COMPLETE. Text baked into page images is invisible to pdf.js, so OCR runs on EVERY
-      // PDF and we keep BOTH layers. OCR is used two ways: it PROMOTES to the primary `text`
-      // for a scan (no/thin layer), and otherwise it is exposed as the additive `ocrText`
-      // second layer feeding the union detection + the two-layer UI.
+      // ALWAYS OCR (blocking): a privacy product never trusts the text layer to be COMPLETE.
+      // OCR PROMOTES to the primary `text` for a scan, else it is the additive `ocrText` layer.
       let ocrText: string | undefined;
       let ocr: OcrMeta | undefined = { engine: "pdf-text", ms: layerMs };
       try {
@@ -251,9 +241,8 @@ export async function extractFromBytes(
           const { text: raw, words, meta, width, height } = await deps.ocrImageLayout(bytes);
           const text = raw.trim();
           opts.onOcrProgress?.(1, 1);
-          // A photo/scan gets a REAL `ocrPages` entry when the binding reports dims —
-          // without it, `spatialFields` and the hybrid layer silently skipped exactly
-          // the medium that needs them most (a JPEG of a form has no text layer).
+          // A photo/scan gets a REAL `ocrPages` entry when the binding reports dims, so
+          // `spatialFields` and the hybrid layer work on the medium that needs them most.
           const ocrPages =
             width && height && words.length ? [{ text, words, width, height }] : undefined;
           return { name, kind: "image", text, chars: text.length, mime, words, ocr: meta, ocrPages };

@@ -1,0 +1,96 @@
+/* The expanded coverage line — full width under the group's chip row, carrying
+   the group tone as a quiet left accent. */
+.rrm-cat-detail {
+  margin: 6px 0 2px;
+  padding: 7px 10px 7px 12px;
+  border-left: 3px solid color-mix(in oklch, var(--cat-tone) 65%, var(--surface-card));
+  border-radius: 0 8px 8px 0;
+  background: color-mix(in oklch, var(--cat-tone) 7%, var(--surface-card));
+  font-size: 12px;
+  line-height: 1.55;
+  color: var(--text-muted);
+}
+.rrm-cat-detail strong {
+  color: var(--text-strong);
+  font-weight: 700;
+}
+
+/* The IMPACT line under a category's detail — what the protection can throw off (a
+   computed age, a business the model does not know). Set apart so it reads as a trade-off,
+   not as more coverage. */
+.rrm-cat-impact {
+  display: block;
+  margin-top: 4px;
+  font-style: italic;
+  opacity: 0.85;
+}
+/* « Mémoire dans cette conversation » — the row under the matrix, conversation tab. */
+.rrm-memory-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  cursor: pointer;
+}
+.rrm-memory-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+.rrm-memory-text strong {
+  font-size: var(--text-sm);
+  color: var(--text-strong);
+}
+.rrm-cat.on .rrm-cat-label {
+  font-weight: 700;
+  /* Fixed ink, not `--text-strong`: the solid shade fill stays light in dark
+     mode (the highlight hues are fixed brand pastels), so the text must too. */
+  color: #18230d;
+}
+/* Deliberately tiny: on a tag the badge is a footnote to the label, not a peer.
+   `line-height: 1` is what actually shrinks the box; the font-size alone does not. */
+.rrm-tag {
+  font-family: var(--font-mono);
+  font-size: 8px;
+  line-height: 1;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-faint);
+  background: var(--surface-sunken);
+  border: 1px solid var(--border-subtle);
+  border-radius: 3px;
+  padding: 2px 4px;
+}
+/* BETA badge tints to the chip's OWN section tone (`--cat-tone`), not a fixed pink —
+   a hardcoded hue would clash with every non-pink section now that chips colour by group. */
+.rrm-tag.ai {
+  color: var(--text-body);
+  background: color-mix(in oklch, var(--cat-tone) 40%, var(--surface-card));
+}
+/* On the solid ON fill the badge goes outline-on-ink (kit's IA footnote). */
+.rrm-cat.on .rrm-tag.ai {
+  color: #18230d;
+  background: transparent;
+  border-color: rgba(24, 35, 13, 0.35);
+  opacity: 0.75;
+}
+/* Org-mandated category: locked ON, non-disableable. On a tag the padlock alone
+   carries it — the word "Organisation" doubled the chip's width; the `title` and
+   `aria-disabled` say the rest. */
+.rrm-tag.lock {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 3px;
+  color: var(--brand, #4a5d3a);
+  background: color-mix(in oklch, var(--brand) 12%, var(--surface-card));
+}
+.rrm-cat.locked {
+  cursor: not-allowed;
+}

@@ -1,41 +1,27 @@
 /**
- * Deny-lists shared by EVERY detector (LLM model, local BERT NER, and — via
- * `pseudonymize`'s choke point — the deterministic detectors): a candidate whose
- * ENTIRE value is one of these is NEVER redacted. Split out of `detect.ts` (which was
- * well over the ~300 LOC guideline) so the vocabulary has its own home. Pure data +
- * two O(1) predicates.
+ * Deny-lists shared by EVERY detector (LLM, local NER, and via `pseudonymize`'s choke point
+ * the deterministic detectors): a candidate whose ENTIRE value is one of these is NEVER
+ * redacted. Pure data + O(1) predicates.
  */
 import { isCurrency } from "./currencies";
 
-// The multilingual function-word list lives in `stopwords.ts` (300-LOC split);
-// re-exported here so every existing `./genericTerms` import keeps working.
+// The multilingual function-word list lives in `stopwords.ts`; re-exported here.
 import { isStopword } from "./stopwords";
 export { isStopword };
 
 import { GENERIC_TERMS } from "./data";
 import { CLINICAL_TERMS } from "../vocab";
 import { isPublicBodyCompound } from "./publicBodies";
+import { isShellCommandOccurrence } from "./shell";
+export { isShellCommandOccurrence };
 
 /** Molecules, pathologies, anatomy — spared EXCEPT under the `health` category. */
 const CLINICAL_TERM_SET = new Set(CLINICAL_TERMS.map((t) => t.toLowerCase()));
 
-/** True when `value` is a single generic document/design/type word (never PII).
- *  CASE-insensitive AND SEPARATOR-insensitive, so a dotted/spaced acronym form matches
- *  the same entry ("R.C.S." / "R C S" / "r-c-s" all → "rcs"). Only DELIMITERS
- *  (`. _ - ' ` + spaces) are stripped for the 2nd test — accents/letters are kept, so
- *  "résumé" is unaffected — and it's ADDITIVE to the exact-lowercase match, so a
- *  multi-word entry ("curriculum vitae") still matches via the plain lowercase form. */
 /**
- * Days and months, full and abbreviated, FR + EN. Never an entity on their own.
- *
- * ⚠️ They're in the `Date:` header of EVERY e-mail, at the start of the line and capitalised —
- * exactly the shape a NER reads as a proper noun. Measured on a real mailbox
- * (log from 04/08): « Sun » redacted as an ORGANISATION, « Thu » as a PLACE.
- * The model received « Ash, 02 Aug 2026 » and « Gap, 30 Jul 2026 » — dates turned
- * unreadable, in a request that was specifically about « the week's e-mails ».
- *
- * WHOLE value only (that's `isGenericTerm`'s entry gate), so « Sun
- * Microsystems » or « Mars SA » remain candidates.
+ * Days and months, full and abbreviated, FR + EN. Never an entity on their own: they open
+ * the `Date:` header of EVERY e-mail, capitalised — exactly what a NER reads as a proper
+ * noun. WHOLE value only, so « Sun Microsystems » or « Mars SA » remain candidates.
  */
 const CALENDAR_TERMS = new Set([
   // Days — none doubles as a common first name, full and abbreviated, FR + EN.
@@ -44,18 +30,18 @@ const CALENDAR_TERMS = new Set([
   "lun", "mer", "jeu", "ven", "sam", "dim",
   "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi", "dimanche",
   // Months — ABBREVIATED only, and only the ones that aren't also a first name or a
-  // surname. « mars / avril / mai / march / april / may / june / august » stay
-  // OUT: it's the allow-list discipline already pinned by `aiKinds.test.ts`, and
-  // breaking it would leave someone named Avril or June in clear, forever.
-  // « mar » is excluded for the same reason (mars/March), « sep » isn't.
+  // surname (« mars / avril / mai / may / june / august » stay OUT: someone named Avril
+  // or June would be in clear forever — `aiKinds.test.ts`).
   "jan", "janv", "feb", "févr", "fevr", "apr", "avr", "jul", "juil", "aug", "sept", "sep",
   "oct", "nov", "dec", "déc",
 ]);
-/** A MARKUP tag — « <br> », « </label> », « <p> » — is document structure, never a value.
- *  Measured 2026-09-07 on ai4privacy (`bench/spans/`), whose records separate fields with
- *  literal « <br> »: the NER tagged the tag, and the fake rewrote the page's own markup. */
+/** A MARKUP tag — « <br> », « </label> » — is document structure, never a value: a NER tags
+ *  it, and the fake rewrites the page's own markup. */
 const MARKUP_TAG = /^<\/?[a-z][\w:.-]*(?:\s[^<>]*)?\/?>$/i;
 
+/** True when `value` is a single generic document/design/type word (never PII). CASE- and
+ *  SEPARATOR-insensitive ("R.C.S." / "R C S" → "rcs"): only DELIMITERS are stripped for
+ *  the 2nd test, ADDITIVE to the exact-lowercase match. */
 export function isGenericTerm(value: string): boolean {
   const lower = value.trim().toLowerCase();
   if (MARKUP_TAG.test(lower)) return true;
@@ -70,36 +56,25 @@ export function isGenericTerm(value: string): boolean {
 }
 
 /**
- * True when `value` is a COMPOUND (2+ words joined by spaces, hyphens, underscores,
- * dots or slashes) whose EVERY word is a stopword, a generic term or a bare number —
- * a tool identifier or technical phrase, never an identity. This is what stops a
- * flagged "read-data-schema" / "Read data schema" / "query-trends" (MCP tool
- * metadata) from becoming a multi-word NAME whose per-word aliases then redact
- * every "data"/"query" in the conversation. Same allow-list stance as the word
- * lists themselves: ONE non-covered word ("Jean-Rebour", "Cabinet Berlioz") keeps
- * the candidate — and a DIGIT token counts as non-covered on purpose, so a spaced
- * phone ("06 12 34 56 78") or a slashed date can never read as a generic compound.
+ * True when `value` is a COMPOUND (2+ words joined by spaces, hyphens, underscores, dots
+ * or slashes) whose EVERY word is a stopword or a generic term — a tool identifier
+ * ("read-data-schema"), never an identity. ONE non-covered word keeps the candidate, and
+ * a DIGIT token counts as non-covered on purpose (a spaced phone is never a compound).
  */
 export function isGenericCompound(value: string): boolean {
   // The split also breaks on an APOSTROPHE: French elision welds a function word to the
-  // next one, so « de courtage d'assurances » / « Caisse d'Épargne » kept `d'assurances`
-  // as ONE uncovered token and the whole institutional phrase survived — faked to an
-  // invented company. `d` + `assurances` are both covered. Splitting can only ever make
-  // MORE tokens and one uncovered token still keeps the candidate, so a real elided name
-  // ("d'Aubigné" → `d` + `aubigné`) is unaffected.
+  // next one (« Caisse d'Épargne »). Splitting only makes MORE tokens and one uncovered
+  // token still keeps the candidate, so a real elided name ("d'Aubigné") is unaffected.
   const words = value.trim().split(/[\s._/'’-]+/u).filter(Boolean);
   if (words.length < 2) return false;
   return words.every((w) => isStopword(w) || isGenericTerm(w));
 }
 
 /**
- * True when `value` minus ONE leading article — ANY case, the covered languages'
- * articles — is a stopword/generic term. `stripLeadingArticle` deliberately keeps
- * a CAPITALIZED article ("Le Mans" stays whole), so a sentence-initial "La
- * réunion" slipped past the generic drop and the recase pass redacted the word
- * for "meeting" across French business text. This check is case-blind but does
- * NOT change the emitted value. ("La Réunion" the island is knowingly dropped
- * too — the meeting reading floods; a region ships in clear like a country.)
+ * True when `value` minus ONE leading article (ANY case) is a stopword/generic term.
+ * `stripLeadingArticle` keeps a CAPITALIZED article ("Le Mans" stays whole), so a
+ * sentence-initial "La réunion" needs this case-blind check, which does NOT change the
+ * emitted value. ("La Réunion" the island is knowingly dropped too.)
  */
 export function isGenericWithArticle(value: string): boolean {
   const m = /^(?:l['’]|(?:le|la|les|un|une|des|du|the|an?|el|los|las|il|lo|gli|der|die|das|os?|as)\s+)([\s\S]+)$/iu.exec(
@@ -110,30 +85,23 @@ export function isGenericWithArticle(value: string): boolean {
   return isStopword(rest) || isGenericTerm(rest);
 }
 
-/**
- * **The ONE "this value is never PII on its own" test.** Every candidate pipeline calls
- * THIS, not a hand-picked subset of the four predicates above.
- *
- * ⚠️ It exists because the three call sites had drifted into three different answers to
- * the same question: `pseudonymize`'s choke point (`filter.ts`) checked term+compound,
- * the LLM/NER reader (`detect.ts`) checked stopword+term+article, and the marker-mode
- * path (`discoverSecrets`) checked only stopword+term. So the SAME value could be spared
- * as a fake and redacted as a marker — one deny-list, three behaviours, and no test could
- * state which was right (root rule 9).
- *
- * Widening a site is the SAFE direction here: every list these read is "never PII by
- * construction", so an extra check can only stop a non-PII word from being faked. The
- * reverse — a site that checks less — is what shipped "URSSAF" as somebody's surname.
- */
-// « RCS LILLE (MÉTROPOLE) », « Greffe de Nanterre »: a public REGISTRY MENTION —
-// it identifies the registry, never the company or the person. A NER tags it ORG and
-// it was going to the vault (« VOXA LABS → RCS LILLE », log 02/08). Strict prefix:
-// « RCS MediaGroup » would be spared too — acceptable, it's a notorious brand.
+// « RCS LILLE (MÉTROPOLE) », « Greffe de Nanterre »: a public REGISTRY MENTION identifies
+// the registry, never the company. Strict prefix: « RCS MediaGroup » is spared too — a
+// notorious brand anyway.
 const REGISTRY_MENTION_RE = /^(rcs|greffe)\s+\S/i;
 
-export function isNonPiiTerm(value: string, category?: string): boolean {
+/**
+ * **The ONE "this value is never PII on its own" test.** Every candidate pipeline calls
+ * THIS, not a hand-picked subset of the predicates above (rule 9): a site that checks less
+ * ships "URSSAF" as somebody's surname. Widening a site is the SAFE direction — every list
+ * these read is "never PII by construction".
+ */
+export function isNonPiiTerm(value: string, category?: string, input?: string): boolean {
   return (
     isStopword(value) ||
+    // A command name spared only where the text proves a command line (`shell.ts`): the
+    // agent next door WRITES shell, and a fake for `ls` rewrites the line it runs.
+    isShellCommandOccurrence(value, input) ||
     isGenericTerm(value) ||
     REGISTRY_MENTION_RE.test(value.trim()) ||
     isGenericCompound(value) ||
@@ -144,30 +112,20 @@ export function isNonPiiTerm(value: string, category?: string): boolean {
 }
 
 /**
- * A medication, a pathology or a body part — spared for EVERY category
- * EXCEPT `health`.
- *
- * The scoping is this volume's whole reason for being. « DOLIPRANE » goes to the vault because a NER
- * tags it ORGANISATION, not because someone saw a diagnosis in it: it's THAT
- * reflex we're turning off. Under `health`, the value keeps obeying the user's
- * « Santé » setting, which is the only category whose job is to mask an illness —
- * sparing it flat-out would have made it inert (`aiKinds.test.ts` verifies this).
- *
- * Absent `category` ⇒ spared: callers with no category (marker mode, the detector's
- * own reader) never intended to redact a medication.
+ * A medication, a pathology or a body part — spared for EVERY category EXCEPT `health`:
+ * « DOLIPRANE » reaches the vault because a NER tags it ORGANISATION, and THAT reflex is
+ * turned off; under `health` the value keeps obeying the « Santé » setting
+ * (`aiKinds.test.ts`). Absent `category` ⇒ spared.
  */
 export function isClinicalTerm(value: string, category?: string): boolean {
   if (category === "health") return false;
   return CLINICAL_TERM_SET.has(value.trim().toLowerCase());
 }
 
-// Company legal FORMS + leading descriptors STRIPPED from the ends of an ORG span so
-// a real company keeps ONE identity regardless of the surrounding boilerplate:
-// "société KARL STUDIO", "KARL STUDIO SAS" and "KARL STUDIO Forme" all canonicalise to
-// "KARL STUDIO" (else each distinct span became a DIFFERENT fake — the reported
-// "plusieurs mappings"). ROLE / connector words ("associé", "&") are deliberately NOT
-// here: they belong to a legal name ("Rebour & Associés") and stripping them would
-// mangle it. Applied ONLY to ORG detections (a NAME/CITY never leads with "société").
+// Company legal FORMS + leading descriptors STRIPPED from the ends of an ORG span so a
+// real company keeps ONE identity whatever the boilerplate ("société KARL STUDIO", "KARL
+// STUDIO SAS" → "KARL STUDIO"). ROLE / connector words ("associé", "&") are NOT here: they
+// belong to a legal name ("Rebour & Associés"). ORG detections ONLY.
 const ORG_AFFIX = new Set<string>([
   // French legal forms
   "sas", "sasu", "sarl", "eurl", "snc", "sci", "scop", "gie", "scs", "sca",
@@ -201,11 +159,10 @@ const ORG_TRAILING_CONNECTOR = new Set(["en", "de", "du", "des", "et", "of", "th
 // whole-value drop. ORG detections ONLY.
 export function stripOrgAffixes(value: string): string {
   let v = value.trim();
-  // Table/field glue "Associés - KARL STUDIO en société": when everything LEFT of a
-  // spaced dash/colon is generic boilerplate, the entity is the RIGHT side (the label
-  // stays in clear). The space around the dash is required so a hyphenated name
-  // ("Jean-Claude Décor") is never split. Without this, the whole span becomes the
-  // vault key and a STANDALONE occurrence of the name elsewhere leaks in clear.
+  // Table/field glue "Associés - KARL STUDIO en société": when everything LEFT of a spaced
+  // dash/colon is generic boilerplate, the entity is the RIGHT side, else a STANDALONE
+  // occurrence of the name elsewhere leaks. The space around the dash keeps a hyphenated
+  // name ("Jean-Claude Décor") whole.
   const sep = /^(.+?)\s[-–—:]\s+(.{2,})$/.exec(v);
   if (sep && sep[1].split(/\s+/).every((w) => isOrgAffix(w) || isStopword(w) || isGenericTerm(w)))
     v = sep[2].trim();

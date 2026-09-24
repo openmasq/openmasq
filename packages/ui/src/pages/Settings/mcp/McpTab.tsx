@@ -10,6 +10,8 @@ import { useMcpConnectors } from "./useMcpConnectors";
 import { McpConnectorCard } from "./McpConnectorCard";
 import { McpCustomModal } from "./McpCustomModal";
 import { McpModals } from "./McpModals";
+import { levelOf } from "../../../privacy/privacyLevel";
+import { withConnectorLevel } from "../../../privacy/connectorMasking";
 
 import { useT } from "../../../i18n";
 import { mcpCategoryLabel } from "../../../help/catalogCopy";
@@ -185,7 +187,25 @@ export function McpTab({
 
         {/* The SAME stack as elsewhere in the app (`ConnectorModalHost`) — a single
           implementation of the connect/disconnect wiring, not two copies (rule 9). */}
-        <McpModals c={c} />
+        <McpModals
+          c={c}
+          /* Only when this caller HAS a settings draft: a surface that cannot persist a
+             choice must not offer it. The level a connector follows by default is the one
+             the draft's own categories resolve to (`privacy/privacyLevel.ts` `levelOf`). */
+          masking={
+            draft && setDraft
+              ? {
+                  globalLevel: levelOf(draft.redactCategories),
+                  levelOf: (id) => draft.connectorMasking?.[id]?.level ?? null,
+                  onPick: (id, level) =>
+                    setDraft((prev) => ({
+                      ...prev,
+                      connectorMasking: withConnectorLevel(prev.connectorMasking, id, level),
+                    })),
+                }
+              : undefined
+          }
+        />
 
         <AnimatePresence>
           {adding && (

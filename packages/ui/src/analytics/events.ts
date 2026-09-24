@@ -42,9 +42,8 @@ export type ToolErrorReason =
   // browser-infra regression is visible without trawling raw errors.
   | "browser_backend";
 
-/** The FAMILY of a server refusal — `operational` used to lump together an expired key
- *  (the user reconnects), a quota (you wait) and a 404 (you fix the code): three different
- *  triages under one word. Derived from the error text, never the text itself. */
+/** The FAMILY of a server refusal: an expired key (reconnect), a quota (wait) and a 404
+ *  (fix the code) are three triages. Derived from the error text, never the text itself. */
 export type ToolErrorFamily = "auth" | "quota" | "not_found" | "bad_request" | "timeout" | "server" | "other";
 
 /** Why a connector (OAuth) failed to connect — bounded. */
@@ -71,11 +70,9 @@ export type TrackEvent =
   // know whether putting it there actually earns reports — the whole point of the
   // affordance. No id, no content: it says "someone started one", nothing else.
   | { name: "avis_from_message" }
-  // A send failed — provider/model + a BOUNDED reason code (no raw message) +
-  // the HTTP status when the failure was an API response (safe metadata, no PII).
-  // `requestId` = the gateway's opaque correlation id (server-minted, content-free) —
-  // joins this client event to the gateway's `inference_upstream_error`, which holds
-  // the REAL upstream reason. `retries` = attempts the provider client made.
+  // A send failed — provider/model + a BOUNDED reason code (no raw message) + the HTTP
+  // status when the failure was an API response. `requestId` = the platform's opaque,
+  // server-minted correlation id; `retries` = attempts the provider client made.
   | { name: "send_error"; provider: string; model: string; reason: SendErrorReason; status?: number; requestId?: string; retries?: number }
   // ── models ─────────────────────────────────────────────────────────────
   | { name: "change_model"; provider: string; model: string }
@@ -101,8 +98,8 @@ export type TrackEvent =
       model: string;
       ms: number;
       cold?: boolean;
-      /** false = the pass FAILED (the worst latency case — a timeout — never used to
-       *  contribute to the distribution, audit 13/08); absent = success (compat). */
+      /** false = the pass FAILED (a timeout must not contribute to the latency
+       *  distribution); absent = success. */
       ok?: boolean;
       reason?: "timeout" | "unreachable" | "auth" | "error";
       /** Input size (bucketed by the walk) — without it, a slow model and a large
@@ -124,11 +121,9 @@ export type TrackEvent =
   | { name: "connector_connect"; provider: string }
   | { name: "connector_disconnect"; provider: string }
   | { name: "connector_error"; provider: string; reason: ConnectorErrorReason }
-  // `loopId` (agentic family): a random UUID per loop run, ephemeral,
-  // never persisted — it only LINKS together events already emitted, so
-  // « empty pick → blind call → error → outcome » reads as a funnel instead of
-  // being guessed from aggregates. `connector` = the catalogue id (`server` only carries the
-  // ipc/mcp transport — every analysis used to re-parse the name's prefix in SQL).
+  // `loopId`: a random UUID per loop run, ephemeral, never persisted — it only LINKS events
+  // already emitted so « empty pick → blind call → error → outcome » reads as a funnel.
+  // `connector` = the catalogue id (`server` only carries the transport).
   | { name: "tool_called"; server: string; tool: string; connector: string; provider: string; model: string; loopId?: string }
   // A tool call failed — names + bounded enums (never args/results/raw text).
   // `family` refines `operational` (auth ≠ quota ≠ 404: different triage); `param` = the
@@ -144,17 +139,14 @@ export type TrackEvent =
       name: "tool_struggle";
       server: string;
       tool: string;
-      /** HOW the model struggled — the actionable half, already computed for the UI and
-       *  never transmitted (audit 13/08). */
+      /** HOW the model struggled — computed for the UI, never transmitted. */
       kind?: "unknown_tool" | "arg_error" | "connector_error" | "no_tool_used";
       provider: string;
       model: string;
       loopId?: string;
     }
-  // The tool ROUTER got it wrong: it picked nothing (`empty`), or the model then
-  // called a tool it hadn't picked (`missed`). Without this measure, its misses
-  // were invisible — the `load_tools` safety net masks the symptom, at the cost of two turns.
-  // COUNTERS and connector names only: never the user's request.
+  // The tool ROUTER got it wrong: it picked nothing (`empty`), or the model then called a
+  // tool it hadn't picked (`missed`). COUNTERS and connector names only.
   | {
       name: "tool_route_miss";
       // `empty` = empty pick; `missed` = a real tool called outside the pick; `unreadable` = the
@@ -185,8 +177,7 @@ export type TrackEvent =
       name: "tool_loop_summary";
       provider: string; model: string; loopId?: string;
       turns: number; toolCalls: number;
-      /** Wall-clock duration of the agentic turn (bucketed) — 3 turns in 20 s and 3 turns in
-       *  12 min used to be the same line (audit 13/08). */
+      /** Wall-clock duration of the agentic turn (bucketed). */
       ms?: number;
       /** Router: how many tools were OFFERED after routing vs the connected total. */
       routerOffered: number; routerTotal: number;
@@ -196,18 +187,15 @@ export type TrackEvent =
       /** Dynamic browser redaction: calls served clear-mode vs escalated fail-closed. */
       navClear: number; navEscalated: number;
       outcome: "answered" | "exhausted" | "aborted" | "error";
-      /** WHY a run ended in `error` — a BOUNDED code, never the raw text.
-       *  Without it, the measure said « 17% of loops die on the first turn, without
-       *  a single tool call » without saying what they die of: missing key?
-       *  quota? network? Absent on any other outcome. */
+      /** WHY a run ended in `error` — a BOUNDED code, never the raw text. Absent on any
+       *  other outcome. */
       reason?: SendErrorReason | "browser_backend";
     }
   // A `run_python` execution failed — a bounded CAUSE class + bucketed duration.
   // Never the code, stdout or stderr.
   | { name: "run_python_failed"; reason: "network" | "install" | "module" | "timeout" | "runtime"; ms: number; loopId?: string }
-  // A DETERMINISTIC GATE blocked/refused a tool call — including the USER'S refusal
-  // of the write card, until now with no data at all (audit 13/08). Enums + tool/connector
-  // names only, never an argument or a value.
+  // A DETERMINISTIC GATE blocked/refused a tool call, the USER'S refusal of the write card
+  // included. Enums + tool/connector names only, never an argument or a value.
   | {
       name: "tool_gate_blocked";
       kind: "declined" | "nav_domain" | "nav_pseudonym" | "draft_only" | "consult_only" | "already_done";
@@ -225,17 +213,11 @@ export type TrackEvent =
   | { name: "debug_mode_toggle"; on: boolean }
   | { name: "analytics_consent"; on: boolean }
   // ── auto-update (the FUNNEL — versions + channel only) ─────────────────
-  // Emitted by the MAIN process (`updates/track.ts` → the `app:event` bridge), so
-  // these are the only events not raised in the renderer. Only failures used to reach
-  // PostHog (`$exception` `updater-*`), which made a SUCCESSFUL update — and, worse, an
-  // update that silently never applied — completely invisible.
-  // `update_install` = the user accepted the restart (we hand off to ShipIt);
-  // `update_installed` = the NEXT launch found the running version actually changed.
-  // The gap between those two IS the silent-failure rate, unobservable in-process
-  // (the swap happens after we quit). No feed URL, no installId, no device id: a
-  // version string and a channel name are the whole payload.
-  // `found_version` = what the feed PROPOSES (≠ `app_version`, which is running) — named
-  // to be unmistakable in PostHog, where `version` displayed as « App version ».
+  // Emitted by the MAIN process (`updates/track.ts` → the `app:event` bridge).
+  // `update_install` = the user accepted the restart; `update_installed` = the NEXT launch
+  // found the running version changed. The gap between the two IS the silent-failure
+  // rate, unobservable in-process. No feed URL, no installId, no device id.
+  // `found_version` = what the feed PROPOSES (≠ `app_version`, which is running).
   | { name: "update_check"; channel: string; result: "available" | "up_to_date"; found_version?: string }
   | { name: "update_downloaded"; channel: string; version: string }
   | { name: "update_install"; channel: string; version: string }

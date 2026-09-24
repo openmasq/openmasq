@@ -1,0 +1,121 @@
+/* Small reusable layout helpers (replace one-off inline flex/positioning). */
+.flex-min {
+  flex: 1;
+  min-width: 0;
+}
+.menu-anchor {
+  position: relative;
+}
+/* Vertical rhythm mirrors the collapsed rail so nothing jumps on toggle: the mark centres
+   at the same y as the rail mark, and the gap to `.btn-new` reproduces the rail's.
+   `.rail` / `.rail-new` are the reference. */
+.sidebar-wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 21px 16px 7px;
+  align-self: flex-start;
+  cursor: pointer;
+}
+.brand-mark {
+  color: var(--text-strong);
+  flex-shrink: 0;
+}
+
+/* App-open intro (BrandLogo/AppIntro): styles/intro.css. */
+.protected-pill.sm {
+  height: 28px;
+  font-size: var(--text-xs);
+}
+/* Small inline spinner (matches the surrounding text colour via currentColor) —
+   used inside the send button's "Redaction" state. */
+.pill-spin {
+  width: 12px;
+  height: 12px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  border: 2px solid var(--border-subtle);
+  border-top-color: currentColor;
+  animation: om-spin-kf 0.7s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pill-spin {
+    animation-duration: 1.2s;
+  }
+}
+/* The idle "N will be redacted" count pill fades/rises in smoothly. */
+.kx-pill-in {
+  animation: pill-in 0.22s var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)) both;
+}
+@keyframes pill-in {
+  from { opacity: 0; transform: translateY(3px) scale(0.96); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .kx-pill-in { animation: none; }
+}
+/* The send button IS the redaction indicator: a spinner while it runs (greyed via
+   :disabled), a brief "validé" ✓, then the send icon. */
+.send-spinner {
+  width: 17px;
+  height: 17px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  /* The spinner only shows on the greyed button: a strong dark arc over a faint track, since
+     currentColor there is too muted to read as spinning. */
+  border: 2px solid var(--border-subtle);
+  border-top-color: var(--text-muted);
+  animation: om-spin-kf 0.7s linear infinite;
+}
+/* Icon swap (✓ ↔ send) pops in quickly so the transition reads. */
+.send-swap {
+  display: inline-flex;
+  animation: send-pop 0.18s var(--ease-out, cubic-bezier(0.16, 1, 0.3, 1)) both;
+}
+@keyframes send-pop {
+  from { opacity: 0; transform: scale(0.55); }
+  to { opacity: 1; transform: none; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .send-spinner { animation: none; }
+  .send-swap { animation: none; }
+}
+.text-ok {
+  color: var(--green-500);
+}
+.text-err {
+  color: var(--red-500);
+}
+.settings-card.flat {
+  overflow: hidden;
+  box-shadow: none;
+}
+.mcp-note {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  margin: 0 0 12px;
+}
+.mcp-tile {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  /* The fill is a data-driven `--hl-*` hue (`.credit-tile-*`, the integration cards),
+     so the ink is the generic on-highlight one — never a frozen forest hex (rule 12). */
+  color: var(--ink-on-hl);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+/* Brand-logo variant: neutral tile so the official glyph reads in both themes. */
+.mcp-tile-logo {
+  background: #fff;
+  border: 1px solid var(--border-subtle);
+}
+.mcp-tile-logo svg {
+  width: 19px;
+  height: 19px;
+}

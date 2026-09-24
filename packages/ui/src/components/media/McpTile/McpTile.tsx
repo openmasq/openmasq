@@ -1,5 +1,5 @@
 import { MCP_LOGOS } from "./mcpLogos";
-import { MCP_LOGO_IMAGES } from "./mcpLogoImages";
+import { MCP_LOGO_IMAGES } from "./mcpLogos";
 
 /**
  * The connector's square glyph: its official brand logo on a neutral tile, or
