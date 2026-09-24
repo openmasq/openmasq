@@ -46,7 +46,7 @@
     "hast-util-to-jsx-runtime": "^2.3.6",
     "katex": "^0.16.11",
     "lowlight": "^3.3.0",
-    "mammoth": "^1.12.2",
+    "mammoth": "^1.12.3",
     "pdf-lib": "^1.17.1",
     "pdfjs-dist": "^6.3.289",
     "react-markdown": "^9.0.1",
