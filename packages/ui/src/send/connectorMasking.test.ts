@@ -64,6 +64,19 @@ describe("a connector masked at its own level", () => {
     expect(a).toEqual(b);
   });
 
+  /**
+   * REGRESSION: the setting is keyed by the CATALOGUE id (it is set from the connector's card),
+   * but a tool carries its server INSTANCE. A local server is `local-<id>`, a second account is
+   * `<id>--<suffix>`: looked up as-is, the level was silently ignored and the global rules —
+   * possibly LESS masking than the user chose — applied instead.
+   */
+  it("applies to every instance of the connector: a local server, a second account", () => {
+    const strict = strictly("strict");
+    expect(disabledKindsForTool(GLOBAL, "local-filesystem__read_file", { filesystem: { level: "strict" } })).toEqual(strict);
+    expect(disabledKindsForTool(GLOBAL, "notion--a1b2c3__search", { notion: { level: "strict" } })).toEqual(strict);
+    expect(disabledKindsForTool(GLOBAL, "notion__search", { notion: { level: "strict" } })).toEqual(strict);
+  });
+
   it("leaves a call with no tool exactly as it was", () => {
     expect(disabledKindsForTool(GLOBAL, undefined, { x: { level: "strict" } })).toEqual(GLOBAL);
   });

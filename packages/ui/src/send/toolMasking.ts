@@ -5,6 +5,7 @@ import { categoriesForLevel, disabledKindsOf, type ConnectorMasking } from "@ope
 import { findConnector } from "@openmasq/catalog/mcp";
 import { isWebBrowseTool } from "../state/browserPolicy";
 import { toolClearKinds } from "../agent/toolRedactionPolicy";
+import { connectorOfServer } from "../state/conversation/mcpIds";
 
 /** The category-clear policy for a tool's RESULTS, resolved onto a base `disabledKinds`.
  *  Public web-search connectors keep place/org names + URL/asset path & CDN key-noise in
@@ -20,7 +21,9 @@ export function disabledKindsForTool(
 ): string[] {
   if (!tool) return disabledKinds;
   const px = tool.indexOf("__");
-  const connectorId = px > 0 ? tool.slice(0, px) : tool;
+  // The CATALOGUE id: the tool carries its server INSTANCE (`local-filesystem`, a second
+  // account's `notion--a1b2c3`), the setting is keyed by the connector (`connectorOfServer`).
+  const connectorId = connectorOfServer(px > 0 ? tool.slice(0, px) : tool);
   const clear = toolClearKinds(
     connectorId,
     findConnector(connectorId)?.category === "search",
