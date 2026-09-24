@@ -53,6 +53,29 @@
   opacity: 1;
 }
 
+/* COMPACT: the same control sized to ride a row among others — a connector's own masking
+   level (`components/MaskLevelPicker.tsx`), in its modal and in the Confidentialité list. */
+.om-seg--sm {
+  gap: 2px;
+  padding: 2px;
+}
+.om-seg--sm .om-seg-btn {
+  gap: 5px;
+  padding: 4px 10px;
+  font-size: var(--text-xs);
+}
+.om-seg-btn svg {
+  flex-shrink: 0;
+}
+/* Read-only: the state still SHOWS — what a connector masks matters whether or not this
+   surface may change it — but nothing reads as pressable. */
+.om-seg-btn:disabled {
+  cursor: default;
+}
+.om-seg-btn:disabled:not(.on) {
+  opacity: 0.5;
+}
+
 /* The segmented control AS a setting row control (`.toggle-row`, the language in
    « Apparence »). The `align-self: flex-start` above targets the COLUMN case — direct child
    of a `.settings-section`, where an `inline-flex` would stretch across the whole width. In a

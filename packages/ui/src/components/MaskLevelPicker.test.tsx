@@ -11,7 +11,7 @@ describe("a connector's own masking level", () => {
     const m = await mount(
       <MaskLevelPicker value="strict" globalLevel="renforce" onPick={() => {}} />,
     );
-    const options = m.findAll(".mask-level");
+    const options = m.findAll("[role=radio]");
     expect(options).toHaveLength(4); // Default + the three levels
     const on = options.filter((o) => o.classList.contains("on"));
     expect(on).toHaveLength(1);
@@ -23,15 +23,15 @@ describe("a connector's own masking level", () => {
    *  every connector wants. It must therefore be what is marked when nothing is set. */
   it("marks Default when the connector overrides nothing", async () => {
     const m = await mount(<MaskLevelPicker value={null} globalLevel="strict" onPick={() => {}} />);
-    const on = m.find(".mask-level.on");
+    const on = m.find("[role=radio][aria-checked=true]");
     expect(on.getAttribute("aria-checked")).toBe("true");
-    expect(on).toBe(m.find(".mask-level")); // the first option
+    expect(on).toBe(m.find("[role=radio]")); // the first option
     await m.unmount();
   });
 
   it("names what Default resolves to, so the choice is not a guess", async () => {
     const m = await mount(<MaskLevelPicker value={null} globalLevel="strict" onPick={() => {}} />);
-    expect(m.find(".mask-level").getAttribute("title")).toMatch(/strict/i);
+    expect(m.find("[role=radio]").getAttribute("title")).toMatch(/strict/i);
     await m.unmount();
   });
 
@@ -40,7 +40,7 @@ describe("a connector's own masking level", () => {
     const m = await mount(
       <MaskLevelPicker value="strict" globalLevel="renforce" onPick={onPick} />,
     );
-    const options = m.findAll(".mask-level");
+    const options = m.findAll("[role=radio]");
     await m.click(options[0] as HTMLElement);
     expect(onPick).toHaveBeenLastCalledWith(null);
     await m.click(options[3] as HTMLElement);
@@ -63,7 +63,7 @@ describe("a connector's own masking level", () => {
       <MaskLevelPicker value="strict" globalLevel="strict" onPick={() => {}} />,
     );
     const glyph = (m: Awaited<ReturnType<typeof mount>>) =>
-      m.find(".mask-level.on").querySelector("svg")?.outerHTML;
+      m.find("[role=radio][aria-checked=true]").querySelector("svg")?.outerHTML;
     // The reduced level and a guarded one must not wear the SAME mark.
     expect(glyph(reduced)).not.toBe(glyph(guarded));
     await reduced.unmount();
@@ -75,9 +75,9 @@ describe("a connector's own masking level", () => {
     const m = await mount(
       <MaskLevelPicker value="strict" globalLevel="renforce" onPick={onPick} disabled />,
     );
-    const options = m.findAll<HTMLButtonElement>(".mask-level");
+    const options = m.findAll<HTMLButtonElement>("[role=radio]");
     expect(options.every((o) => o.disabled)).toBe(true);
-    expect(m.maybe(".mask-level.on")).not.toBeNull(); // …still legible
+    expect(m.maybe("[role=radio][aria-checked=true]")).not.toBeNull(); // …still legible
     await m.click(options[0] as HTMLElement);
     expect(onPick).not.toHaveBeenCalled();
     await m.unmount();

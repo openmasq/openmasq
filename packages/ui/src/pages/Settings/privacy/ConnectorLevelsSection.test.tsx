@@ -56,7 +56,7 @@ describe("the connectors that do not follow the global level", () => {
       />,
     );
     expect(m.find(".connector-level-name").textContent).toMatch(/notion/i);
-    expect(m.find(".mask-level.on").textContent).toMatch(/strict/i);
+    expect(m.find("[role=radio][aria-checked=true]").textContent).toMatch(/strict/i);
     await m.unmount();
   });
 
@@ -69,7 +69,7 @@ describe("the connectors that do not follow the global level", () => {
         setDraft={setDraft}
       />,
     );
-    await m.click(m.findAll(".mask-level")[0] as HTMLElement); // "Default"
+    await m.click(m.findAll("[role=radio]")[0] as HTMLElement); // "Default"
     const updater = setDraft.mock.calls[0]?.[0] as (s: Settings) => Settings;
     expect(updater(settings({ notion: { level: "strict" } })).connectorMasking).toBeUndefined();
     await m.unmount();

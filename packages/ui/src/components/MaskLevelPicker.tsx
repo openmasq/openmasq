@@ -1,4 +1,4 @@
-import { CheckIcon, EyeIcon, ShieldIcon } from "./brand";
+import { EyeIcon, ShieldIcon } from "./brand";
 import { privacyLevelMeta, type PrivacyLevel } from "../privacy/privacyLevel";
 import type { ConnectorLevel } from "../privacy/connectorMasking";
 import { useT } from "../i18n";
@@ -49,19 +49,18 @@ export function MaskLevelPicker({
         aria-checked={on}
         disabled={disabled}
         title={title}
-        className={`mask-level${on ? " on" : ""}`}
+        className={`om-seg-btn${on ? " on" : ""}`}
         onClick={() => onPick(id)}
       >
         {icon}
         <span>{label}</span>
-        {on ? <CheckIcon size={12} /> : null}
       </button>
     );
   };
 
   return (
     <div
-      className="mask-levels"
+      className="om-seg om-seg--sm"
       role="radiogroup"
       aria-label={t.leaves.privacyLevels.perConnector.label}
     >
