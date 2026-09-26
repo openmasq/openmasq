@@ -4,6 +4,7 @@ import { buildSendAnalyticsEvents } from "../sendAnalytics";
 import type { RedactedTurn } from "./redactionPasses";
 import type { RedactionSetup } from "./redactionSetup";
 import type { TurnContext } from "./turnSetup";
+import { mergeVault } from "../mergeVault";
 
 /**
  * After the passes: emit the privacy-safe analytics (counts, enums, category keys, never a
@@ -124,7 +125,7 @@ function storeAttachments(ctx: TurnContext, r: RedactionSetup): void {
         });
         d.patchConversation(convId, (c) => ({
           ...c,
-          redactionVault: merged,
+          redactionVault: mergeVault(c.redactionVault, merged),
           redactionKinds: { ...c.redactionKinds, ...kinds },
           fileRedactions: spans.length
             ? [...(c.fileRedactions ?? []), { name: a.name, spans, at: Date.now() }]

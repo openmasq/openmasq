@@ -1,8 +1,8 @@
 import {
-  applyVault,
   computeTokenFormulas,
   disabledVaultTokens,
   type RedactionMatch,
+  replayForModel,
   type Vault,
   unredactArgs,
   unredactReply,
@@ -126,7 +126,12 @@ export function setupRedaction(ctx: TurnContext): RedactionSetup {
     kinds: convKinds,
   });
 
-  const toWire = (s: string) => ({ text: applyVault(s, vault, wireExclude), matches: [] as unknown[] });
+  // The SAME substitution as at send time (`replayForModel`): a variant the tolerant pass
+  // masked when it was typed stays masked on every later turn.
+  const toWire = (s: string) => ({
+    text: replayForModel(s, vault, { exclude: wireExclude, mode: redactionMode }),
+    matches: [] as unknown[],
+  });
   // LAZY: salary amounts mint n-tokens independently of `redactNumbers`, and the first one
   // can be minted by THIS send's redaction, so a boolean snapshot would miss it.
   const numberMode = (): boolean =>

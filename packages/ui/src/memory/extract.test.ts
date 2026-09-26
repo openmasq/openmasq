@@ -274,7 +274,7 @@ describe("runMemoryExtraction — the whole pass, scripted model", () => {
     updatedAt: 0,
     redactionVault: VAULT,
     messages: [
-      { id: "u1", role: "user", content: "Retiens que Karl Studio a signé le devis Q3.", redactedSpans: [{ value: "Karl Studio", kind: "company" }] },
+      { id: "u1", role: "user", redactions: 0, content: "Retiens que Karl Studio a signé le devis Q3.", redactedSpans: [{ value: "Karl Studio", kind: "company" }] },
       { id: "a1", role: "assistant", content: "Noté." },
     ],
     ...over,
@@ -310,11 +310,24 @@ describe("runMemoryExtraction — the whole pass, scripted model", () => {
     expect(d.watermarks).toEqual([2]); // cursor advanced past both messages
   });
 
+  it("never reads a user turn whose redaction did not complete — it would leave as typed", async () => {
+    let sawUser = "";
+    const d = deps(async (p) => {
+      sawUser = p.messages[p.messages.length - 1]?.content ?? "";
+      return '{"profil":null,"faits":[]}';
+    });
+    const failed = { id: "u0", role: "user", content: "Retiens que Kwame Adjei-Boateng est diabétique." };
+    await runMemoryExtraction(conv({ messages: [failed as never, ...conv().messages] }), d);
+    expect(sawUser).not.toContain("Kwame");
+    await runMemoryExtraction(conv({ messages: [failed as never, ...conv().messages] }), d, { explicit: true } as never);
+    expect(sawUser).not.toContain("Kwame");
+  });
+
   it("opt-out / pending turn / nothing new ⇒ no call, no change", async () => {
     let calls = 0;
     const d = deps(async () => (calls++, '{"profil":null,"faits":[]}'));
     await runMemoryExtraction(conv(), { ...d, settings: { memoryAuto: false } as never });
-    await runMemoryExtraction(conv({ messages: [{ id: "u1", role: "user", content: "x", pending: true } as never] }), d);
+    await runMemoryExtraction(conv({ messages: [{ id: "u1", role: "user", redactions: 0, content: "x", pending: true } as never] }), d);
     await runMemoryExtraction(conv({ memoryWatermark: 2 }), d);
     expect(calls).toBe(0);
   });
@@ -427,9 +440,9 @@ describe("« retiens ça » — the explicit fast path", () => {
       id: "k1", title: "t", modelId: "qwen2.5", createdAt: 0, updatedAt: 0,
       redactionVault: VAULT, memoryWatermark: 2,
       messages: [
-        { id: "u0", role: "user", content: "Le devis de Karl Studio est signé, deadline septembre." },
+        { id: "u0", role: "user", redactions: 0, content: "Le devis de Karl Studio est signé, deadline septembre." },
         { id: "a0", role: "assistant", content: "Noté." },
-        { id: "u1", role: "user", content: "Retiens ça." },
+        { id: "u1", role: "user", redactions: 0, content: "Retiens ça." },
         { id: "a1", role: "assistant", content: "C'est retenu." },
       ],
     };
@@ -472,9 +485,9 @@ describe("« retiens ça » — the explicit fast path", () => {
       {
         id: "k1", title: "t", modelId: "qwen2.5", createdAt: 0, updatedAt: 0, redactionVault: {},
         messages: [
-          { id: "u1", role: "user", content: "Affiche l'évolution des 5 ETF PEA les plus performants." },
+          { id: "u1", role: "user", redactions: 0, content: "Affiche l'évolution des 5 ETF PEA les plus performants." },
           { id: "a1", role: "assistant", content: "Voici le graphe." },
-          { id: "u2", role: "user", content: "Retiens ça." },
+          { id: "u2", role: "user", redactions: 0, content: "Retiens ça." },
           { id: "a2", role: "assistant", content: "…" },
         ],
       },
@@ -499,7 +512,7 @@ describe("« retiens ça » — the explicit fast path", () => {
       {
         id: "k1", title: "t", modelId: "qwen2.5", createdAt: 0, updatedAt: 0, redactionVault: VAULT,
         messages: [
-          { id: "u1", role: "user", content: "Retiens que Karl Studio a signé le devis Q3." },
+          { id: "u1", role: "user", redactions: 0, content: "Retiens que Karl Studio a signé le devis Q3." },
           { id: "a1", role: "assistant", content: "Noté." },
         ],
       },
@@ -530,7 +543,7 @@ describe("« retiens ça » — the explicit fast path", () => {
       {
         id: "k1", title: "t", modelId: "qwen2.5", createdAt: 0, updatedAt: 0, redactionVault: {},
         messages: [
-          { id: "u1", role: "user", content: "Retiens que je préfère des réponses courtes, en français." },
+          { id: "u1", role: "user", redactions: 0, content: "Retiens que je préfère des réponses courtes, en français." },
           { id: "a1", role: "assistant", content: "Compris 👍" },
         ],
       },
@@ -556,7 +569,7 @@ describe("« retiens ça » — the explicit fast path", () => {
       {
         id: "k1", title: "t", modelId: "qwen2.5", createdAt: 0, updatedAt: 0, redactionVault: VAULT,
         messages: [
-          { id: "u1", role: "user", content: "Le devis de Karl Studio est signé.", redactedSpans: [{ value: "Karl Studio", kind: "company" }] },
+          { id: "u1", role: "user", redactions: 0, content: "Le devis de Karl Studio est signé.", redactedSpans: [{ value: "Karl Studio", kind: "company" }] },
           { id: "a1", role: "assistant", content: "Ok." },
         ],
       },

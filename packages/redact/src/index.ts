@@ -110,6 +110,7 @@ export { isStopword, isGenericTerm } from "./model/detect";
 export { stripOrgAffixes, isNonPiiTerm } from "./model/genericTerms";
 export { isCjkText } from "./util";
 export { pseudonymize, type PseudonymizeOptions } from "./model/pseudonymize";
+export { replayForModel, type ReplayOptions } from "./model/pseudonymize/replay";
 export {
   isNotoriousEntity,
   NOTORIOUS_PEOPLE,

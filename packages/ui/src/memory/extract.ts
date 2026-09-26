@@ -1,4 +1,4 @@
-import { applyVault, isGenericTerm, isStopword, unredact, type Vault } from "@openmasq/redact";
+import { isGenericTerm, isStopword, replayForModel, unredact, type Vault } from "@openmasq/redact";
 import { isTokenHomograph, keyInText, normalizeMem } from "./memory";
 import { isExplicitMemoryAsk } from "./extractExplicit";
 import { appendToProfile } from "./profile";
@@ -181,9 +181,10 @@ export function resolveExtraction(
 }
 
 /** The wire slice the extractor reads: the SAME redacted replay the model already saw
- *  (applyVault over the real user texts). */
-export function wireSlice(userTexts: string[], vault: Vault): string {
-  return userTexts.map((t) => applyVault(t, vault, new Set())).join("\n\n");
+ *  (`replayForModel` over the real user texts — the send-time substitution, variants
+ *  included). `mode` is the conversation's pinned one. */
+export function wireSlice(userTexts: string[], vault: Vault, mode?: "fake" | "token"): string {
+  return userTexts.map((t) => replayForModel(t, vault, { mode })).join("\n\n");
 }
 
 /** A turn of the EXPLICIT-ask slice — assistant included, because « retiens tout ça »
@@ -196,10 +197,10 @@ export interface SliceTurn {
 
 /** Labeled wire over whole turns. Egress-neutral like `wireSlice`: the user texts are
  *  the replay the model already saw, and an assistant text is that model's OWN prior
- *  output — stored REAL (un-redacted) in the conversation, so applyVault re-fakes it
+ *  output — stored REAL (un-redacted) in the conversation, so the replay re-fakes it
  *  back to exactly the form the model emitted. Not one new real value goes out. */
-export function wireTurns(turns: SliceTurn[], vault: Vault): string {
+export function wireTurns(turns: SliceTurn[], vault: Vault, mode?: "fake" | "token"): string {
   return turns
-    .map((t) => `${t.role === "user" ? "Utilisateur" : "Assistant"} : ${applyVault(t.text, vault, new Set())}`)
+    .map((t) => `${t.role === "user" ? "Utilisateur" : "Assistant"} : ${replayForModel(t.text, vault, { mode })}`)
     .join("\n\n");
 }

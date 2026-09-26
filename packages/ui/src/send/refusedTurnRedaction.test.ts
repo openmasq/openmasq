@@ -47,6 +47,26 @@ describe("redactRefusedTurn", () => {
     expect(c.redactionKey).toMatch(/^[0-9a-f]{64}$/);
   });
 
+  it("leaves the turn UNMARKED when the on-device detector fails — it must not be replayed", async () => {
+    let patched = false;
+    await redactRefusedTurn({
+      host: {
+        detectLocalPii: async () => {
+          throw new Error("onnxruntime: out of memory");
+        },
+      } as unknown as Host,
+      settings: DEFAULT_SETTINGS,
+      conv: conv(),
+      text: "Écrire à Kwame Adjei-Boateng.",
+      userMsgId: "u1",
+      patchConversation: () => {
+        patched = true;
+      },
+    });
+    // No `redactions` written: `replayable.ts` keeps the turn off every later wire.
+    expect(patched).toBe(false);
+  });
+
   it("keeps the conversation's own seed and fakes when it already has them", async () => {
     let patched: Conversation | null = null;
     const seeded = conv({ redactionSalt: 42, redactionKey: "ab".repeat(32), redactionMode: "token" });

@@ -24,6 +24,7 @@
  * conversation** — the same fake means a different person elsewhere.
  */
 import type { ChatMessage } from "@openmasq/llm";
+import { replayable } from "./replayable";
 
 export interface ContextSummary {
   /** How many of the conversation's WIRE turns this summary covers, counted from the
@@ -118,11 +119,12 @@ export function summaryMarker(summary: ContextSummary, dropped: number): string 
   );
 }
 
-/** Turn a conversation's messages into the labelled turns the pass summarises. */
+/** Turn a conversation's messages into the labelled turns the pass summarises — the same
+ *  ones the history replays: a user turn whose redaction never completed stays out. */
 export function compactableTurns(
-  messages: ChatMessage[],
+  messages: (ChatMessage & { redactions?: unknown })[],
 ): { role: "user" | "assistant"; text: string }[] {
-  return messages
+  return replayable(messages)
     .filter((m): m is ChatMessage & { role: "user" | "assistant" } =>
       (m.role === "user" || m.role === "assistant") && !!m.content?.trim(),
     )

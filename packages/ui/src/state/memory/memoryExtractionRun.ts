@@ -27,6 +27,7 @@ function knownEntities(memoryData: MemoryData | undefined): string[] {
 import { memoryId } from "../../memory";
 import { DEFAULT_MODEL_ID, findModelAny } from "../../prompt/models";
 import { isAutoModelId } from "../../send/autoRoute";
+import { replayable } from "../../send/replayable";
 import type { CompletePayload } from "../../host";
 import { DEFAULT_MAX_PASSES, sweepExtraction } from "../../memory/extractSweep";
 import { pushDebug } from "../debug/debug";
@@ -100,9 +101,11 @@ export async function runMemoryExtraction(
   // at something said before, possibly in an already-extracted slice. Safe to re-read —
   // the merge dedups — and the watermark still only advances.
   const explicit = opts?.explicit === true;
-  const readMsgs = explicit
-    ? conv.messages.slice(Math.max(0, from - EXPLICIT_LOOKBACK))
-    : msgs;
+  // Only what the history itself may replay (`send/replayable.ts`): a user turn whose
+  // redaction never completed has no fakes in the vault, and would leave as typed.
+  const readMsgs = replayable(
+    explicit ? conv.messages.slice(Math.max(0, from - EXPLICIT_LOOKBACK)) : msgs,
+  );
   const slice: ConvSlice = {
     userTexts: readMsgs.filter((m) => m.role === "user").map((m) => m.content).filter(Boolean),
     kinds: Object.fromEntries(
@@ -144,7 +147,8 @@ export async function runMemoryExtraction(
           : [],
       )
     : slice.userTexts.map((t): SliceTurn => ({ role: "user", text: t }));
-  const wire = explicit ? wireTurns(turns, vault) : wireSlice(slice.userTexts, vault);
+  const mode = conv.redactionMode;
+  const wire = explicit ? wireTurns(turns, vault, mode) : wireSlice(slice.userTexts, vault, mode);
   const limit = factLimitFor(explicit);
   // BOUNDED: `host.complete` has no cancellation channel (see `chat:complete` on the
   // main side) — a promise that never resolves used to lock `inFlight` FOR LIFE for the

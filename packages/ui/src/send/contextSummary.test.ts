@@ -107,7 +107,7 @@ describe("compactableTurns", () => {
   it("keeps user and assistant turns with content, drops the rest", () => {
     const messages = [
       { role: "system", content: "sys" },
-      { role: "user", content: "a" },
+      { role: "user", content: "a", redactions: 0 },
       { role: "assistant", content: "" },
       { role: "tool", content: "t", toolCallId: "1" },
       { role: "assistant", content: "b" },

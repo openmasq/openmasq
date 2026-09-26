@@ -6,7 +6,9 @@ import type { Message } from "../types";
 // A fake redaction pass that UPPER-CASES — proves `toWire` is actually applied to each
 // wire string (the real one replays the vault; here we just check the plumbing).
 const up: ToWire = (s) => ({ text: s.toUpperCase() });
-const msg = (m: Partial<Message>): Message => ({ id: "x", role: "user", content: "", ...m }) as Message;
+// A past turn that was SENT: its redaction completed (`replayable.ts`).
+const msg = (m: Partial<Message>): Message =>
+  ({ id: "x", role: "user", content: "", redactions: 0, ...m }) as Message;
 
 describe("buildSystemContent", () => {
   it("redacts the custom system prompt via toWire and drops empty parts", () => {
