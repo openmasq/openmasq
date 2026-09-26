@@ -27,6 +27,15 @@ describe("a user turn whose redaction never completed", () => {
     expect(turns).toHaveLength(2);
   });
 
+  it("holds back an IMPORTED message of either role until the detector has run over it", () => {
+    // The other assistant saw the real values, and its replies quote them.
+    const importedReply = { id: "imp-gpt-abc:m1", role: "assistant", content: `Bonjour ${REAL}` } as Message;
+    expect(wasRedacted(importedReply)).toBe(false);
+    expect(wasRedacted({ ...importedReply, redactions: 2 })).toBe(true);
+    const wire = buildWireHistory([importedReply, sent], { text: "suite" }, "", undefined, identity);
+    expect(JSON.stringify(wire)).not.toContain("Kwame");
+  });
+
   it("is recognised by its missing redaction count — the model's own turns always pass", () => {
     expect(wasRedacted(failedTurn)).toBe(false);
     expect(wasRedacted(sent)).toBe(true);

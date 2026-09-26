@@ -1,4 +1,5 @@
 import type { Conversation, Message } from "../types";
+import { importedConvId, importedMessageId } from "./ids";
 
 /**
  * Parser for the OFFICIAL claude.ai data export (`conversations.json` in the archive
@@ -50,7 +51,7 @@ export function parseClaudeExport(data: unknown, opts: { modelId: string }): Con
   const out: Conversation[] = [];
   for (const raw of data as ClaudeConversation[]) {
     if (!raw || typeof raw !== "object" || !raw.uuid || !Array.isArray(raw.chat_messages)) continue;
-    const convId = `imp-claude-${raw.uuid}`;
+    const convId = importedConvId("claude", raw.uuid);
 
     const messages: Message[] = [];
     for (const m of raw.chat_messages) {
@@ -59,7 +60,7 @@ export function parseClaudeExport(data: unknown, opts: { modelId: string }): Con
       const text = messageText(m);
       if (!text) continue;
       messages.push({
-        id: `${convId}:m${messages.length}`,
+        id: importedMessageId(convId, messages.length),
         role,
         content: text,
         at: toMs(m.created_at),

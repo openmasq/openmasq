@@ -12,9 +12,10 @@ import type { Conversation } from "../types";
  * CSPRNG salt per conversation. The redacted output text is DISCARDED on purpose:
  * display keeps the real content (the marks come from the vault), the wire replays it.
  *
- * ⚠️ It marks NO message redacted (`redactions` unset), so `send/replayable.ts` keeps the
- * imported USER turns off the wire: this tier has no on-device detector, and a vault built
- * without it lets a rare name through on replay. The model's own turns still go back.
+ * ⚠️ It marks NO message redacted (`redactions` unset): this tier has no on-device detector,
+ * and a vault built without it lets a rare name through. `send/replayable.ts` keeps every
+ * imported message off the wire until `send/sendOrchestrator/importedTurns.ts` has run the
+ * detector over them — on the conversation's first way back to a model.
  */
 
 /** Same 31-bit CSPRNG mint as the send pipeline's first-redaction path. */

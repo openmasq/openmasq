@@ -7,3 +7,4 @@ export { parseClaudeExport } from "./claude";
 export { readExportFile } from "./archive";
 export { detectExportProvider } from "./detect";
 export { redactImported } from "./redact";
+export { isImportedMessageId } from "./ids";

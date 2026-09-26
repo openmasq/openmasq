@@ -7,6 +7,7 @@ import { fitHistoryToContext } from "../historyWindow";
 import { makeRedactFn } from "../redactionEngine";
 import { shouldRedactSystemPrompt } from "../redactionOptions";
 import type { FailClosed } from "./failClosed";
+import { detectImportedTurns } from "./importedTurns";
 import type { RedactedTurn } from "./redactionPasses";
 import type { RedactionSetup } from "./redactionSetup";
 import type { TurnContext } from "./turnSetup";
@@ -48,6 +49,9 @@ export async function buildHistory(
       failClosed(e instanceof Error ? e.message : String(e));
     }
   }
+  // An imported history is detected on its first way back to a model (`importedTurns.ts`).
+  const past = await detectImportedTurns(ctx, r, failClosed);
+  if (!past) return null;
   // Last boundary before the dispatch: past this, each path owns its own cancellation.
   if (stoppedEarly()) return null;
 
@@ -56,7 +60,7 @@ export async function buildHistory(
   const systemContent =
     buildSystemContent(r.toWire, settings.systemPrompt, r.numberMode(), { skills: featureUsage("competences") }) +
     (red.memoryWire ? `\n\n${red.memoryWire}` : "");
-  const builtHistory = buildWireHistory(conv.messages, red.userWire, systemContent, opts.imageAttachments, r.toWire);
+  const builtHistory = buildWireHistory(past, red.userWire, systemContent, opts.imageAttachments, r.toWire);
 
   // Keep the system message + the most recent turns that fit; reserve headroom for the
   // reply and, on the agentic path, the tool schemas. Unknown window ⇒ no trim.
