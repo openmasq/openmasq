@@ -288,6 +288,9 @@ importers:
       onnxruntime-node:
         specifier: link:../../packages/ort
         version: link:../../packages/ort
+      smol-toml:
+        specifier: ^1.9.0
+        version: 1.9.1
       string-width:
         specifier: ^8.2.2
         version: 8.2.2
@@ -4903,6 +4906,10 @@ packages:
 
   smol-toml@1.7.1:
     resolution: {integrity: sha512-PPlsspAZ4jbMBu5DMFhfUGDQLu/vrL4SyBROVS37x8ynnVmFIs1VPBz1Co8Xks3TvpIaZXmU85y4DrQ+UyVFoQ==}
+    engines: {node: '>= 18'}
+
+  smol-toml@1.9.1:
+    resolution: {integrity: sha512-j7WyPdf0CJoutMzMoPLF/bVXHtKZIT9Rb4eGeEbWw8X2t5oirjPgpL+OpaENZrILYaXqYwnVH+qgUwVbl+pUJQ==}
     engines: {node: '>= 18'}
 
   source-map-js@1.2.1:
@@ -9853,6 +9860,8 @@ snapshots:
       is-fullwidth-code-point: 5.1.0
 
   smol-toml@1.7.1: {}
+
+  smol-toml@1.9.1: {}
 
   source-map-js@1.2.1: {}
 

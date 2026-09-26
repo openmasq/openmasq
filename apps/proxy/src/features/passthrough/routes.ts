@@ -3,10 +3,11 @@
 // other method on a path no command claimed is refused with a 501: the proxy never forwards
 // a body it did not mask.
 import type { NextFunction, Request, Response, Router } from "express";
+import { FAMILY_PREFIX } from "../../lib/families.js";
 import { relay, type Family, type RelayDeps } from "../../lib/relay.js";
 
 export function familyOf(req: Request): Family {
-  const m = /^\/(openai|anthropic|gemini)(?=\/|$)/.exec(req.originalUrl);
+  const m = FAMILY_PREFIX.exec(req.originalUrl.replace(/^\/s\/[^/]+/, ""));
   if (m) return m[1] as Family;
   if (req.path.startsWith("/v1/messages")) return "anthropic";
   if (/^\/v1(beta|alpha)?\/models\//.test(req.path) && req.path.includes(":")) return "gemini";

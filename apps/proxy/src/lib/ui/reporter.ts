@@ -4,6 +4,7 @@
 // read — the totals, the recent outcomes, and the upstreams the card taught it.
 // `--json` swaps all of it for one JSON object per line.
 import type { ProxyConfig } from "../../config/config.js";
+import { FAMILIES } from "../families.js";
 import { tally } from "../masker.js";
 import { type BannerData, type KeyHint, keyHintLine, renderBanner } from "./banner.js";
 import { ACTIVITY_MAX, type Dials, footerLines, type Stats } from "./footer.js";
@@ -226,11 +227,7 @@ function hostsOf(config: ProxyConfig): Record<string, string> {
       return origin;
     }
   };
-  return {
-    openai: host(config.openai),
-    anthropic: host(config.anthropic),
-    gemini: host(config.gemini),
-  };
+  return Object.fromEntries(FAMILIES.map((f) => [f, host(config[f])]));
 }
 
 /**

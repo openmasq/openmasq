@@ -249,6 +249,23 @@ trouve dans [`examples/README.md`](examples/README.md) :
 > [!TIP]
 > Pour un agent de code, ajoutez à `--keep` les noms de marques que cite son prompt système.
 
+**Mistral Vibe** ne lit aucune de ces adresses : chacun de ses fournisseurs porte son propre
+`api_base`. `openmasq-proxy -- vibe` lit donc les fichiers de Vibe (`~/.vibe/config.toml`, ou
+`$VIBE_HOME`, et chaque `.vibe/config.toml` jusqu'au dossier courant) et redéclare chaque
+fournisseur par `VIBE_PROVIDERS`, qui l'emporte sur ces fichiers sans y toucher :
+
+- un fournisseur sur `api.mistral.ai` passe par `/mistral` (Chat Completions et Embeddings,
+  parties `thinking` comprises), un fournisseur chez un autre éditeur par la famille de cet
+  éditeur, un local (`127.0.0.1`) reste tel quel, et tout autre est envoyé vers `/blocked` : il
+  échoue pour la session plutôt que de partir en clair ;
+- synthèse vocale, transcription, téléportation, recherche web et télémétrie sont coupées pour la
+  session ;
+- Vibe est aussi reconnu derrière un lanceur (`uvx --from mistral-vibe vibe`, `uv run vibe`,
+  `python -m vibe`).
+
+La session refuse de démarrer si la configuration de Vibe ne peut pas être lue ou routée. La
+configuration imposée par une organisation n'est pas visible d'ici, et la carte le dit.
+
 ## Intégrations MCP
 
 Avec `--mcp`, le proxy sert aussi un serveur MCP sur `http://127.0.0.1:8787/mcp`. Pointez-y
@@ -312,6 +329,7 @@ rend le client tel qu'il était. `--mcp-no-adopt` laisse de côté les serveurs 
 | **opencode** | Un fichier de configuration dans `OPENCODE_CONFIG` : le nôtre ajouté, chacun des siens désactivé | Aucune. Un `opencode.json` de projet peut primer sur ce fichier : le proxy revérifie donc sous sa configuration et refuse l'exclusivité si un serveur a survécu. Refusé si `OPENCODE_CONFIG` est déjà défini. |
 | **Copilot CLI** | Un `--disable-mcp-server <id>` par serveur, `--disable-builtin-mcps`, et le nôtre via `--additional-mcp-config` | Aucune |
 | **Hermes** | Un `HERMES_HOME` temporaire : votre `config.yaml` avec `model.base_url` pointé sur le proxy et notre point d'accès comme seul serveur MCP ; tout le reste est relié par lien symbolique à `~/.hermes` | Lancez `hermes setup` une fois |
+| **Mistral Vibe** | `VIBE_MCP_SERVERS` : chacun de ses serveurs redéclaré en souche désactivée (aucun en-tête ni jeton recopié), le nôtre à côté avec sa clé dans un en-tête ; `VIBE_ENABLE_CONNECTORS=false` pour les connecteurs hébergés par Mistral ; `plugin_*` ajouté à `VIBE_DISABLED_TOOLS` | Rien. Un profil d'agent qui déclare ses propres serveurs bloque l'exclusivité. |
 
 > [!WARNING]
 > Tout autre client garde ses propres serveurs MCP, et **ces appels d'outils ne passent pas

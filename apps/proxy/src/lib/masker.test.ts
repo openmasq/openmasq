@@ -14,6 +14,19 @@ describe("masker", () => {
     expect(m.restoreReply(r.text, vault)).toBe("Merci au Groupe Delorme pour le lancement.");
   });
 
+  it("refuses — never forwards on the rules alone — when the on-device detector fails", async () => {
+    const m = createMasker({
+      ...base,
+      level: "renforce",
+      detectLocal: async () => {
+        throw new Error("onnxruntime: out of memory");
+      },
+    });
+    await expect(m.mask("Écrire à Kwame Oduya chez Zyntrio", {}, "fake")).rejects.toMatchObject({
+      status: 502,
+    });
+  });
+
   it("erases a secret", async () => {
     const m = createMasker({ ...base, secrets: ["sk-live-abcdef123456"] });
     const r = await m.mask("token: sk-live-abcdef123456", {}, "token");

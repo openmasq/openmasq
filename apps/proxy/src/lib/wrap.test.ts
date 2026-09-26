@@ -13,6 +13,16 @@ describe("the wrapped child", () => {
     expect(env.OPENAI_BASE_URL).toBe("http://127.0.0.1:8787/v1");
     expect(env.ANTHROPIC_BASE_URL).toBe("http://127.0.0.1:8787");
   });
+
+  it("exempts loopback from any HTTP proxy, keeping the user's own exemptions", () => {
+    // Otherwise the unmasked request — and its key — goes to that proxy on its way to us.
+    const env = wrappedEnv("http://127.0.0.1:8787", {
+      HTTP_PROXY: "http://corp:3128",
+      no_proxy: "intra.test",
+    });
+    expect(env.NO_PROXY?.split(",")).toEqual(["127.0.0.1", "localhost", "::1"]);
+    expect(env.no_proxy?.split(",")).toEqual(["intra.test", "127.0.0.1", "localhost", "::1"]);
+  });
 });
 
 describe("the request log", () => {

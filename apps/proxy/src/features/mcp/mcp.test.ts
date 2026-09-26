@@ -46,9 +46,11 @@ function fakeCrm(): { connection: McpConnection; calls: McpToolCall[] } {
           serverId: "crm",
         },
         { name: "send_invoice", inputSchema: { type: "object" }, serverId: "crm" },
+        { name: "get_mailbox", inputSchema: { type: "object" }, serverId: "crm" },
       ],
       callTool: async (call) => {
         calls.push(call);
+        if (call.name === "get_mailbox") throw new Error(`no mailbox for ${REAL}`);
         return { content: [{ type: "text", text: `Dossier ouvert par ${REAL}, 2 factures.` }] };
       },
       close: async () => {},
@@ -174,7 +176,11 @@ describe("/mcp — the integrations, masked", () => {
     booted = await boot("confirm");
     const client = await agent(booted.url);
     const { tools } = await client.listTools();
-    expect(tools.map((t) => t.name)).toEqual(["crm__search_clients", "crm__send_invoice"]);
+    expect(tools.map((t) => t.name)).toEqual([
+      "crm__search_clients",
+      "crm__send_invoice",
+      "crm__get_mailbox",
+    ]);
     expect(tools[0].inputSchema).toEqual({ type: "object", properties: { q: { type: "string" } } });
     await client.close();
   });
@@ -217,6 +223,15 @@ describe("/mcp — the integrations, masked", () => {
     });
     expect(booted.upstreamBodies.at(-1)).toContain(FAKE);
     expect(booted.upstreamBodies.at(-1)).not.toContain(REAL);
+  });
+
+  it("never hands the agent a server's error text — it can quote the real value", async () => {
+    booted = await boot("allow");
+    const client = await agent(booted.url);
+    const result = await client.callTool({ name: "crm__get_mailbox", arguments: {} });
+    expect(result.isError).toBe(true);
+    expect(JSON.stringify(result.content)).not.toContain(REAL);
+    await client.close();
   });
 
   it("refuses a write under --mcp-writes deny, and never reaches the server", async () => {

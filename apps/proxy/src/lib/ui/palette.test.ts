@@ -16,7 +16,9 @@ const token = (name: string): string | undefined =>
 // The dark theme re-points a handful of tokens in its own sheets (`theme/spadeDark.css`,
 // after the light kit in cascade order); everything else inherits `:root`. So a token has a
 // LIGHT value (its first hex before that sheet) and, when overridden, a DARK one (its last hex after).
-const DARK_AT = css.indexOf(readFileSync(resolve(dirname(ENTRY), "styles/theme/spadeDark.css"), "utf8"));
+const DARK_AT = css.indexOf(
+  readFileSync(resolve(dirname(ENTRY), "styles/theme/spadeDark.css"), "utf8"),
+);
 const hexes = (name: string) =>
   [...css.matchAll(new RegExp(`--${name}:\\s*(#[0-9a-fA-F]{6})`, "g"))].map((m) => ({
     at: m.index ?? 0,

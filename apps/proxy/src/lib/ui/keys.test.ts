@@ -73,6 +73,8 @@ describe("keys", () => {
       OPENAI_BASE_URL: "http://127.0.0.1:8787/v1",
       ANTHROPIC_BASE_URL: "http://127.0.0.1:8787",
       GOOGLE_GEMINI_BASE_URL: "http://127.0.0.1:8787",
+      NO_PROXY: "127.0.0.1,localhost,::1",
+      no_proxy: "127.0.0.1,localhost,::1",
     });
   });
 });

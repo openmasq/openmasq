@@ -6,6 +6,7 @@
 // remote drops its stream): `@openmasq/mcp` reports it through `onClose`, and a tool list
 // that no longer names a dead server is how the model learns to stop calling it.
 import type { McpConnection, McpTool } from "@openmasq/mcp";
+import { getDefaultEnvironment } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { connectHttp, connectStdio, UnauthorizedError } from "@openmasq/mcp/transport";
 import type { OAuthClientProvider } from "@openmasq/mcp/transport";
 import type { HttpSpec, ServerSpec } from "./servers.js";
@@ -85,9 +86,11 @@ async function connectSpec(
       id: spec.id,
       command: spec.command,
       args: spec.args,
-      // The child inherits the proxy's PATH etc. plus the spec's own secrets. Merged HERE
-      // and nowhere else, so the merge is auditable in one place.
-      env: { ...(process.env as Record<string, string>), ...spec.env },
+      // The child gets the SDK's minimal allow-list (PATH, HOME, USER, the locale…) plus the
+      // spec's OWN variables — never the proxy's whole environment, which holds the key to
+      // the credential store (`OPENMASQ_PROXY_KEY`) and whatever provider keys the shell
+      // exported. Merged HERE and nowhere else, so the merge is auditable in one place.
+      env: { ...getDefaultEnvironment(), ...spec.env },
       onClose,
     });
   const authProvider = oauth?.(spec);

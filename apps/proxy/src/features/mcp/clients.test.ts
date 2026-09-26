@@ -37,7 +37,15 @@ describe("the wrapped client", () => {
     // Cursor's CLI has no flag for "only this MCP config" and no allow-list; being absent
     // here is what makes `start.ts` warn instead of promising a mask it cannot apply.
     expect(detectClient("cursor-agent")).toBeUndefined();
-    expect(CLIENT_IDS).toEqual(["claude", "codex", "gemini", "opencode", "copilot", "hermes"]);
+    expect(CLIENT_IDS).toEqual([
+      "claude",
+      "codex",
+      "gemini",
+      "opencode",
+      "copilot",
+      "hermes",
+      "vibe",
+    ]);
   });
 
   it("hands it one server: ours", () => {

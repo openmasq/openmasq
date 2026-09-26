@@ -61,6 +61,10 @@ export interface AgentClient {
   /** Its own declarations, widest scope first — a duplicate id keeps the first one
    *  (`../own.ts`), which is the scope whose credentials the user gave the widest reach. */
   declarations?(cwd: string, home: string): Declaration[];
+  /** …or, when its files are not JSON and it has no listing command, it reads them ITSELF
+   *  (Vibe's TOML). It THROWS when a file cannot be read: exclusivity names every server,
+   *  so a partial answer is none (`../own.ts` turns the throw into `failed`). */
+  list?(cwd: string, home: string): OwnServer[];
   /** …or, when its files are not all JSON, the binary is ASKED. Its own resolver is the only
    *  one that sees everything it will load, so this is the better answer where it exists. */
   probe?: { args: string[]; parse(stdout: string): OwnServer[] };

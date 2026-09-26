@@ -22,6 +22,8 @@ export interface ProxyConfig {
   openai: string;
   anthropic: string;
   gemini: string;
+  /** Mistral's own API (Mistral Vibe). OpenAI's paths, so it is reached under `/mistral` only. */
+  mistral: string;
   /** Bundled NER models dir (the desktop's `build/ner-models` layout). "" ⇒ none. */
   nerDir: string;
   /** Run on the pattern rules alone — an EXPLICIT opt-out of the fail-closed default: names,
@@ -89,6 +91,7 @@ export const DEFAULTS: ProxyConfig = {
   openai: "https://api.openai.com",
   anthropic: "https://api.anthropic.com",
   gemini: "https://generativelanguage.googleapis.com",
+  mistral: "https://api.mistral.ai",
   nerDir: "",
   rulesOnly: false,
   mode: "fake",

@@ -10,6 +10,7 @@ import { readFileSync } from "node:fs";
 import { basename } from "node:path";
 import { type ConfigFile, readConfigFile, type Settings } from "./file.js";
 import { byFlag, byName, fromString, OPTIONS, type Source } from "./options.js";
+import { FAMILIES } from "../lib/families.js";
 import { DEFAULTS, type ProxyConfig } from "./schema.js";
 import { USAGE } from "./usage.js";
 
@@ -121,7 +122,7 @@ export function parseConfig(
 
   if (!Number.isInteger(config.port) || config.port < 1 || config.port > 65535)
     throw new Error(`Bad port ${config.port}`);
-  for (const u of [config.openai, config.anthropic, config.gemini])
+  for (const u of FAMILIES.map((f) => config[f]))
     if (!/^https?:\/\//.test(u)) throw new Error(`Upstream must be an http(s) origin: ${u}`);
   // --reveal puts real personal data on screen. It is allowed on an operator's terminal and
   // nowhere else: not in a machine-read stream, and not behind a tool that owns the terminal
