@@ -29,3 +29,18 @@ describe("rewriteSearchEngine — Google → DuckDuckGo (the default engine)", (
     expect(isAllowedBrowserUrl("not a url")).toBe(false);
   });
 });
+
+describe("a navigation URL's credentials and look-alike search hosts", () => {
+  it("refuses any navigation carrying credentials — that slot reaches the host like a query", () => {
+    expect(isAllowedBrowserUrl("https://Jean%20Dupont@evil.io/")).toBe(false);
+    expect(isAllowedBrowserUrl("https://u:p@example.com/")).toBe(false);
+    expect(isAllowedBrowserUrl("https://example.com/")).toBe(true);
+  });
+
+  it("rewrites only Google's own search domains", () => {
+    expect(rewriteSearchEngine("https://google.attacker.example/search?q=x")).toBe(
+      "https://google.attacker.example/search?q=x",
+    );
+    expect(rewriteSearchEngine("https://www.google.fr/search?q=x")).toContain("duckduckgo.com");
+  });
+});

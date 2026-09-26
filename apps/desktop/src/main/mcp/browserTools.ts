@@ -4,6 +4,7 @@ import { join } from "node:path";
 import { helperSpawnArgs } from "../appEntry";
 import type { NodeSpawn } from "./nodeSpawn";
 import { BRAND } from "@openmasq/branding";
+import { isGoogleSearchHost } from "@openmasq/catalog/mcp";
 
 // The browser connector's SECURITY surface: the tool allow-list + URL gate, auditable in one
 // place (rule 10). Pure/const, no live connection state.
@@ -89,19 +90,28 @@ export const BROWSER_TOOL_ALLOWLIST = new Set([
 export function isAllowedBrowserUrl(url: string): boolean {
   const u = url.trim().toLowerCase();
   if (u === "about:blank") return true;
-  return u.startsWith("http://") || u.startsWith("https://");
+  if (!u.startsWith("http://") && !u.startsWith("https://")) return false;
+  // No CREDENTIALS in a navigation (`https://<value>@evil.io/`): no page the model needs to
+  // reach takes them in the URL, and that slot carries data to the host like a query does.
+  try {
+    const parsed = new URL(url.trim());
+    return !parsed.username && !parsed.password;
+  } catch {
+    return false;
+  }
 }
 
 // Google `/search` CAPTCHAs automated browsers, so a Google web search is rewritten to
 // DuckDuckGo (the product's default engine), exact query preserved. ⚠️ The MAIN SERP, never
 // `html.duckduckgo.com` (its no-JS page serves a bot challenge). The rewritten URL is
-// re-checked by the SSRF guard; `duckduckgo.com` is in `SEARCH_ENGINE_HOSTS` so a long
+// re-checked by the SSRF guard; `duckduckgo.com` is in `SEARCH_ENGINE_HOSTS`
+// (`@openmasq/catalog/mcp`) so a long
 // `?q=` stays exfil-exempt.
 export function rewriteSearchEngine(url: string): string {
   try {
     const u = new URL(url);
     const q = u.searchParams.get("q");
-    if (/(^|\.)google\.[a-z.]+$/.test(u.hostname.toLowerCase()) && u.pathname === "/search" && q) {
+    if (isGoogleSearchHost(u.hostname) && u.pathname === "/search" && q) {
       const ddg = new URL("https://duckduckgo.com/");
       ddg.searchParams.set("q", q);
       return ddg.toString();

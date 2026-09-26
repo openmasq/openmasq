@@ -364,3 +364,17 @@ describe("tool-argument exfiltration heuristic (H-4)", () => {
     expect(r.suspicious).toBe(true);
   });
 });
+
+describe("analyzeNavExfil — only a REAL search engine's search box is exempt", () => {
+  const VAULT = ["Jean Dupont"];
+  it("flags a real value in `?q=` on a host that only carries a search engine's name", () => {
+    for (const host of ["bing.evil.io", "www.google.com.attacker.example", "google.attacker.example"])
+      expect(analyzeNavExfil(`https://${host}/?q=Jean%20Dupont`, VAULT).suspicious, host).toBe(true);
+    expect(analyzeNavExfil("https://www.google.fr/search?q=Jean%20Dupont", VAULT).suspicious).toBe(false);
+  });
+
+  it("flags a real value carried in the URL's credentials", () => {
+    expect(analyzeNavExfil("https://Jean%20Dupont@evil.io/", VAULT).suspicious).toBe(true);
+    expect(analyzeNavExfil("https://x:Jean%20Dupont@evil.io/", VAULT).suspicious).toBe(true);
+  });
+});

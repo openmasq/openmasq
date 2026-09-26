@@ -1,5 +1,6 @@
 import { shell } from "electron";
 import { extractPaths } from "../files";
+import { safeOpenPath } from "../net/safeOpen";
 import { makeGrant, type Grant } from "./grant";
 
 /**
@@ -104,8 +105,8 @@ export function makeMainFsOps(roots: string[], deny: string[]): MainFsOps {
       await shell.trashItem(real);
     },
     async open(path) {
-      const err = await shell.openPath(gate().resolve(path));
-      if (err) throw new Error(err);
+      // An executable in a granted folder is REVEALED, never run (`safeOpenPath`).
+      await safeOpenPath(gate().resolve(path));
     },
   };
 }

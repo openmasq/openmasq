@@ -1,4 +1,3 @@
-import { shell } from "electron";
 import { readFile } from "node:fs/promises";
 import { redactFileInPlace } from "@openmasq/redact/inplace";
 import {
@@ -13,6 +12,7 @@ import { pickAndExtract, extractPaths, pickPaths, type OcrProgressFn } from "../
 import { safeFileName } from "../db/safePath";
 import { writeAppTmpFile } from "./appTmpFile";
 import { safeFetch } from "../net/net";
+import { safeOpenPath } from "../net/safeOpen";
 import { isFetchHostAllowed } from "../net/fetchAllow";
 import { previewLink } from "../net/linkPreview";
 import { withAgentBrowserHidden } from "../mcp/browser";
@@ -156,8 +156,13 @@ export function registerFilesIpc(): void {
     // supplied id), deleted on quit: these are the DECRYPTED originals. The slug prefix
     // keeps the path inside the read-gate's temp allow-list.
     const path = await writeAppTmpFile("open", safeFileName(data.name), Buffer.from(data.original));
-    const err = await shell.openPath(path);
-    return err === "";
+    // An executable type is REVEALED, never run (`safeOpenPath`): the name is the attachment's.
+    try {
+      await safeOpenPath(path);
+      return true;
+    } catch {
+      return false;
+    }
   });
   /** The payload of `files:redact-and-save`. A shape the handler ITSELF still re-checks
    *  (`typeof p.data === "string"`, the `p.path` branch): `obj` at the boundary only
