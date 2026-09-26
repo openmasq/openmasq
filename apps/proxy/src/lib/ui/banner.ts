@@ -3,6 +3,7 @@
 // escapes — the widths come from `tty.width`, which counts columns, not code units.
 import { DEFAULTS, type ProxyConfig } from "../../config/config.js";
 import { envLines } from "../baseUrls.js";
+import { FAMILIES } from "../families.js";
 import { renderLockup } from "./mark.js";
 import { inClearPhrase } from "./kinds.js";
 import { HUE_HEX, INK_HEX } from "./palette.js";
@@ -80,16 +81,14 @@ function flow(tty: Tty, long: boolean): string {
   return `${tty.bold("you")}${arrow}${out}${arrow}${middle}${arrow}${back}${arrow}${tty.bold("you")}`;
 }
 
-/** The three upstreams. A DEFAULT origin is noise — its host says nothing the family does not
- *  — so the compact form names it only when it was pointed somewhere else. */
+/** The upstreams, one per family. A DEFAULT origin is noise — its host says nothing the
+ *  family does not — so the compact form names it only when it was pointed somewhere else. */
 function upstreams(tty: Tty, config: ProxyConfig, room: number): string {
-  const full = `${tty.dim("openai")} ${host(config.openai)} ${tty.dim("· anthropic")} ${host(config.anthropic)} ${tty.dim("· gemini")} ${host(config.gemini)}`;
-  const overridden = (["openai", "anthropic", "gemini"] as const).filter(
-    (k) => config[k] !== DEFAULTS[k],
-  );
-  const short = (["openai", "anthropic", "gemini"] as const)
-    .map((k) => (config[k] === DEFAULTS[k] ? tty.dim(k) : `${tty.dim(k)} ${host(config[k])}`))
-    .join(tty.dim(" · "));
+  const full = FAMILIES.map((k) => `${tty.dim(k)} ${host(config[k])}`).join(tty.dim(" · "));
+  const overridden = FAMILIES.filter((k) => config[k] !== DEFAULTS[k]);
+  const short = FAMILIES.map((k) =>
+    config[k] === DEFAULTS[k] ? tty.dim(k) : `${tty.dim(k)} ${host(config[k])}`,
+  ).join(tty.dim(" · "));
   return pick(
     tty,
     room,

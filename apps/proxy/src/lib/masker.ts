@@ -119,6 +119,14 @@ export function createMasker(opts: MaskerOptions): Masker {
         secrets: opts.secrets,
         numbers: false,
       });
+      // The engine does not throw when a detector fails: it records `modelError` and carries
+      // on with the pattern rules alone. Here that is a refusal — names, companies and places
+      // would leave in clear — so it becomes the 502 the app answers (`app.ts`), and the text
+      // is not forwarded. The message names the failure, never the text.
+      if (res.modelError)
+        throw Object.assign(new Error("masking failed: the on-device detector did not run"), {
+          status: 502,
+        });
       return { text: res.text, matches: res.matches as RedactionMatch[] };
     },
     restoreReply: (text, vault) => (text ? unredactReply(text, vault) : text),

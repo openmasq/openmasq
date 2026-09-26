@@ -59,10 +59,12 @@ export function mcpBody(req: Request, res: Response, next: NextFunction): void {
   next();
 }
 
-/** The error text the AGENT receives. It names the tool and the failure, never a value from
- *  the arguments and never anything the upstream sent back verbatim. */
-const failed = (name: string, err: unknown): string =>
-  `${name} failed: ${err instanceof Error ? err.message : String(err)}`;
+/** The error text the AGENT receives. It names the tool, never a value from the arguments and
+ *  never anything the upstream sent back: a server's error quotes what it could not find (« no
+ *  mailbox for <the real address> »), and this text reaches the model unmasked. */
+const failed = (name: string, _err: unknown): string =>
+  `${name} failed on the server's side; its message is withheld (it can quote personal data). ` +
+  "Check the arguments, or ask the user to look at the proxy's terminal.";
 
 function buildServer(deps: McpRouteDeps, locals: Locals, reportedAt: () => number): Server {
   const server = new Server({ ...INFO, version: deps.version }, { capabilities: { tools: {} } });

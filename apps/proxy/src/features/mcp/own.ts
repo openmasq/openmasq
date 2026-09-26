@@ -64,6 +64,13 @@ export function notOurs(own: OwnServer[], endpoint: string): OwnServer[] {
 }
 
 export function ownServers(client: AgentClient, deps: OwnDeps): Own {
+  if (client.list) {
+    try {
+      return { own: client.list(deps.cwd, deps.home) };
+    } catch (err) {
+      return { failed: err instanceof Error ? err.message : String(err) };
+    }
+  }
   if (client.probe) {
     const run = deps.run ?? probeRun;
     try {

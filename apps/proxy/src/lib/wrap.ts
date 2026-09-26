@@ -75,12 +75,27 @@ function rotate(file: string): void {
   }
 }
 
-/** The child's environment: the caller's, plus the three base URLs. */
+/** Loopback, in the spellings HTTP clients match `NO_PROXY` against. */
+const LOOPBACK = ["127.0.0.1", "localhost", "::1"];
+
+/**
+ * The child's environment: the caller's, plus the three base URLs — and loopback exempted
+ * from any HTTP proxy. A client honouring `HTTP_PROXY` (or the OS's proxy settings, which
+ * Python's `getproxies()` reads when no variable is set) would otherwise send its request —
+ * the body NOT YET MASKED, with the API key — to that proxy on its way to us.
+ */
 export function wrappedEnv(url: string, env: NodeJS.ProcessEnv = process.env): NodeJS.ProcessEnv {
   const out = { ...env };
   for (const l of envLines(url)) {
     const i = l.indexOf("=");
     out[l.slice(0, i)] = l.slice(i + 1);
+  }
+  for (const key of ["NO_PROXY", "no_proxy"]) {
+    const have = (out[key] ?? "")
+      .split(",")
+      .map((h) => h.trim())
+      .filter(Boolean);
+    out[key] = [...new Set([...have, ...LOOPBACK])].join(",");
   }
   return out;
 }
@@ -89,16 +104,19 @@ export function wrappedEnv(url: string, env: NodeJS.ProcessEnv = process.env): N
  * Run `command` on the terminal; resolves with its exit code. `extraArgs` comes from the
  * caller — with `--mcp` it is what makes the client speak to our endpoint and no other. They
  * go FIRST, because a client's global flags must precede its subcommand; nothing the user
- * wrote is removed or reordered.
+ * wrote is removed or reordered. `extraEnv` is what a client whose model endpoint the base
+ * URLs do not reach needs instead (`features/vibe`).
  */
 export function runWrapped(
   command: string[],
   url: string,
   extraArgs: string[] = [],
+  extraEnv: Record<string, string> = {},
 ): Promise<number> {
   return new Promise((resolve) => {
     const args = [...extraArgs, ...command.slice(1)];
-    const child = spawn(command[0], args, { stdio: "inherit", env: wrappedEnv(url) });
+    const env = { ...wrappedEnv(url), ...extraEnv };
+    const child = spawn(command[0], args, { stdio: "inherit", env });
     child.on("error", (err) => {
       process.stderr.write(`cannot start ${command[0]}: ${err.message}\n`);
       resolve(127);

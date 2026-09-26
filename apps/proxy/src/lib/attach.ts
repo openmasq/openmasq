@@ -9,10 +9,11 @@ import { randomBytes } from "node:crypto";
 import { createServer } from "node:net";
 import { basename } from "node:path";
 import { readConsoleLink } from "../features/console/link.js";
+import { clientEnv, type Upstreams } from "../features/vibe/index.js";
 import { openInBrowser } from "./openUrl.js";
 import { createReporter, renderJoinCard } from "./ui/index.js";
 import type { ThemeChoice } from "./ui/theme.js";
-import type { ProxyConfig } from "../config/config.js";
+import { DEFAULTS, type ProxyConfig } from "../config/config.js";
 import { runWrapped } from "./wrap.js";
 
 export interface Running {
@@ -79,7 +80,16 @@ export async function findRunning(
  */
 export interface JoinDeps {
   find?: typeof findRunning;
-  run?: (command: string[], url: string, extra: string[]) => Promise<number>;
+  run?: (
+    command: string[],
+    url: string,
+    extra: string[],
+    env?: Record<string, string>,
+  ) => Promise<number>;
+  /** Where each family goes, for a client repointed family by family (`features/vibe`). The
+   *  running proxy's own are not reported; ours are the best guess, and a mismatch lands on
+   *  `/blocked` or the vendor the family names — never in clear. */
+  upstreams?: Upstreams;
   note?: (text: string) => void;
   /** The opening sequence, played for THIS proxy's masking rather than our own flags.
    *  Skipped when the running build does not report them. */
@@ -151,7 +161,17 @@ export async function joinRunning(
       "could not open a browser here — open the live view URL on the card by hand",
       "warn",
     );
-  return await (deps.run ?? runWrapped)(command, sessionUrl(url, session), []);
+  // A client the base URLs do not reach (Vibe) is repointed here too — or not started.
+  const target = sessionUrl(url, session);
+  const plan = clientEnv(command, target, deps.upstreams ?? DEFAULTS);
+  const say = (text: string, tone: "info" | "warn") =>
+    deps.note ? deps.note(text) : reporter.note(text, tone);
+  if ("refuse" in plan) {
+    say(plan.refuse, "warn");
+    return 2;
+  }
+  for (const n of plan.notes) say(n.text, n.tone);
+  return await (deps.run ?? runWrapped)(plan.command ?? command, target, [], plan.env);
 }
 
 /** What a JOIN is told about this run: the flags it cannot honour, and the opening sequence
@@ -167,6 +187,7 @@ export function joinOptions(
       config.reveal && "--reveal",
     ].filter(Boolean) as string[],
     openConsole: config.open,
+    upstreams: config,
     theme: config.theme,
     wantsConsole: config.console || config.open,
     open: (running) =>

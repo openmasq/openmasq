@@ -3,7 +3,13 @@
 // — system and user text, the assistant history, tool results, and the arguments of the
 // tool calls already in the history (a REAL value the client executed on). BACK: the reply's
 // text is restored for the reader, the tool-call arguments for the executor (`restoreArgs`).
-import { isRecord, mapJsonString, mapJsonStringSync } from "../../lib/json.js";
+import {
+  isRecord,
+  mapJsonString,
+  mapJsonStringSync,
+  mapStrings,
+  mapStringsSync,
+} from "../../lib/json.js";
 
 export type MaskFn = (text: string) => Promise<string>;
 export interface RestoreFns {
@@ -13,27 +19,47 @@ export interface RestoreFns {
 
 const TEXT_PART_TYPES = new Set(["text", "input_text", "output_text"]);
 
+/** Mistral's reasoning part — `{type:"thinking", thinking:[{type:"text",text}]}` (or a bare
+ *  string). The client sends it back in the history, so the model READS it: it is masked
+ *  like any text, and restored on the way back like any reply. */
+const isThinking = (part: unknown): part is Record<string, unknown> =>
+  isRecord(part) && part.type === "thinking";
+
 /** Mask a `content` field: a string, or an array of parts whose text parts are masked. */
-async function maskContent(content: unknown, mask: MaskFn): Promise<unknown> {
+export async function maskContent(content: unknown, mask: MaskFn): Promise<unknown> {
   if (typeof content === "string") return mask(content);
   if (!Array.isArray(content)) return content;
   const out: unknown[] = [];
   for (const part of content) {
     if (isRecord(part) && TEXT_PART_TYPES.has(String(part.type)) && typeof part.text === "string") {
       out.push({ ...part, text: await mask(part.text) });
+    } else if (isThinking(part)) {
+      out.push({ ...part, thinking: await maskContent(part.thinking, mask) });
     } else out.push(part);
   }
   return out;
 }
 
-function restoreContent(content: unknown, restore: (s: string) => string): unknown {
+export function restoreContent(content: unknown, restore: (s: string) => string): unknown {
   if (typeof content === "string") return restore(content);
   if (!Array.isArray(content)) return content;
-  return content.map((part) =>
-    isRecord(part) && TEXT_PART_TYPES.has(String(part.type)) && typeof part.text === "string"
-      ? { ...part, text: restore(part.text) }
-      : part,
-  );
+  return content.map((part) => {
+    if (isRecord(part) && TEXT_PART_TYPES.has(String(part.type)) && typeof part.text === "string")
+      return { ...part, text: restore(part.text) };
+    if (isThinking(part)) return { ...part, thinking: restoreContent(part.thinking, restore) };
+    return part;
+  });
+}
+
+/** Tool-call `arguments`: a JSON STRING on OpenAI's wire, and either that or an OBJECT on
+ *  Mistral's. Both are walked — an object left as is would go out with its real values. */
+export async function maskArgs(args: unknown, mask: MaskFn): Promise<unknown> {
+  if (typeof args === "string") return mapJsonString(args, mask);
+  return isRecord(args) ? mapStrings(args, mask) : args;
+}
+export function restoreArgs(args: unknown, restore: (s: string) => string): unknown {
+  if (typeof args === "string") return mapJsonStringSync(args, restore);
+  return isRecord(args) ? mapStringsSync(args, restore) : args;
 }
 
 /** Chat Completions request. */
@@ -52,10 +78,13 @@ export async function maskChatRequest(
     if (Array.isArray(m.tool_calls)) {
       const calls: unknown[] = [];
       for (const c of m.tool_calls) {
-        if (isRecord(c) && isRecord(c.function) && typeof c.function.arguments === "string") {
+        if (isRecord(c) && isRecord(c.function) && c.function.arguments !== undefined) {
           calls.push({
             ...c,
-            function: { ...c.function, arguments: await mapJsonString(c.function.arguments, mask) },
+            function: {
+              ...c.function,
+              arguments: await maskArgs(c.function.arguments, mask),
+            },
           });
         } else calls.push(c);
       }
@@ -121,12 +150,12 @@ export function restoreChatResponse(
     };
     if (Array.isArray(ch.message.tool_calls)) {
       msg.tool_calls = ch.message.tool_calls.map((c) =>
-        isRecord(c) && isRecord(c.function) && typeof c.function.arguments === "string"
+        isRecord(c) && isRecord(c.function) && c.function.arguments !== undefined
           ? {
               ...c,
               function: {
                 ...c.function,
-                arguments: mapJsonStringSync(c.function.arguments, fns.args),
+                arguments: restoreArgs(c.function.arguments, fns.args),
               },
             }
           : c,

@@ -3,7 +3,7 @@
 export const USAGE = `openmasq-proxy — mask personal data before it leaves the machine
 
   openmasq-proxy [--port 8787] [--ner <models dir>] [--mode fake|token]
-                 [--openai <origin>] [--anthropic <origin>] [--gemini <origin>]
+                 [--openai <origin>] [--anthropic <origin>] [--gemini <origin>] [--mistral <origin>]
                  [--level standard|renforce|strict] [--disable email,phone] [--keep A,B]
                  (standard is the default: deterministic pattern rules, no model loaded)
                  [--always "Groupe Delorme:company,FR76 3000…:iban"] [--secrets-file <path>]
@@ -11,7 +11,7 @@ export const USAGE = `openmasq-proxy — mask personal data before it leaves the
                  [--theme auto|light|dark] [--no-splash] [--open] [--no-console-reveal] [--config <file>]
                  [--mcp] [--mcp-config <file>] [--mcp-writes confirm|deny|allow] [--mcp-no-adopt]
   openmasq-proxy [flags] -- claude            run a tool through the proxy, stop with it
-                 (codex, gemini, opencode, copilot too — --mcp makes us their only MCP)
+                 (codex, gemini, opencode, copilot, vibe too — --mcp makes us their only MCP)
   openmasq-proxy console [--url]              open the live view of the running proxy
   openmasq-proxy config show|path|init|edit|schema   the settings, where each came from, the file
 
@@ -20,9 +20,10 @@ own API key: the proxy forwards it untouched, masks the messages on the way out 
 restores the reply on the way back. Routes: /v1/chat/completions, /v1/responses,
 /v1/embeddings (OpenAI), /v1/messages (Anthropic), /v1beta/models/<m>:generateContent and
 :streamGenerateContent?alt=sse (Gemini); prefix with /openai, /anthropic or /gemini to force
-a family. Headers: x-openmasq-session (reuse one vault across turns),
+a family. Mistral's API is served under /mistral only (/mistral/v1/chat/completions,
+/mistral/v1/embeddings). Headers: x-openmasq-session (reuse one vault across turns),
 x-openmasq-mode (fake|token). Env: OPENMASQ_PROXY_PORT, OPENMASQ_UPSTREAM_OPENAI,
-OPENMASQ_UPSTREAM_ANTHROPIC, OPENMASQ_UPSTREAM_GEMINI, OPENMASQ_NER_DIR, OPENMASQ_PROXY_MODE, OPENMASQ_PROXY_LEVEL,
+OPENMASQ_UPSTREAM_ANTHROPIC, OPENMASQ_UPSTREAM_GEMINI, OPENMASQ_UPSTREAM_MISTRAL, OPENMASQ_NER_DIR, OPENMASQ_PROXY_MODE, OPENMASQ_PROXY_LEVEL,
 OPENMASQ_PROXY_KEEP, OPENMASQ_PROXY_DISABLED_KINDS, OPENMASQ_PROXY_ALWAYS, OPENMASQ_PROXY_THEME, OPENMASQ_PROXY_SPLASH, OPENMASQ_PROXY_OPEN.
 Types for --always: name, username, email, phone, company, address, city, id, card, iban, ip, path, dob, secret.
 
@@ -66,7 +67,11 @@ through the proxy), off (neither) — and "level", "disable", "keep", "writes" g
 server its own masking and its own write gate. What a stricter server puts in the session's
 vault stays masked for the whole conversation, whatever the chat's level.
 
-With -- claude, codex, gemini, opencode or copilot, --mcp goes further: the client is started
+-- vibe (Mistral Vibe) reads none of the base URLs: its providers are repointed through
+VIBE_* variables, each to the family of its origin; a provider with no family here, voice,
+text-to-speech, teleport, web search and telemetry are switched off for the run.
+
+With -- claude, codex, gemini, opencode, copilot or vibe, --mcp goes further: the client is started
 with OUR endpoint as its ONLY MCP server, and the servers it declared are taken over so it
 loses nothing — one MCP, exposing every service, all of it masked. --mcp-no-adopt leaves them
 behind. Gemini needs the endpoint declared once, with the key

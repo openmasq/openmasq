@@ -43,6 +43,15 @@ export const OPTIONS: readonly Option[] = [
     doc: "Gemini-wire upstream origin",
   },
   {
+    name: "mistral",
+    key: "mistral",
+    flag: "--mistral",
+    env: "OPENMASQ_UPSTREAM_MISTRAL",
+    file: true,
+    kind: "string",
+    doc: "Mistral upstream origin (served under /mistral)",
+  },
+  {
     name: "ner",
     key: "nerDir",
     flag: "--ner",

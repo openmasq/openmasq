@@ -9,6 +9,7 @@ import type { Masker, Vault } from "./masker.js";
 import { SseTransform, type FrameRewriter, type SseFrame } from "./sse.js";
 import type { Reporter } from "./ui/index.js";
 import type { RestoreFns } from "../features/openai/wire.js";
+import { FAMILY_PREFIX, type Family } from "./families.js";
 
 /** Hop-by-hop, framing and our own headers: ours to set, not the caller's or the upstream's. */
 const DROP_REQ = new Set([
@@ -22,7 +23,7 @@ const DROP_REQ = new Set([
 ]);
 const DROP_RES = new Set(["content-length", "content-encoding", "transfer-encoding", "connection"]);
 
-export type Family = "openai" | "anthropic" | "gemini";
+export type { Family };
 
 export interface Locals {
   /** Which wrapped client this request belongs to, when it named one — the `/s/:sid`
@@ -61,14 +62,10 @@ export interface RelayOptions {
 }
 
 /** The upstream path: what the client asked for, minus the prefixes that address US — the
- *  per-client `/s/<session>` and a `/openai`|`/anthropic`|`/gemini` family selector. Neither
+ *  per-client `/s/<session>` and a family selector (`/mistral`, `families.ts`). Neither
  *  exists upstream. */
 export function upstreamPath(req: Request): string {
-  return (
-    req.originalUrl
-      .replace(/^\/s\/[^/]+/, "")
-      .replace(/^\/(openai|anthropic|gemini)(?=\/|$)/, "") || "/"
-  );
+  return req.originalUrl.replace(/^\/s\/[^/]+/, "").replace(FAMILY_PREFIX, "") || "/";
 }
 
 export async function relay(
@@ -79,11 +76,7 @@ export async function relay(
 ): Promise<void> {
   const locals = res.locals as unknown as Locals;
   const path = upstreamPath(req);
-  const origin = {
-    openai: deps.config.openai,
-    anthropic: deps.config.anthropic,
-    gemini: deps.config.gemini,
-  }[o.family].replace(/\/$/, "");
+  const origin = deps.config[o.family].replace(/\/$/, "");
   const streaming = !!o.stream && o.body?.stream === true;
   let sent = o.body;
   if (sent && o.strip?.length) {

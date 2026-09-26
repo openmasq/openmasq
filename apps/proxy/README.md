@@ -64,6 +64,26 @@ coding agent, file paths are already readable (`path` is off by default — a pa
 segment by segment, which handed agents commands they could not run; Strict still hides them),
 and `--keep` takes the brand names its system prompt cites.
 
+**Mistral Vibe** reads none of those base URLs: each of its providers carries its own
+`api_base`. `openmasq-proxy -- vibe` therefore reads Vibe's own files (`~/.vibe/config.toml`,
+or `$VIBE_HOME`, and every `.vibe/config.toml` up to the working directory) and re-declares
+every provider through `VIBE_PROVIDERS` — a variable that outranks those files and leaves them
+untouched. A provider on `api.mistral.ai` goes through `/mistral` (Mistral's Chat Completions
+and Embeddings, its `thinking` parts included), one on another vendor's origin through that
+vendor's family, a local one (llama.cpp on `127.0.0.1`) is left alone, and any other is sent
+to `/blocked` — it fails for the run rather than go out in clear. Text-to-speech (it would
+be sent the restored reply), live transcription (your voice), teleport, web search (it runs
+on Mistral's servers) and telemetry are switched off the same way. Vibe is found behind a
+launcher too (`uvx --from mistral-vibe vibe`, `uv run vibe`, `python -m vibe`), and runs on
+its legacy harness (`--legacy-harness`, the one whose routing is read here). The run REFUSES
+to start when a config file does not parse, a provider's address does not follow `api_base`
+(`vertex-anthropic`), an agent profile sets its own providers, a `VIBE_*` name the proxy sets
+appears in another case, or `--worktree`, `--experimental-harness` or `--smart-approve` is
+passed. `--workdir` and `--add-dir` are followed. An organisation's enforced admin config
+outranks everything and cannot be seen from here — the card says so. Verified with the real
+Vibe 2.25.8 against a stand-in for Mistral's API (what left the machine was recorded): no real
+value left; not yet run against Mistral itself.
+
 **Integrations, without handing the agent your credentials** (`--mcp`). The proxy also
 serves an **MCP server** at `http://127.0.0.1:8787/mcp`. Point your agent's MCP client there
 instead of at Gmail, Notion or your CRM: the proxy holds the connections, and the agent gets
@@ -115,6 +135,7 @@ rewriting anyone's configuration:
 | **Gemini CLI** | `--allowed-mcp-server-names <ours>` | once: `gemini mcp add -s user -t http openmasq "http://127.0.0.1:8787/mcp?t=$(cat ~/.openmasq/mcp.token)"`. Wrap a session (`-- gemini`), not a subcommand — `gemini mcp list` refuses the flag |
 | **opencode** | a config file of ours in `OPENCODE_CONFIG`: our server added, each of its own disabled | none — but a project `opencode.json` outranks that file, so the proxy re-asks under its own configuration and refuses exclusivity if anything survived |
 | **Copilot CLI** | one `--disable-mcp-server <id>` per server, `--disable-builtin-mcps`, and ours through `--additional-mcp-config` | none — the list comes from `copilot mcp list --json`. Its own flags, read in the binary; a live run needs a GitHub login, so that half is not claimed here |
+| **Mistral Vibe** | `VIBE_MCP_SERVERS`: each of its servers re-declared as a bare stub with `disabled = true` (no header or env token copied), ours beside them with its key in a header — Vibe copies a server's URL into every tool result; `VIBE_ENABLE_CONNECTORS=false` for Mistral-hosted connectors; `plugin_*` added to `VIBE_DISABLED_TOOLS` for the servers plugins bring | none — its servers are read from its TOML files (it has no listing command). An agent profile that declares servers blocks exclusivity. Verified with the real Vibe 2.25.8: the model was offered our tools alone, and the tool result it read was masked |
 
 A client's own `mcp list` prints every CONFIGURED server: it inspects the config, not the
 session. **Any other client** — Cursor CLI, goose (`--with-extension` only adds), Antigravity
@@ -353,7 +374,7 @@ value became, `c` copies the three `export` lines to the clipboard, `s`
 prints the summary so far, `x` clears, `?` lists the keys, `q` quits. Every key keeps the
 proxy masking: none of them opens a route in clear.
 
-**Run a tool through it**: `openmasq-proxy -- claude` (or `-- codex`, `-- gemini`) starts the
+**Run a tool through it**: `openmasq-proxy -- claude` (or `-- codex`, `-- gemini`, `-- vibe`) starts the
 tool with its base URLs already pointed at the proxy, lets it own the terminal, and stops
 when it exits — the request lines go to `~/.openmasq/proxy.log` (`--log <file>`) meanwhile,
 and the summary prints after the tool closes.
@@ -423,6 +444,27 @@ l'adresse). Pour un agent de code, les chemins sont déjà lisibles (`path` est 
 défaut — un chemin est remplacé segment par segment, ce qui rendait aux agents des commandes
 inexécutables ; Strict les masque toujours), et `--keep` prend les marques que son prompt cite.
 
+**Mistral Vibe** ne lit aucune de ces adresses : chacun de ses fournisseurs porte son propre
+`api_base`. `openmasq-proxy -- vibe` lit donc les fichiers de Vibe (`~/.vibe/config.toml`, ou
+`$VIBE_HOME`, et chaque `.vibe/config.toml` jusqu'au dossier courant) et redéclare chaque
+fournisseur par `VIBE_PROVIDERS` — une variable qui l'emporte sur ces fichiers sans y toucher.
+Un fournisseur sur `api.mistral.ai` passe par `/mistral` (Chat Completions et Embeddings de
+Mistral, parties `thinking` comprises), un fournisseur chez un autre éditeur par la famille de
+cet éditeur, un local (llama.cpp sur `127.0.0.1`) reste tel quel, et tout autre est envoyé vers
+`/blocked` : il échoue pour la session plutôt que de partir en clair. La synthèse vocale (elle
+recevrait la réponse restituée), la transcription en direct (votre voix), le teleport, la
+recherche web (elle s'exécute chez Mistral) et la télémétrie sont coupés de la même façon.
+Vibe est reconnu derrière un lanceur (`uvx --from mistral-vibe vibe`, `uv run vibe`,
+`python -m vibe`) et tourne sur son harnais historique (`--legacy-harness`, celui dont le
+routage est lu ici). La session REFUSE de démarrer si un fichier de configuration ne se lit
+pas, si l'adresse d'un fournisseur ne suit pas `api_base` (`vertex-anthropic`), si un profil
+d'agent fixe ses propres fournisseurs, si une variable `VIBE_*` que le proxy pose apparaît
+dans une autre casse, ou avec `--worktree`, `--experimental-harness` ou `--smart-approve`.
+`--workdir` et `--add-dir` sont suivis. Une configuration imposée par une organisation
+l'emporte sur tout et n'est pas visible d'ici — la carte le dit. Vérifié avec le vrai Vibe
+2.25.8 face à une doublure de l'API de Mistral (ce qui sortait était enregistré) : aucune
+valeur réelle n'est sortie ; pas encore lancé contre Mistral lui-même.
+
 **Des intégrations, sans confier vos identifiants à l'agent** (`--mcp`). Le proxy sert aussi
 un **serveur MCP** sur `http://127.0.0.1:8787/mcp`. Pointez-y le client MCP de votre agent
 plutôt que vers Gmail, Notion ou votre CRM : le proxy garde les connexions, et l'agent reçoit
@@ -469,6 +511,7 @@ réécrit la configuration de personne :
 | **Gemini CLI** | `--allowed-mcp-server-names <le nôtre>` | une fois : `gemini mcp add -s user -t http openmasq http://127.0.0.1:8787/mcp`. Enveloppez une session (`-- gemini`), pas une sous-commande — `gemini mcp list` refuse le drapeau |
 | **opencode** | un fichier de config à nous dans `OPENCODE_CONFIG` : notre serveur ajouté, chacun des siens désactivé | rien — mais un `opencode.json` de projet l'emporte sur ce fichier, alors le proxy repose la question sous sa propre configuration et refuse l'exclusivité si quelque chose a survécu |
 | **Copilot CLI** | un `--disable-mcp-server <id>` par serveur, `--disable-builtin-mcps`, et le nôtre via `--additional-mcp-config` | rien — la liste vient de `copilot mcp list --json`. Ses propres drapeaux, lus dans le binaire ; un run réel demande une connexion GitHub, donc cette moitié n'est pas revendiquée ici |
+| **Mistral Vibe** | `VIBE_MCP_SERVERS` : chacun de ses serveurs redéclaré en simple souche avec `disabled = true` (aucun en-tête ni jeton recopié), le nôtre à côté avec sa clé dans un en-tête — Vibe recopie l'URL d'un serveur dans chaque résultat d'outil ; `VIBE_ENABLE_CONNECTORS=false` pour les connecteurs hébergés par Mistral ; `plugin_*` ajouté à `VIBE_DISABLED_TOOLS` pour les serveurs qu'apportent les plugins | rien — ses serveurs sont lus dans ses fichiers TOML (il n'a pas de commande de liste). Un profil d'agent qui déclare des serveurs bloque l'exclusivité. Vérifié avec le vrai Vibe 2.25.8 : le modèle ne s'est vu proposer que nos outils, et le résultat d'outil qu'il a lu était masqué |
 
 Le `mcp list` d'un client affiche les serveurs CONFIGURÉS : il inspecte la configuration, pas
 la session. **Tout autre client** — Cursor CLI, goose (`--with-extension` ne fait qu'ajouter),
@@ -730,7 +773,7 @@ qu'est devenue chaque valeur, `c` copie les trois lignes `export` dans le
 presse-papiers, `s` imprime le résumé en cours, `x` efface, `?` liste les touches, `q` quitte.
 Chaque touche laisse le proxy masquer : aucune n'ouvre une route en clair.
 
-**Lancer un outil à travers** : `openmasq-proxy -- claude` (ou `-- codex`, `-- gemini`) démarre
+**Lancer un outil à travers** : `openmasq-proxy -- claude` (ou `-- codex`, `-- gemini`, `-- vibe`) démarre
 l'outil avec ses adresses de base déjà pointées sur le proxy, lui laisse le terminal, et s'arrête
 avec lui — les lignes de requête vont dans `~/.openmasq/proxy.log` (`--log <fichier>`) pendant ce
 temps, et le résumé s'imprime à la fermeture de l'outil.

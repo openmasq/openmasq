@@ -30,6 +30,8 @@ import { resolveSpecs } from "./resolve.js";
 import type { ServerSpec } from "./servers.js";
 import { connectUpstream, type Upstream } from "./upstream.js";
 import { onPath } from "../../lib/wrap.js";
+import { isVibe } from "../vibe/index.js";
+import { VIBE } from "./clients/vibe.js";
 
 export interface StartDeps {
   config: ProxyConfig;
@@ -89,7 +91,10 @@ export async function startIntegrations(deps: StartDeps): Promise<Integrations> 
   }
   // With `-- <client>`, OUR endpoint must become its ONLY MCP: an agent that keeps its own
   // connections reaches the service directly, unmasked. `clients.ts` knows how to ask each client.
-  const client = deps.wrapping ? detectClient(config.command[0]) : undefined;
+  // Vibe is often started through a launcher (`uvx … vibe`): seen through, like its model half.
+  const client = deps.wrapping
+    ? (detectClient(config.command[0]) ?? (isVibe(config.command) ? VIBE : undefined))
+    : undefined;
   if (!config.mcp) return NONE;
 
   const url = `http://${config.host}:${config.port}`;

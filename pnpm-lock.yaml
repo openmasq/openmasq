@@ -273,6 +273,9 @@ importers:
       onnxruntime-node:
         specifier: link:../../packages/ort
         version: link:../../packages/ort
+      smol-toml:
+        specifier: ^1.9.0
+        version: 1.9.0
       string-width:
         specifier: ^8.2.2
         version: 8.2.2
@@ -5173,6 +5176,10 @@ packages:
 
   smol-toml@1.7.1:
     resolution: {integrity: sha512-PPlsspAZ4jbMBu5DMFhfUGDQLu/vrL4SyBROVS37x8ynnVmFIs1VPBz1Co8Xks3TvpIaZXmU85y4DrQ+UyVFoQ==}
+    engines: {node: '>= 18'}
+
+  smol-toml@1.9.0:
+    resolution: {integrity: sha512-hpd+HLON7HdZXqYchMM/+LaTTbdK0AU3NngIJ4KVyWbY9bfQqdL9cD+4yf6dUoU2Ap4VsU0JkQi6FxAI1B2mXQ==}
     engines: {node: '>= 18'}
 
   socks-proxy-agent@7.0.0:
@@ -10583,6 +10590,8 @@ snapshots:
   smart-buffer@4.2.0: {}
 
   smol-toml@1.7.1: {}
+
+  smol-toml@1.9.0: {}
 
   socks-proxy-agent@7.0.0:
     dependencies:

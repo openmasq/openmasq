@@ -11,6 +11,7 @@ import { createConsoleBus, teeToConsole } from "./features/console/events.js";
 import { publishConsoleLink } from "./features/console/link.js";
 import { freePort, joinOptions, joinRunning, sessionName, sessionUrl } from "./lib/attach.js";
 import { startIntegrations } from "./features/mcp/start.js";
+import { clientEnv } from "./features/vibe/index.js";
 import { createDials } from "./lib/dials.js";
 import { disabledKindsFor } from "./lib/masker.js";
 import { createMaskerSet } from "./lib/maskers.js";
@@ -242,11 +243,17 @@ async function main(): Promise<void> {
       );
       // Even the first client gets its own session: the console must tell it apart from the
       // ones that join later, and a vault per client is the isolation that makes that true.
-      const code = await runWrapped(
-        config.command,
-        sessionUrl(url, ownSession),
-        integrations.exclusiveArgs,
-      );
+      const target = sessionUrl(url, ownSession);
+      // A client the base URLs do not reach (Vibe) is repointed by variables — or not started.
+      const plan = clientEnv(config.command, target, config);
+      if ("refuse" in plan) {
+        console.error(plan.refuse);
+        leave(2);
+        return;
+      }
+      for (const n of plan.notes) screen.note(n.text, n.tone);
+      const command = plan.command ?? config.command;
+      const code = await runWrapped(command, target, integrations.exclusiveArgs, plan.env);
       screen.summary(reporter.stats());
       leave(code);
     }
