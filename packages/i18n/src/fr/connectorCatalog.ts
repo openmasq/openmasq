@@ -63,6 +63,7 @@ export const connectorCatalog = {
     synapse: { desc: "Recherche & métadonnées de données scientifiques" },
     airtable: { desc: "Bases, tables et enregistrements : lire, créer et mettre à jour" },
     filesystem: { desc: "Lire/écrire des fichiers dans un dossier autorisé (serveur local)" },
+    qdrant: { desc: "Enregistrer, retrouver par le sens, modifier et supprimer des informations dans votre base Qdrant" },
     browser: {
       name: "Navigateur",
       desc: "Laisser le modèle agir dans un navigateur (remplir des formulaires, cliquer) sur vos sites connectés.",

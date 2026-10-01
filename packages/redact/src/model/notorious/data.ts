@@ -135,7 +135,7 @@ export const COMMERCIAL_ORGS = [
   "Exa", "Tavily", "Firecrawl", "Apify", "Bright Data",
   "Sentry", "Vercel", "Netlify", "Cloudflare", "Supabase", "Neon",
   "Prisma", "Prisma Postgres", "Semgrep", "Zapier", "Amplitude", "PostHog",
-  "Hugging Face", "Cloudinary", "Wix", "Webflow", "WebsitePublisher.ai", "Synapse",
+  "Hugging Face", "Cloudinary", "Wix", "Webflow", "WebsitePublisher.ai", "Synapse", "Qdrant",
   // Transactional mail senders observed redacted in real user journeys
   // (the model was reasoning about invented brokers and services). Same rules:
   // company-scoped, plain words just like « Close »/« Square »/« Vantage ».

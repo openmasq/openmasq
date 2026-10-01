@@ -36,6 +36,8 @@ export function mcpAddStdio(
   });
   const { missing } = buildEnv(entry, env);
   if (missing.length) return err(`missing: ${missing.join(", ")}`);
+  const invalid = entry.validate?.(env);
+  if (invalid) return err(invalid);
   // Validate path grants in main (absolute, existing directory) before storing.
   const { errors } = resolveParams(entry, params);
   if (errors.length) return err(errors.join(", "));

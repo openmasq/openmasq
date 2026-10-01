@@ -1,6 +1,7 @@
 import { getDefaultEnvironment } from "@modelcontextprotocol/sdk/client/stdio.js";
 import { existsSync, statSync } from "node:fs";
 import { isAbsolute, resolve } from "node:path";
+import { QDRANT_DEFAULT_COLLECTION, parseQdrantConfig } from "./qdrant/config";
 
 /**
  * Vetted catalog of LOCAL (stdio) MCP servers. SECURITY: this is the *only* place
@@ -56,6 +57,10 @@ export interface StdioCatalogEntry {
   env: StdioEnvField[];
   /** User-granted path args appended after `args` (validated in main). */
   params?: StdioParamField[];
+  /** Main-side check of the declared env beyond "required" — a sentence the user can act
+   *  on, or `null`. Run at ADD time and again at every connect (`server/lifecycle.ts`,
+   *  `server/connect.ts`): the renderer's form is never the gate. */
+  validate?: (env: Record<string, string>) => string | null;
   /** One-time setup guidance shown in the UI. */
   note?: string;
   setupUrl?: string;
@@ -83,6 +88,28 @@ export const STDIO_CATALOG: StdioCatalogEntry[] = [
     note: "L'accès se limite aux dossiers ci-dessus et à leurs sous-dossiers.",
     setupUrl: "https://github.com/modelcontextprotocol/servers/tree/main/src/filesystem",
   },
+  {
+    // In-process (`qdrant/`): two tools against the user's Qdrant, embeddings computed on
+    // this machine. The URL is the user's, never the model's (`qdrant/config.ts`).
+    id: "qdrant",
+    name: "Qdrant",
+    desc: "Enregistrer, retrouver par le sens, modifier et supprimer des informations dans votre base Qdrant",
+    tone: "violet",
+    inProcess: true,
+    command: "",
+    args: [],
+    env: [
+      { key: "QDRANT_URL", label: "Adresse Qdrant", required: true, placeholder: "http://localhost:6333" },
+      { key: "QDRANT_API_KEY", label: "Clé API", secret: true, placeholder: "facultative en local" },
+      { key: "QDRANT_COLLECTION", label: "Collection", placeholder: QDRANT_DEFAULT_COLLECTION },
+    ],
+    validate: (env) => {
+      const r = parseQdrantConfig(env);
+      return r.ok ? null : r.error;
+    },
+    note: "Ce que le modèle enregistre part en clair vers votre Qdrant ; les résultats lui reviennent masqués. Modifier ou supprimer demande votre confirmation.",
+    setupUrl: "https://qdrant.tech/documentation/quickstart/",
+  },
 ];
 
 export function getCatalogEntry(id: string): StdioCatalogEntry | undefined {
@@ -90,13 +117,14 @@ export function getCatalogEntry(id: string): StdioCatalogEntry | undefined {
 }
 
 /** Renderer-facing metadata (the command is shown for transparency, never editable). */
-export interface UiCatalogEntry extends Omit<StdioCatalogEntry, "command" | "args"> {
+export interface UiCatalogEntry extends Omit<StdioCatalogEntry, "command" | "args" | "validate"> {
   /** Display-only command line for a SPAWNED entry; empty when `inProcess`. */
   commandLine: string;
 }
 
 export function catalogForUi(): UiCatalogEntry[] {
-  return STDIO_CATALOG.map(({ command, args, ...rest }) => ({
+  // `validate` is main's gate: a function neither crosses IPC nor belongs to the renderer.
+  return STDIO_CATALOG.map(({ command, args, validate: _validate, ...rest }) => ({
     ...rest,
     // An in-process entry runs no external command → no shell line to show.
     commandLine: rest.inProcess
