@@ -4,7 +4,7 @@
 machine — and puts it back in the reply.**
 
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
-[![Platform](https://img.shields.io/badge/platform-macOS-lightgrey)](#getting-started)
+[![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows-lightgrey)](#getting-started)
 [![Redaction](https://img.shields.io/badge/redaction-on--device-green)](#whats-in-the-box)
 [![Website](https://img.shields.io/badge/openmasq.com-website-6c5ce7)](https://openmasq.com)
 [![Help](https://img.shields.io/badge/help.openmasq.com-help_centre-6c5ce7)](https://help.openmasq.com)
@@ -16,9 +16,9 @@ machine — and puts it back in the reply.**
 *Every screenshot on this page is a real run of the app, captured on a seeded profile
 with fixture data — never anyone's real conversation.*
 
-> **Download** — [openmasq.com/telecharger](https://openmasq.com/telecharger): macOS, signed
-> and notarised, Apple silicon and Intel, self-updating. No Windows or Linux build is
-> published.
+> **Download** — [openmasq.com/download](https://openmasq.com/download): macOS (signed
+> and notarised, Apple silicon and Intel) and Windows 10 or later (x64, signed with a
+> publisher certificate), self-updating. No Linux package is published; it builds from source.
 >
 > **Or build from source** — two commands, see [Getting started](#getting-started). The
 > published build runs this repository's release workflow *with* the brand's service
@@ -362,9 +362,10 @@ and shipped inside the app are listed in [`NOTICE`](NOTICE).
 **Une application de chat de bureau multi-modèles qui masque les données sensibles avant
 qu'elles ne quittent votre machine — et les rétablit dans la réponse.**
 
-> **Téléchargez** — [openmasq.com/telecharger](https://openmasq.com/telecharger) : macOS,
-> signé et notarisé, Apple silicon et Intel, mis à jour tout seul. Aucun build Windows ni
-> Linux n'est publié.
+> **Téléchargez** — [openmasq.com/fr/telecharger](https://openmasq.com/fr/telecharger) : macOS (signé
+> et notarisé, Apple silicon et Intel) et Windows 10 ou plus récent (x64, signé par un
+> certificat d'éditeur), mis à jour tout seul. Aucun paquet Linux n'est publié ; il se compile
+> depuis les sources.
 >
 > **Ou construisez depuis les sources** — deux commandes, voir [Démarrer](#démarrer). Le
 > build publié est le workflow de publication de ce dépôt exécuté *avec* les adresses des
