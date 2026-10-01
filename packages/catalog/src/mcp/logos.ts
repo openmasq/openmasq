@@ -31,6 +31,7 @@ import {
   siPrisma,
   siCloudinary,
   siAirtable,
+  siQdrant,
 } from "simple-icons";
 
 /** A brand glyph (24×24 single SVG path) + its official colour, for the MCP list. */
@@ -110,6 +111,7 @@ export const MCP_LOGOS: Record<string, BrandLogo> = {
   "prisma-postgres": { path: siPrisma.path, hex: `#${siPrisma.hex}` },
   cloudinary: { path: siCloudinary.path, hex: `#${siCloudinary.hex}` },
   airtable: { path: siAirtable.path, hex: `#${siAirtable.hex}` },
+  qdrant: { path: siQdrant.path, hex: `#${siQdrant.hex}` },
   slack: SLACK,
   canva: CANVA,
   "microsoft-outlook": MS_OUTLOOK,

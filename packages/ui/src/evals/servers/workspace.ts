@@ -1,6 +1,6 @@
 import { str, type FakeServer } from "./kit";
 
-// The workspace fleet: local filesystem, Google Drive (read), Google Agenda.
+// The workspace fleet: local filesystem, Qdrant, Google Drive (read), Google Agenda.
 // Tool names track the real connectors (`packages/connectors/src/google/drive.ts`,
 // `calendar.ts`) and the desktop's vetted stdio Filesystem server.
 
@@ -29,6 +29,57 @@ export const FILESYSTEM: FakeServer = {
         required: ["path", "content"],
       },
       result: "Fichier écrit.",
+    },
+  ],
+};
+
+/** Qdrant — the in-process connector (`apps/desktop/src/main/mcp/qdrant/`): the three reads
+ *  never confirm; store is a write; update and both deletions are high-risk writes. */
+const QID = "0b8e3c9a-4f3e-4d59-9c1b-2a4a5d7e9f10";
+export const QDRANT: FakeServer = {
+  id: "qdrant",
+  tools: [
+    {
+      name: "qdrant-collections",
+      description: "Liste les collections Qdrant disponibles, avec leur nombre d'entrées.",
+      inputSchema: { type: "object", properties: {} },
+      result: "- notes (par défaut) : 2 entrée(s)\n- veille : 14 entrée(s)",
+    },
+    {
+      name: "qdrant-find",
+      description: "Cherche dans une collection Qdrant les entrées les plus proches d'une question, par le sens. Renvoie leurs identifiants.",
+      inputSchema: { type: "object", properties: { query: str("Ce qu'on cherche, en langage naturel.") }, required: ["query"] },
+      result: `1. (pertinence 0.87) [${QID}] Karl Studio préfère être tutoyé.\n2. (pertinence 0.71) [42] Devis Karl Studio envoyé le 12/09.`,
+    },
+    {
+      name: "qdrant-list",
+      description: "Liste les entrées d'une collection Qdrant, page par page, avec leurs identifiants.",
+      inputSchema: { type: "object", properties: {} },
+      result: `- [${QID}] Karl Studio préfère être tutoyé.\n- [42] Devis Karl Studio envoyé le 12/09.\n(fin de la collection)`,
+    },
+    {
+      name: "qdrant-store",
+      description: "Enregistre une information dans une collection Qdrant pour la retrouver plus tard par le sens. Renvoie l'identifiant de l'entrée.",
+      inputSchema: { type: "object", properties: { information: str("Le texte à enregistrer.") }, required: ["information"] },
+      result: `Enregistré dans « notes » sous l'identifiant ${QID}.`,
+    },
+    {
+      name: "qdrant-update",
+      description: "Modifie une entrée existante : remplace son texte (ré-indexé par le sens) et/ou ses métadonnées. L'ancien contenu est perdu.",
+      inputSchema: { type: "object", properties: { id: str("L'identifiant de l'entrée."), information: str("Le nouveau texte.") }, required: ["id"] },
+      result: `Entrée ${QID} modifiée dans « notes ».`,
+    },
+    {
+      name: "qdrant-delete",
+      description: "Supprime définitivement des entrées d'une collection Qdrant, par leurs identifiants.",
+      inputSchema: { type: "object", properties: { ids: { type: "array", items: { type: "string" } } }, required: ["ids"] },
+      result: "1 entrée(s) supprimée(s) de « notes ».",
+    },
+    {
+      name: "qdrant-delete-collection",
+      description: "Supprime définitivement une collection Qdrant entière et tout son contenu.",
+      inputSchema: { type: "object", properties: { collection: str("Le nom exact de la collection à supprimer.") }, required: ["collection"] },
+      result: "Collection « veille » supprimée.",
     },
   ],
 };

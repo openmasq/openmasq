@@ -28,6 +28,7 @@ import {
 } from "../browser";
 import { playwrightMcpSpawn } from "../browserTools";
 import { buildEnv, getCatalogEntry, resolveParams } from "../catalog";
+import { connectQdrant } from "../qdrant";
 import {
   connected,
   emitNeedsReconnect,
@@ -50,6 +51,8 @@ async function connectStdioServer(spec: ServerSpec): Promise<McpServerInfo> {
   if (!entry) return { ...infoFor(spec), error: "unknown catalog entry" };
   const { env, missing } = buildEnv(entry, loadSecrets(spec.id));
   if (missing.length) return { ...infoFor(spec), error: `missing: ${missing.join(", ")}` };
+  const invalid = entry.validate?.(env);
+  if (invalid) return { ...infoFor(spec), error: invalid };
   // Re-validate path grants at connect time (the directory may have moved/been deleted).
   const { args: pathArgs, errors } = resolveParams(entry, spec.params ?? {});
   if (errors.length) return { ...infoFor(spec), error: errors.join(", ") };
@@ -57,6 +60,16 @@ async function connectStdioServer(spec: ServerSpec): Promise<McpServerInfo> {
   if (spec.catalogId === "filesystem") {
     try {
       connected.set(spec.id, connectLocalFs(spec.id, pathArgs));
+      await refreshRoutes();
+      return infoFor(spec);
+    } catch (err) {
+      return { ...infoFor(spec), error: err instanceof Error ? err.message : String(err) };
+    }
+  }
+  // Qdrant runs IN-PROCESS too (`../qdrant/`): no command, its env IS its configuration.
+  if (spec.catalogId === "qdrant") {
+    try {
+      connected.set(spec.id, connectQdrant(spec.id, env));
       await refreshRoutes();
       return infoFor(spec);
     } catch (err) {

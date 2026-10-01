@@ -100,6 +100,44 @@ granting one's home directory. A removal takes effect immediately, not at the ne
       panel — only inside a granted folder —
       `packages/ui/src/components/markdown/blocks/MarkdownMark.test.tsx`
 
+
+### Your vector database (the Qdrant connector)
+**Access**: Réglages → Connecteurs → Qdrant: the address of your Qdrant, an API key when it
+asks for one, a default collection (`openmasq` unless you name another).
+
+**What it makes possible.** Using your own Qdrant as a knowledge base the model fills and
+queries: **store** a piece of information, **find it again by meaning** (optionally filtered
+on its metadata), **list** a collection page by page, **update** or **delete** an entry,
+work across **several collections** (listed with their size, created on first store) and
+delete a whole collection.
+
+**What it gives you.** A long-term base that lives in YOUR database, next to the rest of
+your stack, that you can curate from a conversation — not only append to.
+
+**What it is worth.** The vectors are computed **on this machine** by the bundled model,
+never by a remote service — the text is the real one (the outside always gets the real
+value), so without the local model the tools that need a vector refuse instead of falling
+back. Storing is a write; updating and deleting are **high-risk** writes, confirmed like any
+connector's; deleting a collection needs its name spelled out, and a collection whose vectors
+are not the shape this connector writes (one unnamed 384-dimension vector) is refused rather
+than mixed or deleted. A collection another tool made with that same shape is NOT told apart:
+the confirmation is then the only guard. The address is yours, never the model's: a Qdrant on this machine is reached
+over http or https, anything else must be https and is re-checked as a public host on every
+call, pinned to the verified address, redirects refused, each call written to the network
+journal. What is stored leaves in the clear to your Qdrant; what comes back is masked before
+the model reads it.
+
+- [x] Seven tools — `qdrant-collections`, `qdrant-find`, `qdrant-list` (reads),
+      `qdrant-store` (a write), `qdrant-update`, `qdrant-delete`, `qdrant-delete-collection`
+      (high-risk writes) — `apps/desktop/src/main/mcp/qdrant/connection.test.ts`
+- [x] Every model argument validated before any request: collection names, ids, filters —
+      same test
+- [x] The address checked in main at add AND at every connect: local http, remote https only,
+      no credentials or parameters in it — `apps/desktop/src/main/mcp/qdrant/config.test.ts`
+- [x] Public-host check, rebinding pin, no redirect, key never echoed —
+      `apps/desktop/src/main/mcp/qdrant/api.test.ts`
+- [x] A collection of another vector shape is refused rather than mixed, and never deleted —
+      `apps/desktop/src/main/mcp/qdrant/api.test.ts`
 ### Confirmation before acting
 **Access**: automatic · the mode is set in Réglages → Connecteurs, setting
 « **Confirmation des actions** ».
