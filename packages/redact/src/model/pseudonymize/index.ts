@@ -28,6 +28,7 @@ import { allocateEntities } from "./allocate";
 import { allocateTokens } from "./allocateTokens";
 import { applyTokenFragments } from "./tokenFragments";
 import type { PseudonymizeOptions } from "./options";
+import { reconcileMatches } from "./postcondition";
 
 export type { PseudonymizeOptions };
 
@@ -238,45 +239,11 @@ export async function pseudonymize(
   // standalone surname of a known person is caught by a forward-only pass of its own.
   const text = options.mode === "token" ? applyTokenFragments(replayed, vault, exclude) : replayed;
 
-  // POSTCONDITION — "reported ⇒ vaulted ⇒ substituted". `matches` is what the UI
-  // shows as redacted, what `redactedSpans` persists and what the privacy report
-  // counts; it is built while gathering, BEFORE we know what actually got applied.
-  // The two could silently disagree, and a match that claims a redaction which
-  // never happened is worse than no match at all: the user is told a value is
-  // protected while it sits on the wire. Reconcile here, at the single exit.
-  //
-  // Two different situations, deliberately handled differently:
-  //  - the token is in `exclude` ⇒ the user turned that category off (or kept the
-  //    value in clear). Not substituting is CORRECT, so this is not an error —
-  //    but it is not a redaction either: drop the claim.
-  //  - the token is missing from the vault ⇒ the value is UNREVERSIBLE (nothing to
-  //    restore the reply with) and was never substituted. That is a real defect,
-  //    so it fails CLOSED via `modelError`, which the send path turns into a
-  //    refusal rather than a downgrade.
-  // "To verify": re-attach the surviving candidates' `uncertain` flag to the matches
-  // by entity key (the allocators don't thread it — the value is the join). Done on the
-  // POST-filter list, so a span the filter dropped can't flag anything, and a span
-  // corroborated in `gather` was already cleared. Word-level ALIASES of a name don't
-  // inherit the flag — the audit styles the whole-value span the user actually sees.
+  // POSTCONDITION — "reported ⇒ vaulted ⇒ substituted", reconciled at the single exit
+  // (`postcondition.ts` says which mismatch is dropped, accepted, or fails CLOSED).
   const uncertainKeys = new Set(
     deNested.filter((c) => c.uncertain).map((c) => entityKey(c.value)),
   );
-
-  const applied: RedactionMatch[] = [];
-  let unreversible = false;
-  for (const m of matches) {
-    if (vault[m.placeholder] !== m.value) {
-      unreversible = true;
-      continue;
-    }
-    if (exclude.has(m.placeholder)) continue;
-    applied.push(uncertainKeys.has(entityKey(m.value)) ? { ...m, uncertain: true } : m);
-  }
-  return {
-    text,
-    matches: applied,
-    modelError:
-      modelError ??
-      (unreversible ? "redaction postcondition failed: a reported match was not vaulted" : undefined),
-  };
+  const { applied, error } = reconcileMatches(matches, { vault, exclude, text, uncertainKeys });
+  return { text, matches: applied, modelError: modelError ?? error };
 }
