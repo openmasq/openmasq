@@ -4,7 +4,7 @@
 machine — and puts it back in the reply.**
 
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
-[![Platform](https://img.shields.io/badge/platform-macOS-lightgrey)](#getting-started)
+[![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows-lightgrey)](#getting-started)
 [![Redaction](https://img.shields.io/badge/redaction-on--device-green)](#whats-in-the-box)
 [![Website](https://img.shields.io/badge/openmasq.com-website-6c5ce7)](https://openmasq.com)
 [![Help](https://img.shields.io/badge/help.openmasq.com-help_centre-6c5ce7)](https://help.openmasq.com)
@@ -16,9 +16,9 @@ machine — and puts it back in the reply.**
 *Every screenshot on this page is a real run of the app, captured on a seeded profile
 with fixture data — never anyone's real conversation.*
 
-> **Download** — [openmasq.com/telecharger](https://openmasq.com/telecharger): macOS, signed
-> and notarised, Apple silicon and Intel, self-updating. No Windows or Linux build is
-> published.
+> **Download** — [openmasq.com/download](https://openmasq.com/download): macOS (signed
+> and notarised, Apple silicon and Intel) and Windows 10 or later (x64, signed with a
+> publisher certificate), self-updating. No Linux package is published; it builds from source.
 >
 > **Or build from source** — two commands, see [Getting started](#getting-started). The
 > published build runs this repository's release workflow *with* the brand's service
@@ -115,15 +115,17 @@ Two questions are measured, because they are not the same question:
 **Values — did it leave?** Our corpus: 18 document families, 14 languages, real layouts, OCR
 damage, 907 cases, 3 364 annotated truths.
 
-| corpus | truths | `patterns` (no model) | **the product** (`ner`) | PII-Tracer | Presidio (default) |
+| corpus | truths | `patterns` (no model) | `ner` (every category but dates) | PII-Tracer | Presidio (default) |
 |---|---:|---:|---:|---:|---:|
-| **ours** | 3 364 | 89 % · 89 FP | **95 %** · 251 FP | 92 % · 530 FP † | 46 % · 845 FP |
-| **Presidio's** — its own evaluation set, English, template + faker | 2 523 | 32 % · 6 FP | **75 %** · 111 FP | — | 58 % · 196 FP |
+| **ours** | 3 364 | 89 % · 89 FP | 95 % · 251 FP | 92 % · 530 FP † | 46 % · 845 FP |
+| **Presidio's** — its own evaluation set, English, template + faker | 2 523 | 32 % · 6 FP | 75 % · 111 FP | — | 58 % · 196 FP |
 
 A truth counts as *found* when ≥ 60 % of its significant tokens were replaced; a *false
 positive* (FP) is a detection overlapping no annotated value. † PII-Tracer was measured on
 the corpus at 3 357 truths and has not been re-run since; the other columns come from the
-same run of `pnpm bench:compare`.
+same run of `pnpm bench:compare`. This bench runs the engine with every category on except
+dates (its `bare` policy, the regression floor): it is not the product's level. The product
+is `ner` at **Strict**, measured in the character table below.
 
 **Characters — where was the line?** Five corpora, six engines, one scorer. Scored on **the
 categories this app actually has a switch for**. Each corpus annotates its own idea of
@@ -180,7 +182,7 @@ why.
 git clone https://github.com/openmasq/openmasq && cd openmasq && pnpm install
 pnpm bench:spans   --replay --markdown            # the character-level page, from committed results
 pnpm bench:compare --engines patterns,presidio    # ~1 min, no model: rules vs Presidio's committed detections
-pnpm build && pnpm bench:compare                  # adds the product column (bakes the local NER, sha256-pinned)
+pnpm build && pnpm bench:compare                  # adds the `ner` column (bakes the local NER, sha256-pinned)
 ```
 
 Presidio's column is a committed artifact, so both benches replay without Python.
@@ -362,9 +364,10 @@ and shipped inside the app are listed in [`NOTICE`](NOTICE).
 **Une application de chat de bureau multi-modèles qui masque les données sensibles avant
 qu'elles ne quittent votre machine — et les rétablit dans la réponse.**
 
-> **Téléchargez** — [openmasq.com/telecharger](https://openmasq.com/telecharger) : macOS,
-> signé et notarisé, Apple silicon et Intel, mis à jour tout seul. Aucun build Windows ni
-> Linux n'est publié.
+> **Téléchargez** — [openmasq.com/fr/telecharger](https://openmasq.com/fr/telecharger) : macOS (signé
+> et notarisé, Apple silicon et Intel) et Windows 10 ou plus récent (x64, signé par un
+> certificat d'éditeur), mis à jour tout seul. Aucun paquet Linux n'est publié ; il se compile
+> depuis les sources.
 >
 > **Ou construisez depuis les sources** — deux commandes, voir [Démarrer](#démarrer). Le
 > build publié est le workflow de publication de ce dépôt exécuté *avec* les adresses des
@@ -442,15 +445,18 @@ Deux questions sont mesurées, parce que ce ne sont pas les mêmes :
 **Les valeurs — est-ce sorti ?** Notre corpus : 18 familles de documents, 14 langues, vraies
 mises en page, dégât OCR, 907 cas, 3 364 vérités annotées.
 
-| corpus | vérités | `patterns` (sans modèle) | **le produit** (`ner`) | PII-Tracer | Presidio (par défaut) |
+| corpus | vérités | `patterns` (sans modèle) | `ner` (toutes catégories sauf les dates) | PII-Tracer | Presidio (par défaut) |
 |---|---:|---:|---:|---:|---:|
-| **le nôtre** | 3 364 | 89 % · 89 FP | **95 %** · 251 FP | 92 % · 530 FP † | 46 % · 845 FP |
-| **celui de Presidio** — son propre jeu d'évaluation, anglais, gabarits + faker | 2 523 | 32 % · 6 FP | **75 %** · 111 FP | — | 58 % · 196 FP |
+| **le nôtre** | 3 364 | 89 % · 89 FP | 95 % · 251 FP | 92 % · 530 FP † | 46 % · 845 FP |
+| **celui de Presidio** — son propre jeu d'évaluation, anglais, gabarits + faker | 2 523 | 32 % · 6 FP | 75 % · 111 FP | — | 58 % · 196 FP |
 
 Une vérité compte comme *trouvée* quand ≥ 60 % de ses tokens significatifs ont été remplacés ;
 un *faux positif* (FP) est une détection qui ne chevauche aucune valeur annotée. † PII-Tracer a
 été mesuré sur le corpus à 3 357 vérités et n'a pas été rejoué depuis ; les autres colonnes
-viennent d'une même exécution de `pnpm bench:compare`.
+viennent d'une même exécution de `pnpm bench:compare`. Ce banc fait tourner le moteur avec
+toutes les catégories sauf les dates (sa politique `bare`, le plancher de non-régression) : ce
+n'est pas le niveau du produit. Le produit, c'est `ner` en **Strict**, mesuré dans le tableau
+au niveau du caractère ci-dessous.
 
 **Les caractères — où était la limite ?** Cinq corpus, six moteurs, un seul scoreur. Notés sur
 **les catégories que cette app a vraiment en réglage**. Chaque corpus annote sa propre idée
@@ -510,7 +516,7 @@ constance, où ce banc retrouve un chiffre publié et où il ne le retrouve pas 
 git clone https://github.com/openmasq/openmasq && cd openmasq && pnpm install
 pnpm bench:spans   --replay --markdown            # la page au niveau du caractère, depuis les résultats commités
 pnpm bench:compare --engines patterns,presidio    # ~1 min, sans modèle : les règles contre les détections commitées de Presidio
-pnpm build && pnpm bench:compare                  # ajoute la colonne du produit (cuit la NER locale, épinglée sha256)
+pnpm build && pnpm bench:compare                  # ajoute la colonne `ner` (cuit la NER locale, épinglée sha256)
 ```
 
 La colonne Presidio est un artefact commité : les deux bancs se rejouent sans Python.
