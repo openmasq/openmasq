@@ -124,8 +124,14 @@ export default function consoleRouter(deps: ConsoleRouteDeps): Router {
         return;
       }
       // `:connector` is `-` for the run's own default — an empty path segment is not routable,
-      // and a connector id can never be a bare dash.
-      const id = req.params.connector === "-" ? "" : (req.params.connector ?? "");
+      // and a connector id can never be a bare dash. Express 5 types a param `string | string[]`;
+      // anything but one non-empty segment is refused, never read as the default.
+      const raw = req.params.connector;
+      if (typeof raw !== "string" || !raw) {
+        res.status(400).json({ ok: false, why: "unreadable masking request" });
+        return;
+      }
+      const id = raw === "-" ? "" : raw;
       const result = await deps.applyMasking(id, next);
       // 409, not 403: the request was understood and legitimate, and the operator declined it.
       res.status(result.ok ? 200 : 409).json(result);

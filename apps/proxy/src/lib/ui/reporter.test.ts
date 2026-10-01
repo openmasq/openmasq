@@ -224,9 +224,11 @@ describe("reporter", () => {
   });
 
   it("colours a pill with the category's own hue, and prints plain brackets without colours", () => {
-    const colored = categoryPill(createTty(true), "EMAIL", 1);
+    // The depth is pinned: left to `COLORTERM`, a CI runner gets the 256-colour cube.
+    const tty = createTty(true, undefined, { depth: 24 });
+    const colored = categoryPill(tty, "EMAIL", 1);
     expect(colored).toMatch(/\[48;2;\d+;\d+;\d+m/); // a 24-bit background
-    expect(createTty(true).strip(colored)).toBe(" EMAIL 1 ");
+    expect(tty.strip(colored)).toBe(" EMAIL 1 ");
     expect(categoryPill(createTty(false), "ORG", 2)).toBe("[COMPANY 2]"); // the engine's normalised category
   });
 
