@@ -181,6 +181,8 @@ export type TrackEvent =
       ms?: number;
       /** Router: how many tools were OFFERED after routing vs the connected total. */
       routerOffered: number; routerTotal: number;
+      /** Duration of the router model call (bucketed); absent when no routing call ran. */
+      routerMs?: number;
       /** `load_tools` calls naming a connector/tool that doesn't exist (count only —
        *  the invented NAME is model-generated free text and never leaves). */
       loadToolsUnknown: number;

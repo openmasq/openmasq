@@ -28,6 +28,8 @@ export interface LoopSetup {
   mcpTools: McpTool[];
   /** The routed subset whose schemas are callable at start. */
   selected: McpTool[];
+  /** Duration of the router model call, when one ran (`selectTools.ts`). */
+  routerMs?: number;
   fullByName: Map<string, McpTool>;
   /** Callable schemas — GROW in place as `load_tools` pulls more. Sorted by name: a stable
    *  prompt prefix is what lets the provider-side cache hit. */
@@ -75,7 +77,7 @@ export async function buildLoopSetup(
   // Enter the loop when there are connector tools OR an intercepted capability is on.
   if (mcpTools.length === 0 && !p.runPython && !p.searchMemory && !p.fetchMany) return null;
 
-  const selected = await selectTools(p, mcpTools, loopId);
+  const { tools: selected, routerMs } = await selectTools(p, mcpTools, loopId);
   // Pruned = the callable set is a STRICT subset (an EMPTY pick included): the model gets the
   // full catalog + `load_tools` so it still knows every tool.
   const pruned = selected.length < mcpTools.length;
@@ -114,7 +116,7 @@ export async function buildLoopSetup(
     !!p.fetchMany,
   );
   return {
-    allTools, mcpTools, selected, fullByName, toolDefs, toolInfo, win, hasBrowser,
+    allTools, mcpTools, selected, routerMs, fullByName, toolDefs, toolInfo, win, hasBrowser,
     connectedIds, suggestCandidates, alreadyConnected, scope, requestText,
     messages, priorTranscript, baseLen: messages.length,
   };
