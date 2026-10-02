@@ -47,7 +47,6 @@ export function ChatView(props: ChatViewProps) {
               composer={composer}
               startersOff={!!settings?.startersOff}
               onPick={(prompt) => void send.runSend(prompt, [])}
-              onSeeAll={() => p.onOpenSettings("mcp")}
               onSetStartersOff={
                 settings && onChangeSettings ? (off) => onChangeSettings({ ...settings, startersOff: off }) : undefined
               }

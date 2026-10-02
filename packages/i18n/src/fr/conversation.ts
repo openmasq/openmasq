@@ -7,24 +7,14 @@ import type { Messages } from "../messages";
 export const conversation = {
   greeting: { morning: "Bonjour", afternoon: "Bonjour", evening: "Bonsoir" },
   starters: {
-    noSetup: "Sans configuration",
-    withServices: "Avec vos services",
-    orConnect: "Ou connectez",
-    seeOthers: "Voir plus",
     cardTip: (category, prompt) => `${category} — ${prompt}`,
     cardAria: (category, prompt) => `${category} : ${prompt}`,
-    connectTip: (connector, prompt) => `Connecter ${connector} — ${prompt}`,
     dismiss: "Ne plus afficher",
     cats: {
       "follow-up": "Relance client",
       "contract-review": "Juridique",
       "hr-review": "RH",
       memory: "Mémoire",
-      "mail-triage": "Boîte mail",
-      "files-find": "Mes dossiers",
-      "day-brief": "Agenda",
-      "chat-catchup": "Messages",
-      "pr-review": "Code",
     },
     prompts: {
       // DEMONSTRATORS of the one thing the app does: each carries invented personal data
@@ -42,15 +32,6 @@ export const conversation = {
       // born, the « N faits notés » caption clicks through to the Mémoire graph).
       memory: () =>
         "Retiens que sur le projet Horizon, ma cliente Camille Salvi (Atelier Lucane) valide les maquettes et que Marc Wulff gère la facturation.",
-      "mail-triage": () =>
-        "Trie mes e-mails non lus de la semaine : lesquels attendent vraiment une réponse de moi, et lesquels peuvent attendre ?",
-      "files-find": () =>
-        "Retrouve dans mes dossiers le dernier devis que j'ai reçu, et sors-en le montant et les dates clés.",
-      "day-brief": () =>
-        "Prépare ma journée de demain : mes rendez-vous, avec qui, et ce que je dois avoir lu avant chacun.",
-      "chat-catchup": () =>
-        "Résume ce que j'ai raté cette semaine dans mes canaux, et liste ce qui attend une réponse de ma part.",
-      "pr-review": () => "Liste les pull requests qui attendent ma revue, et résume ce que chacune change.",
     },
   },
 

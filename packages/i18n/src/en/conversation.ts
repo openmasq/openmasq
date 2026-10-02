@@ -7,24 +7,14 @@ import type { Messages } from "../messages";
 export const conversation = {
   greeting: { morning: "Good morning", afternoon: "Good afternoon", evening: "Good evening" },
   starters: {
-    noSetup: "No setup needed",
-    withServices: "With your services",
-    orConnect: "Or connect",
-    seeOthers: "See more",
     cardTip: (category, prompt) => `${category} — ${prompt}`,
     cardAria: (category, prompt) => `${category}: ${prompt}`,
-    connectTip: (connector, prompt) => `Connect ${connector} — ${prompt}`,
     dismiss: "Don't show again",
     cats: {
       "follow-up": "Client follow-up",
       "contract-review": "Legal",
       "hr-review": "HR",
       memory: "Memory",
-      "mail-triage": "Mailbox",
-      "files-find": "My folders",
-      "day-brief": "Calendar",
-      "chat-catchup": "Messages",
-      "pr-review": "Code",
     },
     prompts: {
       "follow-up": (domain) =>
@@ -35,15 +25,6 @@ export const conversation = {
         "Summarize this review in three actions: \"Annual review of Julien Moreau, born 03/14/1988, reachable at +33 6 12 34 56 78. His manager Sophie Bernard proposes a 6% raise and a training course in March.\"",
       memory: () =>
         "Remember that on the Horizon project, my client Camille Salvi (Atelier Lucane) approves the mock-ups and Marc Wulff handles invoicing.",
-      "mail-triage": () =>
-        "Sort my unread emails from this week: which ones really need a reply from me, and which can wait?",
-      "files-find": () =>
-        "Find the latest quote I received in my folders, and pull out the amount and the key dates.",
-      "day-brief": () =>
-        "Prepare my day tomorrow: my meetings, with whom, and what I should have read before each one.",
-      "chat-catchup": () =>
-        "Summarize what I missed this week in my channels, and list what is waiting for a reply from me.",
-      "pr-review": () => "List the pull requests waiting for my review, and summarize what each one changes.",
     },
   },
 

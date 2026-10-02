@@ -12,27 +12,17 @@ export type StarterId =
   | "follow-up"
   | "contract-review"
   | "hr-review"
-  | "memory"
-  | "mail-triage"
-  | "files-find"
-  | "day-brief"
-  | "chat-catchup"
-  | "pr-review";
+  | "memory";
 
 export interface ConversationMessages {
   /** The home of an empty conversation. */
   greeting: { morning: string; afternoon: string; evening: string };
   starters: {
-    noSetup: string;
-    withServices: string;
-    orConnect: string;
-    seeOthers: string;
     cardTip: (category: string, prompt: string) => string;
     cardAria: (category: string, prompt: string) => string;
-    connectTip: (connector: string, prompt: string) => string;
     dismiss: string;
     /** The cards' copy, keyed by the starter id of `starters.ts` — that module keeps the
-     *  STRUCTURE (which four, what each needs), the words live here in every language. */
+     *  STRUCTURE (which cards, in what order), the words live here in every language. */
     cats: Record<StarterId, string>;
     /** Every prompt takes the brand's domain, even the ones that ignore it: the « write »
      *  card names an address on it, and one shape keeps the lookup by id trivial. */

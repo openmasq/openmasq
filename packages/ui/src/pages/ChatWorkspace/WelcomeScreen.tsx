@@ -16,7 +16,6 @@ export function WelcomeScreen({
   composer,
   startersOff,
   onPick,
-  onSeeAll,
   onSetStartersOff,
 }: {
   greeting: string;
@@ -25,8 +24,6 @@ export function WelcomeScreen({
   /** Sends the starter — the SAME path as a typed message, never a shortcut that
    *  would bypass redaction. */
   onPick: (prompt: string) => void;
-  /** "See others": the full list of connectors. */
-  onSeeAll?: () => void;
   /** Absent ⇒ starters can neither be hidden nor come back (no setting to write). */
   onSetStartersOff?: (off: boolean) => void;
 }) {
@@ -52,7 +49,6 @@ export function WelcomeScreen({
       ) : (
         <EmptyPromptSuggestions
           onPick={onPick}
-          onSeeAll={onSeeAll}
           onDismiss={onSetStartersOff && (() => onSetStartersOff(true))}
         />
       )}

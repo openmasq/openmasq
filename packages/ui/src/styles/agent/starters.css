@@ -114,27 +114,16 @@
   background: var(--hl-amber);
 }
 
-/* ── Two titled rows ────────────────────────────────────────────────────────
-   « Sans rien configurer » and « Avec vos services »: a beginner and someone who has
-   connected five services aren't looking for the same thing, and neither should
-   have to guess that the other half exists. Hence two visible rows, not a
-   toggle. */
 /* ⚠️ The COLUMN is capped at the cards' width, and that's what holds the centering.
    `.welcome` centers its children, so this block's width is that of its widest
-   child: a chip row longer than 560 px widened the whole block, the
-   grid (capped, itself) ended up stuck to the left and « Ne plus proposer » — right-aligned —
-   went past the cards. One single width for all children, and the
-   chip row wraps instead of moving the rest. */
+   child: a wider child stuck the grid (capped, itself) to the left and « Ne plus
+   proposer » — right-aligned — went past the cards. One single width for all children. */
 .om-starters-wrap {
   display: flex;
   flex-direction: column;
   gap: 8px;
   width: 100%;
   max-width: 560px;
-}
-.om-starters-title {
-  margin-top: 4px;
-  color: var(--text-faint);
 }
 
 /* « Ne plus proposer » and its way back. Both discreet: they're comfort
@@ -166,56 +155,4 @@
    an invitation rather than as a leftover stuck in a corner. */
 .om-starters-back {
   align-self: center;
-}
-
-/* ── The services NOT connected: a row of chips ─────────────────────────
-   Four cards repeating « Connecter pour l'essayer sur vos données » said one
-   thing four times and took up half the home screen. A chip carries the logo, the name,
-   and nothing else — the rest is in the tooltip. */
-.om-starter-chips {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-}
-.om-starter-chips-lead {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--text-faint);
-  margin-right: 2px;
-}
-.om-starter-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 9px 4px 5px;
-  border: 1px dashed var(--border-default);
-  border-radius: var(--radius-pill);
-  background: transparent;
-  cursor: pointer;
-  font-family: var(--font-sans);
-  font-size: var(--text-xs);
-  color: var(--text-muted);
-  transition: border-color var(--dur-fast) var(--ease-out), color var(--dur-fast) var(--ease-out);
-}
-/* Dashed at rest — the product's « not there yet » vocabulary. They become
-   solid on hover: the chip offers itself, it isn't disabled. */
-.om-starter-chip:hover {
-  border-style: solid;
-  border-color: var(--brand);
-  color: var(--text-strong);
-}
-/* « Voir les autres » is NOT a fifth chip: it names no service, it
-   opens the catalogue. With no outline, it reads as the door at the end of the row —
-   and when the row wraps, a discreet link is better than an orphan chip
-   that would promise one more service. */
-.om-starter-chip.more {
-  padding-left: 9px;
-  border: none;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-  text-decoration-color: var(--border-default);
-}
-.om-starter-chip.more:hover {
-  text-decoration-color: var(--brand);
 }

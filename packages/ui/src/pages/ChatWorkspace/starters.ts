@@ -1,161 +1,48 @@
 import { BRAND } from "@openmasq/branding";
-import { findConnector } from "@openmasq/catalog/mcp";
 import type { Messages, StarterId } from "@openmasq/i18n";
 /**
- * The empty-thread prompt starters, and WHICH four to show.
+ * The empty-thread prompt starters.
  *
- * ⚠️ **Read this before putting an integration starter back unconditionally.** A
- * « Workflow » starter existed here before and was removed for a precise reason: on a
- * fresh install nothing is connected, so it opened the app with a card that could only
- * fail. The answer is not to avoid integrations — a starter that drives the user's own
- * mailbox is the most convincing thing the app can show — it is to offer one only when
- * it will actually WORK.
- *
- * So the list is computed, not written: integration starters for the connectors that are
- * connected RIGHT NOW, then universal ones (which need no setup) to fill the four slots.
- * A fresh install therefore sees exactly what it sees today; connecting Gmail changes the
- * home screen into something about the user's own mail.
+ * ⚠️ **Read this before putting an integration starter back.** The home screen once had a
+ * second row, « Avec vos services » (sort your mailbox, prepare your day…) plus chips
+ * offering to connect Gmail, Drive, Agenda. It was removed: the integrations it pushed
+ * were not operational for a new user (Google keys-only while it reviews the app), so the
+ * first screen promised what the first click could not deliver. A starter here must work
+ * on ANY install, with nothing connected. Connectors are reached from Réglages → Connecteurs.
  */
-
-/** What a starter needs before it can succeed. Internal: it is `Starter.need`'s type and
- *  nothing outside this module names it. */
-type StarterNeed =
-  /** Works on any install: no connector, no granted folder, no host capability. */
-  | { kind: "none" }
-  /** Needs ONE of these connector ids connected. Several, because the same job is done
-   *  by a different service per user — mail is Gmail OR Outlook, files are Drive OR
-   *  OneDrive OR SharePoint. The first CONNECTED one supplies the card's identity. */
-  | { kind: "connector"; ids: string[] };
-
 export interface Starter {
-  /** Stable key — the eyebrow is the connector's name once one is resolved. The words
-   *  (category, prompt) live in the catalogue under this id: `starterCopy` reads them. */
+  /** Stable key — the words (category, prompt) live in the catalogue under this id:
+   *  `starterCopy` reads them; `EmptyPromptSuggestions` keys its glyph on it. */
   id: StarterId;
-  need: StarterNeed;
 }
 
 /** A starter's category and prompt in `t`'s language. Every prompt takes the brand's
- *  domain (the « write » card names an address on it). */
+ *  domain (the follow-up card names an address on it). */
 export function starterCopy(s: Starter, t: Messages): { cat: string; prompt: string } {
   const c = t.conversation.starters;
   return { cat: c.cats[s.id], prompt: c.prompts[s.id](BRAND.domain) };
 }
 
-/**
- * The integration starters, most convincing first. Each one is a job somebody actually
- * has, phrased as the whole job rather than a feature demo — "trie mes non-lus et dis-moi
- * lesquels attendent une réponse" is a morning; "envoie un email" is a button. The words
- * are in the catalogue (`conversation.starters.prompts`, FR and EN): the home screen stayed
- * French in an English app as long as they lived here.
- *
- * They are ordered: the picker takes the first ones whose service is connected, so this
- * order is the editorial call about what impresses most.
- */
-export const INTEGRATION_STARTERS: Starter[] = [
-  {
-    id: "mail-triage",
-    need: { kind: "connector", ids: ["gmail", "microsoft-outlook"] },
-  },
-  {
-    id: "files-find",
-    need: {
-      kind: "connector",
-      ids: ["google-drive", "microsoft-onedrive", "microsoft-sharepoint", "filesystem"],
-    },
-  },
-  {
-    id: "day-brief",
-    need: { kind: "connector", ids: ["google-calendar", "microsoft-outlook"] },
-  },
-  {
-    id: "chat-catchup",
-    need: { kind: "connector", ids: ["slack", "microsoft-teams"] },
-  },
-  {
-    id: "pr-review",
-    need: { kind: "connector", ids: ["github"] },
-  },
-];
-
-/** The starters that work on ANY install — the floor, and what a fresh one sees. */
+/** The starters — each one SHOWS the masking (invented personal data in the prompt; the
+ *  catalogue entry says why), plus the memory gesture. */
 export const UNIVERSAL_STARTERS: Starter[] = [
-  // Each one SHOWS the masking (invented personal data in the prompt) — the catalogue entry
-  // says why. What a generic assistant already does is not worth a card here.
-  { id: "follow-up", need: { kind: "none" } },
-  { id: "contract-review", need: { kind: "none" } },
-  { id: "hr-review", need: { kind: "none" } },
-  {
-    // Teaches the MÉMOIRE's conversational gesture — an explicit « retiens que… » needs
-    // no opt-in, so this one cannot fail either. Why the sentence is what it is: see the
-    // catalogue entry (`fr/conversation.ts`, `starters.prompts.memory`).
-    id: "memory",
-    need: { kind: "none" },
-  },
+  { id: "follow-up" },
+  { id: "contract-review" },
+  { id: "hr-review" },
+  // Teaches the MÉMOIRE's conversational gesture — an explicit « retiens que… » needs
+  // no opt-in, so this one cannot fail either. Why the sentence is what it is: see the
+  // catalogue entry (`fr/conversation.ts`, `starters.prompts.memory`).
+  { id: "memory" },
 ];
 
-/** How many cards each ROW shows. */
-export const STARTER_COUNT = 4;
-
-export interface PickedStarter extends Starter {
-  /** The connector this card speaks for — the card wears its real logo and name.
-   *  `undefined` for a universal starter. */
-  connectorId?: string;
-  /** The service is connected, so the card SENDS its prompt. False ⇒ the card offers to
-   *  connect instead: it opens the connector modal and promises nothing it can't do. */
-  connected?: boolean;
-}
-
-export interface PickedStarters {
-  /** Works on any install, always four. */
-  universal: PickedStarter[];
-  /** One per service, connected ones FIRST — the rest offer to connect. */
-  integrations: PickedStarter[];
-}
-
 /**
- * The two rows the home screen shows.
- *
- * ⚠️ **An unconnected integration card must not carry a PROMPT.** That was the original
- * bug (a starter that could only fail on a fresh install), and it is why the split exists
- * rather than one merged list: a card whose service is missing offers to CONNECT it —
- * `connected:false`, opening the connector modal — instead of asking a question nothing
- * can answer. Same row, same logo, different promise.
- *
- * ONE card per service. Outlook answers mail AND calendar; without this a user whose only
- * connector is Outlook gets two cards wearing one logo, which reads as a bug and spends
- * half the row on one service.
+ * The cards the home screen shows.
  *
  * `memoryOpen` (default: true) removes the « Retiens que… » starter when access to Memory
  * is closed — it is a TEACHING starter whose whole ending is the clickable caption leading
  * to the graph: without that screen it teaches a gesture visible nowhere. Injected so this
- * module stays pure (`starters.test.ts` has no global state to reset), and the row stays
- * FULL — there is exactly one spare universal starter.
+ * module stays pure (`starters.test.ts` has no global state to reset).
  */
-export function pickStarters(
-  connectedIds: readonly string[],
-  opts?: { memoryOpen?: boolean },
-): PickedStarters {
-  const connected = new Set(connectedIds);
-  const spent = new Set<string>();
-  const take = (want: boolean): PickedStarter[] => {
-    const out: PickedStarter[] = [];
-    for (const s of INTEGRATION_STARTERS) {
-      if (s.need.kind !== "connector") continue;
-      // An OFFER (`want === false`) never names a keys-only connector: « Connecter Gmail »
-      // on a fresh install would lead to a Google Cloud form, not a connection.
-      const id = s.need.ids.find(
-        (i) => connected.has(i) === want && !spent.has(i) && (want || !findConnector(i)?.byoOnly),
-      );
-      if (!id) continue;
-      spent.add(id);
-      out.push({ ...s, connectorId: id, connected: want });
-    }
-    return out;
-  };
-  // Connected first — they are the reason to look — then the offers, up to the row's size.
-  const integrations = [...take(true), ...take(false)].slice(0, STARTER_COUNT);
-  const universal = UNIVERSAL_STARTERS.filter(
-    (s) => s.id !== "memory" || opts?.memoryOpen !== false,
-  ).slice(0, STARTER_COUNT);
-  return { universal, integrations };
+export function pickStarters(opts?: { memoryOpen?: boolean }): Starter[] {
+  return UNIVERSAL_STARTERS.filter((s) => s.id !== "memory" || opts?.memoryOpen !== false);
 }

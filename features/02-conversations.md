@@ -32,17 +32,11 @@ message, necessarily the most sensitive one, stays in memory.
 - [x] Streamed reply, stoppable (« Stop »)
 - [x] The model's reasoning shown during the wait, when the model produces one (DeepSeek, Qwen, Nemotron, Claude, Gemini, OpenRouter…) — un-redacted like the reply; otherwise the loader alone, nothing invented — `packages/ui/src/state/conversation/reasoningRelay.ts`
 - [x] …and **kept** once the reply lands: a collapsed « Réflexion » line above the reply, expandable, surviving a reload (encrypted database only) — `packages/ui/src/components/message/ReasoningPanel.tsx`
-- [x] Starters on an empty conversation, in **two rows of four**: « Sans rien configurer »
-      (a client follow-up, a contract excerpt, an HR review — each carrying invented personal
-      data that is visibly masked before it leaves — and memory) and « Avec vos services »
-      (sort your mailbox, find a document, prepare your day, catch up on your channels),
-      each card carrying its service's mark — `packages/ui/src/pages/ChatWorkspace/starters.ts`
-- [x] A service that is NOT connected folds into a **chip** on a single line (« Ou connectez :
-      Gmail · Drive · Agenda ») that opens the connector modal over the screen; it never
-      offers a question nothing could honour, and never names a keys-only connector
-      (Google, while it reviews the app) unless it is already connected
-- [x] « **Voir les autres** » at the end of that line opens the full catalogue
-      (Réglages → Connecteurs): the chips only carry the starters' services —
+- [x] Starters on an empty conversation, **one row** that works with nothing connected: a
+      client follow-up, a contract excerpt, an HR review — each carrying invented personal
+      data that is visibly masked before it leaves — and memory. **No integration is offered
+      there** (connectors live in Réglages → Connecteurs) —
+      `packages/ui/src/pages/ChatWorkspace/starters.ts`,
       `packages/ui/src/pages/ChatWorkspace/EmptyPromptSuggestions.tsx`
 - [x] « **Ne plus proposer** » hides the starters, and « Voir des exemples » brings them back
       in the same place (`Settings.startersOff`)
