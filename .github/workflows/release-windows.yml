@@ -147,6 +147,13 @@ jobs:
       # `win_amd64` wheel for EVERY entry in `wheels.ts`. A single missing one fails here.
       - name: Bake bundled runtime + NER models + the jail launcher
         working-directory: apps/desktop
+        env:
+          # docTR (Latin-script OCR, ~9× faster than Tesseract) MUST ship: without it the bake
+          # only warns and every PDF page is read by Tesseract alone. REQUIRED turns the skip into
+          # a failure; the source is the pinned first-party export, an https base URL held in a
+          # repository variable, sha256-verified by the bake (`bake-doctr-models.ts`).
+          OPENMASQ_DOCTR_REQUIRED: "1"
+          OPENMASQ_DOCTR_SRC: ${{ vars.OPENMASQ_DOCTR_SRC }}
         run: pnpm bake
 
       # THE proof of the sandbox, and the only one that counts: compiling the jail launcher says

@@ -24,11 +24,16 @@ import { createHash } from "node:crypto";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { DOCTR_MODEL_FILES, DOCTR_WEIGHTS_SHA256 } from "../src/main/ocr/doctrModels";
+import { fetchBytes } from "./fetchRetry";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 const REPO = join(HERE, "..", "..", "..");
 const OUT = join(HERE, "..", "build", "doctr-models");
 const SRC = process.env.OPENMASQ_DOCTR_SRC || join(REPO, "benchmark", "ocr", "results", "onnx");
+/** A local export dir, or an https BASE URL serving the same files (`<base>/<file>`). */
+const SRC_IS_URL = /^https?:\/\//i.test(SRC);
+/** Set by the release workflows: a missing source FAILS instead of skipping. */
+const REQUIRED = process.env.OPENMASQ_DOCTR_REQUIRED === "1";
 const log = (m: string): void => console.log(`[bake:doctr] ${m}`);
 
 const sha256 = (b: Uint8Array): string => createHash("sha256").update(b).digest("hex");
@@ -40,7 +45,16 @@ async function main(): Promise<void> {
   // Tesseract-only (no failure) »). Failing here made `pnpm bake` — and therefore `dist`
   // and `release` — unreachable for anyone without the export, which is everyone cloning
   // this repository. A HASH MISMATCH still fails hard: that is the integrity claim.
-  if (!existsSync(SRC)) {
+  // ⚠️ …but a RELEASE must ship docTR: without it every PDF page is read by Tesseract alone,
+  // ~9× slower, and the skip only ever shows up as a warning in a CI log. The release
+  // workflows set OPENMASQ_DOCTR_REQUIRED=1, which turns the skip into a failure.
+  if (!SRC_IS_URL && !existsSync(SRC)) {
+    if (REQUIRED) {
+      throw new Error(
+        `no docTR export at ${SRC} and OPENMASQ_DOCTR_REQUIRED=1 — a release must ship docTR. ` +
+          "Set OPENMASQ_DOCTR_SRC to the pinned export (a directory or an https base URL).",
+      );
+    }
     log(`⚠️ no export at ${SRC} — SKIPPING. Latin-script OCR falls back to Tesseract in this`);
     log("   build. Set OPENMASQ_DOCTR_SRC to a pinned export to include the docTR models.");
     return;
@@ -50,14 +64,24 @@ async function main(): Promise<void> {
   for (const file of DOCTR_MODEL_FILES) {
     const want = DOCTR_WEIGHTS_SHA256[file];
     if (!want) throw new Error(`No pinned sha256 for "${file}" in DOCTR_WEIGHTS_SHA256.`);
-    const bytes = new Uint8Array(await readFile(join(SRC, file)).catch(() => {
-      throw new Error(`missing "${file}" in ${SRC} — set OPENMASQ_DOCTR_SRC or run export_onnx.py first.`);
-    }));
+    const dest = join(OUT, file);
+    if ((await readFile(dest).then((b) => sha256(new Uint8Array(b))).catch(() => null)) === want) {
+      manifest[file] = `sha256-${want}`;
+      log(`${file} ✓ (cached, hash ok)`);
+      continue;
+    }
+    const bytes = SRC_IS_URL
+      ? await fetchBytes(`${SRC.replace(/\/$/, "")}/${file}`, { log }).catch((e: Error) => {
+          throw new Error(`${file}: cannot fetch from ${SRC} — ${e.message}`);
+        })
+      : new Uint8Array(await readFile(join(SRC, file)).catch(() => {
+          throw new Error(`missing "${file}" in ${SRC} — set OPENMASQ_DOCTR_SRC or run export_onnx.py first.`);
+        }));
     const got = sha256(bytes);
     if (got !== want) {
       throw new Error(`${file}: integrity check FAILED (expected ${want}, got ${got}). Refusing to bake.`);
     }
-    await writeFile(join(OUT, file), bytes);
+    await writeFile(dest, bytes);
     manifest[file] = `sha256-${got}`;
     log(`${file} ✓ verified (${bytes.byteLength} bytes)`);
   }
