@@ -1,9 +1,10 @@
 import { applyVault, type Vault } from "@openmasq/redact";
 import type { ReusePart } from "./foldPayload";
 
-// Coarse tone → a representative redaction category, for the reused-document spans
-// (a `PdfReplacement` carries only a tone). Drives their audit kind + preview label;
-// the real per-value kinds are persisted by the file-redaction path (`redactAndSave`).
+// Coarse tone → a representative category: the FALLBACK for a reused-document rep with
+// no `kind` (a map serialised before replacements carried one). A rep's own `kind` always
+// wins — these spans' kinds override the turn's map, and a tone is not a category: every
+// « coral » value (address, company, registry or tax id…) used to come out « secret ».
 const TONE_CATEGORY: Record<string, string> = {
   coral: "secret",
   blue: "email",
@@ -49,7 +50,7 @@ export function appendReusedDocsWire(
     extraText += p.header + applyVault(p.text, vault, exclude);
     for (const r of p.reps) {
       if (!r.fake || !r.real) continue;
-      const cat = TONE_CATEGORY[r.tone ?? ""] ?? "secret";
+      const cat = r.kind ?? TONE_CATEGORY[r.tone ?? ""] ?? "secret";
       extraMatches.push({ type: cat, category: cat, value: r.real, placeholder: r.fake });
     }
   }

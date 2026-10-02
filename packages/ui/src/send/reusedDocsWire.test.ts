@@ -64,3 +64,41 @@ describe("appendReusedDocsWire", () => {
     expect(out.matches[1]).toMatchObject({ category: "email", value: "R", placeholder: "F" });
   });
 });
+
+describe("appendReusedDocsWire — a reused value keeps ITS category, not its colour's", () => {
+  // Reported: a dropped document typed each value correctly in its preview, but the
+  // conversation filed nearly all of them as « secret » — these spans' kinds override the
+  // turn's map, and they were rebuilt from the TONE (every « coral » value → secret).
+  it("address, company, company id and email keep their kind", () => {
+    const reps = [
+      { real: "12 rue des Lilas", fake: "4 allée des Ormes", tone: "coral", kind: "address" },
+      { real: "Ateliers Morvan", fake: "Forges Duval", tone: "coral", kind: "company" },
+      { real: "732 829 320", fake: "518 204 397", tone: "coral", kind: "company_id" },
+      { real: "marc@morvan.test", fake: "anne@duval.test", tone: "coral", kind: "email" },
+    ];
+    const vault = Object.fromEntries(reps.map((r) => [r.fake, r.real]));
+    const out = appendReusedDocsWire(
+      { text: "", matches: [] },
+      [{ header: "\n=== doc ===\n", reps, text: reps.map((r) => r.real).join("\n") }],
+      vault,
+      undefined,
+    );
+    const kinds = Object.fromEntries((out.matches as { value: string; category: string }[]).map((m) => [m.value, m.category]));
+    expect(kinds).toEqual({
+      "12 rue des Lilas": "address",
+      "Ateliers Morvan": "company",
+      "732 829 320": "company_id",
+      "marc@morvan.test": "email",
+    });
+  });
+
+  it("a rep without kind (older map) still falls back to its tone", () => {
+    const out = appendReusedDocsWire(
+      { text: "", matches: [] },
+      [{ header: "\n", reps: [{ real: "Marc", fake: "Paul", tone: "violet" }], text: "Marc" }],
+      { Paul: "Marc" },
+      undefined,
+    );
+    expect((out.matches[0] as { category: string }).category).toBe("name");
+  });
+});
