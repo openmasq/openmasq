@@ -101,6 +101,10 @@ granting one's home directory. A removal takes effect immediately, not at the ne
       (open OneDrive once, or check the licence) instead of a bare 404 — `cloudfs.test.ts`
 - [x] The model can **list a folder** on Drive/OneDrive, not only search it —
       `packages/connectors/src/files.ts`
+- [x] The model can **drop a file on OneDrive** — a conversation document, a file it generated,
+      or text it writes — after the write confirmation; it creates, never overwrites (a
+      same-named file is renamed), 4 MB max. A connection made read-only before asks to be
+      reconnected — `packages/connectors/src/microsoft/onedriveUpload.ts`
 - [x] Dropbox goes through **its own MCP server's listing**, tool name allow-listed and the
       response read back fail-closed — a server that returns no usable list keeps its status
       line rather than a dead chevron — `apps/desktop/src/main/cloudfs/mcpBrowse/`

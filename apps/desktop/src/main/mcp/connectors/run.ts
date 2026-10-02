@@ -10,6 +10,7 @@ import { maskAccountLabel } from "../accountIdentity";
 import { assertPublicUrl } from "../../net/net";
 import { emitNeedsReconnect, needsReconnect } from "../server/registry";
 import { BRAND } from "@openmasq/branding";
+import { scopeCovered } from "./scopes";
 
 /** SSRF floor on hop 0 of an authenticated connector fetch, BEFORE the bearer is attached:
  *  a tool interpolating a model-supplied value into the HOST must not reach an internal
@@ -182,7 +183,7 @@ export function makeConnectorConnection(opts: {
     id,
     async listTools(): Promise<McpTool[]> {
       return connector.tools
-        .filter((t) => !t.scope || grantedScopes.includes(t.scope))
+        .filter((t) => !t.scope || scopeCovered(grantedScopes, t.scope))
         .map((t) => ({
           name: t.name,
           description: modelLabel ? `${t.description} (compte : ${modelLabel})` : t.description,

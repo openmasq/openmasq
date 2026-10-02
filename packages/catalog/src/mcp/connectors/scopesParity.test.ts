@@ -8,6 +8,7 @@ import {
   googleSheetsConnector,
   googleTasksConnector,
   googleAnalyticsConnector,
+  microsoftOneDriveConnector,
 } from "@openmasq/connectors";
 
 /**
@@ -27,6 +28,8 @@ const HOMES = [
   ["google-sheets", googleSheetsConnector],
   ["google-tasks", googleTasksConnector],
   ["google-analytics", googleAnalyticsConnector],
+  // Not Google, same trap: the catalogue shows the scopes, `@openmasq/connectors` requests them.
+  ["microsoft-onedrive", microsoftOneDriveConnector],
 ] as const;
 
 describe("scopes Google — le catalogue (affichage) ⇄ @openmasq/connectors (l'OAuth)", () => {

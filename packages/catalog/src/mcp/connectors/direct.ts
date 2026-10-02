@@ -175,8 +175,8 @@ export const DIRECT: McpConnector[] = [
     scopes: { managed: ["Mail.Read", "Mail.Send"], byo: ["Mail.Read", "Mail.Send"] },
   },
   {
-    // OneDrive (personal drive). `Files.Read` is delegated (no admin consent) →
-    // 1-clic; byo widens to `Files.Read.All`.
+    // OneDrive (personal drive). `Files.ReadWrite` is delegated (no admin consent) →
+    // 1-clic; byo widens to `Files.ReadWrite.All`. Write = `upload_file` (creates only).
     id: "microsoft-onedrive",
     name: "OneDrive",
     desc: "Rechercher et lire vos fichiers OneDrive",
@@ -186,7 +186,7 @@ export const DIRECT: McpConnector[] = [
     transport: "direct",
     hosts: ["onedrive.live.com", "1drv.ms"],
     directAuth: "microsoft",
-    scopes: { managed: ["Files.Read"], byo: ["Files.Read.All"] },
+    scopes: { managed: ["Files.ReadWrite"], byo: ["Files.ReadWrite.All"] },
   },
   {
     // SharePoint — `Sites.Read.All`/`Files.Read.All` need ADMIN CONSENT. That is NOT the

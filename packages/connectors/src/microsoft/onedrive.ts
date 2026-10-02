@@ -7,12 +7,14 @@ import {
   type RemoteEntry,
 } from "../files";
 import { GRAPH, MAX_CHARS, clampLimit, str } from "./graph";
+import { onedriveUploadFile } from "./onedriveUpload";
 
 /**
  * OneDrive connector (Microsoft Graph — the user's personal drive). Search files +
  * read a text-like file's content, with the user's token obtained desktop-direct via
- * Microsoft loopback + PKCE (public client, no secret). `Files.Read` is a delegated
- * user scope (no admin consent) so 1-clic works; `byo` widens to `Files.Read.All`.
+ * Microsoft loopback + PKCE (public client, no secret). `Files.ReadWrite` is a delegated
+ * user scope (no admin consent) so 1-clic works; `byo` widens to `Files.ReadWrite.All`.
+ * Write = `upload_file` (`./onedriveUpload.ts`), creating only, never overwriting.
  */
 interface DriveItem {
   id?: string;
@@ -110,7 +112,7 @@ const readDocument: ConnectorTool = {
   async run(args, ctx: ConnectorToolCtx) {
     const itemId = str(args.itemId);
     if (!itemId) return { content: [{ type: "text", text: "itemId requis." }], isError: true };
-    const raw = await ctx.fetchText(`${GRAPH}/me/drive/items/${itemId}/content`);
+    const raw = await ctx.fetchText(`${GRAPH}/me/drive/items/${encodeURIComponent(assertFileId(itemId))}/content`);
     const text = raw.length > MAX_CHARS ? `${raw.slice(0, MAX_CHARS)}\n…(tronqué)` : raw;
     return { content: [{ type: "text", text: text || "(vide ou non lisible en texte)" }] };
   },
@@ -120,7 +122,8 @@ export const microsoftOneDriveConnector: Connector = {
   id: "microsoft-onedrive",
   name: "OneDrive",
   auth: "microsoft",
-  // Files.Read = delegated, no admin consent → 1-clic; byo widens to all files.
-  scopes: { managed: ["Files.Read"], byo: ["Files.Read.All"] },
-  tools: [searchFiles, listFolder, readDocument],
+  // Files.ReadWrite = delegated, no admin consent → 1-clic; byo widens to all files.
+  // A connection granted only `Files.Read` keeps reading, without `upload_file`.
+  scopes: { managed: ["Files.ReadWrite"], byo: ["Files.ReadWrite.All"] },
+  tools: [searchFiles, listFolder, readDocument, onedriveUploadFile],
 };
