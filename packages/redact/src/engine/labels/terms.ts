@@ -120,7 +120,7 @@ export const LABEL_GROUPS: LabelGroup[] = [
     serialisedOnly: ["email address", "mail address", "correo electronico",
       "work email", "personal email", "email adresse"],
     terms: [
-      "email", "e-mail", "courriel", "mail", "adresse email", "correo", "correo electrónico",
+      "email", "e-mail", "courriel", "messagerie", "mail", "adresse email", "correo", "correo electrónico",
       // CJK: email
       "メール", "メールアドレス", "邮箱", "电子邮件", "邮件", "이메일", "메일",
     ],
@@ -247,6 +247,12 @@ export const LABEL_GROUPS: LabelGroup[] = [
 ];
 
 /** Is this single word one of the label vocabulary's own terms? */
+/** The one-word CONTACT labels (e-mail, phone) — where a letterhead's address line ends and the
+ *  next field begins (« … 42 Avenue Noemie Moulin Messagerie : … », `addresses/tail.ts`). */
+export const CONTACT_LABEL_WORDS: readonly string[] = LABEL_GROUPS.filter(
+  (g) => g.category === "EMAIL" || g.category === "PHONE",
+).flatMap((g) => g.terms.filter((t) => /^[\p{L}-]+$/u.test(t)));
+
 function isLabelWord(w: string): boolean {
   return LABEL_GROUPS.some((g) => g.terms.includes(w));
 }

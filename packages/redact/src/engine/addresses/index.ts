@@ -19,7 +19,7 @@ import { PRE, SUF, SUF_LONG, DE, NORDIC, H, W, NAME, TAIL_CORE, TAIL_ZIPCITY, TA
 const SUF_LONG_CASED = SUF_LONG.split("|").map((w) => `[${w[0]!.toUpperCase()}${w[0]}]${w.slice(1)}`).join("|");
 // Each type word Capitalised-or-lowercase (« Vadim-Pohl-Ring », « Musterstraße ») or ALL-CAPS.
 const DE_CASED = `${DE.replace(/(^|\|)(\p{L})/gu, (_, p, c) => `${p}[${c.toUpperCase()}${c}]`)}|${DE.toUpperCase()}`;
-import { trimAddressTail } from "./tail";
+import { trimAddressTail, trimProseTail } from "./tail";
 
 // Re-exported: `trimAddressTail` used to live here, and consumers import it from this path.
 export { trimAddressTail } from "./tail";
@@ -62,7 +62,7 @@ function pushAll(
   country?: CountryHint,
 ) {
   for (const m of text.matchAll(re)) {
-    const value = clean(category === "ADDRESS" ? trimAddressTail(m[0]) : m[0]);
+    const value = clean(category === "ADDRESS" ? trimProseTail(trimAddressTail(m[0])) : m[0]);
     if (value.length < minLen) continue;
     const key = `${category}::${value}`;
     if (seen.has(key)) continue;
