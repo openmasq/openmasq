@@ -35,6 +35,9 @@ import { templates } from "./fr/templates";
 import { turnStatus } from "./fr/turnStatus";
 import { shell } from "./fr/shell";
 import { viewers } from "./fr/viewers";
+import { desktopMain } from "./fr/desktopMain";
+import { runtime } from "./fr/runtime";
+import { documents } from "./fr/documents";
 import { settings } from "./fr/settings";
 import { accountTab, browserTab, modelsTab, privacyTab } from "./fr/settingsTabs";
 import { billingTab, importModal, orgTab, syncTab, usageTab } from "./fr/settingsMore";
@@ -71,6 +74,9 @@ const selfHost = {
 } satisfies Messages["selfHost"];
 
 export const fr = {
+  desktopMain,
+  runtime,
+  documents,
   agent,
   availability,
   billing,
