@@ -153,7 +153,7 @@ def _kv_text(s, txt, x, y, w, h, size=18, bold=False, color=_KV_RGB_INK, align="
             para.space_before = Pt(6)
         for run in para.runs:
             run.font.size = Pt(size); run.font.bold = bold
-            run.font.name = "Space Grotesk"
+            _kv_pptx_font(run.font)
             run.font.color.rgb = RGBColor(*color)
     return tb
 

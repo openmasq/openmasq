@@ -57,7 +57,7 @@ def _kv_table(s, data, x, y, w, h):
             c.fill.fore_color.rgb = RGBColor(*(_KV_RGB_LIME if _i == 0 else (_KV_RGB_STRIPE if _i % 2 == 0 else _KV_RGB_BG)))
             for p in c.text_frame.paragraphs:
                 for r in p.runs:
-                    r.font.size = Pt(12); r.font.name = "Space Grotesk"
+                    r.font.size = Pt(12); _kv_pptx_font(r.font)
                     r.font.bold = _i == 0
                     r.font.color.rgb = RGBColor(*_KV_RGB_INK)
 

@@ -26,17 +26,13 @@ export const DOCX_HELPERS = `def ${PY}_docx(title="", subtitle=""):
     from docx.enum.text import WD_ALIGN_PARAGRAPH as _AL
 
     _INK = _RGB(*_KV_RGB_INK); _MUTED = _RGB(*_KV_RGB_MUTED)
-    _fontfile = _kv_font_file()
-    # python-docx cannot EMBED a font file; it names a family and Word resolves it. The
-    # bundled brand font is used when the machine has it, else a sane sans — never a
-    # missing-glyph box.
-    _FAMILY = "Space Grotesk" if _fontfile else "Calibri"
 
     class _KvDocx:
         def __init__(self):
             self.d = _docx.Document()
+            _kv_docx_fonts(self.d)
             _n = self.d.styles["Normal"]
-            _n.font.name = _FAMILY; _n.font.size = _Pt(10.5); _n.font.color.rgb = _INK
+            _n.font.name = _KV_OFFICE_FONT; _n.font.size = _Pt(10.5); _n.font.color.rgb = _INK
             for _s in self.d.sections:
                 _s.left_margin = _s.right_margin = _In(0.9)
             if title:
@@ -78,7 +74,7 @@ export const DOCX_HELPERS = `def ${PY}_docx(title="", subtitle=""):
                     _c = _t.cell(_i, _j); _c.text = str(_cell)
                     for _par in _c.paragraphs:
                         for _run in _par.runs:
-                            _run.font.size = _Pt(9.5)
+                            _run.font.size = _Pt(9.5); _run.font.name = _KV_OFFICE_FONT
                             if _i == 0:
                                 _run.font.bold = True
             return self
@@ -97,4 +93,29 @@ export const DOCX_HELPERS = `def ${PY}_docx(title="", subtitle=""):
             self.d.save(str(path)); return path
 
     return _KvDocx()
+
+
+def _kv_docx_fonts(d):
+    """python-docx cannot EMBED a font: it names a family the reader's Word resolves. Aptos
+    becomes the document default on all four script slots (replacing the template's theme
+    fonts), and the font table names Calibri as its substitute (w:altName) for an Office
+    before 2023 or LibreOffice — never a serif default nor a missing-glyph box."""
+    from docx.oxml.ns import qn as _qn
+    try:
+        _rf = d.styles.element.find(_qn("w:docDefaults")).find(_qn("w:rPrDefault")).find(_qn("w:rPr")).find(_qn("w:rFonts"))
+        for _k in list(_rf.attrib):
+            del _rf.attrib[_k]
+        for _a in ("ascii", "hAnsi", "eastAsia", "cs"):
+            _rf.set(_qn("w:" + _a), _KV_OFFICE_FONT)
+    except Exception:
+        pass
+    try:
+        _decl = ('<w:font w:name="%s"><w:altName w:val="%s"/><w:panose1 w:val="%s"/><w:charset w:val="00"/>'
+                 '<w:family w:val="swiss"/><w:pitch w:val="variable"/></w:font>'
+                 % (_KV_OFFICE_FONT, _KV_OFFICE_FONT_ALT, _KV_OFFICE_PANOSE)).encode()
+        for _rel in d.part.rels.values():
+            if _rel.reltype.endswith("/fontTable") and _decl not in _rel.target_part.blob:
+                _rel.target_part._blob = _rel.target_part.blob.replace(b"</w:fonts>", _decl + b"</w:fonts>")
+    except Exception:
+        pass
 `;

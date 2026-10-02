@@ -25,6 +25,8 @@ build/tesseract-langs/
 build/doctr-models/
 # Baked Mémoire embedding model — bundled via `scripts/bake-embed-models.ts`; never source.
 build/embed-models/
+# Baked document font (Inter + OFL) — sha256-verified by `scripts/bake-document-fonts.ts`; never source.
+build/document-fonts/
 
 # The journey driver : captures, journal, wire, appels d'outils, profil jetable.
 # Contient de la PII de test et des chemins de machine — jamais commité.

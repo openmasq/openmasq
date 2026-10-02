@@ -102,9 +102,10 @@ describe("skeleton", () => {
     expect(footer).toContain('class="pageNumber"');
   });
 
-  it("inlines the brand font as data:, and degrades to no @font-face when absent", () => {
+  it("inlines the document font (Inter) as data:, and degrades to no @font-face when absent", () => {
     expect(pdfFontFaceCss("QUJD")).toContain("url(data:font/ttf;base64,QUJD)");
-    expect(pdfFontFaceCss("QUJD")).toContain("font-weight:300 700");
+    expect(pdfFontFaceCss("QUJD")).toContain('font-family:"Inter"');
+    expect(pdfFontFaceCss("QUJD")).toContain("font-weight:100 900");
     expect(pdfFontFaceCss(undefined)).toBe("");
     // The font face precedes the document CSS so the document can override nothing of it.
     const html = pdfSkeleton({ html: "", css: "body{color:red}", title: "T" }, "@font-face{}");
