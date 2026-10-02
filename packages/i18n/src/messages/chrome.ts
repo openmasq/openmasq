@@ -202,6 +202,8 @@ export interface ComposerMessages {
     /** Tooltip while the file is being masked. */
     redacting: string;
     stateReading: string;
+    /** Waiting its turn in the extraction queue, `ahead` files before it. */
+    stateQueued: (ahead: number) => string;
     stateReadingPage: (page: number, total: number) => string;
     stateMasking: string;
     stateMaskingPct: (pct: number) => string;

@@ -144,6 +144,7 @@ export const composer = {
     processing: "file being processed",
     redacting: "Masking…",
     stateReading: "Reading…",
+    stateQueued: (ahead) => `Queued · ${ahead} ahead`,
     stateReadingPage: (page, total) => `Reading · page ${page}/${total}`,
     stateMasking: "Masking…",
     stateMaskingPct: (pct) => `Masking · ${pct}%`,

@@ -30,7 +30,15 @@ export function registerExtractIpc(): void {
     // Uint8Array COPY, never the Buffer (pdf.js rejects it, and Buffer.slice is a view).
     const bytes = new Uint8Array(Buffer.from(p.data, "base64"));
     const name = p.name ?? "file";
-    const out = await extractBytes(bytes, name, p.mime, (d, t) => progressTo(e.sender)(name, d, t));
+    const progress = progressTo(e.sender);
+    const out = await extractBytes(
+      bytes,
+      name,
+      p.mime,
+      (d, t) => progress(name, d, t),
+      false,
+      (ahead) => progress(name, 0, 0, { queued: ahead }),
+    );
     // A guard REFUSAL (`blocked`: zip bomb, oversized image, unreadable dimensions) is not
     // a parser failure: the renderer must learn it is a refusal so it does NOT keep the
     // bytes for a preview (audit 04/09 — a refused archive was still attached and unzipped

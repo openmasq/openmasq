@@ -1,4 +1,5 @@
 import type { ExtractedFile, FilesHost, OcrProgress } from "../../host";
+import { extractProgressPatch } from "./attachmentPending";
 import type { Attachment } from "./Composer";
 
 
@@ -20,17 +21,17 @@ export interface OcrAllDeps {
 
 export async function ocrAllAttachment(deps: OcrAllDeps, a: Attachment): Promise<void> {
   if (!a.path || !deps.files.extractAll) return;
-  deps.patch(a.cid, { extracting: true, error: undefined, extractProgress: undefined });
+  deps.patch(a.cid, { extracting: true, error: undefined, extractProgress: undefined, extractQueued: undefined });
   let file: ExtractedFile;
   try {
     const out = await deps.files.extractAll([a.path], (pr: OcrProgress) =>
-      deps.patch(a.cid, { extractProgress: { done: pr.page, total: pr.pages } }),
+      deps.patch(a.cid, extractProgressPatch({ done: pr.page, total: pr.pages, queued: pr.queued })),
     );
     if (!out[0]) throw new Error("extraction vide");
     file = out[0];
   } catch {
     // Failure LEAVES the old text (10 pages read beats zero) and says so.
-    deps.patch(a.cid, { extracting: false, extractProgress: undefined, error: "relecture échouée" });
+    deps.patch(a.cid, { extracting: false, extractProgress: undefined, extractQueued: undefined, error: "relecture échouée" });
     return;
   }
   const redactPreview = deps.countMatches(file.text);
@@ -38,6 +39,7 @@ export async function ocrAllAttachment(deps: OcrAllDeps, a: Attachment): Promise
     ...file,
     extracting: false,
     extractProgress: undefined,
+    extractQueued: undefined,
     redactPreview,
     redacting: !!file.text.trim(),
   });

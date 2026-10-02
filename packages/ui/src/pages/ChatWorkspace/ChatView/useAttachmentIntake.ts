@@ -6,6 +6,7 @@ import { DRAFT_CONV } from "../../../state/debug/debug";
 import { makeStaging } from "../attachmentStaging";
 import type { Attachment } from "../Composer";
 import { stageDeferredFile } from "../deferredAttach";
+import { extractPicked } from "../extractPicked";
 import { ocrAllAttachment } from "../ocrAll";
 import { logOcrDebug } from "../ocrDebug";
 import { redactAttachment } from "../redactAttachment";
@@ -105,35 +106,17 @@ export function useAttachmentIntake(p: ChatViewProps, att: AttachmentsApi, redac
           extracting: true,
         }));
         setAttachments((prev) => [...prev, ...placeholders]);
-        host.files
-          .extract(picked.map((f) => f.path), (prog) => {
-            const ph = placeholders.find((x) => x.name === prog.name);
-            if (ph) updateAttachment(ph.cid, { extractProgress: { done: prog.page, total: prog.pages } });
-          })
-          .then((extracted) => {
-            placeholders.forEach((ph, i) => {
-              const f = extracted[i];
-              if (!f) {
-                updateAttachment(ph.cid, { extracting: false, error: "extraction échouée" });
-                return;
-              }
-              const merged: Attachment = { ...ph, ...f, extracting: false, redactPreview: countMatches(f.text) };
-              updateAttachment(ph.cid, {
-                ...f,
-                extracting: false,
-                extractProgress: undefined,
-                redactPreview: merged.redactPreview,
-                redacting: !!f.text.trim(),
-              });
-              logOcrDebug(f, logConv());
-              if (f.error) setAttachWarning(`${f.name}: ${f.error}`);
-              else if (f.text.trim()) redactAttachment(merged, redactDeps);
-            });
-          })
-          .catch((e) => {
-            placeholders.forEach((ph) => updateAttachment(ph.cid, { extracting: false, error: "extraction échouée" }));
-            setAttachWarning(e instanceof Error ? e.message : String(e));
-          });
+        extractPicked(placeholders, {
+          extract: host.files.extract.bind(host.files),
+          update: updateAttachment,
+          countMatches,
+          onRead: (f, merged) => {
+            logOcrDebug(f, logConv());
+            if (f.error) setAttachWarning(`${f.name}: ${f.error}`);
+            else if (f.text.trim()) redactAttachment(merged, redactDeps);
+          },
+          warn: setAttachWarning,
+        });
         return;
       }
       addExtractedFiles(await host.files.pick()); // browser preview: no pickPaths

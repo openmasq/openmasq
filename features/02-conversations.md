@@ -198,6 +198,7 @@ today's.
 - [x] Document redaction **on drop**, before any send
 - [x] Preview before sending: the document — EVERY page, painted as it nears the viewport (`packages/ui/src/containers/modals/viewers/pdf/lazyPages.ts`) — (Pages redacted / Feuille / Image…) · Original · Redacted (« what will leave the machine », cut at the send limit) · the image's text — with the redaction state (running / failed / count) in the header — `packages/ui/src/containers/modals/viewers/AttachmentPreviewModal.tsx`
 - [x] The preview opens while the file is still being read (OCR) or first masked: a loader with the page being read / the masking progress, then the redacted document as soon as it lands — never the document unmasked in the meantime — `packages/ui/src/containers/modals/viewers/AttachmentPendingPreview.tsx`
+- [x] Several documents at once: read ONE at a time, in order; each chip finishes on its own (the first one ready opens while the others wait) and a waiting one says « En attente · N avant » — `apps/desktop/src/main/ocr/extractQueue.ts`, `packages/ui/src/pages/ChatWorkspace/extractPicked.ts`
 - [x] Redact a word by hand in the preview (selection or click on a word)
 - [ ] Sending a document as **redacted images** to a multimodal model — not offered: a
       document leaves as its extracted, masked text (the « texte ou fichier » choice was removed)

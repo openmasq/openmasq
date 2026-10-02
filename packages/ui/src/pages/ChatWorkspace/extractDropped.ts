@@ -45,7 +45,7 @@ export function deferDroppedFile(file: File, deps: ExtractDroppedDeps): Deferred
     ...(file.type ? { mime: file.type } : {}),
     load: (onOcrProgress) =>
       extractOne(file, deps, (p) => {
-        if (p.name === file.name) onOcrProgress?.({ done: p.page, total: p.pages });
+        if (p.name === file.name) onOcrProgress?.({ done: p.page, total: p.pages, queued: p.queued });
       }),
   };
 }

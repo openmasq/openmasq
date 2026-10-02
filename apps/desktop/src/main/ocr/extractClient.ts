@@ -8,6 +8,7 @@ import {
 import { reportMainError } from "../runtime/errorReport";
 import { isAppQuitting } from "../runtime/quitState";
 import { BRAND } from "@openmasq/branding";
+import { createExtractQueue } from "./extractQueue";
 
 /**
  * CLIENT of the extraction worker (`extractWorker.ts`) — the documents counterpart of
@@ -190,16 +191,26 @@ async function withFallback(
   }
 }
 
+/** ONE document at a time, worker and in-process fallback alike (why: `extractQueue.ts`).
+ *  The worker timeout is armed inside `run`, so it counts from the job's START. */
+const queue = createExtractQueue(1);
+
 /** Extraction of a file on disk — worker first, in-process as session fallback. */
 export function extractTextInWorker(
   filePath: string,
   onOcrProgress?: (done: number, pages: number) => void,
   /** "Read all": lift the OCR cap — threaded as-is through to the engine. */
   ocrAllPages?: boolean,
+  /** While queued: how many files are ahead (re-told as the line moves). */
+  onWaiting?: (ahead: number) => void,
 ): Promise<ExtractedFile> {
-  return withFallback(
-    () => run({ kind: "path", path: filePath, ocrAllPages }, onOcrProgress),
-    () => extractTextInProcess(filePath, onOcrProgress, ocrAllPages),
+  return queue.run(
+    () =>
+      withFallback(
+        () => run({ kind: "path", path: filePath, ocrAllPages }, onOcrProgress),
+        () => extractTextInProcess(filePath, onOcrProgress, ocrAllPages),
+      ),
+    onWaiting,
   );
 }
 
@@ -210,10 +221,13 @@ export function extractBytesInWorker(
   mime?: string,
   onOcrProgress?: (done: number, pages: number) => void,
   ocrAllPages?: boolean,
+  onWaiting?: (ahead: number) => void,
 ): Promise<ExtractedFile> {
-  const data = Buffer.from(bytes).toString("base64");
-  return withFallback(
-    () => run({ kind: "bytes", data, name, mime, ocrAllPages }, onOcrProgress),
-    () => extractBytesInProcess(bytes, name, mime, onOcrProgress, ocrAllPages),
-  );
+  return queue.run(() => {
+    const data = Buffer.from(bytes).toString("base64");
+    return withFallback(
+      () => run({ kind: "bytes", data, name, mime, ocrAllPages }, onOcrProgress),
+      () => extractBytesInProcess(bytes, name, mime, onOcrProgress, ocrAllPages),
+    );
+  }, onWaiting);
 }
