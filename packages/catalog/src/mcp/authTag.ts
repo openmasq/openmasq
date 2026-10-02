@@ -110,7 +110,7 @@ export function mcpAuthTag(
     }
     return {
       kind: "direct",
-      label: c.directAuth === "device" ? "Connexion par code" : "1-clic",
+      label: c.directAuth === "device" ? "Appareil" : "1-clic",
       title:
         c.directAuth === "device"
           ? "Un code à saisir sur le site du service, et c'est fini. Aucune clé à créer."

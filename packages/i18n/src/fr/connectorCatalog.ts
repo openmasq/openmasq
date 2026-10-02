@@ -98,7 +98,7 @@ export const connectorCatalog = {
         `Connexion en un clic. Pour ${what}, vos propres clés sont nécessaires : ${reason}.`,
     },
     device: {
-      label: "Connexion par code",
+      label: "Appareil",
       title: "Saisissez un code sur le site du service pour vous connecter. Aucune clé nécessaire.",
     },
     oneClick: "1-clic",
