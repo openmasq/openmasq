@@ -195,6 +195,18 @@ export interface VersionsTabMessages {
     notAvailable: string;
     unknownError: string;
     withSize: (text: string, size: string) => string;
+    /** One line per failure class, chosen by the `code` main sends (`updates/disk.ts`). */
+    errors: {
+      noSpace: string;
+      readOnlyVolume: (brand: string) => string;
+      appRunning: (brand: string) => string;
+      signature: string;
+      /** The feed answered 5xx: the server is at fault, not the user's network. */
+      server: string;
+      download: string;
+      network: string;
+      generic: string;
+    };
   };
   refusal: { notPrivileged: (brand: string) => string; writeFailed: string; generic: string };
 }

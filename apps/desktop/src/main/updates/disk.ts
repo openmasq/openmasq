@@ -95,7 +95,11 @@ export function humanizeUpdateError(err: unknown): { code: string; message: stri
   if (httpStatus || /cannot download|download failed|unable to download/i.test(raw))
     return {
       code: httpStatus ? `download-${httpStatus}` : "download",
-      message: "Téléchargement de la mise à jour impossible. Vérifiez votre connexion, puis réessayez.",
+      // A 5xx is the server's fault: "check your connection" would send the user after
+      // the wrong cause. The renderer shows its own copy by `code` (updateStatus.ts).
+      message: httpStatus?.startsWith("5")
+        ? "Le serveur de mise à jour est momentanément indisponible. L'app réessaiera d'elle-même."
+        : "Téléchargement de la mise à jour impossible. Vérifiez votre connexion, puis réessayez.",
     };
   // Transport: DNS / refused / reset / timeout before any HTTP status.
   if (

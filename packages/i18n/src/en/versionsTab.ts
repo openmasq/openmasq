@@ -56,6 +56,17 @@ export const versionsTab = {
     notAvailable: "You are up to date.",
     unknownError: "Unknown error.",
     withSize: (text, size) => `${text} (${size})`,
+    errors: {
+      noSpace: "Not enough disk space to install the update. Free up some space, then try again.",
+      readOnlyVolume: (brand) =>
+        `To update, ${brand} must be in your Applications folder. Move the app from the installer disk (or Downloads) to Applications, then reopen it.`,
+      appRunning: (brand) => `Part of the app was still running. Quit ${brand} completely, then restart the update.`,
+      signature: "The downloaded update could not be verified (integrity). Try again.",
+      server: "The update server is temporarily unavailable. Nothing to do on your side: the app will retry on its own.",
+      download: "The update could not be downloaded. Check your connection, then try again.",
+      network: "Could not reach the update server. Check your network, then try again.",
+      generic: "The update failed. Try again later.",
+    },
   },
   refusal: {
     notPrivileged: (brand) =>
