@@ -140,8 +140,13 @@ function phoneWordInSentence(text: string, at: number): boolean {
   // does not vouch for an order number.
   // A sentence ends at a stop FOLLOWED BY A SPACE — the dot inside « kristindiaz54@gmail.com
   // and 212-515-8332 » ends nothing.
+  // …and an ABBREVIATION's dot ends nothing either: « tel. 301.555.0163 » cut the sentence
+  // right after the very word that vouches for the number.
   let cut = 0;
-  for (const m of before.matchAll(/[.!?;](?=\s)/gu)) cut = m.index + 1;
+  for (const m of before.matchAll(/[.!?;](?=\s)/gu)) {
+    if (m[0] === "." && /\b(?:tel|t[ée]l|ph|mob|cell|fax|no|nr|num)$/iu.test(before.slice(0, m.index))) continue;
+    cut = m.index + 1;
+  }
   const sentence = before.slice(Math.max(before.lastIndexOf("\n"), cut, 0));
   return NANP_CONTEXT.test(sentence);
 }

@@ -29,6 +29,11 @@ describe("detectPhones — GB and parenthesised US numbers without a phone word"
     expect(found(text)).toEqual([]);
   });
 
+  it("an abbreviation's dot does not cut the phone word off its number", () => {
+    expect(found("Plaintiff: R. Subramaniam, tel. 301.555.0163")).toEqual(["301.555.0163"]);
+    expect(found("Order no. 301.555.0163 shipped")).toEqual([]);
+  });
+
   it("the number leaves the outgoing text", async () => {
     const r = await pseudonymize("Questions to HR at people@example.co.uk or 0117 496 0732.", {
       vault: {},
