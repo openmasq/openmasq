@@ -208,6 +208,9 @@ export const LABEL_GROUPS: LabelGroup[] = [
       "numéro d'adhérent", "numero d'adherent", "n° adhérent", "n° d'adhérent", "numéro adhérent",
       "numéro d'assuré", "numero d'assure", "n° assuré", "n° d'assuré", "numéro assuré",
       "numéro de membre", "n° de membre", "numéro membre",
+      "numéro de mutuelle", "n° de mutuelle", "numéro de bénéficiaire", "n° de bénéficiaire", "numéro msa", "n° msa", "msa",
+      // The foreigner number (AGDREF) printed on a residence permit and every prefecture letter.
+      "numéro étranger", "numero etranger", "n° étranger", "numéro agdref", "n° agdref",
       "numéro de contrat", "numero de contrat", "n° de contrat", "n° contrat", "numéro contrat",
       "numéro de recommandé", "n° de recommandé", "n° recommandé",
       "numéro rg", "n° rg",
