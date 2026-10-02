@@ -50,6 +50,22 @@ kept in the French they were sent in, for the reason given above.
 
 ---
 
+## 0.13.0 — 2026-10-02
+> Masked file paths keep their meaning, and an expired Claude Code or Codex session reconnects in one click.
+
+### What's new
+- **Paths masked like sentences** — only the names, companies and numbers in a file path are replaced; the rest stays readable.
+- **Reconnect your subscription** — an expired Claude Code or Codex session shows a clear message and a sign-in button.
+- **Modern document fonts** — Word files use Aptos and PDFs use Inter.
+
+### Improvements & fixes
+- The app's English is clearer and uses one word throughout: mask.
+- Values from an attached document keep their category and color in the conversation.
+- OneDrive can now receive a file from the conversation.
+- A downloaded update also announces itself with a system notification.
+- Google connectors are coming soon; for now they work only with your own Google keys.
+- Connector names and record IDs stay readable, so the assistant can use your tools.
+
 ## 0.12.0 — 2026-10-02
 > Case, claim and bar numbers are masked, and each connector can keep its own masking level.
 
