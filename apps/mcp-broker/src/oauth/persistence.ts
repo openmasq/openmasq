@@ -14,7 +14,7 @@ import type { BrokerToken, RegisteredClient } from "./store.js";
  * No `dataDir` configured → a no-op backend (pure in-memory): the default for
  * tests and the cred-free demo.
  */
-export interface Snapshot {
+interface Snapshot {
   clients: RegisteredClient[];
   tokens: [string, BrokerToken][];
   refresh: [string, string][];

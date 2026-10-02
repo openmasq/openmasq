@@ -13,7 +13,7 @@
 
 // Unambiguous URLs: scheme URLs, protocol-relative `//host/…`, `www.…`. These span
 // the WHOLE url, so any image filename / query token inside is covered automatically.
-export const STRICT_URL = new RegExp(
+const STRICT_URL = new RegExp(
   [
     String.raw`\b(?:https?|ftp|wss?):\/\/[^\s"'<>()\[\]]+`,
     String.raw`(?<![\w.])\/\/[a-z0-9][^\s"'<>()\[\]]+`,

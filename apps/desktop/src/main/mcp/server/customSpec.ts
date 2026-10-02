@@ -15,7 +15,7 @@ import { randomBytes } from "node:crypto";
 export const CUSTOM_ID_PREFIX = "custom-";
 
 /** A label is display-only; long enough to be useful, short enough not to break a card. */
-export const CUSTOM_NAME_MAX = 60;
+const CUSTOM_NAME_MAX = 60;
 
 export function isCustomServerId(id: string): boolean {
   return id.startsWith(CUSTOM_ID_PREFIX);

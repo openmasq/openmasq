@@ -18,11 +18,11 @@ export { runMemoryExtraction, type MemoryExtractionDeps } from "./memoryExtracti
  * Trigger: an ARMED IDLE TIMER per completed turn on the active conversation, plus a
  * flush when the user switches away from it.
  */
-export const MEMORY_IDLE_MS = 120_000;
+const MEMORY_IDLE_MS = 120_000;
 /** STARTUP sweep: a courtesy delay (auth/keys resolve, the app
  *  settles), then catch-up of ORPHANED slices — conversations left
  *  before the 120 s idle (app closed, machine asleep). */
-export const MEMORY_SWEEP_DELAY_MS = 45_000;
+const MEMORY_SWEEP_DELAY_MS = 45_000;
 /** Sweep BOUNDS — the real risk is the burst: a conversation from before the
  *  feature has a watermark at 0, and a naive sweep on first launch
  *  would extract the entire history (surprise cost + rate-limit + memory polluted by

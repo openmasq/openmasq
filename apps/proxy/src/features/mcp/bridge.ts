@@ -18,7 +18,7 @@ import type { Upstream } from "./upstream.js";
 
 /** The per-request redaction state, the same object `routes/middlewares/session.ts` puts on
  *  `res.locals` for a model call. */
-export interface SessionState {
+interface SessionState {
   vault: Vault;
   key: string;
   mode: "fake" | "token";
@@ -34,7 +34,7 @@ export interface BridgeDeps {
   perServer?: (serverId: string) => { masker?: Masker; writes?: WritePolicy };
 }
 
-export interface ToolOutcome {
+interface ToolOutcome {
   result: McpToolResult;
   /** What was masked on the way back — for the audit line, never a value on its own. */
   matches: RedactionMatch[];

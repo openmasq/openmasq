@@ -19,10 +19,9 @@
  */
 import type { StreamDone } from "@openmasq/llm";
 import { interpretClaudeEvent } from "./claudeStream";
-import { streamCliProcess, SubscriptionCliError } from "./spawnStream";
+import { streamCliProcess, } from "./spawnStream";
 
 // The generic spawn/NDJSON loop is `spawnStream.ts`; this file keeps the claude-SPECIFIC part.
-export { SubscriptionCliError };
 
 /** BELT-AND-SUSPENDERS, not the guard: `--tools ""` decides. This list removes by name,
  *  so it only covers what we thought to write (rule 7). */

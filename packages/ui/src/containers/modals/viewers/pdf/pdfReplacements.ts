@@ -5,5 +5,4 @@ export {
   pdfReplacements,
   vaultReplacements,
   type PdfReplacement,
-  type RedactFn,
 } from "@openmasq/redact/pdf-redact";

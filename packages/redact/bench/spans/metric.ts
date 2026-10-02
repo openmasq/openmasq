@@ -48,7 +48,7 @@ export interface GoldSpan {
  *  merge, so counting it in the product's scope would credit us with a promise we dropped.
  *  The gold still CARRIES it, so the per-category table shows the hole instead of hiding it. */
 const CLAIMED: ReadonlySet<string> = new Set(REDACTION_CATEGORIES.map((c) => String(c.key)));
-export const inScope = (s: GoldSpan): boolean => s.scope !== "ctx" && !!s.cat && CLAIMED.has(s.cat);
+const inScope = (s: GoldSpan): boolean => s.scope !== "ctx" && !!s.cat && CLAIMED.has(s.cat);
 /** The catalogue's own order — a per-category table reads like the app's rules screen. */
 export const CATEGORY_ORDER: readonly string[] = REDACTION_CATEGORIES.map((c) => String(c.key));
 /** Claimed, but OFF at the default level: the product finds these only in Strict. Marked in
@@ -58,7 +58,7 @@ export interface SpanCase { id: string; lang: string; text: string; spans: GoldS
 export type PredSpan = [start: number, end: number];
 export type View = "all" | "in";
 
-export interface PRF { p: number; r: number; f1: number; tp: number; pred: number; gold: number }
+interface PRF { p: number; r: number; f1: number; tp: number; pred: number; gold: number }
 export interface Scores {
   cases: number;
   char: PRF;
@@ -83,8 +83,8 @@ const both = (a: Uint8Array, b: Uint8Array) => { let n = 0; for (let i = 0; i < 
 const covered = (a: Uint8Array, s: { start: number; end: number }) => { for (let i = s.start; i < s.end; i++) if (!a[i]) return false; return true; };
 const touched = (a: Uint8Array, s: { start: number; end: number }) => { for (let i = s.start; i < s.end; i++) if (a[i]) return true; return false; };
 
-export const lengthBucket = (n: number) => (n < 1000 ? "<1k" : n < 10000 ? "1k–10k" : "≥10k");
-export const mentionBucket = (n: number) => (n === 1 ? "1" : n === 2 ? "2" : n <= 5 ? "3–5" : n <= 10 ? "6–10" : "11+");
+const lengthBucket = (n: number) => (n < 1000 ? "<1k" : n < 10000 ? "1k–10k" : "≥10k");
+const mentionBucket = (n: number) => (n === 1 ? "1" : n === 2 ? "2" : n <= 5 ? "3–5" : n <= 10 ? "6–10" : "11+");
 
 interface Triple { r: number; p: number; pred: number; gold: number } // r = recall hits, p = precision hits
 interface Acc { c: Triple; o: Triple; k: Triple }
@@ -104,7 +104,7 @@ const toPRF = (t: Triple): PRF => {
  * property of the SIDECAR, not of the engine — `presidio.py` merged its output and
  * `pplx.py` did not — so the normalisation belongs here, where every column gets it.
  */
-export function normalize(spans: readonly PredSpan[]): { start: number; end: number }[] {
+function normalize(spans: readonly PredSpan[]): { start: number; end: number }[] {
   const out: { start: number; end: number }[] = [];
   for (const [start, end] of [...spans].sort((a, b) => a[0] - b[0] || a[1] - b[1])) {
     const last = out[out.length - 1];

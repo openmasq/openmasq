@@ -3,7 +3,7 @@
 // it cannot mask, and an unmasked forward is the one outcome this middleware exists to prevent.
 import express, { type NextFunction, type Request, type Response } from "express";
 
-export const MAX_BODY = "32mb";
+const MAX_BODY = "32mb";
 
 export const rawBody = express.raw({ type: () => true, limit: MAX_BODY });
 

@@ -209,7 +209,7 @@ export function mentionsToken(normText: string, card: MemoryCard): boolean {
 // `index.ts` exports it alongside this file.
 
 /** Window of the « Nouveautés » review: what the machine wrote RECENTLY. */
-export const MEMORY_FRESH_MS = 7 * 24 * 3600 * 1000;
+const MEMORY_FRESH_MS = 7 * 24 * 3600 * 1000;
 
 /** Cards TO REVIEW: created by automatic extraction within the window, or with
  *  a sentence REPLACED within the window (the `factsLog` history dates each

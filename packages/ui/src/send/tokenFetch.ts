@@ -20,7 +20,7 @@ export type PlatformTokenResult =
    *  with a paid plan got told to « prendre un abonnement » because their wifi dropped. */
   | { ok: false; reason: "none" | "timeout" | "error" };
 
-export const PLATFORM_TOKEN_TIMEOUT_MS = 5000;
+const PLATFORM_TOKEN_TIMEOUT_MS = 5000;
 
 /** One capped attempt at `getToken()`. */
 async function attempt(

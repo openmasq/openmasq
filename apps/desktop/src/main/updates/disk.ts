@@ -2,7 +2,7 @@ import { statfs } from "node:fs/promises";
 import { BRAND } from "@openmasq/branding";
 
 // ── Download size + free-disk + friendly errors ─────────────────────────────
-export interface UpdFile {
+interface UpdFile {
   url?: string;
   size?: number;
 }

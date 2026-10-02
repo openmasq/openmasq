@@ -33,10 +33,6 @@ export const WHEELS: string[] = [
   "python-pptx==1.0.2", // PPTX (import: `from pptx import Presentation`; pulls lxml+Pillow binary wheels)
 ];
 
-/** Human-facing list of the pre-installed packages, for the model-facing guidance
- *  (so it uses what's there and never tries to `pip install`). */
-export const PACKAGES = "numpy, pandas, scipy, matplotlib, seaborn (graphiques), yfinance, requests, fpdf2 (PDF), openpyxl (Excel), python-docx (Word), python-pptx (PowerPoint)";
-
 /**
  * Hosts the egress proxy permits WHILE RUNNING model-generated code (suffix-matched).
  * yfinance/requests are forced through the loopback proxy (via `HTTPS_PROXY`), which

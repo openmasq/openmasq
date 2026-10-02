@@ -8,7 +8,7 @@
  * at its source (`SECTION_HUE`) reaches the loader too, and it can never drift from the marks
  * a real conversation shows.
  */
-export { CAV_SWATCHES, type CavSwatch } from "@openmasq/redact";
+export { CAV_SWATCHES } from "@openmasq/redact";
 import { CAV_SWATCHES } from "@openmasq/redact";
 
 /** The CSS custom properties for a swatch index (fill + the ink that reads on it). */

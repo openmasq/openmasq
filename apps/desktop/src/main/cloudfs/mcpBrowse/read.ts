@@ -39,7 +39,7 @@ export const asRecord = (v: unknown): Record<string, unknown> | null =>
  * sentence — that's formatting for a model, not other data. We strip it,
  * without ever GUESSING a list: what isn't JSON stays unreadable.
  */
-export function readJson(text: string): unknown {
+function readJson(text: string): unknown {
   const body = text.replace(/^\s*```(?:json)?\s*/i, "").replace(/```\s*$/, "");
   const candidates = [body];
   const first = body.search(/[[{]/);

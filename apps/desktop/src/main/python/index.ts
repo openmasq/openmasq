@@ -7,7 +7,4 @@
  * `python:run` IPC (`registerPythonIpc`) and surfaced to the model as the
  * `run_python` tool in the agentic loop (`@openmasq/ui` mcpAgent).
  */
-export { ensureRuntime, runtimeDir, interpreterFor } from "./runtime";
-export { runPython, jailAvailability } from "./sandbox";
-export { WHEELS, ALLOW_HOSTS } from "./wheels";
 export { registerPythonIpc } from "./ipc";

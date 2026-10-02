@@ -50,7 +50,7 @@ export type Policy = "bare" | "renforce" | "strict";
 export type Engine = (text: string) => Promise<Record<string, string>>;
 
 /** The policy's engine options — for a level, the same derivation the app performs on every send. */
-export function policyOptions(policy: Policy) {
+function policyOptions(policy: Policy) {
   if (policy === "bare") return {};
   const strict = policy === "strict";
   // The RETIRED categories are forced OFF, LAST — exactly as the app's own send merge does

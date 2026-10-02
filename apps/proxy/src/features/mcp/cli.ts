@@ -15,7 +15,7 @@ import { createPrompt } from "./prompt.js";
 import { resolveSpecs } from "./resolve.js";
 import { DEFAULT_MCP_CONFIG, type ServerSpec } from "./servers.js";
 
-export const MCP_USAGE = `openmasq-proxy mcp <command>
+const MCP_USAGE = `openmasq-proxy mcp <command>
 
   status                 the declared servers, and which are signed in
   add                    a form: declare a server, remote or local

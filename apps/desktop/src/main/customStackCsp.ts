@@ -21,7 +21,7 @@ import { customCspOrigins, patchCspConnectSrc, type CustomStack } from "../envir
 import type { EnvName } from "../environments";
 import { readEnvPointerFull } from "./environment";
 
-export function installCustomStackCsp(stack: CustomStack, rendererIndexHtml: string): void {
+function installCustomStackCsp(stack: CustomStack, rendererIndexHtml: string): void {
   const origins = customCspOrigins(stack);
   if (origins.length === 0) return;
   const indexUrl = pathToFileURL(rendererIndexHtml).href;

@@ -15,12 +15,12 @@ import { MAX_FACTS_CHARS, normalizeMem } from "./memory";
  * prudence — it is a wrong answer, so the explicit ceiling is much higher (and the caller
  * sweeps for the rest, `extractSweep.ts`).
  */
-export const MAX_EXTRACTED_FACTS = 6;
+const MAX_EXTRACTED_FACTS = 6;
 export const MAX_EXPLICIT_FACTS = 25;
 
 /** How many known entity names the prompt may carry. Enough to skip what a sweep has
  *  already captured, small enough that the list never crowds out the text it reads. */
-export const MAX_EXCLUDE = 60;
+const MAX_EXCLUDE = 60;
 
 /** The ceiling in force for a given call. */
 export const factLimitFor = (explicit?: boolean): number =>

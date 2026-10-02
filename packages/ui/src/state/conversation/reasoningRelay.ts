@@ -26,7 +26,7 @@
 
 /** ~1 flush per animation-ish frame budget: fast enough to read as live typing, cheap
  *  enough that a long reflection doesn't re-render the bubble hundreds of times. */
-export const REASONING_FLUSH_MS = 90;
+const REASONING_FLUSH_MS = 90;
 
 export interface ReasoningRelay {
   /** A wire-form delta straight off the provider stream. */

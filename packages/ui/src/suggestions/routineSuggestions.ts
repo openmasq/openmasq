@@ -9,7 +9,7 @@ import { genericRoutineFor } from "./routineGeneric";
 export { routineSuggestions, type RoutineSuggestion };
 
 /** How many templates the modal offers at once. */
-export const ROUTINE_SUGGESTION_LIMIT = 6;
+const ROUTINE_SUGGESTION_LIMIT = 6;
 
 /** A template whose service can't do this in one click. */
 export interface OwnKeysNote {

@@ -63,7 +63,7 @@ let lowlightP: Promise<Lowlight> | null = null;
 
 /** Dynamically import lowlight + highlight.js `common` ONCE (code-split out of the
  *  initial bundle). Resolves to the shared instance; caches it for the sync path. */
-export function loadLowlight(): Promise<Lowlight> {
+function loadLowlight(): Promise<Lowlight> {
   if (!lowlightP) {
     lowlightP = import("lowlight").then(({ common, createLowlight }) => {
       lowlight = createLowlight(common);

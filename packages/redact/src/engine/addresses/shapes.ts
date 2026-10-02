@@ -72,7 +72,7 @@ export const W = `(?:${H}*(?:,${H}*)?\\r?\\n${H}*|(?:,|${H})+)`;
 // cuts at the "postal code + city", and there is no postal code here.
 // The guard is deliberately narrow: no street is called « … 2400 euros HT ». A number
 // followed by a currency or a tax mention is never a street name.
-export const MONEY_AHEAD = "(?![,\\s]*\\d[\\d  .,]*\\s*(?:€|EUR\\b|euros?\\b|HT\\b|TTC\\b))";
+const MONEY_AHEAD = "(?![,\\s]*\\d[\\d  .,]*\\s*(?:€|EUR\\b|euros?\\b|HT\\b|TTC\\b))";
 export const NAME =
   `(?:[\\p{L}0-9](?:(?![,\\s]+(?:[-–—][,\\s]*)?\\d{5}\\b)${MONEY_AHEAD}[\\p{L}0-9'’.\\- ]){1,38}[\\p{L}0-9.](?![\\p{L}0-9]))`;
 
@@ -87,7 +87,7 @@ export const NAME =
 // stayed TRUE, exactly the geographic incoherence this tail exists to
 // prevent, and a real address reconstructible down to one digit. This is the SAME class as
 // the street → postal-code join just above, which already admits the comma.
-export const CITY = "\\p{Lu}[\\p{L}'’.\\- ]{1,28}";
+const CITY = "\\p{Lu}[\\p{L}'’.\\- ]{1,28}";
 // ⚠️ `MONEY_AHEAD` HERE TOO, and for a reason that doesn't show up reading the line:
 // these forms are compiled with `giu`, and **under the `i` flag, `\\p{Lu}` matches
 // lowercase**. The "capitalised city" that `CITY` thinks it requires therefore requires nothing, and the
@@ -101,5 +101,5 @@ export const CITY = "\\p{Lu}[\\p{L}'’.\\- ]{1,28}";
 export const TAIL_CORE = `[,\\s]+(?:[-–—][,\\s]*)?${MONEY_AHEAD}(?:\\d{5}|\\d{4}-\\d{3}|\\d{4}\\s?[A-Z]{2}|\\d{4})[,\\s]+${CITY}`;
 export const TAIL_ZIPCITY = `(?:${TAIL_CORE})?`;
 // Trailing "City ST ZIP" (US), "City POSTCODE" (GB), "City PROV A1A 1A1" (CA).
-export const EN_POST = "\\d{5}(?:-\\d{4})?|[A-Z]\\d[A-Z]\\s?\\d[A-Z]\\d|[A-Z]{1,2}\\d[A-Z\\d]?\\s?\\d[A-Z]{2}";
+const EN_POST = "\\d{5}(?:-\\d{4})?|[A-Z]\\d[A-Z]\\s?\\d[A-Z]\\d|[A-Z]{1,2}\\d[A-Z\\d]?\\s?\\d[A-Z]{2}";
 export const TAIL_CITYZIP = `(?:[,\\s]+\\p{Lu}[\\p{L} ]{1,24}(?:,?\\s+[A-Z]{2})?\\s+(?:${EN_POST}))?`;

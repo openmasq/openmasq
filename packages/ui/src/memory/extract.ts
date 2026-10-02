@@ -13,10 +13,8 @@ export {
   parseExtraction,
   looksLikeSecret,
   factLimitFor,
-  MAX_EXTRACTED_FACTS,
-  MAX_EXPLICIT_FACTS,
 } from "./extractParse";
-export type { ExtractedFact, Extraction } from "./extractParse";
+export type { Extraction } from "./extractParse";
 
 // The explicit-ask detection lives in `extractExplicit.ts` (multilingual phrase lists);
 // re-exported so existing `from "./extract"` imports are unchanged.
@@ -35,7 +33,7 @@ export { isExplicitMemoryAsk, EXPLICIT_LOOKBACK } from "./extractExplicit";
  */
 
 /** The zero-cost gate's floor: below this much NEW user text, never call a model. */
-export const MIN_NEW_CHARS = 400;
+const MIN_NEW_CHARS = 400;
 
 /** A fact that is a SELF-preference about how the assistant should answer / what the
  *  user likes (« Préfère des réponses courtes en français »). It belongs to the

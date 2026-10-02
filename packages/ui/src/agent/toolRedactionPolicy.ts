@@ -33,7 +33,7 @@ export const BROWSER_CLEAR = ["location", "company"];
  *  over `safeFetch` (no cookies, so it can't reach authenticated pages). It gets the
  *  SAME narrow clear policy as the browser: place/org read as content, but
  *  secret/apikey/path stay REDACTED (a public page can still expose a leaked key). */
-export const WEB_FETCH_MANY_TOOL = "web_fetch_many";
+const WEB_FETCH_MANY_TOOL = "web_fetch_many";
 
 /**
  * The extra categories to leave in clear for a tool result, given its connector id,

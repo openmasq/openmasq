@@ -10,7 +10,7 @@
  *   connectRemote.ts — the remote http + OAuth-loopback connect flow
  *   accountFlows.ts — the multi-account connect/reauth flows
  */
-export type { McpServerInfo, McpAuthChoice } from "./types";
+export type { McpAuthChoice } from "./types";
 
 export {
   setMcpChangeNotifier,
@@ -24,7 +24,6 @@ export {
 export { mcpCatalog, mcpList } from "./info";
 export { mcpByoCredGroups } from "./accounts";
 export { mcpAdd, mcpAddCustom, mcpAddStdio, mcpRemove, mcpSetStdioDirs, notePickedDir } from "./lifecycle";
-export { isCustomServerId } from "./customSpec";
 export { mcpCallTool } from "./callTool";
 export {
   mcpConnect,
@@ -38,4 +37,3 @@ export {
   mcpAddAccountRemote,
   mcpReauthDirect,
 } from "./accountFlows";
-export { cancelConnect as mcpCancelConnect } from "./connectCancel";

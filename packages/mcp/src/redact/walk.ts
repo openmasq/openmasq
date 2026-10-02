@@ -87,7 +87,7 @@ const FILE_URL_RE =
  * `canva.com/d/<id>` EDIT links are deliberately NOT here (different host, not an
  * image).
  */
-export const THUMBNAIL_HOSTS = ["canva.ai"] as const;
+const THUMBNAIL_HOSTS = ["canva.ai"] as const;
 
 const THUMBNAIL_URL_RE = new RegExp(
   `https?://(?:[a-z0-9-]+\\.)*(?:${THUMBNAIL_HOSTS.map((h) => h.replace(/\./g, "\\.")).join("|")})/[^\\s"'<>()]+`,

@@ -17,7 +17,7 @@ import type { OAuthClientProvider } from "@openmasq/mcp/transport";
 import { openmasqDir } from "../../lib/stateDir.js";
 import type { HttpSpec } from "./servers.js";
 
-export const OAUTH_TIMEOUT_MS = 5 * 60_000;
+const OAUTH_TIMEOUT_MS = 5 * 60_000;
 
 export const createStore = (dir = openmasqDir()): McpOAuthStore =>
   new McpOAuthStore(dir, "mcp-auth.enc", process.env.OPENMASQ_PROXY_KEY ?? "");

@@ -5,7 +5,7 @@
  * TYPES ONLY, without a single import: type-only imports are erased on both sides, and
  * a drift between the bridge and the spec is now a compile error instead of a comment.
  */
-export interface E2eTurn {
+interface E2eTurn {
   convId: string;
   done: boolean;
   /** Reply text as SHOWN (un-redacted) — what the user would read. */

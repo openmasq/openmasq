@@ -9,7 +9,7 @@ import type { RedactionMatch, Vault } from "@openmasq/redact";
 
 /** What the send pipeline hands the review hook: the wire that would be sent,
  *  the conversation vault (token→original), and the spans it redacted. */
-export interface WirePreview {
+interface WirePreview {
   wire: string;
   vault: Vault;
   matches: RedactionMatch[];

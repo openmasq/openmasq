@@ -92,7 +92,7 @@ async function* lineStream(path: string): AsyncGenerator<string> {
  * full disk leaves the old file or the new one, never a truncated middle. The temp file
  * stays inside the granted directory and is removed on failure.
  */
-export async function atomicWrite(
+async function atomicWrite(
   path: string,
   content: string | Uint8Array,
   mode?: number,

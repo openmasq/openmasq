@@ -5,7 +5,7 @@
  * conversations + the active one) or a SPLIT (a row/column of ≥2 sized children).
  */
 
-export type PaneId = string;
+type PaneId = string;
 
 export interface LeafPane {
   kind: "leaf";

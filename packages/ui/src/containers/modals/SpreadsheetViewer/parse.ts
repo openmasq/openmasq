@@ -7,7 +7,7 @@ import type { PdfReplacement } from "../viewers/pdf/pdfReplacements";
 export const MAX_ROWS = 2000;
 export const MAX_COLS = 60;
 
-export type Cell = { text: string; numeric: boolean; rowSpan?: number; colSpan?: number };
+type Cell = { text: string; numeric: boolean; rowSpan?: number; colSpan?: number };
 export type Sheet = {
   name: string;
   header: string[];

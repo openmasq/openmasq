@@ -60,7 +60,7 @@ const EMPH = `(\\*{1,3}|_{1,3})?`;
  * Surgical by construction: the pattern is anchored on the value itself, so nothing else in
  * the sentence can be rewritten. Case is preserved on the article (« De » stays capitalised).
  */
-export function fixElisionAround(text: string, value: string): string {
+function fixElisionAround(text: string, value: string): string {
   const v = value.trim();
   if (!v) return text;
   const lit = escape(v);

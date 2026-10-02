@@ -55,7 +55,7 @@ export function familyMark(key: string): Mark | null {
 /** The tile background a mark sits on. A glyph wears its vendor's pastel; a dark-ink
  *  vendored icon needs a light plate or it vanishes in the dark theme; anything else
  *  is carried by its own colour on the neutral sunken tile. */
-export function markBackground(mark: Mark): string {
+function markBackground(mark: Mark): string {
   if (mark.kind === "glyph") return TILE_BG[mark.glyph];
   if (mark.kind === "image" && mark.logo.plate) return PLATE_BG;
   return "var(--surface-sunken)";

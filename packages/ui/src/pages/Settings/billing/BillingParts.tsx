@@ -9,7 +9,7 @@ import { useT } from "../../../i18n";
 // Presentational pieces split out of BillingTab to keep it under the 300-LOC cap.
 
 // Tier order, so we can tell an upgrade from a downgrade (label + confirmation).
-export const TIER_RANK: Record<string, number> = { free: 0, solo: 1, team: 2, scale: 3 };
+const TIER_RANK: Record<string, number> = { free: 0, solo: 1, team: 2, scale: 3 };
 
 /** One plan card in the "VOTRE ABONNEMENT" grid. The parent owns the real billing
  *  actions (checkout / change-tier / portal); this only renders + routes the click.

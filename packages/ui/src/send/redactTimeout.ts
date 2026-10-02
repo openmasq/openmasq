@@ -9,8 +9,8 @@
  * failure. So the ceiling here sits ABOVE the server budget (server time + cold
  * start + network), while a genuinely hung endpoint still fails in bounded time.
  */
-export const REDACT_TIMEOUT_MIN_MS = 15_000;
-export const REDACT_TIMEOUT_MAX_MS = 45_000;
+const REDACT_TIMEOUT_MIN_MS = 15_000;
+const REDACT_TIMEOUT_MAX_MS = 45_000;
 
 /** Timeout (ms) for redacting `text`: a floor + ~1 s per 1 000 chars, capped. */
 export function redactTimeoutMs(text: string): number {

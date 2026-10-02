@@ -214,7 +214,7 @@ export function isGovernedWebTool(toolName: string): boolean {
 export const MAX_SAME_TOOL = 8;
 export const MAX_SAME_WEB_READ = 20;
 /** A positively-annotated read: bounded by CONTEXT, not by count. */
-export const MAX_SAME_READ = 30;
+const MAX_SAME_READ = 30;
 
 export function maxSameToolCalls(toolName: string, readOnly = false): number {
   if (isGovernedWebTool(toolName) && !isBrowserWriteTool(toolName)) return MAX_SAME_WEB_READ;
@@ -264,5 +264,4 @@ export function looksWebIntent(text: string): boolean {
 
 // The BEHAVIOUR guards live in their own files (rule 1) — re-exported here so
 // importers never learn that the split happened.
-export { isSendTool, asksDraftNotSend, DRAFT_NOT_SEND_STEER } from "./sendIntent";
-export { asksConsultNotAct, CONSULT_NOT_ACT_STEER } from "./readIntent";
+export { isSendTool, asksDraftNotSend } from "./sendIntent";

@@ -5,7 +5,7 @@
 // deliberately BORING common street names, never a person-gazetteer word that could
 // collide with `avoid`. The address LAYOUT half lives in ./index.ts (`FORMATTERS`).
 
-export const STREET_PARTS: Record<string, { types: string[]; names: string[] }> = {
+const STREET_PARTS: Record<string, { types: string[]; names: string[] }> = {
   fr: {
     types: ["rue", "avenue", "boulevard", "impasse", "chemin", "allée", "place", "square"],
     names: [

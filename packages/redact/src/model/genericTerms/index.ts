@@ -117,7 +117,7 @@ export function isNonPiiTerm(value: string, category?: string, input?: string): 
  * turned off; under `health` the value keeps obeying the « Santé » setting
  * (`aiKinds.test.ts`). Absent `category` ⇒ spared.
  */
-export function isClinicalTerm(value: string, category?: string): boolean {
+function isClinicalTerm(value: string, category?: string): boolean {
   if (category === "health") return false;
   return CLINICAL_TERM_SET.has(value.trim().toLowerCase());
 }

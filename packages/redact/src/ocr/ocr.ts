@@ -12,7 +12,7 @@ import { join } from "node:path";
 import { brandKey } from "@openmasq/branding";
 import { OCR_LANGS, OCR_TRAINEDDATA_SHA256, type OcrMeta } from "../documents/core";
 import { ocrWordsToText, type OcrWord } from "./layout";
-import { preferDoctr, doctrModelDir, type OcrEngine, type OcrPage } from "./engine";
+import { preferDoctr, doctrModelDir, type OcrPage } from "./engine";
 import { garbledBoxes, isGarbledWord, type GarbledRect } from "./garbled";
 
 /** Flatten a tesseract.js v5 result (`{ blocks: true }` output) into positioned
@@ -245,15 +245,3 @@ async function tesseractLayout(
   }
 }
 
-/** Tesseract wrapped as an {@link OcrEngine} — so the router treats every engine uniformly
- *  and "add another OCR model" is just "implement `OcrEngine`". `regions`/`meanConfidence`
- *  are unreported (Tesseract has no separate detect stage / comparable confidence). */
-export const tesseractEngine: OcrEngine = {
-  id: "tesseract",
-  async recognize(bytes: Uint8Array, lang: string = DEFAULT_LANG): Promise<OcrPage> {
-    const { text, words } = await tesseractLayout(bytes, lang);
-    const width = words.reduce((m, w) => Math.max(m, w.x1), 0);
-    const height = words.reduce((m, w) => Math.max(m, w.y1), 0);
-    return { text, words, width, height };
-  },
-};

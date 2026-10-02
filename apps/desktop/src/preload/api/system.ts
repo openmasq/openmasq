@@ -178,7 +178,7 @@ export const updates = {
 
 /** The resolved environment, as main hands it back. The types live HERE (the preload is
  *  the contract, and depends only on `electron`). */
-export type EnvName = "production" | "staging" | "custom";
+type EnvName = "production" | "staging" | "custom";
 
 /** The SELF-HOSTED stack entered by the user: public addresses and a PUBLISHABLE key. */
 export interface CustomStack {

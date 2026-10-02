@@ -17,9 +17,6 @@ import { CLIENT_HEADER, clientIdentityHeader } from "../../clientIdentity";
 
 const BYPASS = BACKEND_BYPASS;
 
-/** True when a staging bypass secret was baked in — i.e. the backend is protected. */
-export const BACKEND_BYPASS_ENABLED = !!BYPASS;
-
 /**
  * ⚠️ THIS helper, not `fetch`, for EVERY call to our backend — that's what makes
  * the client identity universal rather than "set at the spots we thought of".

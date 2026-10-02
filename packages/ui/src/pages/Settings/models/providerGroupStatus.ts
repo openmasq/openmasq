@@ -10,7 +10,7 @@ import { subscriptionsSold } from "../../../send/platformAccess";
  * and can't drift into JSX — logic in `.ts`, presentation in `.tsx`.
  */
 
-export interface ProviderKeyStatus {
+interface ProviderKeyStatus {
   text: string;
   check: boolean;
   blocked: boolean;

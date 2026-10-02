@@ -10,14 +10,6 @@ import { directAccountIdentity, accountKeyHash } from "../accountIdentity";
 import { effectiveScopes } from "./scopes";
 import { scopesForMode } from "../credMode";
 
-/** Desktop-direct connectors: OAuth on-device + tools in-process, NO broker. Dispatches
- *  the login by the connector's `auth` style and refreshes an expiring token. */
-
-/** True when `id` is a known desktop-direct connector (`@openmasq/connectors`). */
-export function hasDirectConnector(id: string): boolean {
-  return !!getConnector(id);
-}
-
 /** Google connectors share ONE "Desktop app" client (scopes per connector). Same predicate
  *  as `credGroupOf`. */
 function isGoogle(connectorId: string): boolean {

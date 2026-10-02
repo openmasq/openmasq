@@ -5,7 +5,7 @@ import type { Router } from "express";
 import type { RelayDeps } from "../../lib/relay.js";
 import generateContent from "./gemini_commands/generateContent.js";
 
-export const GENERATE_PATH =
+const GENERATE_PATH =
   /^\/v1(?:beta|alpha)?\/models\/[^/:]+:(?:generateContent|streamGenerateContent)$/;
 
 export default (router: Router, deps: RelayDeps): Router => {

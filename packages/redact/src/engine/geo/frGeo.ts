@@ -9,7 +9,7 @@ import type { Detection } from "../../types";
 // Region → its departments as [code, name]. `code` is the 2-char INSEE code
 // (Corsica 2A/2B; overseas 971-976). The code's first 2 chars key `DEP2_TO_REGION`
 // (a 5-digit CP's first 2 digits → its region), so "35136" → "35" → "Bretagne".
-export const REGION_DEPTS: Record<string, [string, string][]> = {
+const REGION_DEPTS: Record<string, [string, string][]> = {
   "Auvergne-Rhône-Alpes": [["01", "Ain"], ["03", "Allier"], ["07", "Ardèche"], ["15", "Cantal"], ["26", "Drôme"], ["38", "Isère"], ["42", "Loire"], ["43", "Haute-Loire"], ["63", "Puy-de-Dôme"], ["69", "Rhône"], ["73", "Savoie"], ["74", "Haute-Savoie"]],
   "Bourgogne-Franche-Comté": [["21", "Côte-d'Or"], ["25", "Doubs"], ["39", "Jura"], ["58", "Nièvre"], ["70", "Haute-Saône"], ["71", "Saône-et-Loire"], ["89", "Yonne"], ["90", "Territoire de Belfort"]],
   "Bretagne": [["22", "Côtes-d'Armor"], ["29", "Finistère"], ["35", "Ille-et-Vilaine"], ["56", "Morbihan"]],

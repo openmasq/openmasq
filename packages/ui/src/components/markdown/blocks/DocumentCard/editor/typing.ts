@@ -68,10 +68,3 @@ export function markForChord(e: {
   return null;
 }
 
-/** Which `document.execCommand` name applies a mark. `code` has none — the component
- *  wraps the selection itself; stated here so the mapping lives with the chords. */
-export const EXEC_FOR_MARK: Record<InlineMark, string | null> = {
-  bold: "bold",
-  italic: "italic",
-  code: null,
-};

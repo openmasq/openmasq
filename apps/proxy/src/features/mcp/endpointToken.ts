@@ -14,7 +14,7 @@ import { randomBytes, timingSafeEqual } from "node:crypto";
 import { join } from "node:path";
 import { openmasqDir } from "../../lib/stateDir.js";
 
-export const tokenPath = (dir = openmasqDir()): string => join(dir, "mcp.token");
+const tokenPath = (dir = openmasqDir()): string => join(dir, "mcp.token");
 
 /** 32 bytes, URL-safe: it travels in the endpoint's query string. */
 const mint = (): string => randomBytes(32).toString("base64url");

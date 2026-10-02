@@ -8,7 +8,7 @@ import type { longTextStats } from "./composerDetection";
  *  behind « +N autres » : a dense letter's 40 detections must not push the send row
  *  below the fold (kept values always stay visible — an un-redaction is a decision
  *  the user must be able to SEE and revert, never hidden by the fold). */
-export const CHIP_COLLAPSE_LIMIT = 8;
+const CHIP_COLLAPSE_LIMIT = 8;
 
 /**
  * The composer's small presentational leaves, peeled off `Composer.tsx` (LOC

@@ -6,7 +6,7 @@ import type { UpdateStatus } from "../../../../host";
 // these are logic, not presentation (root rule: functionality lives in `.ts`).
 
 /** Human update weight, e.g. "596 Mo" / "1,4 Go" — shown so the user knows the download size. */
-export function fmtSize(bytes?: number): string {
+function fmtSize(bytes?: number): string {
   if (!bytes || bytes <= 0) return "";
   return bytes >= 1e9
     ? `${(bytes / 1e9).toFixed(1).replace(".", ",")} Go`

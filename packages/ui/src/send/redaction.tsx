@@ -58,7 +58,4 @@ export function useRedactEngine(): Settings["redactEngine"] {
 // so it's unit-testable; re-exported here for existing `../redaction` importers.
 export {
   describeRedactFailure,
-  classifyRedactFailure,
-  redactFailureIsUserFixable,
-  type RedactFailureKind,
 } from "./redactFailure";

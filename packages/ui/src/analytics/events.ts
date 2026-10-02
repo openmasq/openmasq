@@ -47,7 +47,7 @@ export type ToolErrorReason =
 export type ToolErrorFamily = "auth" | "quota" | "not_found" | "bad_request" | "timeout" | "server" | "other";
 
 /** Why a connector (OAuth) failed to connect — bounded. */
-export type ConnectorErrorReason = "oauth" | "network" | "unauthorized" | "unknown";
+type ConnectorErrorReason = "oauth" | "network" | "unauthorized" | "unknown";
 
 export type TrackEvent =
   // ── app / navigation ───────────────────────────────────────────────────
@@ -227,8 +227,3 @@ export type TrackEvent =
 
 export type EventName = TrackEvent["name"];
 
-/** A sanitized event ready for a sink: name + allow-listed, bucketed properties. */
-export interface CleanEvent {
-  name: EventName;
-  props: Record<string, string | number | boolean | string[]>;
-}

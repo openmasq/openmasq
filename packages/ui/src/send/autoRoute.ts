@@ -129,7 +129,7 @@ const METERED_PENALTY: Record<AutoTaskClass, number> = { expert: 0, standard: 2,
 
 /** How this model's send would be billed, with the same inputs as the real
  *  routing (`resolveEffectivePlatform`) — never recomputed differently (rule 9). */
-export function autoBillingFor(m: ModelInfo, a: AutoRouteAvailability): AutoBilling {
+function autoBillingFor(m: ModelInfo, a: AutoRouteAvailability): AutoBilling {
   if (isFreeModel(m.id)) return "free";
   return resolveEffectivePlatform(m.provider, m.id, a.billingMode, a.keyConfigured)
     ? "metered"

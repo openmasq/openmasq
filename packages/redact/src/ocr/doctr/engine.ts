@@ -174,7 +174,3 @@ export const doctrEngine: OcrEngine = {
   },
 };
 
-/** Reset the cached sessions (tests / a model-path change). */
-export function resetDoctrSessions(): void {
-  sessionsPromise = null;
-}

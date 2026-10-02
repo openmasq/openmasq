@@ -32,7 +32,7 @@ function textBlock(s: string | undefined): Block[] {
  * (`role: "tool"`) become `tool_result` blocks inside a user turn; consecutive
  * ones are merged into a single user turn so user/assistant stay alternating.
  */
-export function toAnthropicMessages(messages: ChatMessage[]): {
+function toAnthropicMessages(messages: ChatMessage[]): {
   role: "user" | "assistant";
   content: Block[];
 }[] {
@@ -92,7 +92,7 @@ export const STOP: Record<string, CompleteToolsResult["stopReason"]> = {
 };
 
 /** The Anthropic system prompt: our `role:"system"` messages, joined. */
-export function anthropicSystem(messages: ChatMessage[]): string {
+function anthropicSystem(messages: ChatMessage[]): string {
   return messages
     .filter((m) => m.role === "system")
     .map((m) => m.content)

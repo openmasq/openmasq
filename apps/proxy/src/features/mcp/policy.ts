@@ -26,8 +26,8 @@ import {
 import { choices, closest } from "../../config/options.js";
 import { LEVELS, WRITE_POLICIES, type WritePolicy } from "../../config/schema.js";
 
-export type Side = "openmasq" | "client" | "off";
-export const SIDES: readonly Side[] = ["openmasq", "client", "off"];
+type Side = "openmasq" | "client" | "off";
+const SIDES: readonly Side[] = ["openmasq", "client", "off"];
 
 /**
  * The MASKING half is `@openmasq/catalog`'s `ConnectorMasking`, not a shape of our own: the

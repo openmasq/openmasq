@@ -21,7 +21,7 @@ import { useT } from "../../../i18n";
  */
 
 /** A bare filename (no scheme, no path) — an attachment reference, not a URL. */
-export function isStoredImageName(src: string): boolean {
+function isStoredImageName(src: string): boolean {
   return /^[^/\\:?#]+\.(png|jpe?g|gif|webp|avif)$/i.test(src);
 }
 

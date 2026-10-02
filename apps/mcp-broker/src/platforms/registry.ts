@@ -4,7 +4,7 @@ import { slackPlatform } from "./slack.js";
 import { githubPlatform } from "./github.js";
 import { isAvailable, type Platform } from "./types.js";
 
-export type { Platform, ToolCtx, OAuthUpstream } from "./types.js";
+export type { Platform } from "./types.js";
 export { isAvailable } from "./types.js";
 
 const ALL: Platform[] = [demoPlatform, gmailPlatform, slackPlatform, githubPlatform];

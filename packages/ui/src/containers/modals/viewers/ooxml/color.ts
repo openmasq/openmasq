@@ -1,4 +1,4 @@
-import { A, attr, attrNS, child, children, num, path } from "./xml";
+import { A, attr, attrNS, child, num, path } from "./xml";
 import { pctToRatio } from "./units";
 
 // DrawingML colour resolution — shared by docx (`<w:color w:themeColor>`) and pptx
@@ -12,7 +12,7 @@ import { pctToRatio } from "./units";
 //        └── "tx1" → clrMap (master) → "dk1" → clrScheme (theme) → #000000
 
 /** The twelve theme slots, as spelled in `<a:clrScheme>`. */
-export type SchemeSlot =
+type SchemeSlot =
   | "dk1" | "lt1" | "dk2" | "lt2"
   | "accent1" | "accent2" | "accent3" | "accent4" | "accent5" | "accent6"
   | "hlink" | "folHlink";
@@ -197,5 +197,3 @@ export function resolveDocxColor(el: Element | null | undefined, ns: string, sch
   return undefined;
 }
 
-/** Every direct DrawingML child element of `el` (helper for callers walking fills). */
-export const drawingChildren = (el: Element | null | undefined, name: string): Element[] => children(el, A, name);

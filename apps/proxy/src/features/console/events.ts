@@ -17,7 +17,7 @@ import {
 } from "@openmasq/redact";
 import type { RequestEvent } from "../../lib/ui/index.js";
 
-export interface ConsoleItem {
+interface ConsoleItem {
   /** The redaction SECTION's slug (`identite`, `financier`…), also the design token that
    *  colours it. `CATEGORY_SECTION` is the one home of the category → section mapping. */
   cat: string;
@@ -31,7 +31,7 @@ export interface ConsoleItem {
   n: number;
 }
 
-export interface ConsoleEvent {
+interface ConsoleEvent {
   t: string;
   method: string;
   path: string;
@@ -89,7 +89,7 @@ const enSection = (fr: string) => (EN.sections as Record<string, string | undefi
 const LABELS = new Map(
   REDACTION_CATEGORIES.map((c) => [c.key, enCategory(c.key)?.label ?? c.label]),
 );
-export const typeOf = (match: RedactionMatch): string => {
+const typeOf = (match: RedactionMatch): string => {
   const fine = fineOf(match);
   return LABELS.get(fine) ?? fine;
 };

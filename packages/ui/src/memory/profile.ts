@@ -56,7 +56,7 @@ export function profileSentences(profile: string): string[] {
 
 /** Does `covered` (content tokens of the kept profile) already cover EVERY content
  *  token of `piece`? An empty-content piece counts as covered (nothing to add). */
-export function profileCovers(covered: string[], piece: string): boolean {
+function profileCovers(covered: string[], piece: string): boolean {
   return contentTokens(piece).every((t) => covered.some((u) => sameStem(t, u)));
 }
 
