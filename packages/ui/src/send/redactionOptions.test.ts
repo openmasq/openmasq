@@ -65,12 +65,12 @@ describe("convKindsFromSpans", () => {
     // — filed as generic info instead of a person.
     const conv = {
       messages: [{ content: "", redactedSpans: [{ value: "Julien", kind: "name" }] }],
-      redactionKinds: { Stephane: "name", "36 AV DU CAPITAINE GLARNER": "address" },
+      redactionKinds: { Stephane: "name", "36 AV DU CAPITAINE VERMOND": "address" },
     };
     expect(convKindsFromSpans(conv)).toEqual({
       Julien: "name",
       Stephane: "name",
-      "36 AV DU CAPITAINE GLARNER": "address",
+      "36 AV DU CAPITAINE VERMOND": "address",
     });
   });
 

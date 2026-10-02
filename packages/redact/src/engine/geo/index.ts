@@ -195,7 +195,7 @@ export function fakeGeo(category: string, value: string, h: number, country?: st
         realPostal !== undefined || /\d\s+\p{Lu}[\p{L}'’.-]*\s*$/u.test(value);
       // The fake WEARS the original's dress, or the substitution is visible at a glance
       // (the SACEM-statement report): the STREET segment mirrors the original street's
-      // casing (« 36 AV DU CAPITAINE GLARNER » must not become lowercase « rue des
+      // casing (« 36 AV DU CAPITAINE VERMOND » must not become lowercase « rue des
       // Lilas »), the street↔postal SEPARATOR is reused (« … - 92528 » keeps its dash
       // instead of the formatter's comma), the CITY mirrors the original city's casing,
       // and a trailing CEDEX (+ its office number) is carried over verbatim.

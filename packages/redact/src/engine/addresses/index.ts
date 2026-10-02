@@ -1,7 +1,7 @@
 // Multilingual street-address + postal-code detector. A NER model catches the
 // city/name but NOT a full street address, and there's no fixed "address" shape
 // a single regex can match across languages — the number/type/name order differs:
-//   FR/PT  "36 rue du Capitaine Glarner"   number → type → name
+//   FR/PT  "36 rue du Capitaine Vermond"   number → type → name
 //   ES/IT  "Calle Mayor 3" / "Via Roma 12" type → name → number
 //   EN     "221 Baker Street"              number → name → type
 //   DE/NL  "Musterstraße 12"               name+type compound → number

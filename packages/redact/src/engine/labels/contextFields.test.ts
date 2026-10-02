@@ -325,24 +325,24 @@ describe("la forme VERTICALE exige un libellé SEUL sur sa ligne (le récépiss�
   it("un libellé qui porte déjà sa valeur INLINE ne capture jamais la ligne suivante", () => {
     // The escaping bug: in the template literal, an unescaped `\S` degraded into
     // a literal « S » — the « horizontal whitespace » class became « anything but an
-    // uppercase S », swallowed « : 2022B44821 » after the label, and the FIRST WORD of the
+    // uppercase S », swallowed « : 2021B37594 » after the label, and the FIRST WORD of the
     // next line became the « value »: « Forme » (from « Forme Juridique ») vaulted
     // as an identity document on every account-filing receipt.
     const doc =
       "Dénomination : Karl Studio                    Numéro RCS : 863 471 587\n" +
-      "                                              Numéro Gestion : 2022B44821\n" +
+      "                                              Numéro Gestion : 2021B37594\n" +
       "Forme Juridique : Société par actions simplifiée";
     const values = detectLabeledFields(doc).map((d) => d.value);
-    expect(values).toContain("2022B44821"); // the real value, itself, stays covered
+    expect(values).toContain("2021B37594"); // the real value, itself, stays covered
     expect(values).not.toContain("Forme");
     expect(values).not.toContain("Forme Juridique");
   });
 
   it("un mot quelconque sous un libellé-avec-valeur n'est jamais tagué", () => {
-    const values = detectLabeledFields("Numéro Gestion : 2022B44821\nPamplemousse").map(
+    const values = detectLabeledFields("Numéro Gestion : 2021B37594\nPamplemousse").map(
       (d) => d.value,
     );
-    expect(values).toEqual(["2022B44821"]);
+    expect(values).toEqual(["2021B37594"]);
   });
 
   it("le formulaire VERTICAL légitime continue : libellé seul, valeur dessous", () => {
@@ -479,7 +479,7 @@ describe("identifiant QUALIFIÉ — le libellé ne finit pas toujours au deux-po
     // always qualifies its identifiers.
     expect(vals("Identifiant du Projet Crédit : 02799195")).toContain("02799195");
     expect(vals("Identifiant : 02799195")).toContain("02799195");
-    expect(vals("N° de gestion : 2022B44821")).toContain("2022B44821");
+    expect(vals("N° de gestion : 2021B37594")).toContain("2021B37594");
   });
 
   it("⚠️ le qualificatif est BORNÉ — il ne traverse pas une clause", () => {
