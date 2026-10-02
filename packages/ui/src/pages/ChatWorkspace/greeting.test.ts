@@ -7,7 +7,7 @@ const fr = getMessages("fr");
 describe("timeGreeting", () => {
   it("adapts to the hour", () => {
     expect(timeGreeting(8, fr)).toBe("Bonjour");
-    expect(timeGreeting(14, fr)).toBe("Bon après-midi");
+    expect(timeGreeting(14, fr)).toBe("Bonjour");
     expect(timeGreeting(21, fr)).toBe("Bonsoir");
   });
 });

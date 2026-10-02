@@ -6,7 +6,7 @@ import type { Messages } from "../messages";
 export const modelCatalogA: Record<string, Messages["modelCatalog"]["models"][string]> = {
   "gpt-5.5": {
     strengths: ["State-of-the-art reasoning and agentic work", "Multimodal, very large context"],
-    weaknesses: ["The most expensive of the range", "Slower than the light variants"],
+    weaknesses: ["Most expensive in the lineup", "Slower than the light variants"],
     bestFor: "Complex tasks, tool-using agents, deep analysis",
   },
   "gpt-5.4": {
@@ -15,9 +15,9 @@ export const modelCatalogA: Record<string, Messages["modelCatalog"]["models"][st
     bestFor: "Demanding daily use, code, agents",
   },
   "gpt-5.4-mini": {
-    strengths: ["Good quality/price compromise", "Fast and multimodal"],
+    strengths: ["Good value for the quality", "Fast and multimodal"],
     weaknesses: ["Less reliable on long reasoning"],
-    bestFor: "Volume, snappy chat, everyday tasks",
+    bestFor: "High-volume work, fast chat, everyday tasks",
   },
   "gpt-5.4-nano": {
     strengths: ["Very fast and very cheap"],
@@ -35,7 +35,7 @@ export const modelCatalogA: Record<string, Messages["modelCatalog"]["models"][st
     bestFor: "Large-context processing on a budget",
   },
   "gpt-4.1-nano": {
-    strengths: ["The cheapest at very large context"],
+    strengths: ["Cheapest option with a very large context"],
     weaknesses: ["Poorly suited to hard tasks"],
     bestFor: "Extraction over large volumes",
   },
@@ -60,7 +60,7 @@ export const modelCatalogA: Record<string, Messages["modelCatalog"]["models"][st
     bestFor: "Budget text reasoning",
   },
   "claude-fable-5": {
-    strengths: ["The most capable of the Claude range", "Outstanding writing and code"],
+    strengths: ["Most capable Claude model", "Outstanding writing and code"],
     weaknesses: ["The most expensive"],
     bestFor: "Premium writing, code, long reasoning",
   },
@@ -85,18 +85,18 @@ export const modelCatalogA: Record<string, Messages["modelCatalog"]["models"][st
     bestFor: "Use your existing Claude subscription",
   },
   "claude-cli-fable": {
-    strengths: ["The smartest of the subscription", "Included in your Claude subscription"],
-    weaknesses: ["Text only", "Depends on the plan (absent from Pro)"],
-    bestFor: "Tasks that call for the best model",
+    strengths: ["Most capable model in your plan", "Included in your Claude subscription"],
+    weaknesses: ["Text only", "Not available on the Pro plan"],
+    bestFor: "Tasks that need the best model",
   },
   "claude-cli-sonnet": {
     strengths: ["Capability/speed balance", "Included in your Claude subscription"],
     weaknesses: ["Text only"],
-    bestFor: "The subscription's default choice",
+    bestFor: "Default choice for your plan",
   },
   "claude-cli-opus": {
-    strengths: ["The most capable of the subscription", "Included in your Claude subscription"],
-    weaknesses: ["Text only", "Depends on the plan (absent from Pro)"],
+    strengths: ["Most capable model in your plan", "Included in your Claude subscription"],
+    weaknesses: ["Text only", "Not available on the Pro plan"],
     bestFor: "The hardest tasks",
   },
   "codex-cli": {
@@ -108,10 +108,10 @@ export const modelCatalogA: Record<string, Messages["modelCatalog"]["models"][st
     strengths: ["Included in your Google subscription", "No API key to manage"],
     weaknesses: [
       "Text only",
-      "Without the app's connectors",
+      "Cannot use connectors",
       "Requires the Antigravity CLI installed and signed in",
     ],
-    bestFor: "Use your existing Antigravity subscription",
+    bestFor: "Use your existing Google subscription",
   },
   "claude-cli-haiku": {
     strengths: ["Very fast", "Included in your Claude subscription"],
@@ -120,18 +120,18 @@ export const modelCatalogA: Record<string, Messages["modelCatalog"]["models"][st
   },
   "claude-haiku-4-5": {
     strengths: ["Very fast", "Multimodal, cheap"],
-    weaknesses: ["200K context (vs 1M)", "Average reasoning"],
+    weaknesses: ["Smaller context (200K)", "Average reasoning"],
     bestFor: "Quick replies, volume, light multimodal",
   },
   "gemini-3.1-pro-preview": {
     strengths: ["Gemini flagship, 1M tokens", "Strong multimodal"],
-    weaknesses: ["Preview version", "Less code-specialised than GPT/Claude"],
+    weaknesses: ["Preview version", "Less specialized for code than GPT/Claude"],
     bestFor: "Multimodal analysis, very large documents",
   },
   "gemini-3.5-flash": {
     strengths: ["Fast, multimodal, 1M tokens"],
     weaknesses: ["Below Pro on hard reasoning"],
-    bestFor: "Snappy multimodal at large context",
+    bestFor: "Fast multimodal with a large context",
   },
   "gemini-3.1-flash-lite": {
     strengths: ["Ultra cheap at large context"],
@@ -146,7 +146,7 @@ export const modelCatalogA: Record<string, Messages["modelCatalog"]["models"][st
   "gemini-2.5-flash": {
     strengths: ["Fast and multimodal"],
     weaknesses: ["Previous generation"],
-    bestFor: "Snappy multimodal chat",
+    bestFor: "Fast multimodal chat",
   },
   "gemini-2.5-flash-lite": {
     strengths: ["Very cheap"],
@@ -174,7 +174,7 @@ export const modelCatalogA: Record<string, Messages["modelCatalog"]["models"][st
     bestFor: "Self-hosting, everyday tasks",
   },
   "codestral-latest": {
-    strengths: ["Code-specialised (completion, FIM)", "Fast and affordable"],
+    strengths: ["Specialized for code (completion, FIM)", "Fast and affordable"],
     weaknesses: ["Poorly suited to non-code tasks"],
     bestFor: "Code autocompletion and generation",
   },
@@ -196,6 +196,6 @@ export const modelCatalogA: Record<string, Messages["modelCatalog"]["models"][st
   "deepseek-v4-flash": {
     strengths: ["Fast and very cheap", "Very large context (1M)"],
     weaknesses: ["Text only", "Below the Pro variant on the hardest tasks", "Hosted in China"],
-    bestFor: "Snappy code and large volumes at low cost",
+    bestFor: "Fast coding and high volumes at low cost",
   },
 };

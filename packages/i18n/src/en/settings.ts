@@ -11,7 +11,7 @@ export const settings = {
   appearance: {
     title: "Appearance",
     darkModeLabel: "Dark mode",
-    darkModeHint: "Switches the app to dark colours.",
+    darkModeHint: "Use a dark theme.",
   },
   tabs: {
     account: {
@@ -23,13 +23,13 @@ export const settings = {
     privacy: {
       label: "Privacy",
       title: "Privacy",
-      sub: (brand) => `What ${brand} protects before a model ever receives it.`,
-      kw: "redaction masking privacy confidentialite protection categories rules level standard strict custom tokens pseudonyms report protected data",
+      sub: (brand) => `What ${brand} masks before anything reaches a model.`,
+      kw: "redaction masking privacy confidentialite protection categories rules level light enhanced strict reinforced allege renforce custom placeholders substitutes pseudonyms report protected data",
     },
     models: {
       label: "Models",
       title: "Model list",
-      sub: () => "The models your access opens — plus a local model on your own machine.",
+      sub: () => "Models available with your API keys or plan, plus a model running on your computer.",
       kw: "model default gpt claude gemini mistral deepseek llm provider api key local ollama lm studio address localhost modeles",
     },
     mcp: {
@@ -47,7 +47,7 @@ export const settings = {
     audit: {
       label: "Log",
       title: "Audit log",
-      sub: () => "The redaction history, filterable and searchable.",
+      sub: () => "A searchable history of what was masked.",
       kw: "log history security traceability redaction masking export journal",
     },
     usage: {
@@ -71,12 +71,12 @@ export const settings = {
     versions: {
       label: "Versions",
       title: "Versions",
-      sub: () => "Release channels and the update notes.",
+      sub: () => "Release channels and release notes.",
       kw: "changelog update beta stable release notes channel news",
     },
   },
   entries: {
-    darkMode: { label: "Dark mode", kw: "dark theme appearance night colour sombre" },
+    darkMode: { label: "Dark mode", kw: "dark theme appearance night color colour sombre" },
     importConversations: {
       label: "Import conversations",
       kw: "import chatgpt claude export history",
@@ -100,26 +100,26 @@ export const settings = {
     linkPreviews: { label: "Link previews", kw: "link preview thumbnail url ip" },
     protectionLevel: {
       label: "Protection level",
-      kw: "level standard strict custom categories rules redaction",
+      kw: "level light enhanced strict reinforced standard custom categories rules masking redaction",
     },
     showTokens: {
-      label: "Show tokens rather than pseudonyms",
-      kw: "tokens pseudonyms person1 iban display",
+      label: "Show placeholders ([PERSON1]) instead of substitutes",
+      kw: "placeholders substitutes tokens pseudonyms person1 iban display",
     },
     modelSeesTokens: {
-      label: "The model only ever sees tokens",
-      kw: "tokens markers pseudonyms model anonymisation person1 sending",
+      label: "The model sees placeholders only",
+      kw: "placeholders markers substitutes tokens pseudonyms model anonymization anonymisation person1 sending",
     },
     memoryAuto: {
       label: "Automatic memory extraction",
       kw: "memory cards extraction automatic silent remember to review notes",
     },
     localModel: {
-      label: "A model on your own computer",
+      label: "Local model",
       kw: "local ollama lm studio localhost address openai compatible model id list network lan",
     },
     favouriteModels: {
-      label: "Favourite models",
+      label: "Favorite models",
       kw: "favourites favorite star short list picker customise pin shortcut",
     },
     claudeSubscription: {
@@ -135,8 +135,8 @@ export const settings = {
       kw: "antigravity agy cli google gemini subscription no key",
     },
     writeConfirm: {
-      label: "Confirming actions",
-      kw: "confirmation write gate stricter tools agent",
+      label: "Action confirmations",
+      kw: "confirmation confirm every action write gate stricter reinforced tools agent",
     },
     browserSecurity: {
       label: "Agent browser security",

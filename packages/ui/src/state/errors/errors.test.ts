@@ -187,7 +187,7 @@ describe("humanizeSendError — les codes passerelle restants", () => {
   it("CREDITS_UNVERIFIABLE a sa phrase — un fail-closed voulu n'est pas un code cryptique", () => {
     const msg = humanizeSendError('scaleway tools request failed (402): {"error":"CREDITS_UNVERIFIABLE"}', t)!;
     expect(msg).toMatch(/vérifier vos crédits/i);
-    expect(msg).toMatch(/rien n'est parti/i); // the promise stays, said once
+    expect(msg).toMatch(/rien n'a été envoyé/i); // the promise stays, said once
     expect(msg).not.toContain("CREDITS_UNVERIFIABLE");
   });
 

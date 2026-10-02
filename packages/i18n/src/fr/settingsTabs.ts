@@ -10,26 +10,26 @@ export const accountTab = {
   signedInFallback: "Compte connecté",
   signedInHint: (brand) => `Connecté à ${brand} sur cet appareil.`,
   signOut: "Se déconnecter",
-  createOrgTip: "Créer une organisation — dans l'app web",
+  createOrgTip: "Créer une organisation dans l'app web",
   createOrg: "Créer une organisation",
   createOrgHint:
-    "Partages d'équipe, règles imposées, facturation par siège — la création se fait dans l'app web.",
+    "Partages d'équipe, règles imposées, facturation par siège. La création se fait dans l'app web.",
   dataEyebrow: "Vos données",
   importTitle: "Importer des conversations",
   beta: "Bêta",
-  importHint: "Depuis un export ChatGPT ou Claude — traité sur votre appareil.",
+  importHint: "Depuis un export ChatGPT ou Claude, traité sur votre appareil.",
   importCta: "Importer",
   billingEyebrow: "Facturation des messages",
   subscriptionToggle: (brand) => `Utiliser mon abonnement ${brand}`,
   subscriptionToggleHint:
-    "Désactivé, vos messages passent par vos propres comptes (OpenAI, Gemini…).",
+    "Si désactivé, vos messages passent par vos propres comptes (OpenAI, Gemini…).",
   notifEyebrow: "Notifications",
   notifTitle: "Prévenir quand une réponse arrive",
   notifHint:
-    "Seulement si vous regardez ailleurs — autre fenêtre, ou autre conversation. La bannière ne montre ni le message ni le titre du fil ; le clic y ramène.",
+    "Seulement si vous êtes dans une autre fenêtre ou une autre conversation. La notification n'affiche ni le message ni le titre de la conversation. Un clic vous y ramène.",
   statsEyebrow: "Statistiques",
   statsTitle: "Statistiques d'usage anonymes",
-  statsHint: "Des compteurs d'usage — jamais vos messages.",
+  statsHint: "Des compteurs d'usage, jamais vos messages.",
   privacyEyebrow: "Vie privée",
   linkPreviews: "Aperçus de liens",
   linkPreviewsHint: "Une vignette sous les liens. Activer révèle votre adresse IP au site lié.",
@@ -39,35 +39,35 @@ export const accountTab = {
 
 export const privacyTab = {
   protectedEyebrow: "Ce qui est protégé",
-  perConnectorEyebrow: "Connecteurs qui dérogent",
+  perConnectorEyebrow: "Connecteurs avec leur propre niveau",
   perConnectorNote: (n) =>
     n === 1
-      ? "Un connecteur masque à son propre niveau. Les autres suivent celui du dessus."
-      : `${n} connecteurs masquent à leur propre niveau. Les autres suivent celui du dessus.`,
+      ? "Un connecteur a son propre niveau de masquage. Les autres suivent le niveau par défaut."
+      : `${n} connecteurs ont leur propre niveau de masquage. Les autres suivent le niveau par défaut.`,
   perCategory: "Régler catégorie par catégorie",
   activeCount: (active, total) => `${active}/${total} actives`,
   managedByOrg: (n) => ` · ${n} gérée(s) par votre organisation`,
   advancedTitle: "Options avancées",
-  advancedSub: "Journal technique, affichage des jetons, ce que le modèle reçoit.",
+  advancedSub: "Journal technique, affichage des marqueurs, ce que le modèle reçoit.",
   debugLogTitle: "Journal technique détaillé",
   debugLogHint:
-    "Ajoute « Journal de débogage » au menu ⋯ de chaque conversation — tenu sur cet appareil uniquement.",
-  tokenDisplayTitle: "Afficher des jetons plutôt que des pseudonymes",
+    "Ajoute « Journal de débogage » au menu ⋯ de chaque conversation. Conservé sur cet appareil uniquement.",
+  tokenDisplayTitle: "Afficher des marqueurs plutôt que des substituts",
   tokenDisplayHint:
-    "Une valeur protégée se lit « [PERSON1] » plutôt qu'un faux nom. Ne change que l'affichage : le modèle, lui, reçoit ce que dit le réglage ci-dessous.",
-  wireTokensTitle: "Le modèle ne voit que des jetons",
+    "Une valeur protégée s'affiche « [PERSON1] » au lieu d'un nom de substitution. Ne change que l'affichage : ce que reçoit le modèle dépend du réglage ci-dessous.",
+  wireTokensTitle: "Le modèle ne voit que des marqueurs",
   wireTokensHint:
-    "Au lieu d'un faux nom vraisemblable, le modèle reçoit « [PERSON1] ». Plus sobre — un faux nom reste un nom —, mais il rédige et raisonne moins bien sur des marqueurs. S'applique aux conversations commencées ensuite.",
+    "Le modèle reçoit « [PERSON1] » au lieu d'un nom de substitution réaliste. Aucun nom n'est inventé, mais le modèle rédige et raisonne moins bien. S'applique aux nouvelles conversations.",
   memoryEyebrow: "Mémoire",
   memoryAutoTitle: "Extraction automatique de la mémoire",
   memoryAutoHint: (brand) =>
-    `${brand} note seul les faits durables d'une conversation, dans « À revoir ». Rien de nouveau ne quitte votre machine ; « retiens que… » fonctionne toujours, réglage éteint ou non.`,
+    `${brand} enregistre de lui-même les faits durables d'une conversation, dans « À revoir ». Rien de plus n'est envoyé hors de votre appareil. « Retiens que… » fonctionne, que ce réglage soit activé ou non.`,
   memoryExportTitle: "Exporter la mémoire (diagnostic)",
   memoryExportHint:
-    "Les fiches et leurs liens sémantiques, en texte, dans un fichier local — données réelles, pour comprendre un regroupement ou un doublon.",
+    "Les fiches et leurs liens sémantiques, en texte, dans un fichier local. Contient des données réelles. Utile pour comprendre un regroupement ou un doublon.",
   reportEyebrow: "Ce qui a été protégé",
   reportEmpty: (brand) =>
-    `Rien n'est encore parti d'ici. Dès votre premier message, vous verrez ici ce que ${brand} a protégé — et de quel type.`,
+    `Rien n'a encore été envoyé. Après votre premier message, vous verrez ici ce que ${brand} a protégé, et de quel type.`,
   reportMessagesSub: (n) => `saisies dans vos messages · ${n} conversation${n === 1 ? "" : "s"}`,
   reportAllSub: "tout ce qui a été masqué · messages, outils et documents",
   reportDetail: "Voir le journal détaillé",
@@ -82,7 +82,7 @@ export const privacyTab = {
   auditNetwork: "Réseau",
   auditCount: (n) =>
     `${n.toLocaleString("fr-FR")} élément${n === 1 ? "" : "s"} masqué${n === 1 ? "" : "s"}`,
-  auditSub: "Avant d'atteindre un modèle · restaurés uniquement dans votre copie, jamais transmis.",
+  auditSub: "Masqués avant d'atteindre un modèle · le modèle ne voit jamais les valeurs réelles.",
   auditExportTip: "Exporter la sélection en CSV",
   auditExport: "Exporter",
   auditEmpty: "Aucun masquage enregistré pour l'instant.",
@@ -106,19 +106,19 @@ export const privacyTab = {
   revealConversation: "Conversation",
   revealWhen: "Quand",
   revealNote:
-    "Cette valeur n'a jamais quitté votre machine — le modèle n'a vu que le remplacement.",
+    "Le modèle n'a jamais vu cette valeur.",
   timelineTitle: (days) => `Masquages · ${days} derniers jours`,
   timelineMeta: "valeurs masquées / jour, par catégorie",
   timelineEmpty: "Aucun masquage sur la période.",
   timelineAria: "Valeurs masquées par jour et par catégorie",
   timelineBarTip: (n) => `${n} valeur${n > 1 ? "s" : ""} masquée${n > 1 ? "s" : ""}`,
-  egressTitle: "Ce qui est sorti de la machine",
+  egressTitle: "Adresses contactées par l'app",
   egressSub:
-    "Les adresses que l'app a réellement contactées, et celles qu'elle a refusées. Le nom du site seulement — jamais la page, jamais ce qui a été demandé.",
+    "Les adresses que l'app a réellement contactées, et celles qu'elle a refusées. Seul le nom du site est enregistré, jamais la page ni la requête.",
   egressLoading: "Lecture du journal…",
   egressEmpty: "Rien pour l'instant : aucune adresse contactée depuis cet appareil.",
   egressOrigins: (n) => (n === 1 ? "adresse" : "adresses"),
-  egressContacts: (n) => (n === 1 ? "contact" : "contacts"),
+  egressContacts: (n) => (n === 1 ? "connexion" : "connexions"),
   egressRefused: (n) => `${n} refusé${n === 1 ? "" : "s"}`,
   egressRefusedWord: (n) => `refusé${n === 1 ? "" : "s"}`,
   egressRefusedFallback: "refusé",
@@ -135,7 +135,7 @@ export const privacyTab = {
 export const browserTab = {
   engineEyebrow: "Moteur de recherche",
   engineHint:
-    "Le moteur utilisé quand vous saisissez des mots-clés (plutôt qu'une adresse) dans la barre du navigateur intégré. Modifiable aussi depuis le menu à côté des onglets.",
+    "Le moteur utilisé quand vous saisissez des mots-clés (et non une adresse) dans la barre d'adresse du navigateur intégré. Vous pouvez aussi le changer depuis le menu à côté des onglets.",
 } satisfies Messages["browserTab"];
 
 export const modelsTab = {
@@ -145,30 +145,30 @@ export const modelsTab = {
   agentsGroupTitle: "Via un agent installé",
   agentsGroupSub: "Votre abonnement existant, aucune clé.",
   recommended: "conseillé",
-  agentTip: (a) => `${a} — votre abonnement existant, aucune clé à coller.`,
-  agentOn: (a) => `${a} : activé. Chaque envoi consomme votre abonnement personnel.`,
+  agentTip: (a) => `${a} : votre abonnement existant, aucune clé à coller.`,
+  agentOn: (a) => `${a} : activé. Chaque message est décompté de votre abonnement personnel.`,
   agentMissing: (a) =>
     `${a} : introuvable sur cette machine. Cliquez pour savoir comment l'installer.`,
   availableEyebrow: (n) => `Modèles disponibles (${n})`,
   noMatch: (q) => `Aucun modèle ne correspond${q ? ` à « ${q} »` : ""}.`,
   advancedTitle: "Avancé",
   advancedSub:
-    "Un modèle sur votre ordinateur (Ollama, LM Studio…) et les identifiants qu'il ne liste pas.",
+    "Un modèle sur votre ordinateur (Ollama, LM Studio…) et les identifiants de modèles que le serveur ne liste pas.",
   orgProvidesModels: (org) => `${org} fournit les modèles.`,
   yourOrg: "Votre organisation",
   orgKeysBlocked:
-    "Les clés d'API personnelles sont désactivées sur ce compte : les modèles que votre organisation a ouverts fonctionnent sans rien renseigner, et aucun autre ne peut être utilisé, même avec une clé à vous. Votre administrateur choisit la liste.",
+    "Les clés API personnelles sont désactivées sur ce compte. Les modèles ouverts par votre organisation fonctionnent sans rien renseigner. Aucun autre n'est utilisable, même avec votre propre clé. Votre administrateur choisit la liste.",
   editKey: (provider) => `Modifier la clé ${provider}`,
   addKeyFor: (provider) => `Renseigner une clé ${provider}`,
   keySaved: "Clé enregistrée",
   included: "Inclus",
   addKey: "Ajouter une clé",
-  noKeySubscription: (brand) => `Sans clé, l'abonnement ${brand} ouvre les modèles inclus.`,
+  noKeySubscription: (brand) => `Sans clé, l'abonnement ${brand} donne accès aux modèles inclus.`,
   defaultLead: "Vos nouvelles conversations démarrent sur",
   defaultTip: "Voir la fiche de ce modèle",
   freeBadge: "gratuit",
   freeBadgeTip:
-    "Modèle gratuit — inclus avec votre compte, usage limité. Cliquez pour en savoir plus.",
+    "Modèle gratuit, inclus avec votre compte, usage limité. Cliquez pour en savoir plus.",
   addFavorite: "Ajouter aux favoris",
   removeFavorite: "Retirer des favoris",
   searchPlaceholder: "Rechercher un modèle (nom, gpt, claude…)",
@@ -179,7 +179,7 @@ export const modelsTab = {
   price: "Prix",
   priceTiers: { free: "Gratuit", eco: "Éco", standard: "Standard", premium: "Premium" },
   priceTierTips: {
-    free: "0 $ — gratuit avec votre compte",
+    free: "0 $, gratuit avec votre compte",
     eco: "≤ 3 $ / M tokens en sortie",
     standard: "3 à 20 $ / M tokens en sortie",
     premium: "> 20 $ / M tokens en sortie",
@@ -191,14 +191,14 @@ export const modelsTab = {
     keyRequiredTip: (p) => `Ajoutez votre clé ${p} pour utiliser ces modèles.`,
     keyOrSubscription: "Clé ou abonnement",
     creditsExhaustedTip: (brand, p) =>
-      `Crédits ${brand} épuisés. Ajoutez votre clé ${p} pour un envoi direct, ou prenez un abonnement.`,
+      `Crédits ${brand} épuisés. Ajoutez votre clé ${p} pour les utiliser directement, ou prenez un abonnement.`,
     viaSubscriptionTip: (brand, p) =>
-      `Sans clé, ces modèles passent par votre abonnement ${brand} (crédits). Ajoutez votre clé ${p} pour un envoi direct.`,
+      `Sans clé, ces modèles passent par votre abonnement ${brand} (crédits). Ajoutez votre clé ${p} pour les utiliser directement.`,
     unavailableTip: (brand, p) =>
-      `Ces modèles ne sont pas disponibles sur votre compte ${brand} pour le moment. Ajoutez votre clé ${p} pour un envoi direct.`,
+      `Ces modèles ne sont pas disponibles sur votre compte ${brand} pour le moment. Ajoutez votre clé ${p} pour les utiliser directement.`,
     keyOrAccount: "Clé ou compte",
     viaAccountTip: (brand, p) =>
-      `Sans clé, ces modèles passent par votre compte ${brand}. Ajoutez votre clé ${p} pour un envoi direct.`,
+      `Sans clé, ces modèles passent par votre compte ${brand}. Ajoutez votre clé ${p} pour les utiliser directement.`,
     noKey: "Aucune clé",
     noKeyTip: (p) => `Aucune clé ${p} n'est enregistrée sur cet appareil.`,
   },
@@ -208,17 +208,17 @@ export const modelsTab = {
   localAddress: "Adresse du modèle",
   claude: {
     title: "Votre abonnement Claude",
-    note: "Si vous avez un abonnement Claude et la CLI Claude Code installée, vos conversations peuvent passer par elle — sans clé API. Le masquage s'applique comme partout : le modèle ne voit que des données remplacées.",
+    note: "Si vous avez un abonnement Claude et la CLI Claude Code installée, vos conversations peuvent passer par elle, sans clé API. Le masquage s'applique de la même façon.",
     row: "Utiliser ma CLI Claude Code",
-    on: "Ajoute « Claude Code » à la liste des modèles. Chaque envoi consomme votre abonnement Claude personnel.",
+    on: "Ajoute « Claude Code » à la liste des modèles. Chaque message est décompté de votre abonnement Claude personnel.",
     missing:
       "CLI introuvable sur cette machine : installez Claude Code et connectez-le à votre compte Claude, puis revenez ici.",
   },
   codex: {
     title: "Votre abonnement ChatGPT",
-    note: "Si vous avez un abonnement ChatGPT et la CLI Codex installée, vos conversations peuvent passer par elle — sans clé API. Le masquage s'applique comme partout : le modèle ne voit que des données remplacées.",
+    note: "Si vous avez un abonnement ChatGPT et la CLI Codex installée, vos conversations peuvent passer par elle, sans clé API. Le masquage s'applique de la même façon.",
     row: "Utiliser ma CLI Codex",
-    on: "Ajoute « GPT Codex » à la liste des modèles. Chaque envoi consomme votre abonnement ChatGPT personnel.",
+    on: "Ajoute « GPT Codex » à la liste des modèles. Chaque message est décompté de votre abonnement ChatGPT personnel.",
     missing:
       "CLI introuvable sur cette machine : installez-la (npm i -g @openai/codex), connectez-la avec « codex login », puis revenez ici.",
   },
@@ -228,16 +228,16 @@ export const modelsTab = {
     hosted: "Hébergé",
     context: (size) => `Contexte ${size}`,
     vision: "Vision",
-    priceEyebrow: "Tarif indicatif — pour environ 1 million de mots",
+    priceEyebrow: "Tarif indicatif par million de tokens (environ 750 000 mots)",
     free: "Gratuit",
     priceIn: "Ce que vous envoyez",
     priceOut: "La réponse du modèle",
-    priceUnit: "Prix public du fournisseur, en dollars — ce n'est pas votre facture.",
+    priceUnit: "Prix public du fournisseur, en dollars. Ce n'est pas votre facture.",
     profileEyebrow: "Profil (indicatif)",
     reasoning: "Raisonnement",
     coding: "Code",
     speed: "Vitesse",
-    cost: "Économie",
+    cost: "Prix bas",
     images: "Images",
     strengths: "Points forts",
     tradeoffs: "Compromis",

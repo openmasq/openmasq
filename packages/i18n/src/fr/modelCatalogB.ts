@@ -10,33 +10,33 @@ export const modelCatalogB: Record<string, Messages["modelCatalog"]["models"][st
       "Très grand contexte (1M) pour une poignée de centimes",
       "Multimodal, outils et raisonnement",
     ],
-    weaknesses: ["Modèle propriétaire", "Hébergement variable (agrégateur)"],
-    bestFor: "Le polyvalent économique de la vue simplifiée",
+    weaknesses: ["Modèle propriétaire", "Hébergeur variable (routé par OpenRouter)"],
+    bestFor: "Polyvalent et économique",
   },
   "moonshotai/kimi-k2.6": {
     strengths: [
       "Fort en code et en usage agentique",
       "Appels d'outils parallèles, 262k de contexte",
     ],
-    weaknesses: ["Sortie plus chère que l'entrée", "Hébergement variable (agrégateur)"],
+    weaknesses: ["Sortie plus chère que l'entrée", "Hébergeur variable (routé par OpenRouter)"],
     bestFor: "Code et enchaînements d'outils, via OpenRouter",
   },
   "x-ai/grok-4.20": {
     strengths: [
-      "Flagship xAI, multimodal, très grand contexte (2M)",
+      "Modèle phare de xAI, multimodal, très grand contexte (2M)",
       "Accès via une seule clé OpenRouter",
     ],
-    weaknesses: ["Modèle propriétaire", "Prix/disponibilité variables (agrégateur)"],
+    weaknesses: ["Modèle propriétaire", "Prix et disponibilité variables (routé par OpenRouter)"],
     bestFor: "Raisonnement multimodal sur très gros contexte",
   },
   "deepseek/deepseek-chat-v3.1": {
     strengths: ["Fort en code et raisonnement (open-weight)", "Bon marché via OpenRouter"],
-    weaknesses: ["Texte seul", "Hébergement variable (agrégateur)"],
+    weaknesses: ["Texte seul", "Hébergeur variable (routé par OpenRouter)"],
     bestFor: "Code et raisonnement économiques via OpenRouter",
   },
   "qwen/qwen3-vl-32b-instruct": {
     strengths: ["Multimodal open-weight (vision), bon marché", "Grand contexte"],
-    weaknesses: ["Hébergement variable (agrégateur)"],
+    weaknesses: ["Hébergeur variable (routé par OpenRouter)"],
     bestFor: "Compréhension d'images + texte à bas coût",
   },
   "qwen/qwen3-235b-a22b": {
@@ -46,7 +46,7 @@ export const modelCatalogB: Record<string, Messages["modelCatalog"]["models"][st
   },
   "meta-llama/llama-3.3-70b-instruct": {
     strengths: ["Open-weight polyvalent, très abordable"],
-    weaknesses: ["Texte seul", "Sous les flagships propriétaires"],
+    weaknesses: ["Texte seul", "En dessous des modèles phares propriétaires"],
     bestFor: "Assistant général à bas coût via OpenRouter",
   },
   "mistralai/mistral-small-3.2-24b-instruct": {
@@ -57,7 +57,7 @@ export const modelCatalogB: Record<string, Messages["modelCatalog"]["models"][st
   "poolside/laguna-s-2.1:free": {
     strengths: ["Gratuit, sans clé ni abonnement", "Grand contexte (262k), outils et raisonnement"],
     weaknesses: ["Texte seul", "Palier gratuit : disponibilité non garantie"],
-    bestFor: "Le modèle par défaut — écrire tout de suite, sans rien configurer",
+    bestFor: "Modèle par défaut : écrire tout de suite, sans configuration",
   },
   "nvidia/nemotron-3-ultra-550b-a55b:free": {
     strengths: [
@@ -86,7 +86,7 @@ export const modelCatalogB: Record<string, Messages["modelCatalog"]["models"][st
     strengths: ["Poids ouverts d'OpenAI, léger et rapide", "Gratuit via OpenRouter"],
     weaknesses: [
       "Texte seul",
-      "Capacités moindres que le 120B",
+      "Moins capable que gpt-oss-120b",
       "Niveau gratuit : quotas variables",
     ],
     bestFor: "Assistant léger gratuit (poids ouverts OpenAI)",
@@ -108,7 +108,7 @@ export const modelCatalogB: Record<string, Messages["modelCatalog"]["models"][st
   },
   "llama3.3": {
     strengths: ["Open-weight polyvalent", "Gratuit en local"],
-    weaknesses: ["Texte seul", "Sous les flagships propriétaires"],
+    weaknesses: ["Texte seul", "En dessous des modèles phares propriétaires"],
     bestFor: "Assistant local privé et polyvalent",
   },
   "llama3.1": {
@@ -124,7 +124,7 @@ export const modelCatalogB: Record<string, Messages["modelCatalog"]["models"][st
   "qwen2.5-coder": {
     strengths: ["Excellent modèle de code open-weight"],
     weaknesses: ["Peu adapté hors code"],
-    bestFor: "Code en local (privé, gratuit)",
+    bestFor: "Code sur votre appareil (privé, gratuit)",
   },
   "deepseek-r1": {
     strengths: ["Raisonnement open-weight de haut niveau"],
@@ -139,7 +139,7 @@ export const modelCatalogB: Record<string, Messages["modelCatalog"]["models"][st
   "glm-5.2": {
     strengths: [
       "Fort raisonnement/agentique (open-weight)",
-      "Très grand contexte (long-horizon)",
+      "Très grand contexte, adapté aux tâches longues",
       "Inclus avec votre compte",
     ],
     weaknesses: ["Texte seul"],
@@ -152,7 +152,7 @@ export const modelCatalogB: Record<string, Messages["modelCatalog"]["models"][st
   },
   "qwen3.6-35b-a3b": {
     strengths: ["MoE compact, rapide et multimodal", "Inclus avec votre compte"],
-    weaknesses: ["Sous le 397B sur le plus dur"],
+    weaknesses: ["En dessous de Qwen 3.5 397B sur les tâches les plus dures"],
     bestFor: "Usage général rapide sans clé API",
   },
   "gemma-4-26b-a4b-it": {
@@ -222,7 +222,7 @@ export const modelCatalogB: Record<string, Messages["modelCatalog"]["models"][st
     weaknesses: ["Modèle récent, moins éprouvé"],
     bestFor: "Multimodal rapide sans clé API",
   },
-  o3: { strengths: ["Raisonnement profond (maths, sciences)"], weaknesses: ["Lent", "Moins naturel en conversation"], bestFor: "Problèmes durs nécessitant de la réflexion" },
+  o3: { strengths: ["Raisonnement profond (maths, sciences)"], weaknesses: ["Lent", "Moins naturel en conversation"], bestFor: "Problèmes difficiles de maths et de sciences" },
   gemma2: { strengths: ["Léger et efficace (Google, open-weight)"], weaknesses: ["Génération précédente", "Texte seul"], bestFor: "Assistant local léger" },
   phi4: { strengths: ["Petit modèle fort en raisonnement"], weaknesses: ["Texte seul", "Connaissances plus limitées"], bestFor: "Raisonnement local léger" },
 };

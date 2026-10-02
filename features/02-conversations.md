@@ -103,7 +103,7 @@ re-reading an old conversation means knowing who wrote what.
       — `packages/ui/src/containers/modals/ApiKeyModal.tsx`
 - [x] **Hosting jurisdiction** flag per model
 - [x] Default model for new conversations
-- [x] « **Modèle sur votre ordinateur** » (Ollama / LM Studio / llama.cpp, on this machine
+- [x] « **Modèle local** » (Ollama / LM Studio / llama.cpp, on this machine
       OR a LAN box) — Réglages → Modèles: the address, and the picker's list read LIVE from
       the server's own `/models` (a static Ollama baseline until it answers), plus a field
       for ids the server doesn't list — `packages/ui/src/hooks/useLocalModels.ts`,

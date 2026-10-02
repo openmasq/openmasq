@@ -309,7 +309,7 @@ describe("previewStatus — FINI vs ABANDONNÉ (document long, 15/08)", () => {
     expect(s.label).toBe("au moins 321 à masquer");
     expect(s.partial).toBe(true);
     // The explanation must REASSURE about what matters: the send re-analyzes everything.
-    expect(s.hint).toMatch(/envoi la refait/i);
+    expect(s.hint).toMatch(/relancée en entier à l.envoi/i);
   });
 
   it("abandon SANS aucune détection ⇒ on le dit, on ne se tait pas", () => {

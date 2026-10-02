@@ -171,7 +171,7 @@ describe("ComposerRedactMenu", () => {
     const reduced = privacyLevelMeta(fr).find((x) => x.reduced)!;
     expect(reduced.id).toBe("standard");
     expect(reduced.label).toBe("Allégé");
-    expect(reduced.desc).toMatch(/protège moins/);
+    expect(reduced.desc).toMatch(/protège moins/i);
   });
 
   /* Org-mandated categories stay on whatever the card says — the menu says so, or a

@@ -31,7 +31,7 @@ describe("envView — à qui la bascule d'environnement est proposée", () => {
     // (a single artifact), and conflating them sends the user hunting for the wrong right.
     expect(switchRefusalText("not_privileged", fr)).toMatch(/environnement de test/);
     expect(switchRefusalText("not_privileged", fr)).not.toMatch(/bêta/);
-    expect(switchRefusalText("write_failed", fr)).toMatch(/rien n'a changé/);
+    expect(switchRefusalText("write_failed", fr)).toMatch(/rien n'a changé/i);
     expect(switchRefusalText("unknown_env", fr)).toMatch(/échoué/);
     expect(switchRefusalText(undefined, fr)).toMatch(/échoué/);
   });

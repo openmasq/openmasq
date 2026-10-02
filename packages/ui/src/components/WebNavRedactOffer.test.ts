@@ -64,13 +64,13 @@ describe("WebNavRedactOffer — la décision se prend ici, à chaque recherche",
     await unmount();
   });
 
-  it("« Laisser en clair · ce message » révèle TOUT l'offert — le niveau, pas un sous-ensemble", async () => {
+  it("« Démasquer · ce message » révèle TOUT l'offert — le niveau, pas un sous-ensemble", async () => {
     const offert = ["name", "dob", "address", "location", "company"] as RedactCategoryKey[];
     const { el, decided, unmount } = await render(offert);
     // The shared lexicon (`conversation.mark`): the reversible verb, suffixed with its
     // reach — never « Passer en <niveau> », which named a level rather than a gesture.
     const go = [...el.querySelectorAll<HTMLElement>("button")].find((b) =>
-      b.textContent?.includes("Laisser en clair · ce message"),
+      b.textContent?.includes("Démasquer · ce message"),
     );
     await act(async () => go!.click());
     expect(decided).toEqual([offert]);
