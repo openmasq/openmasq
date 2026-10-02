@@ -1,4 +1,5 @@
 import { BRAND } from "@openmasq/branding";
+import { loopCopy } from "../../mcpAgentOutcome";
 import { safeJson } from "../../mcpAgentUtil";
 import { MAX_CONSECUTIVE_DEAD } from "../budget";
 import type { CallDecision, ConnectorCall, Step } from "../call";
@@ -58,19 +59,19 @@ export function refusalFor(ctx: LoopCtx, c: ConnectorCall, d: CallDecision): Ste
       `sensibles sont pseudonymisées avant que tu les voies). Ne devine JAMAIS une URL à partir ` +
       `d'un nom : fais une recherche web avec ce nom (la requête sera envoyée avec la vraie ` +
       `valeur) puis navigue vers le résultat.`;
-    return refuse(ctx, c, content, `domaine dérivé d'un pseudonyme : ${d.navFake.host}`, "nav_pseudonym", `refusé par ${BRAND.name} — adresse dérivée d'un faux`);
+    return refuse(ctx, c, content, `domaine dérivé d'un pseudonyme : ${d.navFake.host}`, "nav_pseudonym", loopCopy(p.t).runtime.loop.refusedFakeAddress(BRAND.name));
   }
   if (d.navBlocked) {
     const content =
       `Navigation REFUSÉE : le domaine « ${d.navHost} » n'est pas dans la liste des domaines ` +
       `autorisés du navigateur. Navigue uniquement vers : ${p.browserAllowedDomains!.join(", ")}. ` +
       `N'essaie pas de contourner cette restriction.`;
-    return refuse(ctx, c, content, `domaine non autorisé : ${d.navHost}`, "nav_domain", `refusé par ${BRAND.name} — domaine non autorisé`);
+    return refuse(ctx, c, content, `domaine non autorisé : ${d.navHost}`, "nav_domain", loopCopy(p.t).runtime.loop.refusedDomain(BRAND.name));
   }
   if (d.draftOnly)
-    return refuse(ctx, c, DRAFT_ONLY_MSG, "rédaction demandée — envoi non sollicité, refusé", "draft_only", `refusé par ${BRAND.name} — rédaction demandée, pas d'envoi`);
+    return refuse(ctx, c, DRAFT_ONLY_MSG, "rédaction demandée — envoi non sollicité, refusé", "draft_only", loopCopy(p.t).runtime.loop.refusedDraftOnly(BRAND.name));
   if (d.consultOnly)
-    return refuse(ctx, c, CONSULT_ONLY_MSG, "consultation demandée — écriture non sollicitée, refusée", "consult_only", `refusé par ${BRAND.name} — demande lue comme une consultation`);
+    return refuse(ctx, c, CONSULT_ONLY_MSG, "consultation demandée — écriture non sollicitée, refusée", "consult_only", loopCopy(p.t).runtime.loop.refusedConsultOnly(BRAND.name));
   if (d.declinedByUser) {
     // A declined write the model keeps retrying would otherwise spin until the turn cap.
     ctx.dbg({ type: "tool", vault: p.vault, kinds: p.kinds, name: c.call.name, ok: false, args: safeJson(c.call.arguments), error: "refusé par l'utilisateur" });
@@ -84,7 +85,7 @@ export function refusalFor(ctx: LoopCtx, c: ConnectorCall, d: CallDecision): Ste
     // A success, not a dead end: `deadStreak` is untouched.
     ctx.dbg({ type: "tool", vault: p.vault, kinds: p.kinds, name: c.call.name, ok: true, args: safeJson(c.call.arguments), result: "(déjà effectué — idempotent)" });
     ctx.gateBlocked("already_done", c.bareTool, c.connectorId);
-    p.onToolResult?.({ tool: c.bareTool, server: c.connectorId, ok: true, note: "déjà effectué" });
+    p.onToolResult?.({ tool: c.bareTool, server: c.connectorId, ok: true, note: loopCopy(p.t).runtime.loop.alreadyDone });
     ctx.messages.push({ role: "tool", toolCallId: c.call.id, content: ALREADY_DONE_MSG });
     return "next";
   }

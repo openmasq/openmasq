@@ -2,16 +2,24 @@
 //
 // The counterpart of `mcpAgentGuidance.ts`: that one talks to the model BEFORE it
 // acts, this one reads what it returned and formulates the diagnosis for the user
-// (browser fault, call cap, exhausted turn, a reply that promises to act without
-// calling). Split out for rule 1, re-exported by `mcpAgentGuidance.ts`: no importer
-// changes. Everything is PURE, PII-free (wire-safe) and tested by `mcpAgentGuidance.test.ts`.
+// (browser fault, exhausted turn, a reply that promises to act without calling).
+// ⚠️ What the USER reads here comes from the catalogue (`t.runtime.loop`) and this file is
+// covered by `check:i18n`; prose for the MODEL (the cap refusal) lives in `mcpAgentGuidance.ts`.
+// Re-exported by `mcpAgentGuidance.ts`. Everything is PURE, PII-free (wire-safe) and tested.
 
+import { DEFAULT_LOCALE, getMessages, type Messages } from "@openmasq/i18n";
 import { connectorBrandName } from "@openmasq/catalog/mcp";
 import { humanToolLabel } from "./humanToolLabel";
 import { connectorOfTool } from "./toolStruggle";
 
+/** The UI copy for the loop's user-facing lines; absent ⇒ the default locale. Only what
+ *  the USER reads goes through it — prose fed to the model lives in `mcpAgentGuidance.ts`. */
+export function loopCopy(t?: Messages): Messages {
+  return t ?? getMessages(DEFAULT_LOCALE);
+}
+
 /**
- * A tool AS SHOWN to the user: its French label and the connector's brand —
+ * A tool AS SHOWN to the user: its label in the UI language and the connector's brand —
  * "**Lecture · e-mails** (Gmail)", never `gmail__get_message`.
  *
  * This message displays AS an assistant reply, to someone who wanted to read their
@@ -19,10 +27,10 @@ import { connectorOfTool } from "./toolStruggle";
  * all nothing they can act on. The vocabulary is that of the trace just above
  * (`humanToolLabel`, the one translator), so the two answer each other.
  */
-function toolPhrase(name: string): string {
+function toolPhrase(name: string, t: Messages): string {
   const connectorId = connectorOfTool(name, "");
   const bare = name.includes("__") ? name.slice(name.indexOf("__") + 2) : name;
-  const label = humanToolLabel(connectorId || "mcp", bare);
+  const label = humanToolLabel(connectorId || "mcp", bare, t);
   const brand = connectorId ? connectorBrandName(connectorId) : undefined;
   return brand ? `**${label}** (${brand})` : `**${label}**`;
 }
@@ -55,7 +63,7 @@ export function repeatedFailureOf(tool: string, content: string, distinctInputs:
  *  `Target.createTarget`), the endpoint is gone, or the protocol rejected the op.
  *  It is NOT the model (which typically varies its approach) and NOT the website —
  *  retrying, or "a more capable model", changes nothing. The loop stops on the
- *  FIRST such fault with {@link BROWSER_BACKEND_FAULT_MESSAGE} instead of burning
+ *  FIRST such fault with {@link browserFaultMessage} instead of burning
  *  turns and then blaming the model. The caller gates on `isBrowserTool` first, so
  *  this only inspects the error text. Pinned by `mcpAgentGuidance.test.ts`. */
 export function isBrowserBackendFault(text: string): boolean {
@@ -66,9 +74,9 @@ export function isBrowserBackendFault(text: string): boolean {
 
 /** Truthful message for a browser-backend fault: name the real culprit (the agent
  *  browser, not the model) so the user doesn't waste time switching models. */
-export const BROWSER_BACKEND_FAULT_MESSAGE =
-  "⚠️ Le navigateur intégré n'a pas pu ouvrir de page — panne technique du navigateur, pas du modèle.\n\n" +
-  "Changer de modèle n'y changera rien : fermez puis rouvrez le navigateur (ou relancez l'app).";
+export function browserFaultMessage(t: Messages): string {
+  return t.runtime.loop.browserFault;
+}
 
 /** Action word for the confirm card's journal labels, by reason — the journal used
  *  to say "Écriture autorisée" for a navigation (a lying label, journal 01/08); the
@@ -77,20 +85,6 @@ export function confirmActLabel(reason: string): string {
   if (reason === "nav-exfil") return "Navigation";
   if (reason === "attachments") return "Pièces jointes";
   return "Écriture";
-}
-
-/** The result returned for EVERY call past the per-tool cap (`maxSameToolCalls`) —
- *  the call is NOT dispatched. A legitimate batch of N distinct reads must no longer
- *  kill the turn (journal 01/08: 11 `get_file_info`, whole turn aborted at the 9th
- *  when the 8 results already sufficed); the hard-stop (`exhaustionMessage`) only
- *  falls if the model INSISTS with the same tool on the NEXT response. Pinned by
- *  `mcpAgent.test.ts`. */
-export function capRefusalNote(tool: string, max: number): string {
-  return (
-    `Limite d'appels atteinte pour \`${tool}\` dans ce tour (${max}) : cet appel n'a PAS été exécuté. ` +
-    `Ne rappelle PLUS cet outil — réponds MAINTENANT à l'utilisateur avec les résultats déjà obtenus, ` +
-    `en signalant explicitement ce qui n'a pas pu être vérifié.`
-  );
 }
 
 /** Build the EXPLICIT end-of-turn message when the loop hits MAX_TURNS without a
@@ -118,7 +112,9 @@ export function exhaustionMessage(s: {
    *  it's the tool that isn't answering — telling it "change model" would be
    *  accusing the wrong culprit. `error` is the tool's message, already redacted. */
   repeatedFailure?: RepeatedFailure;
-}): string {
+}, t: Messages): string {
+  const c = t.runtime.loop;
+  const phrase = (tool: string) => toolPhrase(tool, t);
   const total = [...s.callCounts.values()].reduce((a, b) => a + b, 0);
   // The tool that repeated the SAME result the most — a stuck search/discovery loop.
   let stuck: string | undefined;
@@ -137,54 +133,32 @@ export function exhaustionMessage(s: {
   // what actually helps (narrowing the target), not "change model".
   if (s.hammered?.web) {
     const pages = s.callCounts.get(s.hammered.tool) ?? total;
-    return [
-      `⚠️ Recherche interrompue après ${pages} page${pages > 1 ? "s" : ""} consultée${pages > 1 ? "s" : ""}.`,
-      "Le modèle a continué à chercher sans trouver de quoi répondre — la réponse n'était sur aucune des pages ouvertes.",
-      "Pistes : précisez la cible (nom exact, site officiel, ville…), demandez un point plus étroit, ou indiquez directement l'adresse à consulter.",
-    ].join("\n\n");
+    return [c.webStopped(pages), c.webNoAnswer, c.webTips].join("\n\n");
   }
 
   const header =
     s.hammered
-      ? `⚠️ Limite atteinte : ${s.callCounts.get(s.hammered.tool) ?? total} appels à ${toolPhrase(s.hammered.tool)} dans le même tour.`
+      ? c.hammered(s.callCounts.get(s.hammered.tool) ?? total, phrase(s.hammered.tool))
       : s.stopped === "stuck"
-        ? `⚠️ Boucle d'outils interrompue après ${total} appel${total > 1 ? "s" : ""}.`
-        : `⚠️ Limite d'appels d'outils atteinte (${s.maxTurns} tours, ${total} appel${total > 1 ? "s" : ""}) sans réponse finale.`;
+        ? c.stuck(total)
+        : c.cap(s.maxTurns, total);
   const lines = [header];
   const fail = s.repeatedFailure;
   if (fail && fail.distinctInputs > 1) {
     // The case that wrongly accused the model: different INPUTS, the same failure.
-    lines.push(
-      `${toolPhrase(fail.tool)} a échoué ${stuckRepeats + 1} fois de suite, sur des entrées différentes. ` +
-        `Le modèle a bien varié ses appels — c'est l'outil qui ne répond pas :`,
-      `> ${fail.error}`,
-    );
-    lines.push(
-      "Pistes : l'action existe (d'autres appels ont abouti), donc changer de modèle n'y ferait rien. " +
-        "Vérifiez plutôt que les éléments visés existent encore et que le connecteur a les droits de les lire, " +
-        "puis relancez.",
-    );
+    lines.push(c.failedVaried(phrase(fail.tool), stuckRepeats + 1), `> ${fail.error}`, c.failedVariedTips);
     return lines.join("\n\n");
   }
   if (fail) {
-    lines.push(
-      `${toolPhrase(fail.tool)} a échoué ${stuckRepeats + 1} fois sur le MÊME appel :`,
-      `> ${fail.error}`,
-    );
+    lines.push(c.failedSame(phrase(fail.tool), stuckRepeats + 1), `> ${fail.error}`);
   } else if (stuck && stuckRepeats >= 2) {
-    lines.push(
-      `${toolPhrase(stuck)} a renvoyé le même résultat ${stuckRepeats + 1} fois : le modèle relançait le même appel au lieu de changer d'approche.`,
-    );
+    lines.push(c.sameResult(phrase(stuck), stuckRepeats + 1));
   } else if (unresolved.length) {
-    lines.push(
-      `Le modèle n'a pas réussi à former un appel valide pour : ${unresolved.map(toolPhrase).join(", ")}.`,
-    );
+    lines.push(c.invalidCall(unresolved.map(phrase).join(", ")));
   } else {
-    lines.push("Le modèle a enchaîné les appels d'outils sans converger vers une réponse.");
+    lines.push(c.noConverge);
   }
-  lines.push(
-    "Pistes : précisez la demande, essayez un modèle plus capable (Claude, GPT-5.x…), ou vérifiez que le connecteur expose bien l'action.",
-  );
+  lines.push(c.tips);
   return lines.join("\n\n");
 }
 

@@ -29,6 +29,7 @@ import { REFRESH_NETWORK_ERROR } from "./reconnectRetry";
 import { infoFor } from "./info";
 import { maybeStoreRemoteIdentity } from "./accounts";
 import type { McpServerInfo } from "./types";
+import { mainMessages } from "../../i18n";
 import { BRAND, brandUrl } from "@openmasq/branding";
 
 /**
@@ -73,7 +74,7 @@ export async function connectRemoteHttp(
   try {
     await assertPublicUrl(spec.url, "mcp-connect");
   } catch (err) {
-    return { ...infoFor(spec), error: `URL refusée (hôte interne ou privé): ${(err as Error).message}` };
+    return { ...infoFor(spec), error: mainMessages().desktopMain.mcp.urlRefused((err as Error).message) };
   }
 
   // Header-auth API-key connectors: a static bearer (stored encrypted), no OAuth.
@@ -88,7 +89,7 @@ export async function connectRemoteHttp(
     const outcome = await server.connect();
     if (!outcome.authorized) {
       await server.close().catch(() => {});
-      return { ...infoFor(spec), error: "clé API refusée" };
+      return { ...infoFor(spec), error: mainMessages().desktopMain.mcp.apiKeyRefused };
     }
     connected.set(id, maybeWrapExecMeta(id, server));
     if (needsReconnect.delete(id)) emitNeedsReconnect();
@@ -175,9 +176,7 @@ export async function connectRemoteHttp(
       (typeof (err as { errorCode?: unknown })?.errorCode === "string" && (err as { errorCode: string }).errorCode) ||
       String(err);
     // A server without dynamic client registration: an actionable message.
-    const error = /dynamic client registration/i.test(raw)
-      ? "Ce serveur refuse l'inscription OAuth automatique : pas de connexion en un clic. Utilisez son équivalent (jeton) dans « Serveurs locaux »."
-      : raw;
+    const error = /dynamic client registration/i.test(raw) ? mainMessages().desktopMain.mcp.noDynamicRegistration : raw;
     return { ...infoFor(spec), connected: false, authorized: false, error };
   } finally {
     loop.close();

@@ -113,7 +113,7 @@ export function WriteConfirmCard({
         <div className="agent-card-box-target">
           <span className="agent-card-box-target-label">{t.cards.writeConfirm.target}</span>
           <span className="agent-card-box-target-val" title={t.conversation.writeConfirm.targetTip(server, tool)}>
-            {server} · {humanToolLabel(server, tool)} ({tool})
+            {server} · {humanToolLabel(server, tool, t)} ({tool})
           </span>
         </div>
         {lines.length > 0 && (

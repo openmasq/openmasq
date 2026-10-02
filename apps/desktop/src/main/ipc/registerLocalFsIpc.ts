@@ -1,6 +1,7 @@
 import { ipcMain } from "electron";
 import { getLiveFs } from "../fs/live";
 import { assertLocalFsWriteAllowed, type LocalFsWriteOp } from "../fs/uiGate";
+import { mainMessages } from "../i18n";
 
 /**
  * `localfs:*` — the Bibliothèque's folder browser.
@@ -42,12 +43,12 @@ const fail = (e: unknown): Envelope => ({
   error: e instanceof Error ? e.message : String(e),
 });
 
-const NO_CONNECTOR = "Le connecteur Filesystem n'est pas connecté.";
+const noConnector = (): string => mainMessages().desktopMain.folders.filesystemNotConnected;
 
 /** Run a worker op on the live connection, or report the connector as absent. */
 async function run(op: string, args: Record<string, unknown>): Promise<Envelope> {
   const conn = getLiveFs();
-  if (!conn) return { ok: false, error: NO_CONNECTOR };
+  if (!conn) return { ok: false, error: noConnector() };
   try {
     return { ok: true, data: await conn.uiCall(op, args) };
   } catch (e) {
@@ -63,7 +64,7 @@ async function runGated(
   args: Record<string, unknown>,
 ): Promise<Envelope> {
   const conn = getLiveFs();
-  if (!conn) return { ok: false, error: NO_CONNECTOR };
+  if (!conn) return { ok: false, error: noConnector() };
   try {
     await assertLocalFsWriteAllowed(gate, args);
     return { ok: true, data: await conn.uiCall(op, args) };
@@ -104,7 +105,7 @@ export function registerLocalFsIpc(): void {
   // — they run in main against the SAME gate (`fs/mainOps.ts`), never on a second policy.
   ipcMain.handle("localfs:trash", async (_e, p: { path: string }): Promise<Envelope> => {
     const conn = getLiveFs();
-    if (!conn) return { ok: false, error: NO_CONNECTOR };
+    if (!conn) return { ok: false, error: noConnector() };
     try {
       await assertLocalFsWriteAllowed("trash", { path: str(p?.path) });
       await conn.mainOps.trash(str(p?.path));
@@ -119,7 +120,7 @@ export function registerLocalFsIpc(): void {
   // second caller — never a second policy.
   ipcMain.handle("localfs:extract", async (_e, p: { path: string }): Promise<Envelope> => {
     const conn = getLiveFs();
-    if (!conn) return { ok: false, error: NO_CONNECTOR };
+    if (!conn) return { ok: false, error: noConnector() };
     try {
       return { ok: true, data: await conn.mainOps.extractDocument(str(p?.path)) };
     } catch (e) {
@@ -129,7 +130,7 @@ export function registerLocalFsIpc(): void {
 
   ipcMain.handle("localfs:open", async (_e, p: { path: string }): Promise<Envelope> => {
     const conn = getLiveFs();
-    if (!conn) return { ok: false, error: NO_CONNECTOR };
+    if (!conn) return { ok: false, error: noConnector() };
     try {
       await conn.mainOps.open(str(p?.path));
       return { ok: true, data: null };
@@ -143,7 +144,7 @@ export function registerLocalFsIpc(): void {
   // folder); an empty list stops everything. Bounded in the worker.
   ipcMain.handle("localfs:watch", async (_e, p: { paths: string[] }): Promise<Envelope> => {
     const conn = getLiveFs();
-    if (!conn) return { ok: false, error: NO_CONNECTOR };
+    if (!conn) return { ok: false, error: noConnector() };
     conn.setChangeSink((changed) => notifyChanged?.(changed));
     const paths = Array.isArray(p?.paths) ? p.paths.filter((x) => typeof x === "string") : [];
     return run("watch", { paths });

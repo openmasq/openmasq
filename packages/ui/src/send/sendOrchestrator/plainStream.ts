@@ -122,7 +122,7 @@ export function runPlainStream(
       const rawMsg = r.fromWire(message);
       const safeMsg =
         humanizeSendError(message, t, { personal: !d.orgProfileRef.current, provider: model.provider }) ??
-        r.fromWire(cleanErrorText(message));
+        r.fromWire(cleanErrorText(message, t));
       const act = sendErrorAction(message, model.provider);
       ctx.dbg({ type: "error", scope: `stream · ${model.id}`, message: rawMsg });
       captureEvent({

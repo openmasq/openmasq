@@ -127,7 +127,7 @@ export function ToolTrace({
                 return (
                   <div key={`${tool.name}-${i}`} className="mcp-trace-row om-step-in">
                     <StepDot state={tool.state} current={isCurrentStep(runs, live, runIndex, i)} />
-                    <span className="mcp-trace-name" title={tool.name}>{humanToolLabel(run.serverId, tool.name)}</span>
+                    <span className="mcp-trace-name" title={tool.name}>{humanToolLabel(run.serverId, tool.name, t)}</span>
                     {retries && <span className="mcp-trace-retries">{retries}</span>}
                     {took && <span className="mcp-trace-retries">{took}</span>}
                     <span className="mcp-trace-spacer" />

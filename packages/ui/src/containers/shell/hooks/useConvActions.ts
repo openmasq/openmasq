@@ -1,6 +1,8 @@
 import type { ChatStore } from "../../../state/store";
 import { closeTab, openTab, showWelcomePane, track, useAppDispatch, type Section } from "../../../state/redux";
 import { findModelAny } from "../../../prompt/models";
+import { useT } from "../../../i18n";
+import { displayTitle } from "../../../state/conversation/displayTitle";
 import { isChatRef, tabRefId } from "../../../workspace/layout";
 import type { ConvTab } from "../../../pages/ChatWorkspace";
 
@@ -35,6 +37,7 @@ export function useConvActions({
   onEnterConversation?: () => void;
 }): ConvActions {
   const dispatch = useAppDispatch();
+  const t = useT();
 
   // « Nouvelle conversation » no longer CREATES anything: it shows the focused pane's
   // welcome screen, and the conversation is born on the FIRST SEND (`ChatPane.onSend`, the same
@@ -80,7 +83,7 @@ export function useConvActions({
     const m = c.modelId ? findModelAny(c.modelId) : undefined;
     return {
       id: c.id,
-      title: c.title || "Nouvelle conversation",
+      title: displayTitle(c.title, t),
       provider: m?.provider,
       modelId: c.modelId,
       busy: c.messages.some((msg) => msg.pending),

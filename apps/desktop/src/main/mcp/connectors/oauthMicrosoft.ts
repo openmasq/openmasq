@@ -5,6 +5,7 @@ import type { StoredToken } from "../persist";
 import { newVerifier, challengeOf } from "./pkce";
 import { microsoftAuthFailure } from "./microsoftConsent";
 import { parseGrantedScopes } from "./scopes";
+import { mainMessages } from "../../i18n";
 
 /**
  * Microsoft identity platform OAuth — desktop-direct **authorization-code + loopback
@@ -41,7 +42,7 @@ async function postForm(body: Record<string, string>): Promise<MsTokenResponse> 
   });
   const json = (await res.json().catch(() => ({}))) as MsTokenResponse;
   if (!res.ok || json.error || !json.access_token) {
-    throw new Error(`Échange de token Microsoft échoué (${res.status})`);
+    throw new Error(mainMessages().desktopMain.oauth.tokenExchangeFailed("Microsoft", res.status));
   }
   return json;
 }

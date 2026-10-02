@@ -2,7 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { fileSourceSlots } from "./host/fileSources";
 import { envSlot } from "./host/envSlot";
-import { HostProvider, applyPersistedTheme, type Host } from "@openmasq/ui";
+import { HostProvider, applyPersistedTheme, setHostLocaleSink, type Host } from "@openmasq/ui";
 import "@openmasq/ui/styles.css";
 import { App } from "./App";
 import { initRendererTelemetry } from "./telemetry";
@@ -39,6 +39,7 @@ const host: Host = {
   startChat: (payload, handlers) => window.openmasq.startChat(payload, handlers),
   app: {
     versions: () => window.openmasq.app.versions(),
+    ...(window.openmasq.app.setLocale && { setLocale: (l: string) => window.openmasq.app.setLocale(l) }),
   },
   media: window.openmasq.media
     ? { ensureMicAccess: () => window.openmasq.media.ensureMicAccess() }
@@ -354,6 +355,8 @@ if (navigator.userAgent.includes("Macintosh")) {
 
 // Theme <html> BEFORE the first render, so the splash paints in the right theme.
 applyPersistedTheme();
+// Main's native dialogs and menus follow the interface language (`main/i18n.ts`).
+setHostLocaleSink((locale) => void host.app?.setLocale?.(locale));
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>

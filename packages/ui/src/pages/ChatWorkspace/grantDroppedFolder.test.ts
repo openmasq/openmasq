@@ -90,7 +90,7 @@ describe("grantDroppedFolder — the grant is what the DIALOG returns", () => {
     const out = await grantDroppedFolder({ mcp, servers: [server([])] }, "/Users/x/Déposé", fr);
     expect(out).toEqual({ status: "cancelled" });
     expect(mcp.setDirs).not.toHaveBeenCalled();
-    expect(grantMessage(out)).toBeNull(); // silent on purpose
+    expect(grantMessage(out, getMessages("fr"))).toBeNull(); // silent on purpose
   });
 
   it("says so when the folder is already in scope, rather than doing nothing", async () => {
@@ -107,7 +107,7 @@ describe("grantDroppedFolder — the grant is what the DIALOG returns", () => {
     });
     const out = await grantDroppedFolder({ mcp, servers: [server([])] }, undefined, fr);
     expect(out).toEqual({ status: "error", message: "dossier non autorisé" });
-    expect(grantMessage(out)).toContain("dossier non autorisé");
+    expect(grantMessage(out, getMessages("fr"))).toContain("dossier non autorisé");
   });
 
   it("surfaces a refusal from the INSTALL path too", async () => {

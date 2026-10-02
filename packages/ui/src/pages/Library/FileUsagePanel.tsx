@@ -1,3 +1,4 @@
+import { displayTitle } from "../../state/conversation/displayTitle";
 import { findModel } from "@openmasq/llm";
 import type { Conversation } from "../../types";
 import { findModelAny } from "../../prompt/models";
@@ -64,7 +65,7 @@ export function FileUsagePanel({
                 </span>
               )}
               <span className="om-usage-main">
-                <span className="om-usage-title">{c.title || "Nouvelle conversation"}</span>
+                <span className="om-usage-title">{displayTitle(c.title, t)}</span>
                 {/* No snippet rather than an empty line — an attachment-only thread has
                     nothing to quote, and inventing one would be a fabricated fact. */}
                 {snippet && <span className="om-usage-snippet">{snippet}</span>}

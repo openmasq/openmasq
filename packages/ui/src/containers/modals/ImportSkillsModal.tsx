@@ -87,14 +87,12 @@ export function ImportSkillsModal({
     try {
       const parsed = parseSkills(await skillsFromDrop(e.dataTransfer));
       if (!parsed.length) {
-        setDropError(
-          `Rien de reconnaissable là-dedans : ${BRAND.name} cherche des dossiers contenant un « SKILL.md », ou des fichiers .md déposés directement.`,
-        );
+        setDropError(t.runtime.files.skillsNothing(BRAND.name));
         return;
       }
       adopt(parsed);
     } catch {
-      setDropError("Ce dépôt n'a pas pu être lu.");
+      setDropError(t.runtime.files.skillsDropUnreadable);
     }
   };
 
@@ -147,8 +145,9 @@ export function ImportSkillsModal({
             <FolderIcon size={26} />
             <p className="imp-drop-title">{t.modals.importSkills.dropTitle}</p>
             <p className="imp-drop-sub">
-              Le dossier <code>.claude/skills</code>, une compétence seule, un fichier
-              <code>.md</code>, ou le <code>.zip</code> téléversé sur claude.ai.
+              {t.runtime.files.skillsDropSub.map((piece) =>
+                typeof piece === "string" ? piece : <code key={piece.code}>{piece.code}</code>,
+              )}
             </p>
             {failed ? null : (
               <p className="imp-drop-scan">
@@ -176,8 +175,7 @@ export function ImportSkillsModal({
                     {s.needsFiles ? (
                       <p className="imp-warn">
                         <AlertIcon size={13} />
-                        S'appuie sur {s.extras} fichier{s.extras > 1 ? "s" : ""} de son dossier :
-                        seules les instructions seront importées.
+                        {t.runtime.files.skillsNeedsFiles(s.extras)}
                       </p>
                     ) : null}
                     <button
@@ -185,22 +183,19 @@ export function ImportSkillsModal({
                       className="imp-kind"
                       aria-pressed={wf}
                       title={
-                        wf
-                          ? "Rangé dans les Workflows — cliquer pour en faire une compétence"
-                          : "Rangé dans les Compétences — cliquer pour en faire un workflow"
+                        wf ? t.runtime.files.skillsAsWorkflowTip : t.runtime.files.skillsAsSkillTip
                       }
                       onClick={() => setAsWorkflow((p) => toggle(p, s.name))}
                     >
                       {wf ? <WorkflowIcon size={13} /> : <SparklesIcon size={13} />}
-                      {wf ? "Workflow" : "Compétence"}
+                      {wf ? t.runtime.files.skillsWorkflow : t.runtime.files.skillsSkill}
                     </button>
                   </li>
                 );
               })}
             </ul>
             <p className="imp-note">
-              Un nom déjà pris n'écrase rien : l'import ajoute « (2) ». Vous pouvez le
-              relancer sans risque — ou déposer un autre dossier ici pour changer de source.
+              {t.runtime.files.skillsNote}
             </p>
           </>
         )}

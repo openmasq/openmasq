@@ -4,6 +4,7 @@ import { describe, it, expect, vi } from "vitest";
 // `customServer.test.ts`). A test placed in `server/` would never run.
 import { isTransientConnectError, REFRESH_NETWORK_ERROR, reconnectRemoteWithRetry } from "./server/reconnectRetry";
 import type { McpServerInfo } from "./server/types";
+import { LOCALES, getMessages } from "@openmasq/i18n";
 
 const info = (over: Partial<McpServerInfo> = {}): McpServerInfo =>
   ({ id: "x", name: "x", url: "", kind: "http", connected: false, authorized: false, ...over }) as McpServerInfo;
@@ -116,4 +117,16 @@ describe("reconnectRemoteWithRetry", () => {
     await reconnectRemoteWithRetry(connectOnce, () => false, { tries: 2, baseDelayMs: 1 });
     expect(connectOnce).toHaveBeenCalledTimes(2);
   });
+});
+
+// The refusals main words in the user's language must stay PERMANENT in every language:
+// a translated "API key refused" that the pattern missed would be retried on every launch.
+describe("isTransientConnectError — our own refusals, in every shipped language", () => {
+  for (const locale of LOCALES) {
+    it(`${locale}: refused key and refused URL are permanent`, () => {
+      const t = getMessages(locale).desktopMain.mcp;
+      expect(isTransientConnectError(t.apiKeyRefused)).toBe(false);
+      expect(isTransientConnectError(t.urlRefused("blocked host"))).toBe(false);
+    });
+  }
 });

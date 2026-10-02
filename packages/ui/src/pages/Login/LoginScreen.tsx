@@ -94,9 +94,9 @@ export function LoginScreen({
     try {
       const r = await verifyCode({ email: email.trim(), code: c });
       // On success, onAuthStateChange flips the gate; on failure, show why.
-      if (r.error) setError(friendlyError(r.error));
+      if (r.error) setError(friendlyError(r.error, t));
     } catch (err) {
-      setError(friendlyError(err));
+      setError(friendlyError(err, t));
     } finally {
       setVerifying(false);
     }
@@ -110,11 +110,11 @@ export function LoginScreen({
     setError(null);
     try {
       const r = await sendMagicLink(addr);
-      if (r.error) setError(friendlyError(r.error));
+      if (r.error) setError(friendlyError(r.error, t));
       else setStage("sent");
       // After they click the link, onAuthStateChange flips the gate automatically.
     } catch (err) {
-      setError(friendlyError(err));
+      setError(friendlyError(err, t));
     } finally {
       setBusy(false);
     }
@@ -191,7 +191,7 @@ export function LoginScreen({
                     onClick={() => {
                       setError(null);
                       void signInWithGoogle().then((r) => {
-                        if (r.error) setError(friendlyError(r.error));
+                        if (r.error) setError(friendlyError(r.error, t));
                       });
                     }}
                   >
@@ -239,7 +239,7 @@ export function LoginScreen({
               )}
               <div className="login-code-row">
                 <button type="button" onClick={() => { setStage("email"); setError(null); setCode(""); setShowCode(false); }} className="login-link"><span className="om-sweep">{t.login.useAnotherAddress}</span></button>
-                <button type="button" disabled={busy} onClick={async () => { setBusy(true); setError(null); try { const r = await sendMagicLink(email.trim()); if (r.error) setError(friendlyError(r.error)); } catch (err) { setError(friendlyError(err)); } finally { setBusy(false); } }} className="login-link"><span className="om-sweep">{busy ? t.login.sending : codeSupported && !linkFirst ? t.login.resend : t.login.resendLink}</span></button>
+                <button type="button" disabled={busy} onClick={async () => { setBusy(true); setError(null); try { const r = await sendMagicLink(email.trim()); if (r.error) setError(friendlyError(r.error, t)); } catch (err) { setError(friendlyError(err, t)); } finally { setBusy(false); } }} className="login-link"><span className="om-sweep">{busy ? t.login.sending : codeSupported && !linkFirst ? t.login.resend : t.login.resendLink}</span></button>
               </div>
               <AssureStrip />
             </div>

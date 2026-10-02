@@ -11,6 +11,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { brandKey } from "@openmasq/branding";
 import { OCR_LANGS, OCR_TRAINEDDATA_SHA256, type OcrMeta } from "../documents/core";
+import { DocumentError } from "../documents/errors";
 import { ocrWordsToText, type OcrWord } from "./layout";
 import { preferDoctr, doctrModelDir, type OcrPage } from "./engine";
 import { garbledBoxes, isGarbledWord, type GarbledRect } from "./garbled";
@@ -95,15 +96,14 @@ async function loadTesseract(): Promise<any> {
   try {
     mod = await import("tesseract2.js");
   } catch {
-    throw new Error(
+    throw new DocumentError(
+      "ocr_engine_missing",
       "moteur OCR indisponible (tesseract2.js n'a pas pu être chargé — module manquant) — réinstallez l'application",
     );
   }
   const createWorker = mod?.createWorker ?? mod?.default?.createWorker;
   if (typeof createWorker !== "function") {
-    throw new Error(
-      "moteur OCR incompatible (tesseract2.js) — réinstallez l'application",
-    );
+    throw new DocumentError("ocr_engine_incompatible", "moteur OCR incompatible (tesseract2.js) — réinstallez l'application");
   }
   return createWorker;
 }

@@ -1,6 +1,9 @@
 
 import { describe, expect, it, } from "vitest";
+import { getMessages } from "@openmasq/i18n";
 import { exhaustionMessage, } from "./mcpAgent";
+
+const fr = getMessages("fr");
 
 describe("exhaustionMessage — une PANNE d'outil n'accuse pas le modèle", () => {
   /**
@@ -28,27 +31,27 @@ describe("exhaustionMessage — une PANNE d'outil n'accuse pas le modèle", () =
         error: "Lecture Gmail impossible : Upstream request failed (404): notFound",
         distinctInputs: 6,
       },
-    });
+    }, fr);
     expect(msg).toContain("sur des entrées différentes");
-    expect(msg).toContain("c'est l'outil qui ne répond pas");
+    expect(msg).toContain("C'est l'outil qui ne répond pas");
     expect(msg).toContain("404");
     // The three false pieces of advice are gone.
     expect(msg).not.toContain("relançait le même appel");
     expect(msg).not.toContain("modèle plus capable");
-    expect(msg).not.toContain("expose bien l'action");
+    expect(msg).not.toContain("propose bien cette action");
   });
 
   it("distingue une vraie répétition du MÊME appel", () => {
     const msg = exhaustionMessage({
       ...base,
       repeatedFailure: { tool: "gmail__get_message", error: "404 notFound", distinctInputs: 1 },
-    });
-    expect(msg).toContain("sur le MÊME appel");
+    }, fr);
+    expect(msg).toContain("sur le même appel");
     expect(msg).not.toContain("entrées différentes");
   });
 
   it("sans panne, garde le diagnostic « le modèle tourne en rond »", () => {
-    const msg = exhaustionMessage(base);
+    const msg = exhaustionMessage(base, fr);
     expect(msg).toContain("relançait le même appel");
   });
 });
@@ -68,7 +71,7 @@ describe("exhaustionMessage", () => {
       callCounts: new Map([["stripe__stripe_api_search", 7]]),
       repeatedResult: new Map([["stripe__stripe_api_search", 5]]),
       succeeded: new Set(["stripe__stripe_api_search"]),
-    });
+    }, fr);
     expect(msg).toContain("Limite d'appels d'outils atteinte (8 tours, 7 appels)");
     // The tool is NAMED, but in the product's language: `stripe__stripe_api_search`
     // designates nothing to whoever reads this message (13/08).
@@ -84,7 +87,7 @@ describe("exhaustionMessage", () => {
       callCounts: new Map([["stripe__stripe_api_search", 3]]),
       repeatedResult: new Map([["stripe__stripe_api_search", 2]]),
       succeeded: new Set(["stripe__stripe_api_search"]),
-    });
+    }, fr);
     expect(msg).toContain("Boucle d'outils interrompue");
     expect(msg).not.toContain("Limite d'appels d'outils atteinte");
     expect(msg).toMatch(/3 fois/); // repeats(2) + 1
@@ -95,7 +98,7 @@ describe("exhaustionMessage", () => {
       ...base,
       callCounts: new Map([["webflow__update", 2]]),
       argErrored: new Set(["webflow__update"]),
-    });
+    }, fr);
     expect(msg).toContain("appel valide");
     expect(msg).toContain("Mise à jour");
     expect(msg).not.toContain("webflow__update");
@@ -107,9 +110,9 @@ describe("exhaustionMessage", () => {
       callCounts: new Map([["t", 3]]),
       argErrored: new Set(["t"]),
       succeeded: new Set(["t"]),
-    });
+    }, fr);
     expect(msg).not.toContain("appel valide");
-    expect(msg).toContain("sans converger");
+    expect(msg).toContain("sans parvenir à une réponse");
   });
 
   // A web search that does not get there is not a model failure: the path was the right
@@ -121,7 +124,7 @@ describe("exhaustionMessage", () => {
       callCounts: new Map([["browser__browser_navigate", 20]]),
       succeeded: new Set(["browser__browser_navigate"]),
       hammered: { tool: "browser__browser_navigate", web: true },
-    });
+    }, fr);
     expect(msg).toContain("20 pages consultées");
     expect(msg).toContain("précisez la cible");
     expect(msg).not.toMatch(/modèle plus capable/);
@@ -135,7 +138,7 @@ describe("exhaustionMessage", () => {
       callCounts: new Map([["posthog__exec", 8]]),
       succeeded: new Set(["posthog__exec"]),
       hammered: { tool: "posthog__exec", web: false },
-    });
+    }, fr);
     // Named — in the product's language, never in `snake_case` (13/08).
     expect(msg).toContain("8 appels à **Exécution** (PostHog)");
     expect(msg).not.toContain("posthog__exec");

@@ -260,6 +260,7 @@ describe("modelUnavailableReason", () => {
         effectivePlatform: false,
         openaiCompatBaseUrl: "",
         claudeCliReady: false,
+        t: fr,
       });
       expect(fail?.text).toMatch(/Claude Code/);
     });
@@ -367,6 +368,7 @@ describe("picker greying agrees with the send gate", () => {
         provider: c.model.provider,
         model: { id: c.model.id, label: c.model.id },
         effectivePlatform,
+        t: fr,
       });
       expect(!!fail).toBe(!!reason);
     });

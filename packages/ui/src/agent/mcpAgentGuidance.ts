@@ -20,9 +20,9 @@ export { opaqueIdsIn, identifierTypoHint } from "./identifierTypo";
 export {
   repeatedFailureOf,
   isBrowserBackendFault,
-  BROWSER_BACKEND_FAULT_MESSAGE,
+  browserFaultMessage,
+  loopCopy,
   confirmActLabel,
-  capRefusalNote,
   exhaustionMessage,
   looksLikeRefusal,
 } from "./mcpAgentOutcome";
@@ -172,5 +172,19 @@ export function withFailedWriteNote(content: string, toolName: string, applies: 
     `rien ne s'est produit : l'opération a pu aboutir côté service avant l'erreur. Ne relance ` +
     `PAS le même appel — VÉRIFIE d'abord avec un outil de lecture si l'action a eu lieu, ou ` +
     `explique à l'utilisateur ce qui bloque et laisse-le décider.)`
+  );
+}
+
+/** The result returned for EVERY call past the per-tool cap (`maxSameToolCalls`) —
+ *  the call is NOT dispatched. A legitimate batch of N distinct reads must no longer
+ *  kill the turn (journal 01/08: 11 `get_file_info`, whole turn aborted at the 9th
+ *  when the 8 results already sufficed); the hard-stop (`exhaustionMessage`) only
+ *  falls if the model INSISTS with the same tool on the NEXT response. Pinned by
+ *  `mcpAgent.test.ts`. */
+export function capRefusalNote(tool: string, max: number): string {
+  return (
+    `Limite d'appels atteinte pour \`${tool}\` dans ce tour (${max}) : cet appel n'a PAS été exécuté. ` +
+    `Ne rappelle PLUS cet outil — réponds MAINTENANT à l'utilisateur avec les résultats déjà obtenus, ` +
+    `en signalant explicitement ce qui n'a pas pu être vérifié.`
   );
 }

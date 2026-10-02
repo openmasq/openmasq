@@ -25,6 +25,8 @@ vi.mock("./server/info", () => ({
 vi.mock("./server/registry", () => ({ mcpDisconnect: () => {} }));
 
 const { mcpSetStdioDirs, notePickedDir } = await import("./server/lifecycle");
+// These cases read main's FRENCH wording (`../i18n.ts`); the behaviour is language-independent.
+(await import("../i18n")).setMainLocale("fr");
 
 const dir = () => mkdtempSync(join(tmpdir(), "openmasq-dirs-"));
 const ID = "local-filesystem";

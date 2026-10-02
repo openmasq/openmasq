@@ -108,16 +108,17 @@ export async function grantDroppedFolder(
 }
 
 /** What the user is told afterwards. `cancelled` is deliberately silent. */
-export function grantMessage(outcome: GrantOutcome): string | null {
+export function grantMessage(outcome: GrantOutcome, t: Messages): string | null {
+  const f = t.runtime.files;
   switch (outcome.status) {
     case "granted":
-      return `Dossier autorisé : ${outcome.path}`;
+      return f.folderGranted(outcome.path);
     case "already":
-      return `Ce dossier est déjà autorisé : ${outcome.path}`;
+      return f.folderAlready(outcome.path);
     case "unavailable":
-      return "Les dossiers locaux ne sont pas disponibles sur cette plateforme.";
+      return f.folderUnavailable;
     case "error":
-      return `Autorisation refusée : ${outcome.message}`;
+      return f.folderRefused(outcome.message);
     case "cancelled":
       return null;
   }

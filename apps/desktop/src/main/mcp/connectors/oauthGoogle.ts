@@ -4,6 +4,7 @@ import { focusMainWindow } from "../focusApp";
 import type { StoredToken } from "../persist";
 import { newVerifier, challengeOf } from "./pkce";
 import { parseGrantedScopes } from "./scopes";
+import { mainMessages } from "../../i18n";
 
 /**
  * Google OAuth — desktop-direct **authorization-code + loopback redirect + PKCE**,
@@ -36,7 +37,7 @@ async function postForm(body: Record<string, string>): Promise<GoogleTokenRespon
   });
   const json = (await res.json().catch(() => ({}))) as GoogleTokenResponse;
   if (!res.ok || json.error || !json.access_token) {
-    throw new Error(`Échange de token Google échoué (${res.status})`);
+    throw new Error(mainMessages().desktopMain.oauth.tokenExchangeFailed("Google", res.status));
   }
   return json;
 }

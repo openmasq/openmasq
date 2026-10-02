@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { blockAgentOverlay, unblockAgentOverlay } from "../hooks/modalGate";
+import { useT } from "../i18n";
 
 /** The region of a pane the drag is over — an edge splits, the centre moves. */
 export type DropRegion = "left" | "right" | "top" | "bottom" | "center";
@@ -135,14 +136,6 @@ export function WorkspaceDndProvider({
   );
 }
 
-const REGION_LABEL: Record<DropRegion, string> = {
-  center: "Déplacer ici",
-  left: "Diviser à gauche",
-  right: "Diviser à droite",
-  top: "Diviser en haut",
-  bottom: "Diviser en bas",
-};
-
 /**
  * One pane's drop affordance, for the whole drag: a standing outline that marks the
  * pane as a target BEFORE the pointer reaches it, plus — when it is the target — the
@@ -150,6 +143,7 @@ const REGION_LABEL: Record<DropRegion, string> = {
  */
 export function PaneDropHint({ paneId }: { paneId: string }) {
   const dnd = useWorkspaceDnd();
+  const t = useT();
   if (!dnd?.drag) return null;
   const region = dnd.drag.target === paneId ? dnd.drag.region : null;
   return (
@@ -157,7 +151,7 @@ export function PaneDropHint({ paneId }: { paneId: string }) {
       <div className="ws-drop-zone" aria-hidden />
       {region && (
         <div className={`ws-drop-hint ${region}`} aria-hidden>
-          <span className="ws-drop-hint-label">{REGION_LABEL[region]}</span>
+          <span className="ws-drop-hint-label">{t.runtime.misc.dropRegions[region]}</span>
         </div>
       )}
     </>

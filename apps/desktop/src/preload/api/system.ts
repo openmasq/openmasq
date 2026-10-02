@@ -140,6 +140,9 @@ export const app = {
    *  without main keeping a colour table. `false` when not `#rrggbb`: main refuses it. */
   setWindowTone: (tone: string): Promise<boolean> =>
     ipcRenderer.invoke("window:set-tone", tone),
+  /** The interface language, so main's native dialogs speak it. `false` when main refuses
+   *  a value that is not one of the catalogue's locales. */
+  setLocale: (locale: string): Promise<boolean> => ipcRenderer.invoke("app:set-locale", locale),
 };
 
 /** Auto-update controls. `pin` forces an exact build. */

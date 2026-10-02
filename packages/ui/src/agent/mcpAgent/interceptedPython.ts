@@ -4,6 +4,7 @@ import { pythonErrorHint, pythonFailReason } from "../mcpAgentGuidance";
 import { safeJson } from "../mcpAgentUtil";
 import { liveToolStatus, watchToolCall } from "../mcpAgentWatchdog";
 import { toolStartNarration } from "../toolActionLabel";
+import { loopCopy } from "../mcpAgentOutcome";
 import { MAX_CONSECUTIVE_DEAD } from "./budget";
 import type { Step, ToolCall } from "./call";
 import type { LoopCtx } from "./context";
@@ -79,7 +80,7 @@ export async function handleRunPython(ctx: LoopCtx, call: ToolCall, args: Record
     if (ctx.bumpDead() >= MAX_CONSECUTIVE_DEAD) return ctx.finishExhausted(), "stop";
     return "next";
   }
-  const narration = toolStartNarration("run_python", "python");
+  const narration = toolStartNarration("run_python", "python", loopCopy(p.t));
   p.onToolProgress?.(narration);
   const tPy = Date.now();
   let r: PythonRunResult;

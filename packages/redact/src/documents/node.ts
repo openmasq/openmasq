@@ -14,14 +14,16 @@ import {
   PAGE_BREAK,
   type ExtractDeps,
   type ExtractedFile,
+  type OcrMarkers,
   type RedactedDocument,
 } from "./core";
 import { MAX_PDF_PAGES } from "./safety/guard";
 import { reconstructPageText } from "./serialize/pdfLayout";
 import { buildTextLayerPage, type TextLayerPage } from "./layers/geometry";
 
-export { SUPPORTED_EXTENSIONS, OCR_LANGS, OCR_TRAINEDDATA_SHA256, hybridLayerText, spatialFieldLines } from "./core";
-export type { ExtractedFile, RedactedDocument, TextLayerPage, OcrLayerPage, LayerGeometry } from "./core";
+export { SUPPORTED_EXTENSIONS, OCR_LANGS, OCR_TRAINEDDATA_SHA256, hybridLayerText, spatialFieldLines, DEFAULT_OCR_MARKERS } from "./core";
+export type { ExtractedFile, RedactedDocument, TextLayerPage, OcrLayerPage, LayerGeometry, OcrMarkers } from "./core";
+export type { DocumentErrorCode, DocumentErrorParams } from "./core";
 
 /** pdfjs v4 uses Promise.withResolvers (Node 22+); polyfill for Node 20. */
 function ensureWithResolvers(): void {
@@ -167,9 +169,9 @@ const nodeDeps: ExtractDeps = {
   },
   ocrImage: (bytes) => ocrImage(bytes),
   ocrImageLayout: (bytes) => ocrImageLayout(bytes),
-  // `undefined` for lang/maxPages: `ocrPdf`'s defaults apply, only the progress
-  // callback is threaded.
-  ocrPdf: (bytes, onProgress, maxPages) => ocrPdf(bytes, undefined, maxPages, onProgress),
+  // `undefined` for lang/maxPages: `ocrPdf`'s defaults apply; the progress callback and
+  // the markers' wording are threaded.
+  ocrPdf: (bytes, onProgress, maxPages, markers) => ocrPdf(bytes, undefined, maxPages, onProgress, markers),
 };
 
 /** Extract plain text from a file on disk. Best-effort (never throws). */
@@ -178,11 +180,13 @@ export async function extractText(
   onOcrProgress?: (done: number, pages: number) => void,
   /** "Read all": lift the OCR cap (10 pages by default) — a user gesture. */
   ocrAllPages?: boolean,
+  /** Wording of the skipped-page markers OCR writes into the text (the user's language). */
+  ocrMarkers?: OcrMarkers,
 ): Promise<ExtractedFile> {
   const name = baseName(filePath);
   try {
     const bytes = new Uint8Array(await readFile(filePath));
-    return await extractFromBytes(bytes, { name, onOcrProgress, ocrAllPages }, nodeDeps);
+    return await extractFromBytes(bytes, { name, onOcrProgress, ocrAllPages, ocrMarkers }, nodeDeps);
   } catch (e) {
     return { name, kind: "file", text: "", chars: 0, error: e instanceof Error ? e.message : String(e) };
   }
@@ -209,10 +213,11 @@ export async function extractBytes(
   mime?: string,
   onOcrProgress?: (done: number, pages: number) => void,
   ocrAllPages?: boolean,
+  ocrMarkers?: OcrMarkers,
 ): Promise<ExtractedFile> {
   return extractFromBytes(
     asUint8(bytes),
-    { name: baseName(name) || "file", mime, onOcrProgress, ocrAllPages },
+    { name: baseName(name) || "file", mime, onOcrProgress, ocrAllPages, ocrMarkers },
     nodeDeps,
   );
 }

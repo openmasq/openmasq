@@ -23,6 +23,7 @@
  * stored before joining the organization. The check that actually PROVES itself is
  * server-side: the gateway refuses a model outside the organization's allow-list.
  */
+import { mainMessages } from "../i18n";
 
 let byoAllowed: boolean | null = null;
 
@@ -41,10 +42,7 @@ export function isByoKeysBlocked(): boolean {
 /** The refusal returned to the renderer — it names the cause, not the plumbing: the
  *  person needs to know this isn't a bug and who to contact. */
 export function byoKeysBlockedError(): Error {
-  return new Error(
-    "Les clés d'API personnelles sont désactivées par votre organisation. " +
-      "Les modèles qu'elle a ouverts fonctionnent sans clé ; votre administrateur gère la liste.",
-  );
+  return new Error(mainMessages().desktopMain.byoKeysBlocked);
 }
 
 /** Test seam. */

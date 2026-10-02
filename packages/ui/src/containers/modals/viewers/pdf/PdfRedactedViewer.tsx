@@ -156,7 +156,7 @@ export function PdfRedactedViewer({
         });
         if (ctrl.signal.aborted) return void doc.destroy();
         const open = doc;
-        if (open.modelError) setWarn(describeRedactFailure(open.modelError, engine));
+        if (open.modelError) setWarn(describeRedactFailure(open.modelError, t, engine));
         // EVERY page gets a shell sized to it up-front: the scrollbar is the document's.
         const shells: HTMLElement[] = [];
         for (let p = 1; p <= open.total; p++) {

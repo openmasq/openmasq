@@ -16,13 +16,15 @@ import {
   type ExtractedFile,
   type RedactedDocument,
 } from "./core";
+import { DEFAULT_OCR_MARKERS, type OcrMarkers } from "./ocrMarkers";
 import { MAX_PDF_PAGES, rasterScale } from "./safety/guard";
 import { reconstructPageText } from "./serialize/pdfLayout";
 
 export { SUPPORTED_EXTENSIONS, OCR_LANGS, OCR_TRAINEDDATA_SHA256, hybridLayerText, spatialFieldLines } from "./core";
 // Send-cut → grid-row mapping for the preview grid (same parser/serializer as extraction).
 export { delimitedGrid, annotatedCutRow } from "./core";
-export type { ExtractedFile, RedactedDocument, TextLayerPage, OcrLayerPage, LayerGeometry } from "./core";
+export type { ExtractedFile, RedactedDocument, TextLayerPage, OcrLayerPage, LayerGeometry, OcrMarkers } from "./core";
+export type { DocumentErrorCode, DocumentErrorParams } from "./core";
 
 export interface BrowserExtractConfig {
   /** URL of the bundled pdf.js worker (Vite `?url` / chrome.runtime.getURL). */
@@ -30,6 +32,8 @@ export interface BrowserExtractConfig {
   /** OCR one image's bytes → text. Injected by the consumer (e.g. tesseract.js
    *  wired to bundled MV3 assets). Absent → images / scanned PDFs return an error. */
   ocr?: (bytes: Uint8Array) => Promise<string>;
+  /** Wording of the skipped-page markers; absent ⇒ `DEFAULT_OCR_MARKERS` (French). */
+  ocrMarkers?: OcrMarkers;
 }
 
 let cfg: BrowserExtractConfig = {};
@@ -80,6 +84,7 @@ async function ocrPdf(
   bytes: Uint8Array,
   onProgress?: (done: number, pages: number) => void,
   maxPages: number = OCR_PDF_MAX_PAGES,
+  markers: OcrMarkers = cfg.ocrMarkers ?? DEFAULT_OCR_MARKERS,
 ): Promise<{ text: string; meta: { engine: string; ms: number; pages: number; pagesTotal: number } }> {
   const t0 = Date.now();
   if (!cfg.ocr) throw new Error("OCR non configuré (tesseract non chargé)");
@@ -103,7 +108,7 @@ async function ocrPdf(
     const base = page.getViewport({ scale: 1 });
     const scale = rasterScale(base.width, base.height, 2);
     if (scale === null) {
-      out.push(`[… page ${i} non océrisée : dimensions excessives]`);
+      out.push(markers.pageTooLarge(i));
       tick(i);
       page.cleanup?.();
       continue;
@@ -123,7 +128,7 @@ async function ocrPdf(
   }
   await doc.destroy?.();
   if (doc.numPages > pages) {
-    out.push(`[… ${doc.numPages - pages} page(s) supplémentaire(s) non océrisée(s)]`);
+    out.push(markers.morePages(doc.numPages - pages));
   }
   // Minimal meta (the browser doesn't have the docTR router): just enough for the
   // chip to say « N/M pages read » here too.

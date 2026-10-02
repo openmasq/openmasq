@@ -39,6 +39,7 @@ export async function gateAndRoute(ctx: TurnContext): Promise<Routing | null> {
     claudeCliReady: d.claudeCliReadyRef.current,
     codexCliReady: d.codexCliReadyRef.current,
     antigravityCliReady: d.antigravityCliReadyRef.current,
+    t: d.t,
   });
   if (preflightFail) {
     await failTurn(preflightFail.text, preflightFail.action);
@@ -60,6 +61,7 @@ export async function gateAndRoute(ctx: TurnContext): Promise<Routing | null> {
       const fail = platformTokenFailure(tok, {
         freeModel: isFreeModel(model.id),
         personalSub: d.personalSubRef.current,
+        t: d.t,
       });
       await failTurn(fail.text, fail.action);
       return null;

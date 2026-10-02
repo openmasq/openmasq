@@ -4,6 +4,7 @@ import { existsSync, writeFileSync } from "fs";
 import { join } from "node:path";
 import { BRAND } from "@openmasq/branding";
 import { encryptionAvailable } from "./store/safeStore";
+import { mainMessages } from "./i18n";
 
 export function warnIfNoAtRestEncryption(): void {
   if (!app.isPackaged || encryptionAvailable()) return;
@@ -14,14 +15,12 @@ export function warnIfNoAtRestEncryption(): void {
   } catch {
     /* best-effort — still show the warning */
   }
+  const t = mainMessages().desktopMain.atRest;
   void dialog.showMessageBox({
     type: "warning",
-    title: "Chiffrement au repos indisponible",
-    message: `${BRAND.name} n'a pas pu accéder au trousseau de votre système.`,
-    detail: "Vos clés API, jetons de connexion, session et le coffre de redaction seront " +
-      "stockés SANS chiffrement au repos sur cette machine (fichiers en 0600, mais " +
-      "lisibles par quiconque accède au disque). Installez/déverrouillez un trousseau " +
-      "(libsecret · GNOME Keyring · KWallet sur Linux) puis relancez pour l'activer.",
-    buttons: ["Compris"],
+    title: t.title,
+    message: t.message(BRAND.name),
+    detail: t.detail,
+    buttons: [t.ok],
   });
 }

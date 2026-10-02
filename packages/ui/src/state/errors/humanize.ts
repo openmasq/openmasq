@@ -39,7 +39,7 @@ export function isRateLimitError(err: unknown): boolean {
 const INVALID_KEY = /invalid_api_key|incorrect api key|invalid x-api-key|authentication_error|api key not valid/i;
 
 /**
- * Map a raw provider/tool/IPC error string to a friendly FR message when it
+ * Map a raw provider/tool/IPC error string to a friendly message (UI language) when it
  * carries a KNOWN bounded code. Typed error classes are lost across the
  * main↔renderer IPC boundary, and the gateway answers with codes like
  * `CREDITS_EXHAUSTED` (402) / `MODEL_NOT_ALLOWED` (400) — which otherwise reach the
@@ -66,7 +66,7 @@ export function humanizeSendError(
   /** « OpenAI », or null when the caller couldn't say. */
   const name = opts?.provider ? (PROVIDERS[opts.provider]?.label ?? opts.provider) : null;
   const chez = name ? e.atProvider(name) : e.theProvider;
-  if (/CREDITS_EXHAUSTED/.test(m)) return new CreditsExhaustedError(opts?.personal ?? false).message;
+  if (/CREDITS_EXHAUSTED/.test(m)) return new CreditsExhaustedError(opts?.personal ?? false, t).message;
   if (/CREDITS_UNVERIFIABLE/.test(m)) {
     // Deliberate fail-closed by the gateway (unreadable balance ≠ zero balance): the
     // cause is transient, and « rien n'est parti » is the first question.
@@ -157,13 +157,13 @@ export function formatReset(at: number, t: Messages): string {
  * collapse a trailing `{"error":"CODE"}` body down to `(CODE)`. Used as the
  * fallback when {@link humanizeSendError} doesn't recognise the error.
  */
-export function cleanErrorText(raw: string): string {
+export function cleanErrorText(raw: string, t: Messages): string {
   let s = (raw || "").trim();
   s = s.replace(/^Error invoking remote method\s+'[^']*':\s*/i, "");
   s = s.replace(/^Error:\s*/i, "");
   const code = s.match(/\{\s*"error"\s*:\s*"([A-Za-z0-9_]+)"[^}]*\}/);
   if (code) s = s.replace(/:?\s*\{\s*"error"\s*:\s*"[A-Za-z0-9_]+"[^}]*\}\s*$/, ` (${code[1]})`);
-  return s.trim() || "Une erreur est survenue.";
+  return s.trim() || t.runtime.send.genericError;
 }
 
 /**

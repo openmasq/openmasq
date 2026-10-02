@@ -12,45 +12,46 @@
  * `MAILTO_MAX_BODY` with a visible marker — a truncated journal that says so beats a
  * mail that never opens.
  */
+import type { Messages } from "@openmasq/i18n";
 import type { Feedback } from "./feedback";
 
 /** Total body budget, BEFORE URL-encoding. Message first; the journal absorbs the cut. */
 export const MAILTO_MAX_BODY = 1800;
 
-const TRUNCATED = "\n[… journal tronqué pour tenir dans un e-mail]";
-
-/** The plain-text body, assembled in reading order and capped. */
-export function feedbackMailBody(f: Feedback): string {
+/** The plain-text body, assembled in reading order and capped. The labels are in the UI
+ *  language: the user sees this mail in their client before sending it. */
+export function feedbackMailBody(f: Feedback, t: Messages): string {
+  const m = t.runtime.misc.mail;
   const parts: string[] = [f.message.trim()];
-  if (f.mood) parts.push(`Humeur : ${f.mood}`);
+  if (f.mood) parts.push(m.field(m.mood, f.mood));
   if (f.context) {
     const c = f.context;
-    const line = (label: string, v?: string) => (v ? `${label} : ${v}` : null);
+    const line = (label: string, v?: string) => (v ? m.field(label, v) : null);
     parts.push(
       [
-        "— Contexte technique —",
-        line("Version", c.version),
-        line("Canal", c.channel),
+        m.context,
+        line(m.version, c.version),
+        line(m.channel, c.channel),
         line("OS", c.os),
-        line("Écran", c.section),
-        line("Modèle", c.model),
-        line("Niveau", c.level),
-        line("Installation", c.analyticsId),
+        line(m.screen, c.section),
+        line(m.model, c.model),
+        line(m.level, c.level),
+        line(m.install, c.analyticsId),
       ]
         .filter((l): l is string => l !== null)
         .join("\n"),
     );
   }
-  if (f.journal) parts.push(`— Journal (déjà masqué) —\n${f.journal}`);
+  if (f.journal) parts.push(`${m.journal}\n${f.journal}`);
   const body = parts.join("\n\n");
   if (body.length <= MAILTO_MAX_BODY) return body;
-  return body.slice(0, MAILTO_MAX_BODY - TRUNCATED.length) + TRUNCATED;
+  return body.slice(0, MAILTO_MAX_BODY - m.truncated.length) + m.truncated;
 }
 
 /** The complete `mailto:` URL for one avis. */
-export function feedbackMailto(f: Feedback, to: string, product: string): string {
-  const subject = `[${f.category}] Avis ${product}`;
-  const q = new URLSearchParams({ subject, body: feedbackMailBody(f) });
+export function feedbackMailto(f: Feedback, to: string, product: string, t: Messages): string {
+  const subject = t.runtime.misc.mail.subject(f.category, product);
+  const q = new URLSearchParams({ subject, body: feedbackMailBody(f, t) });
   // URLSearchParams encodes spaces as "+", which a mail client renders literally.
   return `mailto:${to}?${q.toString().replace(/\+/g, "%20")}`;
 }

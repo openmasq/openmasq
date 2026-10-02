@@ -8,7 +8,8 @@
 // `subscriptionTurnEnv` the single choke point every spawn path goes through.
 import { describe, it, expect, beforeEach, vi } from "vitest";
 
-vi.mock("electron", () => ({ app: { isPackaged: false, getPath: () => "/tmp/openmasq-test" } }));
+// `getLocale`: main speaks French here, the wording these cases read (`../i18n.ts`).
+vi.mock("electron", () => ({ app: { isPackaged: false, getPath: () => "/tmp/openmasq-test", getLocale: () => "fr-FR" } }));
 
 const CLIS = ["claude", "codex", "antigravity"] as const;
 

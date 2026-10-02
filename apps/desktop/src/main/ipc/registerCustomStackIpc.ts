@@ -2,6 +2,7 @@ import { app, dialog, type BrowserWindow } from "electron";
 import { CUSTOM_STACK_ALLOWED, validateCustomStack, type CustomStack, type CustomStackVerdict } from "../../environments/customStack";
 import { writeEnvPointer } from "../environment";
 import { relaunchSafely } from "../updates/install";
+import { mainMessages } from "../i18n";
 import { handle, obj } from "./handle";
 
 /**
@@ -32,16 +33,11 @@ function customStackConfirmText(stack: CustomStack): { message: string; detail: 
       return u;
     }
   };
-  const lines = [`API : ${host(stack.backend)}`];
-  if (stack.gateway) lines.push(`Passerelle : ${host(stack.gateway)}`);
-  if (stack.supabaseUrl) lines.push(`Comptes : ${host(stack.supabaseUrl)}`);
-  return {
-    message: "Pointer l'application vers cette pile auto-hébergée ?",
-    detail:
-      `${lines.join("\n")}\n\n` +
-      "L'application redémarre dans un profil séparé : vos conversations, votre coffre et vos " +
-      "clés de l'environnement actuel n'y sont pas copiés. Vous pourrez revenir à tout moment.",
-  };
+  const t = mainMessages().desktopMain.customStack;
+  const lines = [t.api(host(stack.backend))];
+  if (stack.gateway) lines.push(t.gateway(host(stack.gateway)));
+  if (stack.supabaseUrl) lines.push(t.accounts(host(stack.supabaseUrl)));
+  return { message: t.switchMessage, detail: `${lines.join("\n")}\n\n${t.switchDetail}` };
 }
 
 export function registerCustomStackIpc(args: { baseUserData: string; window: () => BrowserWindow | null }): void {
@@ -51,7 +47,8 @@ export function registerCustomStackIpc(args: { baseUserData: string; window: () 
     if (!verdict.ok) return { ok: false, reason: "invalid", field: verdict.field, detail: verdict.reason };
     const { message, detail } = customStackConfirmText(verdict.stack);
     const win = args.window();
-    const opts = { type: "warning" as const, buttons: ["Basculer", "Annuler"], defaultId: 1, cancelId: 1, message, detail };
+    const t = mainMessages().desktopMain.customStack;
+    const opts = { type: "warning" as const, buttons: [t.switchButton, t.cancel], defaultId: 1, cancelId: 1, message, detail };
     const { response } = win ? await dialog.showMessageBox(win, opts) : await dialog.showMessageBox(opts);
     if (response !== 0) return { ok: false, reason: "declined" };
     if (!writeEnvPointer(args.baseUserData, "custom", undefined, verdict.stack)) {
@@ -67,13 +64,14 @@ export function registerCustomStackIpc(args: { baseUserData: string; window: () 
   // Same native box — removing an address is a decision, not a setting.
   handle("env:forget-custom-stack", [], async (): Promise<SetCustomStackResult> => {
     const win = args.window();
+    const t = mainMessages().desktopMain.customStack;
     const opts = {
       type: "warning" as const,
-      buttons: ["Oublier", "Annuler"],
+      buttons: [t.forgetButton, t.cancel],
       defaultId: 1,
       cancelId: 1,
-      message: "Oublier la pile auto-hébergée ?",
-      detail: "L'application redémarre sur l'environnement par défaut. Le profil de la pile reste sur le disque.",
+      message: t.forgetMessage,
+      detail: t.forgetDetail,
     };
     const { response } = win ? await dialog.showMessageBox(win, opts) : await dialog.showMessageBox(opts);
     if (response !== 0) return { ok: false, reason: "declined" };

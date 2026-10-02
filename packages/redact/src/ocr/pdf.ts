@@ -3,6 +3,8 @@
 // ocr.ts (LOC cap): this file owns the pdf→raster plumbing; the engines, the router
 // and the traineddata pin logic stay in ocr.ts.
 import { OCR_LANGS, PAGE_BREAK, type OcrMeta } from "../documents/core";
+import { DocumentError } from "../documents/errors";
+import { DEFAULT_OCR_MARKERS, type OcrMarkers } from "../documents/ocrMarkers";
 import { rasterScale } from "../documents/safety/guard";
 import type { OcrLayerPage } from "../documents/layers/geometry";
 import { ocrImageLayout } from "./ocr";
@@ -26,14 +28,16 @@ async function loadCanvas(): Promise<any> {
     // throws "Cannot use 'in' operator … 'families' in undefined". Catch it.
     mod = await import("@napi-rs/canvas");
   } catch {
-    throw new Error(
+    throw new DocumentError(
+      "pdf_renderer_missing",
       "moteur de rendu PDF indisponible sur cet appareil (composant natif manquant) — réinstallez l'application",
     );
   }
   // CJS→ESM interop can put the exports on `.default`; accept either.
   const resolved = typeof mod?.createCanvas === "function" ? mod : (mod?.default ?? mod);
   if (typeof resolved?.createCanvas !== "function") {
-    throw new Error(
+    throw new DocumentError(
+      "pdf_renderer_incompatible",
       "moteur de rendu PDF incompatible sur cet appareil — réinstallez l'application",
     );
   }
@@ -68,6 +72,8 @@ export async function ocrPdf(
   lang: string = DEFAULT_LANG,
   maxPages = 10,
   onProgress?: (done: number, pages: number) => void,
+  /** The skipped-page markers' wording (the caller's language). */
+  markers: OcrMarkers = DEFAULT_OCR_MARKERS,
 ): Promise<{ text: string; meta: OcrMeta; layout: OcrLayerPage[] }> {
   const t0 = Date.now();
   ensureWithResolvers();
@@ -115,7 +121,7 @@ export async function ocrPdf(
     const base = page.getViewport({ scale: 1 });
     const scale = rasterScale(base.width, base.height, 2);
     if (scale === null) {
-      const marker = `[… page ${i} non océrisée : dimensions excessives]`;
+      const marker = markers.pageTooLarge(i);
       out.push(marker);
       // A placeholder entry, not a skipped one: `layout` is read BY PAGE INDEX
       // (`../documents/geometry.ts`), so dropping it would shift every later page.
@@ -139,7 +145,7 @@ export async function ocrPdf(
   }
   await doc.destroy?.();
   if (doc.numPages > maxPages) {
-    out.push(`[… ${doc.numPages - maxPages} page(s) supplémentaire(s) non océrisée(s)]`);
+    out.push(markers.morePages(doc.numPages - maxPages));
   }
   // Engine label: the single engine, or "docTR+Tesseract" when pages routed differently.
   const engine = engines.size === 1 ? [...engines][0] : [...engines].sort().join("+");

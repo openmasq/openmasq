@@ -1,5 +1,6 @@
 import { newVerifier, challengeOf } from "./pkce";
 import { openAuthExternal } from "./authOpen";
+import { mainMessages } from "../../i18n";
 
 /**
  * Slack OAuth — desktop-direct, but Slack can't do PKCE and needs an HTTPS
@@ -55,7 +56,8 @@ async function pollToken(base: string, verifier: string, deadline: number): Prom
     }
     // pending / transient network blip → keep polling until the deadline
   }
-  throw new Error(`La connexion Slack a expiré — réessayez${lastFailure ? ` (${lastFailure})` : ""}`);
+  const expired = mainMessages().desktopMain.oauth.slackExpired;
+  throw new Error(`${expired}${lastFailure ? ` (${lastFailure})` : ""}`);
 }
 
 /** Run the interactive Slack login and resolve the user access token. */

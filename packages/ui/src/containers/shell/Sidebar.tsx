@@ -1,3 +1,4 @@
+import { displayTitle } from "../../state/conversation/displayTitle";
 import { BRAND } from "@openmasq/branding";
 import { useMemo, useState } from "react";
 import type { Skill, Conversation } from "../../types";
@@ -185,7 +186,7 @@ export function Sidebar({
       {pendingDelete && (
         <ConfirmDialog
           title={t.chrome.deleteConversation}
-          message={t.chrome.deleteConversationBody(pendingDelete.title || t.chrome.untitledConversation)}
+          message={t.chrome.deleteConversationBody(displayTitle(pendingDelete.title, t))}
           onCancel={() => setPendingDelete(null)}
           onConfirm={() => {
             onDelete?.(pendingDelete.id);

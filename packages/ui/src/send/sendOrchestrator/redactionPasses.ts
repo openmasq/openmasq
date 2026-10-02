@@ -175,7 +175,7 @@ export async function runRedactionPasses(
   const turnKinds: Record<string, string> = { ...r.convKinds, ...r.extraKinds };
   for (const sp of redactedSpans) turnKinds[sp.value] = sp.kind;
   const redactionFailed =
-    useAiDetect && userWire.modelError ? describeRedactFailure(userWire.modelError, settings.redactEngine) : undefined;
+    useAiDetect && userWire.modelError ? describeRedactFailure(userWire.modelError, d.t, settings.redactEngine) : undefined;
 
   return { userWire, redactedSpans, turnKinds, redactionFailed, wireDebugId, memSel, memoryWire };
 }

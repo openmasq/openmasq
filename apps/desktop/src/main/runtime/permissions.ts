@@ -1,6 +1,7 @@
 import { dialog, ipcMain, session, shell, systemPreferences } from "electron";
 import type { WebContents } from "electron";
 import { BRAND } from "@openmasq/branding";
+import { mainMessages } from "../i18n";
 
 // Without a permission handler Electron DENIES `getUserMedia` by default, so the
 // composer's dictation mic (renderer → MediaRecorder) would never get audio. We
@@ -61,14 +62,13 @@ async function ensureMicAccess(): Promise<boolean> {
  *  Microphone pane (macOS deep link). Best-effort — never throws to the caller. */
 async function promptOpenMicSettings(): Promise<void> {
   try {
+    const t = mainMessages().desktopMain.mic;
     const { response } = await dialog.showMessageBox({
       type: "info",
-      title: "Micro bloqué",
-      message: `${BRAND.name} n'a pas accès au microphone`,
-      detail:
-        "Autorisez le micro dans Réglages Système → Confidentialité et sécurité → " +
-        "Microphone, puis réessayez la dictée.",
-      buttons: ["Ouvrir les Réglages", "Annuler"],
+      title: t.title,
+      message: t.message(BRAND.name),
+      detail: t.detail,
+      buttons: [t.openSettings, t.cancel],
       defaultId: 0,
       cancelId: 1,
     });

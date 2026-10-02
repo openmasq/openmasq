@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { adminConsentUrl, microsoftAuthFailure, needsAdminConsent } from "./microsoftConsent";
+import { getMessages } from "@openmasq/i18n";
+import { adminConsentUrl, microsoftAuthFailure as failure, needsAdminConsent } from "./microsoftConsent";
+
+// These cases read the FRENCH wording.
+const microsoftAuthFailure = (raw: string, ctx: { clientId: string; redirectUri: string }) =>
+  failure(raw, ctx, getMessages("fr").desktopMain.oauth);
 
 const CTX = { clientId: "cid-123", redirectUri: "http://127.0.0.1:51234/cb" };
 

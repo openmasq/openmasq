@@ -4,6 +4,7 @@ import { fakeDerivedNavHost } from "../../../state/browserPolicy/browserNavFake"
 import { isCommSendTool, isDraftOnlyIntent, isWriteTool, refusedAsConsultOnly, skipsArgExfilScan } from "../../mcpAgentClassify";
 import { raceAbort } from "../../mcpAgentAbort";
 import { deredactArgs } from "../../mcpAgentUtil";
+import { loopCopy } from "../../mcpAgentOutcome";
 import { missingRequired } from "../../toolFault";
 import { writeKey } from "../../writeIdempotency";
 import type { CallDecision, ConnectorCall } from "../call";
@@ -92,7 +93,7 @@ export async function decideCall(ctx: LoopCtx, c: ConnectorCall): Promise<CallDe
   }
   const attachmentNames = [
     ...resolvedAttachments.map((a) => a.filename),
-    ...unresolvedAttachmentNames.map((u) => `⚠️ introuvable — ne partira pas : ${u}`),
+    ...unresolvedAttachmentNames.map((u) => loopCopy(p.t).runtime.loop.attachmentMissing(u)),
   ];
 
   let needsConfirm: boolean;

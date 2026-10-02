@@ -1,6 +1,8 @@
 import { startLoopback as startLoopbackMechanism, type Loopback } from "@openmasq/mcp/node";
 import { connectSignal } from "./server/connectCancel";
 import { BRAND } from "@openmasq/branding";
+import { mainLocale, mainMessages } from "../i18n";
+import { escapeHtml } from "../pdf/pdfSkeleton";
 
 export type { Loopback };
 
@@ -19,14 +21,17 @@ export type { Loopback };
  * stack is the fallback), branded on the CURRENT charter (indigo #3939FA on
  * navy ink, the five-bar redaction mark — the retired forest+lime must not come
  * back; source: `.claude/skills/design-system/tokens/`), theme-aware
- * (prefers-color-scheme, dark = deep navy).
+ * (prefers-color-scheme, dark = deep navy). Its words follow main's language, escaped.
  */
-const PAGE = `<!doctype html>
-<html lang="fr">
+function buildPage(): string {
+  const t = mainMessages().desktopMain.oauth;
+  const brand = escapeHtml(BRAND.name);
+  return `<!doctype html>
+<html lang="${mainLocale()}">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>${BRAND.name} — Connexion réussie</title>
+<title>${escapeHtml(t.pageTitle(BRAND.name))}</title>
 <style>
   :root {
     --bg: #fbfbfa; --card: #ffffff; --border: rgba(5,6,26,.08);
@@ -108,21 +113,22 @@ const PAGE = `<!doctype html>
     </div>
     <span class="badge">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
-      Connecteur relié
+      ${escapeHtml(t.eyebrow)}
     </span>
-    <h1>Connexion réussie</h1>
-    <p>Votre connecteur est maintenant relié à ${BRAND.name}. Vous pouvez fermer cet onglet et revenir à l'application.</p>
-    <div class="hint">Vos identifiants restent sur votre machine — ${BRAND.name} ne les envoie jamais au modèle.</div>
+    <h1>${escapeHtml(t.heading)}</h1>
+    <p>${escapeHtml(t.body(BRAND.name))}</p>
+    <div class="hint">${escapeHtml(t.hint(BRAND.name))}</div>
     <div class="foot">
       <svg viewBox="0 0 100 100" fill="currentColor" aria-hidden="true">
           <path fill-rule="evenodd" clip-rule="evenodd" d="M50 6C25.7 6 6 25.7 6 50s19.7 44 44 44 44-19.7 44-44S74.3 6 50 6Zm0 17c14.9 0 27 12.1 27 27S64.9 77 50 77 23 64.9 23 50s12.1-27 27-27Z" />
           <rect x="2" y="41" width="96" height="18" rx="5" />
       </svg>
-      ${BRAND.name}
+      ${brand}
     </div>
   </main>
 </body>
 </html>`;
+}
 
 /**
  * Start the loopback. `preferredPort` (persisted from a previous run) keeps the
@@ -137,10 +143,10 @@ export async function startLoopback(
 ): Promise<Loopback> {
   const signal = connectSignal();
   return startLoopbackMechanism({
-    page: PAGE,
+    page: buildPage(),
     ...(preferredPort ? { port: preferredPort } : {}),
     ...(onRedirect ? { onRedirect } : {}),
     ...(signal ? { signal } : {}),
-    cancelledMessage: "Connexion annulée",
+    cancelledMessage: mainMessages().desktopMain.oauth.cancelled,
   });
 }

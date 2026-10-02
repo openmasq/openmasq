@@ -1,0 +1,16 @@
+/**
+ * The markers OCR writes INTO the extracted text where it skipped pages. The CALLER chooses
+ * the wording (the desktop passes the user's language from `@openmasq/i18n`); this package
+ * keeps its historical French as the default so every existing caller reads the same text.
+ */
+export interface OcrMarkers {
+  /** A page whose raster would exceed the pixel ceiling (`safety/guard.ts` `rasterScale`). */
+  pageTooLarge: (page: number) => string;
+  /** The pages past the OCR page cap. */
+  morePages: (count: number) => string;
+}
+
+export const DEFAULT_OCR_MARKERS: OcrMarkers = {
+  pageTooLarge: (page) => `[… page ${page} non océrisée : dimensions excessives]`,
+  morePages: (count) => `[… ${count} page(s) supplémentaire(s) non océrisée(s)]`,
+};

@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import { useT } from "../../../i18n";
 import { captureEvent } from "../../../analytics";
 import { findModelAny } from "../../../prompt/models";
 import { askTargetLaunchText } from "../../../send/askTarget";
@@ -30,6 +31,7 @@ export function useSendPipeline(p: ChatViewProps, d: Deps) {
   const { conversation, settings, orgProfile, onSend } = p;
   // Values the user chose to KEEP IN CLEAR via the composer's un-redact chips.
   const keepListRef = useRef<string[]>([]);
+  const t = useT();
 
   const runSend = async (text: string, usable: Attachment[], opts?: RunSendOpts) => {
     d.att.setAttachWarning(null);
@@ -84,7 +86,7 @@ export function useSendPipeline(p: ChatViewProps, d: Deps) {
     if ((!text && usable.length === 0) || d.activeStreaming) return;
     // Never send while a file's redaction is unfinished or failed.
     if (attachments.some((a) => a.redacting)) {
-      d.att.setAttachWarning("Redaction du fichier en cours — patientez avant d'envoyer.");
+      d.att.setAttachWarning(t.runtime.send.fileStillMasking);
       return;
     }
     const failed = attachments.find((a) => a.redactError);

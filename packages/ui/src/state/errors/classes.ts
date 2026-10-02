@@ -1,3 +1,4 @@
+import type { Messages } from "@openmasq/i18n";
 import type { ProviderId } from "@openmasq/llm";
 import { classifyRedactFailure } from "../../send/redactFailure";
 import { subscriptionsSold } from "../../send/platformAccess";
@@ -24,30 +25,25 @@ export class MissingApiKeyError extends Error {
  * caught is never leaked by a silent downgrade to regex. Retryable once fixed.
  */
 export class RedactionUnavailableError extends Error {
-  constructor(public reason: string) {
-    super(RedactionUnavailableError.buildMessage(reason));
+  /** `reason` is the TECHNICAL cause: kept on the error for the debug log, never in the
+   *  sentence the user reads (`message`). */
+  constructor(
+    public reason: string,
+    t: Messages,
+  ) {
+    super(RedactionUnavailableError.buildMessage(reason, t));
     this.name = "RedactionUnavailableError";
   }
 
-  // Phrase the block by CAUSE, and make crystal-clear it's the redaction
-  // (privacy) step — NOT the chat model — so "serveur de redaction down" reads as
-  // exactly that, not "the model is broken".
-  private static buildMessage(reason: string): string {
-    const kind = classifyRedactFailure(reason);
-    const cause =
-      kind === "network"
-        ? "le redaction est injoignable"
-        : kind === "auth"
-          ? "le redaction a un souci de notre côté"
-          : "le redaction n'a pas pu s'exécuter";
-    // What does NOT get cut: that nothing went out. That's a privacy promise,
-    // not a wording detail — and it's the first question one asks here.
-    // ⚠️ No more « changez de moteur (Réglages → Confidentialité) » : that selector
-    // no longer exists for the user (`Settings.redactEngine` is locked on
-    // "local") — recommending a setting that can't be found is worse than recommending nothing.
-    // The `(reason)` stays: this message is also what the debug journal receives,
-    // and that's where the detail is useful.
-    return `Envoi bloqué : ${cause}, rien n'est parti. Réessayez. (${reason})`;
+  // Phrase the block by CAUSE, and make crystal-clear it's the MASKING (privacy) step —
+  // NOT the chat model — so a masking outage reads as exactly that, not "the model is broken".
+  private static buildMessage(reason: string, t: Messages): string {
+    const s = t.runtime.send;
+    // What does NOT get cut: that nothing was sent. That's a privacy promise, not a
+    // wording detail — and it's the first question one asks here.
+    // ⚠️ No « changez de moteur » : that selector no longer exists for the user
+    // (`Settings.redactEngine` is locked on "local").
+    return s.maskingBlocked(s.maskingCause[classifyRedactFailure(reason)]);
   }
 }
 
@@ -61,10 +57,9 @@ export class ModelBlockedByOrgError extends Error {
   constructor(
     public modelId: string,
     public modelLabel: string,
+    t: Messages,
   ) {
-    super(
-      `Le modèle « ${modelLabel} » est désactivé par votre organisation. Choisissez-en un autre.`,
-    );
+    super(t.runtime.send.modelBlockedByOrg(modelLabel));
     this.name = "ModelBlockedByOrgError";
   }
 }
@@ -78,7 +73,7 @@ export class ModelBlockedByOrgError extends Error {
 export class CreditsExhaustedError extends Error {
   /** `personal` = an individual (non-org) account → phrase it as THEIR budget with an
    *  upgrade path; otherwise the org-budget wording (admin-managed). */
-  constructor(personal = false) {
+  constructor(personal: boolean, t: Messages) {
     super(
       // WHO can unlock changes with the account: on a personal account it's you, in
       // an organization it's the admin. That's the only thing these two phrasings still
@@ -88,12 +83,9 @@ export class CreditsExhaustedError extends Error {
       // open on this account, the key is the way out.
       personal
         ? subscriptionsSold()
-          ? "Crédits épuisés. Passez à un abonnement supérieur, utilisez votre propre clé, " +
-            "ou attendez le renouvellement."
-          : "Ce modèle n'est pas disponible sur votre compte pour le moment. Utilisez votre " +
-            "propre clé, ou choisissez un autre modèle."
-        : "Crédits épuisés : le budget de votre organisation est atteint. Utilisez votre " +
-            "propre clé, ou attendez le renouvellement.",
+          ? t.runtime.send.creditsSold
+          : t.runtime.send.creditsUnsold
+        : t.runtime.send.creditsOrg,
     );
     this.name = "CreditsExhaustedError";
   }

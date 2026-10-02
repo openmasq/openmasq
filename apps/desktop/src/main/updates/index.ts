@@ -17,6 +17,7 @@ import {
   UPDATES_URL,
 } from "./config";
 import { requestChannelChange, selfPinAllowed } from "./channel";
+import { mainMessages } from "../i18n";
 import { logUpdate, logUpdateError, updaterLogger, updaterLogPath } from "./log";
 import { reportUpdateFailure } from "./report";
 import { ensureUpdateConfigFile } from "./appUpdateConfig";
@@ -218,11 +219,12 @@ export function setupAutoUpdates(
     const { code, message } = humanizeUpdateError(err);
     if (code === "no_space") {
       const win = getWin();
+      const t = mainMessages().desktopMain.updates;
       void dialog
         .showMessageBox({
           type: "warning",
-          buttons: ["OK"],
-          message: "Mise à jour impossible",
+          buttons: [t.ok],
+          message: t.failedTitle,
           detail: message,
           ...(win ? { window: win } : {}),
         })

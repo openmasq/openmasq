@@ -1,3 +1,5 @@
+import type { Locale, Messages } from "@openmasq/i18n";
+import { mainLocale, mainMessages } from "../i18n";
 import type { WriteConfirmRequest } from "./writeConfirmWindow";
 
 /**
@@ -19,14 +21,16 @@ function escapeHtml(s: string): string {
   return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] as string);
 }
 
-/** A compact, escaped preview of the args so the user sees WHAT the action will do. */
-function argsSummary(args: unknown): string {
+type Copy = Messages["desktopMain"]["writeConfirm"];
+
+/** A compact preview of the args so the user sees WHAT the action will do (escaped by the caller). */
+function argsSummary(args: unknown, t: Copy): string {
   try {
     const s = JSON.stringify(args ?? {}, null, 1);
-    if (!s || s === "{}" || s === "null") return "(aucun paramètre)";
+    if (!s || s === "{}" || s === "null") return t.noParams;
     return s.length > 900 ? s.slice(0, 900) + " …" : s;
   } catch {
-    return "(paramètres non affichables)";
+    return t.paramsUnreadable;
   }
 }
 
@@ -63,23 +67,23 @@ function argsLines(args: unknown): string[] {
 }
 
 /** Branded confirmation page (near-white paper, forest-green ink, one lime CTA, SKY
- *  accent). All interpolated values are HTML-escaped; the page has no capability beyond
- *  navigating to the sentinel URLs. Exported for tests as {@link __buildHtml}. */
-export function buildHtml(req: WriteConfirmRequest): string {
+ *  accent). All interpolated values are HTML-escaped, the catalogue's words included; the
+ *  page has no capability beyond navigating to the sentinel URLs. The words follow main's
+ *  language (`../i18n.ts`); `copy` overrides it for tests. */
+export function buildHtml(req: WriteConfirmRequest, copy?: { locale: Locale; t: Copy }): string {
+  const lang = copy?.locale ?? mainLocale();
+  const c = copy?.t ?? mainMessages().desktopMain.writeConfirm;
+  const e = escapeHtml;
   const disableGate = req.mode === "disable-gate";
   const leaveRenforce = req.mode === "leave-renforce";
   const gateChange = disableGate || leaveRenforce;
   const tool = escapeHtml(req.toolName);
-  const summary = escapeHtml(argsSummary(req.args));
+  const summary = escapeHtml(argsSummary(req.args, c));
   // `disable-gate` asks to turn OFF confirmations for the session; `leave-renforce` asks
   // to leave the Mode renforcé (persisted); the write mode confirms ONE action. All exit
   // ONLY via the sentinel links (main intercepts them).
-  const eyebrow = "Confirmation d'action";
-  const title = leaveRenforce
-    ? "Quitter le mode renforcé&nbsp;?"
-    : disableGate
-      ? "Désactiver la confirmation&nbsp;?"
-      : "Autoriser cette action&nbsp;?";
+  const eyebrow = e(c.eyebrow);
+  const title = e(leaveRenforce ? c.titleLeaveStrict : disableGate ? c.titleDisableGate : c.titleAllow);
   // The HUMAN summary leads; the raw JSON is a collapsible detail (native <details>,
   // no script needed) — the JSON-first layout was unreadable for non-developers.
   const lines = gateChange ? [] : argsLines(req.args);
@@ -87,24 +91,24 @@ export function buildHtml(req: WriteConfirmRequest): string {
     ? `<ul class="acts">${lines.map((l) => `<li>${escapeHtml(l)}</li>`).join("")}</ul>`
     : "";
   const bodyHtml = leaveRenforce
-    ? `<p>En standard&nbsp;: une confirmation par conversation, après une recherche internet — et toujours en cas de signal de fuite ou de pièce jointe. Choix conservé au redémarrage.</p>`
+    ? `<p>${e(c.leaveStrictBody)}</p>`
     : disableGate
-      ? `<p>Les écritures (e-mail, création ou modification sur un compte connecté) s'exécuteront <strong>sans vous demander</strong>, jusqu'au prochain redémarrage. N'activez que si vous supervisez l'agent.</p>`
-      : `<p>L'assistant veut exécuter cette action via&nbsp;<span class="tool">${tool}</span>. Elle peut créer, modifier ou supprimer des données sur votre compte connecté.</p>
+      ? `<p>${e(c.disableGateLead)} <strong>${e(c.disableGateStrong)}</strong>${e(c.disableGateTail)}</p>`
+      : `<p>${e(c.allowLead)}&nbsp;<span class="tool">${tool}</span>${e(c.allowTail)}</p>
     ${linesHtml}
-    <details><summary>Détails techniques</summary><pre>${summary}</pre></details>
-    <p class="scope">« Toujours pour cet outil » n'autorise que <span class="tool">${tool}</span>, jusqu'à la fermeture de l'application.</p>`;
-  const denyLabel = leaveRenforce ? "Rester en renforcé" : disableGate ? "Garder la confirmation" : "Refuser";
-  const allowLabel = leaveRenforce ? "Passer en standard" : disableGate ? "Désactiver" : "Autoriser";
+    <details><summary>${e(c.technicalDetails)}</summary><pre>${summary}</pre></details>
+    <p class="scope">${e(c.scopeLead)} <span class="tool">${tool}</span>${e(c.scopeTail)}</p>`;
+  const denyLabel = e(leaveRenforce ? c.denyLeaveStrict : disableGate ? c.denyDisableGate : c.deny);
+  const allowLabel = e(leaveRenforce ? c.allowLeaveStrict : disableGate ? c.allowDisableGate : c.allow);
   const allowToolBtn = gateChange
     ? ""
-    : `<a class="btn tool-allow" href="${ALLOW_TOOL_URL}">Toujours pour cet outil</a>`;
+    : `<a class="btn tool-allow" href="${ALLOW_TOOL_URL}">${e(c.allowTool)}</a>`;
   // Brand tokens (mirrors the design-system `tokens/colors.css` — this page can't load
   // the app CSS, so the values are pinned here): paper/ink/lime + the SKY highlight
   // (--hl-sky #6FC2FF, soft #DCEEFF, deep #2F6FE0) as this surface's accent hue. The
   // primary CTA stays ink+lime (the brand's one-lime-CTA rule); sky carries the accent
   // stripe, the glyph tile, the tool chip and the per-tool button.
-  return `<!doctype html><html lang="fr"><head><meta charset="utf-8">
+  return `<!doctype html><html lang="${lang}"><head><meta charset="utf-8">
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; img-src data:">
 <style>
   :root { --ink:#12210c; --paper:#fbfbfa; --muted:#5b6b52; --line:#dfe6d8; --lime:#c6f24e; --card:#fff;

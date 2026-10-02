@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
+import { useT } from "../../../i18n";
 import { useRedaction } from "../../../send/redaction";
 import { DRAFT_CONV } from "../../../state/debug/debug";
 import type { Attachment } from "../Composer";
@@ -36,10 +37,12 @@ export function useAttachments(p: ChatViewProps) {
   const [attachWarning, setAttachWarning] = useState<string | null>(null);
   // Per-attachment controllers, so a LONG document redaction can be CANCELLED by removing the chip.
   const attachRedactCtrls = useRef<Map<string, AbortController>>(new Map());
+  const t = useT();
 
   // Fresh per render so it always sees the current settings/engine. `convId` is never
   // undefined: with no conversation yet, the DRAFT, which the first send adopts (`ocrDebug.ts`).
   const redactDeps: RedactAttachmentDeps = {
+    t,
     settings,
     orgForcedCategories: orgProfile?.forcedCategories,
     redactAsync,
