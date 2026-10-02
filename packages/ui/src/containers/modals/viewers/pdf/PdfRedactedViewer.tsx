@@ -1,11 +1,12 @@
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import workerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 import {
-  renderRedactedPdf,
+  loadRedactedPdf,
   pdfReplacements,
   vaultReplacements,
-  attachWordPicker,
   type PdfReplacement,
+  type RedactedPdfDoc,
+  type RenderedPage,
 } from "@openmasq/redact/pdf-redact";
 import { useDisplayReplacements } from "../doc/displayReplacements";
 import {
@@ -14,7 +15,9 @@ import {
   useRedactEngine,
 } from "../../../../send/redaction";
 import { FileSkeleton } from "../FileSkeleton";
-import { buildImageZoneLayer, buildRevealMarks, buildTextHaloLayer, imageSourceNote } from "./pageLayers";
+import { buildRevealMarks, imageSourceNote } from "./pageLayers";
+import { createPageQueue, observePages } from "./lazyPages";
+import { mountPage, sizeShell } from "./mountPage";
 
 import { useT } from "../../../../i18n";
 /**
@@ -85,9 +88,8 @@ export function PdfRedactedViewer({
   // ref for the initial paint and is NOT a dependency of the heavy effect.
   const revealedRef = useRef(revealed);
   revealedRef.current = revealed;
-  const pagesRef = useRef<
-    { pg: import("@openmasq/redact/pdf-redact").RenderedPage; pageEl: HTMLElement }[]
-  >([]);
+  // The pages PAINTED right now (near the viewport), by page number.
+  const pagesRef = useRef(new Map<number, { pg: RenderedPage; pageEl: HTMLElement }>());
   // Prefer explicit replacements; else derive them from the conversation vault
   // (deterministic, matches the wire). Only fall back to a live model call when
   // neither exists (e.g. the Library viewer, with no conversation context).
@@ -106,7 +108,6 @@ export function PdfRedactedViewer({
   // Zero pages rendered (all past the cap, or an empty doc that still resolved):
   // without this flag the ready state shows a BLANK white area, not even a status.
   const [empty, setEmpty] = useState(false);
-  const [truncated, setTruncated] = useState(0);
   const [warn, setWarn] = useState<string | null>(null);
   // What was marked as coming from the IMAGE — drives the legend. Counted from the
   // pages themselves, so the note never explains a code nothing on screen wears.
@@ -129,16 +130,20 @@ export function PdfRedactedViewer({
     if (!root) return;
     const ctrl = new AbortController();
     root.innerHTML = "";
-    pagesRef.current = [];
+    pagesRef.current = new Map();
     setState("loading");
     setEmpty(false);
-    setTruncated(0);
     setWarn(null);
     setImgSrc({ zones: 0, pages: 0 });
+    let doc: RedactedPdfDoc | null = null;
+    let unobserve = () => {};
+    const released = new Map<number, () => void>();
+    // Per page, so a page painted again on return is never counted twice.
+    const tally = new Map<number, { zones: number; imageOnly: boolean }>();
 
     (async () => {
       try {
-        const { pages, modelError, truncated } = await renderRedactedPdf({
+        doc = await loadRedactedPdf({
           bytes,
           redacted,
           replacements: effectiveReplacements,
@@ -149,75 +154,64 @@ export function PdfRedactedViewer({
           getReplacements: (t) => pdfReplacements(t, redact),
           signal: ctrl.signal,
         });
-        if (ctrl.signal.aborted) return;
-        if (modelError) setWarn(describeRedactFailure(modelError, engine));
-        setTruncated(truncated);
-
-        const imgTally = { zones: 0, pages: 0 };
-        let pageIndex = 0;
-        for (const pg of pages) {
-          const pageEl = document.createElement("div");
-          pageEl.className = "pdfv-page";
-          // Make the canvas RESPONSIVE here (the shared painter ships it at fixed
-          // natural px — the extension needs that for its px overlay): the max-width
-          // cap beats the painter's inline width, so a WIDE/landscape page scales
-          // DOWN to fit the panel instead of being clipped, and `height:auto` keeps
-          // the intrinsic ratio. The page's NATURAL CSS width rides a custom
-          // property: the fit rule caps a narrow page at true size (no upscale
-          // blur), and the zoom rule multiplies the FIT width by `--pdf-zoom` (see
-          // styles.css `.pdfv-page`). The box coords below are CSS px in that same
-          // natural space — the painter's own `cssW`/`cssH`, never re-parsed from
-          // the (now overridden) inline styles.
-          pg.canvas.style.maxWidth = "100%";
-          pg.canvas.style.height = "auto";
-          const cssW = pg.cssW || pg.canvas.width || 1;
-          const cssH = pg.cssH || pg.canvas.height || 1;
-          // Runtime-computed per-page width — the sanctioned inline-style case.
-          pageEl.style.setProperty("--page-nat", String(cssW));
-          pageEl.appendChild(pg.canvas);
-          if (pg.words.length) {
-            // Word-processor-style interaction over the canvas: hover pre-highlight,
-            // click = one word, DRAG = a contiguous run of words; the picked run
-            // stays locked until the «Masquer» menu releases it. Shared core
-            // (`attachWordPicker`) — same behaviour as the scanned-image view.
-            attachWordPicker({
-              container: pageEl,
-              canvas: pg.canvas,
-              words: pg.words,
-              space: { w: cssW, h: cssH },
-              ignore: ".pdfv-mark",
-              onPick: (value, x, y, release) => onWordPickRef.current?.(value, x, y, release),
-            });
-          }
-          // Halo first (the lowest context), then zones, then marks.
-          // Legend on the FIRST page only — one per page would be noise.
-          // `wireWords`, never `words`: a word picked from the image (logo, stamp) is read
-          // and outlined, but its text doesn't leave — a halo over it would contradict the outline.
-          if (showTextHalo && pg.wireWords.length) buildTextHaloLayer(pageEl, pg.wireWords, cssW, cssH, pageIndex === 0, t);
-          // Before the marks, so a redaction box always paints OVER a zone outline.
-          const marked = buildImageZoneLayer(pageEl, pg, cssW, cssH);
-          imgTally.zones += marked.zones;
-          imgTally.pages += marked.imageOnly ? 1 : 0;
-          buildMarks(pageEl, pg.boxes, cssW, cssH);
-          pageIndex++;
-          root.appendChild(pageEl);
-          pagesRef.current.push({ pg, pageEl });
+        if (ctrl.signal.aborted) return void doc.destroy();
+        const open = doc;
+        if (open.modelError) setWarn(describeRedactFailure(open.modelError, engine));
+        // EVERY page gets a shell sized to it up-front: the scrollbar is the document's.
+        const shells: HTMLElement[] = [];
+        for (let p = 1; p <= open.total; p++) {
+          const shell = document.createElement("div");
+          shell.className = "pdfv-page pending";
+          shell.dataset.page = String(p);
+          const { cssW, cssH } = await open.pageSize(p);
+          if (ctrl.signal.aborted) return;
+          sizeShell(shell, cssW, cssH);
+          root.appendChild(shell);
+          shells.push(shell);
         }
-        setImgSrc(imgTally);
-        setEmpty(pages.length === 0);
+        const queue = createPageQueue({
+          paint: async (p) => {
+            const pg = await open.renderPage(p, revealedRef.current);
+            if (!pg || ctrl.signal.aborted) return false;
+            const shell = shells[p - 1]!;
+            const m = mountPage(shell, pg, p === 1, {
+              showTextHalo,
+              onWordPick: (value, x, y, release) => onWordPickRef.current?.(value, x, y, release),
+              hasReveal: !!onRevealRef.current,
+              t,
+            });
+            released.set(p, m.release);
+            pagesRef.current.set(p, { pg, pageEl: shell });
+            tally.set(p, { zones: m.zones, imageOnly: m.imageOnly });
+            setImgSrc(sumTally(tally));
+            return true;
+          },
+          release: (p) => {
+            released.get(p)?.();
+            released.delete(p);
+            pagesRef.current.delete(p);
+          },
+        });
+        unobserve = observePages(shells, queue);
+        setEmpty(open.total === 0);
         setState("ready");
       } catch {
         if (!ctrl.signal.aborted) setState("error");
       }
     })();
 
-    return () => ctrl.abort();
+    return () => {
+      ctrl.abort();
+      unobserve();
+      for (const release of released.values()) release();
+      void doc?.destroy();
+    };
   }, [bytes, redact, redacted, effectiveReplacements, ocrPages, wantWords, showTextHalo, engine]);
 
   // Reveal toggle: INCREMENTAL — restore/repaint just the affected patches on the
   // already-rendered canvases and rebuild each page's marks. No reload.
   useEffect(() => {
-    for (const { pg, pageEl } of pagesRef.current) {
+    for (const { pg, pageEl } of pagesRef.current.values()) {
       const boxes = pg.applyReveal(revealed);
       buildMarks(pageEl, boxes, pg.cssW || pg.canvas.width || 1, pg.cssH || pg.canvas.height || 1);
     }
@@ -287,7 +281,16 @@ export function PdfRedactedViewer({
         // Runtime-computed zoom factor — the sanctioned inline-style case.
         style={{ "--pdf-zoom": zoom } as CSSProperties}
       />
-      {truncated > 0 && <div className="pdfv-note">+{truncated} page(s) non affichée(s)</div>}
     </div>
   );
+}
+
+function sumTally(tally: Map<number, { zones: number; imageOnly: boolean }>) {
+  let zones = 0;
+  let pages = 0;
+  for (const v of tally.values()) {
+    zones += v.zones;
+    pages += v.imageOnly ? 1 : 0;
+  }
+  return { zones, pages };
 }

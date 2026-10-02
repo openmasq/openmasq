@@ -92,3 +92,17 @@ export interface RenderRedactedPdfResult {
   truncated: number;
 }
 
+
+/** An open document painted ON DEMAND (`loadRedactedPdf`). */
+export interface RedactedPdfDoc {
+  /** Pages available to paint (the file's count, capped by `maxPages`). */
+  total: number;
+  /** The file's own page count. */
+  pagesInFile: number;
+  modelError?: string;
+  /** Natural CSS size of page `p` (1-based) — sizes a placeholder without painting. */
+  pageSize: (p: number) => Promise<{ cssW: number; cssH: number }>;
+  /** Paint page `p` with `reveal` (default: the open options'). `null` once aborted. */
+  renderPage: (p: number, reveal?: ReadonlySet<string>) => Promise<RenderedPage | null>;
+  destroy: () => Promise<void>;
+}

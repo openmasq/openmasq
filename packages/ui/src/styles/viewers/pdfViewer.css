@@ -23,6 +23,11 @@
   box-shadow: var(--shadow-md);
   overflow: hidden;
 }
+/* A page not painted yet (or released, far from the viewport) keeps its true size, so
+   the scrollbar spans the whole document; `--page-ratio` is set per page. */
+.pdfv-page.pending {
+  aspect-ratio: var(--page-ratio, 210 / 297);
+}
 /* Loupe: the page width becomes FIT × `--pdf-zoom`. Wider than the panel, `.fv-body`
    scrolls horizontally; left-aligned so the left edge stays reachable. */
 .pdfv-pages.zoomed {

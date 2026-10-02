@@ -14,34 +14,24 @@
 // only the canvas painter.
 //
 // VIEWER-ONLY: input bytes are read once, never modified/persisted.
-import { reconstructLayout, type PdfTextItem } from "../documents/serialize/pdfLayout";
-import { layoutValueHits, ocrFallbackBoxes, type PdfReplacement, type RedactBox } from "./pdfMatch";
-import {
-  collectPageWords, ocrPageWords, type Matrix, type PageWord,
-} from "./pageWords";
-import { pageImageSource, NO_IMAGE_SOURCE } from "./imageZones";
-import type { RenderedPage, RenderRedactedPdfOptions, RenderRedactedPdfResult } from "./pdfTypes";
-import {
-  textSegmentPatch, scanBoxPatch, applyRevealToPage, type RevealPatch,
-} from "./revealPatch";
+import { reconstructLayout } from "../documents/serialize/pdfLayout";
+import type { PdfReplacement } from "./pdfMatch";
+import { paintPage, pageItems, PAGE_SCALE } from "./pdfPage";
+import type {
+  RedactedPdfDoc, RenderedPage, RenderRedactedPdfOptions, RenderRedactedPdfResult,
+} from "./pdfTypes";
 
 export { wordAtPoint, cleanWord, type PageWord } from "./pageWords";
 export { attachWordPicker, selectionValue, type WordPickerOptions } from "./wordPicker";
 export { imageSourcedWords, mergeImageZones, type ImageZone } from "./imageZones";
-export type { RenderedPage, RenderRedactedPdfOptions, RenderRedactedPdfResult } from "./pdfTypes";
+export type {
+  RedactedPdfDoc, RenderedPage, RenderRedactedPdfOptions, RenderRedactedPdfResult,
+} from "./pdfTypes";
 
 export * from "./pdfMatch";
 export * from "./pdfDerive";
 
 const DEFAULT_MAX_PAGES = 15;
-/** The pdf.js items of one page, shaped for `reconstructLayout` with the ORIGINAL
- *  indices preserved (non-text/marked-content entries become empty items the
- *  reconstruction skips — `itemIndex` must keep addressing the raw array). */
-function pageItems(raw: any[]): PdfTextItem[] {
-  return raw.map((it) =>
-    "str" in it ? it : { str: "", transform: [1, 0, 0, 1, 0, 0] },
-  );
-}
 
 /** Concatenate every page's text (capped) — the model detects PII across the doc.
  *  Uses the SAME 2D layout reconstruction as the file extractor, so a detected value
@@ -56,14 +46,12 @@ async function fullText(doc: any, pages: number): Promise<string> {
 }
 
 /**
- * Render `bytes` to painted canvases. Consumers append `canvas` to their DOM and
- * build a reveal layer from `boxes` (React on desktop, plain DOM in the overlay).
+ * Open `bytes` for ON-DEMAND painting: the replacements are resolved once for the whole
+ * document (detection over every page up to `maxPages`, uncapped by default), then each
+ * page is painted when the consumer asks. The caller MUST `destroy()` it.
  */
-export async function renderRedactedPdf(
-  o: RenderRedactedPdfOptions,
-): Promise<RenderRedactedPdfResult> {
+export async function loadRedactedPdf(o: RenderRedactedPdfOptions): Promise<RedactedPdfDoc> {
   const redacted = o.redacted ?? true;
-  const maxPages = o.maxPages ?? DEFAULT_MAX_PAGES;
   const aborted = () => o.signal?.aborted;
 
   const pdfjs: any = await import("pdfjs-dist");
@@ -81,160 +69,64 @@ export async function renderRedactedPdf(
     isEvalSupported: false,
     enableXfa: false,
   }).promise;
-  try {
-  const total = doc.numPages;
-  const pageCount = Math.min(total, maxPages);
-  const truncated = total > pageCount ? total - pageCount : 0;
-
-  let reps: PdfReplacement[] = o.replacements ?? [];
-  let modelError: string | undefined;
-  if (redacted && !o.replacements && o.getReplacements) {
-    // Surface the page count before the (slow) whole-document detection so the UI
-    // can show "N pages to redact · Analyzing…" instead of a blank spinner.
-    o.onProgress?.({ phase: "detect", page: 0, total: pageCount });
-    const r = await o.getReplacements(await fullText(doc, pageCount));
-    reps = r.replacements;
-    modelError = r.modelError;
-  }
-  if (aborted()) return { pages: [], truncated, modelError };
-
-  const dpr = Math.min((globalThis.devicePixelRatio as number) || 1, 2);
-  const scale = 1.3;
-  const pages: RenderedPage[] = [];
-
-  for (let p = 1; p <= pageCount; p++) {
-    o.onProgress?.({ phase: "render", page: p, total: pageCount });
-    const page = await doc.getPage(p);
-    if (aborted()) break;
-    const vp = page.getViewport({ scale: scale * dpr });
-    const cssW = vp.width / dpr;
-    const cssH = vp.height / dpr;
-
-    const canvas = document.createElement("canvas");
-    canvas.width = Math.floor(vp.width);
-    canvas.height = Math.floor(vp.height);
-    // The page's NATURAL CSS size. Deliberately FIXED px: the extension overlays
-    // its marks in px over this exact size. A host whose container can be narrower
-    // (the desktop panel) re-styles the canvas responsive ITSELF — its overlay is
-    // %-based — rather than this shared painter deciding for every consumer.
-    canvas.style.width = `${cssW}px`;
-    canvas.style.height = `${cssH}px`;
-    const ctx = canvas.getContext("2d")!;
-    await page.render({ canvasContext: ctx, viewport: vp }).promise;
-    if (aborted()) break;
-
-    const boxes: RedactBox[] = [];
-    const patches: RevealPatch[] = [];
-    const words: PageWord[] = [];
-    let covered: ReadonlySet<string> = new Set<string>();
-    const ocrGeo = o.ocrPages?.[p - 1];
-    // One fetch per page, shared by the word collection, the value correlation and the
-    // image-zone derivation below — the same items, read three times otherwise.
-    let tcCache: any = null;
-    const textContent = async () => (tcCache ??= await page.getTextContent());
-    let textWords: PageWord[] = [];
-    let ocrWords: PageWord[] = [];
-    if (o.collectWords) {
-      // The click-to-redact hit-test layer: the text layer's words, plus (for a
-      // SCANNED page) the OCR words scaled to the canvas.
-      const tcw = await textContent();
-      if (aborted()) break;
-      textWords = collectPageWords(ctx, tcw.items as any[], vp.transform as Matrix, scale, dpr);
-      words.push(...textWords);
-      if (ocrGeo?.words?.length) {
-        ocrWords = ocrPageWords(ocrGeo.words, cssW / ocrGeo.width, cssH / ocrGeo.height);
-        words.push(...ocrWords);
-      }
-    }
-    if (redacted && reps.length) {
-      const tc = await textContent();
-      if (aborted()) break;
-      const items = tc.items as any[];
-      // Correlate on the RECONSTRUCTED page text (the extractor's own serialization),
-      // then map each occurrence back to per-item sub-ranges through `runs` — so a
-      // value split across items, lines or grid padding is still painted.
-      const found = layoutValueHits(reconstructLayout(pageItems(items)), reps);
-      covered = found.covered;
-
-      for (const hit of found.hits) {
-        const revealed = !!o.reveal?.has(hit.rep.real);
-        hit.segments.forEach((seg, si) => {
-          // Sub-positioned by proportional text metrics NORMALISED to the item's
-          // real rendered width; the ORIGINAL pixels under the box are captured
-          // first so a later reveal toggle restores them without a re-render.
-          const { box, patch } = textSegmentPatch(ctx, {
-            item: items[seg.itemIndex],
-            segStart: seg.start,
-            segEnd: seg.end,
-            first: si === 0,
-            vpTransform: vp.transform as Matrix,
-            scale,
-            dpr,
-            rep: hit.rep,
-            revealed,
-            canvasW: canvas.width,
-            canvasH: canvas.height,
-          });
-          boxes.push(box);
-          if (patch) patches.push(patch);
-        });
-      }
-
-      // SCANNED-page fallback: values the text layer left uncovered, correlated on
-      // the page's OCR word geometry (see `ocrFallbackBoxes`). A pure scan enters
-      // here with an EMPTY `covered`; a mixed page only for its OCR-only values.
-      const ocr = ocrGeo;
-      if (ocr?.words?.length && covered.size < reps.length) {
-        const fb = ocrFallbackBoxes(
-          reps,
-          covered,
-          ocr,
-          vp.width / ocr.width,
-          vp.height / ocr.height,
-          o.reveal,
-        );
-        for (const deviceBox of fb.boxes) {
-          const { box, patch } = scanBoxPatch(ctx, deviceBox, dpr, canvas.width, canvas.height);
-          boxes.push(box);
-          if (patch) patches.push(patch);
-        }
-        if (fb.covered.size) covered = new Set([...covered, ...fb.covered]);
-      }
-    }
-    // What the user is LOOKING at that the text layer does not carry. Derived from the
-    // OCR geometry that always accompanies a PDF here (see documents/core.ts: OCR runs
-    // on every PDF, precisely so pixel-baked text is never invisible).
-    const imgSrc = ocrGeo?.words?.length
-      ? pageImageSource({
-          layerText: reconstructLayout(pageItems((await textContent()).items as any[])).text,
-          ocrWords,
-          textWords,
-          wantZones: !!o.collectWords,
-        })
-      : NO_IMAGE_SOURCE;
-    if (aborted()) break;
-    // Identity-based subtraction: `imageWords` are the very objects pushed into `words`.
-    const imgWords = new Set<PageWord>(imgSrc.imageWords);
-    pages.push({
-      canvas,
-      boxes,
-      words,
-      wireWords: imgWords.size ? words.filter((w) => !imgWords.has(w)) : words,
-      imageZones: imgSrc.zones,
-      imageOnly: imgSrc.imageOnly,
-      cssW,
-      cssH,
-      covered,
-      applyReveal: (reveal) => applyRevealToPage(ctx, patches, reveal),
-    });
-  }
-
-  return { pages, modelError, truncated };
-  } finally {
-    // pdf.js retains worker-side font/image caches + a detached copy of the page data.
-    // Destroy on EVERY exit (the abort early-return above, a mid-loop throw), not only
-    // the normal end — a reveal/re-redact toggle aborts + re-runs this render, which
-    // would orphan a document per toggle otherwise (a real leak across a viewing session).
+  // pdf.js retains worker-side font/image caches + a detached copy of the page data:
+  // destroyed on every exit — a failed detection here, the consumer's `destroy()` otherwise.
+  const destroy = async () => {
     await doc.destroy?.();
+  };
+  try {
+    const total: number = Math.min(doc.numPages, o.maxPages ?? Number.POSITIVE_INFINITY);
+    let reps: PdfReplacement[] = o.replacements ?? [];
+    let modelError: string | undefined;
+    if (redacted && !o.replacements && o.getReplacements) {
+      // Surface the page count before the (slow) whole-document detection so the UI
+      // can show "N pages to redact · Analyzing…" instead of a blank spinner.
+      o.onProgress?.({ phase: "detect", page: 0, total });
+      const r = await o.getReplacements(await fullText(doc, total));
+      reps = r.replacements;
+      modelError = r.modelError;
+    }
+    return {
+      total,
+      pagesInFile: doc.numPages,
+      modelError,
+      async pageSize(p) {
+        const vp = (await doc.getPage(p)).getViewport({ scale: PAGE_SCALE });
+        return { cssW: vp.width, cssH: vp.height };
+      },
+      async renderPage(p, reveal = o.reveal) {
+        const page = await doc.getPage(p);
+        if (aborted()) return null;
+        return paintPage(page, p, { o: { ...o, reveal }, redacted, reps, aborted });
+      },
+      destroy,
+    };
+  } catch (e) {
+    await destroy();
+    throw e;
+  }
+}
+
+/**
+ * Render `bytes` to painted canvases. Consumers append `canvas` to their DOM and
+ * build a reveal layer from `boxes` (React on desktop, plain DOM in the overlay).
+ */
+export async function renderRedactedPdf(
+  o: RenderRedactedPdfOptions,
+): Promise<RenderRedactedPdfResult> {
+  const d = await loadRedactedPdf({ ...o, maxPages: o.maxPages ?? DEFAULT_MAX_PAGES });
+  try {
+    const truncated = d.pagesInFile - d.total;
+    const pages: RenderedPage[] = [];
+    if (o.signal?.aborted) return { pages, truncated, modelError: d.modelError };
+    for (let p = 1; p <= d.total; p++) {
+      o.onProgress?.({ phase: "render", page: p, total: d.total });
+      const pg = await d.renderPage(p);
+      if (!pg) break;
+      pages.push(pg);
+    }
+    return { pages, modelError: d.modelError, truncated };
+  } finally {
+    await d.destroy();
   }
 }
