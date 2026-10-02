@@ -53,7 +53,7 @@ export const APPLY_SPACE_FACTOR = 2.2;
 /** Map a raw updater / ShipIt error to a user-safe FR message (+ a stable code) so the
  *  UI never shows a `ditto`/`pkzip` technical dump. */
 export function humanizeUpdateError(err: unknown): { code: string; message: string } {
-  const e = err as { message?: string; code?: string; errno?: number } | undefined;
+  const e = err as { message?: string; code?: string; errno?: number; statusCode?: number } | undefined;
   // The CODE matters as much as the text: macOS localizes its network errors, so
   // `code`/`errno` are read too, and the localized phrasings are matched.
   const raw = [e?.message ?? err ?? "", e?.code ?? ""].filter(Boolean).join(" ");
@@ -85,8 +85,13 @@ export function humanizeUpdateError(err: unknown): { code: string; message: stri
       code: "signature",
       message: "La mise à jour téléchargée n'a pas pu être vérifiée (intégrité). Réessayez.",
     };
-  // A 4xx/5xx from the feed; the STATUS rides in the code (`download-404`).
-  const httpStatus = /(?:status(?: code)?|httperror|response code)\D*(\d{3})/i.exec(raw)?.[1];
+  // A 4xx/5xx from the feed; the STATUS rides in the code (`download-404`). The thrown
+  // `HttpError` carries it as `statusCode`; its text only names it when electron-updater
+  // wraps it ("…: HttpError: 404") — a bare server error reads "500 …".
+  const httpStatus =
+    typeof e?.statusCode === "number"
+      ? String(e.statusCode)
+      : /(?:status(?: code)?|httperror|response code)\D*(\d{3})/i.exec(raw)?.[1];
   if (httpStatus || /cannot download|download failed|unable to download/i.test(raw))
     return {
       code: httpStatus ? `download-${httpStatus}` : "download",
