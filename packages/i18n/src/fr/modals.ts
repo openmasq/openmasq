@@ -214,7 +214,7 @@ export const modals = {
     eyebrow: "MASQUAGE",
     titleLead: "Règles de ",
     titleHighlight: "masquage",
-    sub: "Pour cette conversation : les catégories activées sont retirées de vos messages avant qu'un modèle ne les voie.",
+    sub: "Pour cette conversation : les catégories activées sont remplacées par des valeurs de substitution avant qu'un modèle ne voie vos messages.",
     defaultLevelLink: "Modifier le niveau par défaut dans Réglages → Confidentialité",
     memoryTitle: "Mémoire dans cette conversation",
     memoryDesc: (brand) =>

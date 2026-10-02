@@ -211,7 +211,7 @@ export const modals = {
     eyebrow: "REDACTION",
     titleLead: "Redaction ",
     titleHighlight: "rules",
-    sub: "For this conversation: the categories you turn on are removed from your messages before any model sees them.",
+    sub: "For this conversation: the categories you turn on are replaced with substitutes before any model sees your messages.",
     defaultLevelLink: "Change the default level in Settings → Privacy",
     memoryTitle: "Memory in this conversation",
     memoryDesc: (brand) =>

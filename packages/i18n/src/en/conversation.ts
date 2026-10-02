@@ -142,7 +142,7 @@ export const conversation = {
     plotTip: "Generating a chart (run_python)",
     plot: "Chart",
     redactionFailedTip: "The redaction model failed for this message",
-    redactedTip: "Replaced by placeholders before the model saw it, restored in its reply",
+    redactedTip: "Replaced with a substitute before reaching the model, restored in its reply",
     protectedCount: (n) => `${n} protected`,
     protectedSee: "see",
     autoRoutedTip:

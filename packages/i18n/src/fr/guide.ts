@@ -10,7 +10,7 @@ export const guide = {
   protection: {
     title: (brand) => `Ce que ${brand} fait pour vous`,
     lead:
-      (brand) => `Vous écrivez normalement. Avant que votre message ne parte, ${brand} repère les données sensibles — noms, e-mails, téléphones, adresses, numéros de compte — et les remplace par de fausses valeurs. Le modèle ne travaille que sur ces fausses valeurs ; vous, vous continuez de voir les vraies, dans votre message comme dans la réponse. C'est ce remplacement qu'on appelle le masquage, comme les passages noircis d'un document officiel.`,
+      (brand) => `Vous écrivez normalement. Avant que votre message ne parte, ${brand} repère les données sensibles — noms, e-mails, téléphones, adresses, numéros de compte — et les remplace par de fausses valeurs. Le modèle ne travaille que sur ces fausses valeurs ; vous, vous continuez de voir les vraies, dans votre message comme dans la réponse. C'est ce remplacement qu'on appelle le masquage : contrairement à un passage noirci, le modèle reçoit un texte complet et cohérent.`,
     points: [
       () => "Le repérage s'exécute sur votre machine, avant tout envoi — rien ne part pour être analysé.",
       () => "Sous chaque message envoyé, une petite mention indique combien d'éléments ont été protégés.",

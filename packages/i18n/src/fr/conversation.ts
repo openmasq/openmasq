@@ -146,7 +146,7 @@ export const conversation = {
     plot: "Graphique",
     redactionFailedTip: "Le modèle de masquage a échoué pour ce message",
     redactedTip:
-      "Remplacé par des marqueurs avant que le modèle ne le voie, restauré dans sa réponse",
+      "Remplacé par une valeur de substitution avant d'atteindre le modèle, restauré dans sa réponse",
     protectedCount: (n) => `${n} protégé${n === 1 ? "" : "s"}`,
     protectedSee: "voir",
     autoRoutedTip:

@@ -40,7 +40,7 @@ export const byo = {
       a: "Nommez-la « ",
       b: " », puis sous ",
       c: "« Types de comptes pris en charge »",
-      d: " choisissez « Comptes dans un annuaire organisationnel quelconque et comptes Microsoft personnels » (pour les comptes pro comme Outlook.com).",
+      d: " choisissez « Comptes dans un annuaire organisationnel quelconque et comptes Microsoft personnels » (comptes professionnels et comptes personnels comme Outlook.com).",
     },
     s3: {
       a: "Sous ",
