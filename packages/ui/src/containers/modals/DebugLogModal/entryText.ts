@@ -18,7 +18,7 @@ export const time = (ts: number) =>
 /** redacted token (what left the machine) ↔ original, deduped — the mapping that
  *  makes a redaction entry debuggable at a glance. Derived from a wire entry's
  *  vault; a tool entry carries its pairs directly (`e.pairs`). */
-export function pairsFrom(
+function pairsFrom(
   text: string,
   vault: Record<string, string>,
   kinds?: Record<string, string>,

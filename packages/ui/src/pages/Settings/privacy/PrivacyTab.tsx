@@ -5,7 +5,6 @@ import { ChevDownIcon, ShieldIcon, Switch } from "../../../components/brand";
 import { captureEvent } from "../../../analytics";
 import { RedactionRulesContent } from "../../../containers/modals/redaction/RedactionRulesContent";
 import type { Conversation, RedactCategoryKey, Settings } from "../../../types";
-import { REDACT_CATEGORIES } from "../../../privacy/redactCategories";
 import { PrivacyReport } from "./PrivacyReport";
 import { PrivacyLevelPicker } from "../../../components/PrivacyLevelPicker";
 import { ConnectorLevelsSection } from "./ConnectorLevelsSection";
@@ -177,5 +176,3 @@ export function PrivacyTab({
   );
 }
 
-/** Re-exported so the rules count stays one number for whoever imports it. */
-export const RULES_TOTAL = REDACT_CATEGORIES.length;

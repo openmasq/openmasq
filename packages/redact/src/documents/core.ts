@@ -18,13 +18,13 @@ import {
 } from "./formats";
 
 // Split-out pieces re-exported so every existing import path keeps resolving.
-export { SUPPORTED_EXTENSIONS, MIME_EXT, baseName, extOf } from "./formats";
+export { SUPPORTED_EXTENSIONS, baseName } from "./formats";
 export { OCR_LANGS, OCR_TRAINEDDATA_SHA256 } from "./ocrPins";
 export { redactExtracted, hybridLayerText, type RedactedDocument, type LayerGeometry } from "./layers/reconcile";
 export { spatialFieldLines } from "./layers/spatialFields";
 // Send-cut → grid-row mapping (tabular.ts) — re-exported so the UI can't grow a drifting copy.
 export { delimitedGrid, annotatedCutRow } from "./serialize/tabular";
-export type { TextLayerPage, OcrLayerPage, GlyphBox } from "./layers/geometry";
+export type { TextLayerPage, OcrLayerPage } from "./layers/geometry";
 
 export interface ExtractedFile {
   name: string;

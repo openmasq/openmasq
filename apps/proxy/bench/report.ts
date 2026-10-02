@@ -18,7 +18,7 @@ export interface ConfigResult {
   results: CaseResult[];
 }
 
-export const OUT_DIR = join(
+const OUT_DIR = join(
   import.meta.dirname,
   "..",
   "..",
@@ -30,7 +30,7 @@ export const OUT_DIR = join(
 const pct = (n: number, d: number) => (d ? Math.round((n / d) * 100) : 0);
 const score = (r: ConfigResult) => r.results.filter((c) => c.ok).length;
 
-export function renderMarkdown(runs: ConfigResult[], cases: BenchCase[], model: string): string {
+function renderMarkdown(runs: ConfigResult[], cases: BenchCase[], model: string): string {
   const base = runs.find((r) => r.config.id === "clear");
   const baseScore = base ? score(base) : 0;
   const lines: string[] = [

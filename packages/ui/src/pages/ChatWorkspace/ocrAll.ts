@@ -1,8 +1,6 @@
 import type { ExtractedFile, FilesHost, OcrProgress } from "../../host";
 import type { Attachment } from "./Composer";
-import { ocrShortfall } from "./ocrShortfall";
 
-export { ocrShortfall };
 
 /**
  * « Lire tout » — re-extract an attachment whose OCR stopped at the cap,

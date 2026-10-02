@@ -1,16 +1,5 @@
 import type { Conversation, VaultTerm } from "../types";
-import { REDACT_TYPES, type RedactType } from "@openmasq/redact";
-
-/**
- * Pure logic for the COFFRE — the user's dictionary of values ALWAYS redacted
- * (before every send, in every conversation, whatever the model). React-free, so
- * it's unit-testable and importable anywhere. The persistence + send wiring live
- * in `store.ts`; the page renders `coffreOccurrences`.
- */
-
-/** The data-type vocabulary offered by the Coffre (same tokens the redaction engine
- *  emits, so a term gets a same-kind fake + the right highlight hue). */
-export const VAULT_TERM_TYPES: RedactType[] = REDACT_TYPES;
+import { REDACT_TYPES, } from "@openmasq/redact";
 
 /** FR label for a token (falls back to the raw token). */
 export function vaultTermTypeLabel(token: string): string {

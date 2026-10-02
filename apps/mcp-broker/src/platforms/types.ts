@@ -1,7 +1,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 /** Helpers handed to a platform's tools (already authenticated with the upstream). */
-export interface ToolCtx {
+interface ToolCtx {
   /** The upstream provider access token (Google/Slack/GitHub). Never returned to the client. */
   accessToken: string;
   /** Authenticated JSON fetch against the provider; throws a normalised error. */
@@ -16,7 +16,7 @@ export interface UpstreamTokenSet {
 }
 
 /** Upstream OAuth endpoints for a real provider (credentials from env). */
-export interface OAuthUpstream {
+interface OAuthUpstream {
   authorizeUrl: string;
   tokenUrl: string;
   scopes: string[];

@@ -8,7 +8,7 @@
  * wrongly costs the user a model switch that changes nothing.
  */
 
-import type { ToolErrorReason } from "../analytics";
+import type { ToolErrorFamily, ToolErrorReason } from "../analytics";
 
 /**
  * The `required` string props of a tool's JSON-Schema that are MISSING or an empty
@@ -106,7 +106,7 @@ export function classifyToolError(text: string): ToolErrorReason {
  * and the 404 (we fix the code). Same bilingual rule as it, same bounded output —
  * the family goes into telemetry, the text never does. `other` = nothing provable.
  */
-export function classifyErrorFamily(text: string): import("../analytics").ToolErrorFamily {
+export function classifyErrorFamily(text: string): ToolErrorFamily {
   const t = text.toLowerCase();
   if (/unauthor|forbidden|permission|invalid[_ ]?(api[_ ]?key|token)|api key|credential|expired|\b401\b|\b403\b|acc[eè]s refus|non autoris|interdit|expir[ée]|authentif/.test(t))
     return "auth";

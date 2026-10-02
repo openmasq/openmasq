@@ -23,7 +23,7 @@ import { DEFAULT_MODEL_ID, findModelAny } from "./models";
  * Seeding a real id here (Laguna) once made « choose Laguna » indistinguishable from
  * « never chose », so the picker showed the CLI. Pure — `defaultModel.test.ts`.
  */
-export const ACCESS_MODEL_IDS: readonly string[] = ["claude-cli", "codex-cli", "antigravity-cli"];
+const ACCESS_MODEL_IDS: readonly string[] = ["claude-cli", "codex-cli", "antigravity-cli"];
 
 /** The store's id → reason map is all this needs: membership. */
 export interface UnavailableView {
@@ -45,7 +45,7 @@ export function readyAccessModelIds(
  *  equal to `DEFAULT_MODEL_ID` is a real, explicit pick of that model (the picker writes
  *  it like any other), and confusing the two made « choose Laguna » resolve to the access
  *  path's CLI. « No choice » is the empty seed alone. */
-export function isFactoryDefault(id: string | undefined): boolean {
+function isFactoryDefault(id: string | undefined): boolean {
   return !id;
 }
 

@@ -1,14 +1,3 @@
-// What each agent client needs so that OUR endpoint is the ONLY MCP it speaks to, and where
-// it declares the servers we take over. Without the first half the feature is theatre: an
-// agent that keeps its own MCP connections reaches the service directly, unmasked.
-//
-// Nothing here EDITS a user's configuration: exclusivity is asked for on the command line
-// (or in a file of ours the client is pointed at for one run), so quitting restores the
-// client exactly. One file per client, because the differences ARE the subject. A client
-// that offers no such lever is deliberately absent — `start.ts` then says out loud that its
-// tool calls do not pass through the mask. A variable that relocates the client's HOME is
-// never the answer: it moves the credentials along with the settings.
-import { homedir } from "node:os";
 import { basename } from "node:path";
 import { CLAUDE } from "./claude.js";
 import { CODEX } from "./codex.js";
@@ -20,9 +9,6 @@ import type { AgentClient } from "./types.js";
 
 export type {
   AgentClient,
-  Declaration,
-  Exclusivity,
-  ExclusiveCtx,
   OwnServer,
 } from "./types.js";
 export { parseCodexList } from "./codex.js";
@@ -65,4 +51,3 @@ export function pick(doc: unknown, at: string[]): unknown {
   return node;
 }
 
-export const defaultHome = homedir;

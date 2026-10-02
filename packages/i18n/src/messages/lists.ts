@@ -9,7 +9,7 @@
  */
 
 /** A screen's empty state: what it is, then the gesture that fills it. */
-export interface EmptyStateCopy {
+interface EmptyStateCopy {
   title: string;
   body: string;
   points: readonly string[];
@@ -19,7 +19,7 @@ export interface EmptyStateCopy {
 }
 
 /** The « your filter returns nothing » state — the same everywhere, with its way out. */
-export interface NoMatchCopy {
+interface NoMatchCopy {
   search: string;
   category: string;
   title: string;

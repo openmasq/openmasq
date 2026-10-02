@@ -7,7 +7,6 @@ export {
   RedactionUnavailableError,
   ModelBlockedByOrgError,
   CreditsExhaustedError,
-  RateLimitError,
 } from "./classes";
 export {
   isRateLimitError,

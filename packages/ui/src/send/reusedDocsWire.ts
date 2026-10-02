@@ -14,7 +14,7 @@ const TONE_CATEGORY: Record<string, string> = {
 };
 
 /** A redacted span the pre-send preview / audit reads (a `RedactionMatch`-shaped row). */
-export interface WireMatch {
+interface WireMatch {
   type: string;
   category: string;
   value: string;

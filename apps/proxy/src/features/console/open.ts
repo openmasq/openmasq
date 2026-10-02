@@ -11,7 +11,7 @@ import { findRunning } from "../../lib/attach.js";
 import { openInBrowser } from "../../lib/openUrl.js";
 import { consoleLinkPath, readConsoleLink, withdrawConsoleLink } from "./link.js";
 
-export const CONSOLE_USAGE = `openmasq-proxy console [--url]
+const CONSOLE_USAGE = `openmasq-proxy console [--url]
 
   opens the live view of the running proxy in the system browser
   --url                  print its address instead (for a script, or a keybinding that opens

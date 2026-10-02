@@ -43,7 +43,7 @@ export const PERSON_PAIR_MIN_SIM = 0.95;
 
 /** The semantic edges that COUNT — one rule for the union AND the drawn dashed edges,
  *  so the picture never shows a link the clustering ignored (or vice-versa). */
-export function strongSemEdges(
+function strongSemEdges(
   cards: MemoryCard[],
   semEdges: SemanticEdge[],
   minSim = CLUSTER_MIN_SIM,

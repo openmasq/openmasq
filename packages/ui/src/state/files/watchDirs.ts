@@ -60,7 +60,7 @@ export function watchDir(fs: LocalFsHost, dir: string, onChange: () => void): ()
 }
 
 /** Test-only: forget every subscriber (the registry is module state). */
-export function _resetWatchDirs(): void {
+function _resetWatchDirs(): void {
   subs.clear();
   unsubscribe?.();
   unsubscribe = null;

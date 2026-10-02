@@ -1,5 +1,5 @@
 /** Workspace layout — recursive split tree for the tiling chat workspace. */
-export type { LayoutNode, LeafPane, PaneId, SplitNode, WorkspaceLayout } from "./types";
+export type { LayoutNode, LeafPane, SplitNode, WorkspaceLayout } from "./types";
 export {
   activeConvId,
   allOpenConvIds,
@@ -23,14 +23,8 @@ export {
 } from "./ops";
 export { newPaneId } from "./paneId";
 export { deserializeLayout, serializeLayout } from "./persist";
-export { hasBrowserTab, reconcileBrowserTabs } from "./browserTabs";
 export {
-  artifactRef,
-  browserRef, fileRef,
   chatRef,
   isChatRef,
-  migrateTabId,
-  tabKind,
   tabRefId,
-  type TabKind,
 } from "./tabRef";

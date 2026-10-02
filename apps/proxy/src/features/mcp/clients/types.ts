@@ -1,7 +1,7 @@
 // The shape every agent client is described in.
 
 /** Where a client declares its own MCP servers: a file, and the path to the map inside it. */
-export interface Declaration {
+interface Declaration {
   path: string;
   /** Keys to walk down to the `mcpServers` map (`["projects", cwd, "mcpServers"]`). */
   at: string[];
@@ -21,7 +21,7 @@ export interface OwnServer {
 }
 
 /** What this run can do about the client's own servers. */
-export type Exclusivity =
+type Exclusivity =
   | {
       /** Flags, placed BEFORE the user's own arguments (`lib/wrap.ts` says why). */
       args: string[];
@@ -40,7 +40,7 @@ export type Exclusivity =
    *  exclusivity, and `start.ts` says what that costs. */
   | { blocked: string };
 
-export interface ExclusiveCtx {
+interface ExclusiveCtx {
   /** Our one-server config file, written for the run (Claude Desktop shape). */
   configPath: string;
   /** A private directory for this run: a client needing a file of its OWN shape puts it

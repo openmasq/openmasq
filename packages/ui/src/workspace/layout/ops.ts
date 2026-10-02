@@ -169,7 +169,6 @@ export function pruneLayout(layout: WorkspaceLayout, existing: Set<string>): Wor
 }
 
 // Re-export the read helpers callers need alongside the ops.
-export { activeConvId, allOpenConvIds, emptyLayout, findLeaf, leaves, paneOfTab } from "./tree";
 
 /** Strip every `file:` ref from a restored layout (their display meta is session-only). */
 export function pruneFileRefs(layout: WorkspaceLayout): WorkspaceLayout {

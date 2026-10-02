@@ -309,10 +309,6 @@ importers:
         version: 5.9.3
 
   packages/analytics:
-    dependencies:
-      '@openmasq/branding':
-        specifier: workspace:*
-        version: link:../branding
     devDependencies:
       tsup:
         specifier: ^8.3.0
@@ -608,6 +604,9 @@ importers:
       rxjs:
         specifier: ^7.8.2
         version: 7.8.2
+      simple-icons:
+        specifier: ^16.24.1
+        version: 16.24.1
       xlsx:
         specifier: workspace:*
         version: link:../../vendor/xlsx

@@ -15,7 +15,7 @@ import {
  */
 
 export type { ExtractedFile };
-export { extractText, extractBytes };
+export { extractBytes };
 
 const MIME: Record<string, string> = {
   csv: "text/csv",

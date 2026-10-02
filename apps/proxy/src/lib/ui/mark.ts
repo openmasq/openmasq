@@ -23,7 +23,7 @@ export interface Lockup {
 }
 
 /** The three rows of the mark, each filled edge to edge in the brand pair. */
-export function markRows(tty: Tty): string[] {
+function markRows(tty: Tty): string[] {
   const { brand, inkOnBrand } = tty.theme;
   const row = (glyphs: string) => tty.fill(brand, inkOnBrand, MARK_W, () => glyphs);
   return [row(""), row(" ███████ "), row("")];

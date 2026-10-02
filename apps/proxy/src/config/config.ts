@@ -8,19 +8,16 @@
 // (`proxy.json`, `--secrets-file`), both injected, so the tests build a config by hand.
 import { readFileSync } from "node:fs";
 import { basename } from "node:path";
-import type { RedactionLevel } from "@openmasq/catalog";
 import { type ConfigFile, readConfigFile, type Settings } from "./file.js";
 import { byFlag, byName, fromString, OPTIONS, type Source } from "./options.js";
 import { DEFAULTS, type ProxyConfig } from "./schema.js";
 import { USAGE } from "./usage.js";
 
 export { USAGE };
-export type { RedactionLevel, Source };
-export { DEFAULTS, LEVELS, type ProxyConfig, WRITE_POLICIES, type WritePolicy } from "./schema.js";
-export { parseAlways } from "./options.js";
+export { DEFAULTS, LEVELS, type ProxyConfig, type WritePolicy } from "./schema.js";
 
 /** One secret per line; blank lines and `#` comments ignored. The file is never logged. */
-export function readSecretsFile(
+function readSecretsFile(
   path: string,
   read: (p: string) => string = (p) => readFileSync(p, "utf8"),
 ): string[] {

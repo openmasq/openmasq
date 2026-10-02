@@ -18,8 +18,8 @@ export const PDF_DOC_URL = `${PDF_SCHEME}://doc/index.html`;
 /** Caps on the renderer-supplied payload (a compromised renderer must not force a huge
  *  allocation). A document is a few tens of kB. */
 export const MAX_DOC_HTML_BYTES = 1_500_000;
-export const MAX_DOC_CSS_BYTES = 200_000;
-export const MAX_DOC_TITLE_CHARS = 300;
+const MAX_DOC_CSS_BYTES = 200_000;
+const MAX_DOC_TITLE_CHARS = 300;
 /** Hard budget for load + print; on timeout the window is destroyed, no partial PDF. */
 export const PDF_RENDER_TIMEOUT_MS = 20_000;
 

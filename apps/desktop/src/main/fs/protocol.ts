@@ -56,7 +56,7 @@ export interface FsReq {
   args: Record<string, unknown>;
 }
 
-export type FsRes =
+type FsRes =
   | { id: number; ok: true; data: unknown }
   | { id: number; ok: false; error: string };
 

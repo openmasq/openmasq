@@ -16,7 +16,7 @@ export const CONV_KEY = "openmasq.conversations";
 export const SETTINGS_KEY = "openmasq.settings";
 // The last-open conversation, so a reload returns to it instead of jumping to the
 // first conversation in the list.
-export const ACTIVE_KEY = "openmasq.activeId";
+const ACTIVE_KEY = "openmasq.activeId";
 
 // Conversation storage (localStorage AND the local DB) is SCOPED to the signed-in
 // account — a shared machine must NEVER surface one account's chats to another.

@@ -19,7 +19,7 @@ import type { DetectLocal } from "./ner.js";
 
 export type { Vault };
 
-export interface MaskOutcome {
+interface MaskOutcome {
   text: string;
   matches: RedactionMatch[];
 }

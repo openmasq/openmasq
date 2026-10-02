@@ -24,7 +24,7 @@ export interface ConfirmerOptions {
 
 /** The arguments as the real server will get them, on one bounded line. Never written to a
  *  file, never in `--json`: this is the screen of the person answering, and nothing else. */
-export function argsPreview(args: unknown, max = 220): string {
+function argsPreview(args: unknown, max = 220): string {
   let text: string;
   try {
     text = JSON.stringify(args) ?? String(args);

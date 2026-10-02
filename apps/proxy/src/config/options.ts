@@ -47,7 +47,7 @@ export function parseAlways(v: string): { value: string; category: string }[] {
   });
 }
 
-export const splitList = (v: string): string[] =>
+const splitList = (v: string): string[] =>
   v
     .split(",")
     .map((s) => s.trim())

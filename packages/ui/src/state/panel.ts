@@ -15,7 +15,7 @@ import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 /** Structural copy of `containers/providers/artifact` `Artifact` — the state layer
  *  must not import from containers (tier rule); the shapes are kept identical. */
-export interface PanelArtifact {
+interface PanelArtifact {
   id: string;
   kind: "csv" | "code";
   lang: string;

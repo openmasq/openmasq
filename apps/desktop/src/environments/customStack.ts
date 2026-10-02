@@ -23,7 +23,7 @@ export interface CustomStack {
   supabaseAnonKey: string;
 }
 
-export type CustomStackRefusal =
+type CustomStackRefusal =
   | "not_object"
   | "backend_required"
   | "not_absolute"

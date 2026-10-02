@@ -9,12 +9,12 @@
 // Detection input square. Fixed at 1024 (the static-shape exported det model). A different
 // size would need the dynamic-axes model — out of scope for the desktop integration.
 export const DET_SIZE = 1024;
-export const DET_MEAN = [0.798, 0.785, 0.772];
-export const DET_STD = [0.264, 0.2749, 0.287];
+const DET_MEAN = [0.798, 0.785, 0.772];
+const DET_STD = [0.264, 0.2749, 0.287];
 export const RECO_H = 32;
 export const RECO_W = 128;
-export const RECO_MEAN = [0.694, 0.695, 0.693];
-export const RECO_STD = [0.299, 0.296, 0.301];
+const RECO_MEAN = [0.694, 0.695, 0.693];
+const RECO_STD = [0.299, 0.296, 0.301];
 
 export interface DetPrep {
   data: Float32Array; // NCHW 1×3×1024×1024

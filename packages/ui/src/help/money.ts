@@ -36,7 +36,7 @@ export const RETIRED_MONEY_WORDS = ["forfait", "formule", "offre supérieure"] a
  * (« formule gratuite »). A verb never does either. The lookahead then drops the handful
  * of noun senses that DO take a determiner and still mean nothing about money.
  */
-export const RETIRED_MONEY_PATTERNS: Record<string, RegExp> = {
+const RETIRED_MONEY_PATTERNS: Record<string, RegExp> = {
   formule:
     // `d'appel` joins `de politesse`: they are the TWO terms of the letter, and they live
     // in the same sentence of the system prompt (« une formule d'appel, … une formule de

@@ -12,7 +12,7 @@ import { isAbsolute, resolve } from "node:path";
  * env values are encrypted at rest by `persist.ts` (safeStorage). Connecting runs
  * third-party code with the user's privileges — hence the curated allowlist.
  */
-export interface StdioEnvField {
+interface StdioEnvField {
   key: string;
   label: string;
   secret?: boolean;
@@ -26,7 +26,7 @@ export interface StdioEnvField {
  * picks it via a native directory dialog and main re-validates it (absolute,
  * exists, is a directory) before spawning — never a free-text command/arg.
  */
-export interface StdioParamField {
+interface StdioParamField {
   key: string;
   label: string;
   kind: "directory";

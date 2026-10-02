@@ -11,10 +11,10 @@ import type { OcrLayerPage } from "./geometry";
 
 /** Build the hybrid only where it can HELP: the page's two readings must genuinely
  *  DISAGREE (below, the text layer's order is fine and the hybrid adds nothing)… */
-export const HYBRID_MIN_DIVERGENCE = 0.35;
+const HYBRID_MIN_DIVERGENCE = 0.35;
 /** …and enough OCR words must sit over real glyphs (below, the page is image-heavy and
  *  the plain OCR second layer already covers it). */
-export const HYBRID_MIN_COVERAGE = 0.3;
+const HYBRID_MIN_COVERAGE = 0.3;
 
 /**
  * The HYBRID reading of a document: per page, every OCR word replaced by the EXACT

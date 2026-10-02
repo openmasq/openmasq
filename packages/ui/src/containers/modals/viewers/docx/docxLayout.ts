@@ -16,7 +16,7 @@ export type { RunStyle };
 /** Consecutive list paragraphs collapsed into one list block. Word has no list
  *  element — it marks each paragraph with `<w:numPr>` and leaves the grouping to the
  *  renderer. Emitting one `<ul>` per item would render a gap between every bullet. */
-export interface DocxList {
+interface DocxList {
   kind: "list";
   ordered: boolean;
   items: DocxPara[];

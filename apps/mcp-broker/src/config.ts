@@ -38,8 +38,6 @@ export const config = {
   },
 } as const;
 
-export type ProviderId = keyof typeof config.providers;
-
 /** Absolute broker URL for a path (e.g. "/oauth/token"). */
 export function brokerUrl(path: string): string {
   return `${config.publicUrl}${path.startsWith("/") ? path : `/${path}`}`;

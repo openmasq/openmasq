@@ -28,7 +28,7 @@ export type JsonObject = { [key: string]: JsonValue };
 /** MCP behaviour hints a server may declare on a tool (all optional; absent when
  *  the server doesn't set them). The authoritative, drift-proof read/write signal —
  *  `readOnlyHint:false` (or `destructiveHint:true`) means the tool MUTATES. */
-export interface McpToolAnnotations {
+interface McpToolAnnotations {
   title?: string;
   readOnlyHint?: boolean;
   destructiveHint?: boolean;

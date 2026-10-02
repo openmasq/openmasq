@@ -72,7 +72,7 @@ export function initConfig(path: string, deps: Say & Partial<Files>): number {
 /** The editors tried when the user named none. A desktop editor gets `--wait`, so the
  *  command returns when the tab is CLOSED — when the file is checked. On macOS a desktop
  *  editor is often installed WITHOUT its shell command, so its bundle's own CLI is tried too. */
-export const EDITORS: readonly { cmd: string; args: string[]; mac?: string }[] = [
+const EDITORS: readonly { cmd: string; args: string[]; mac?: string }[] = [
   {
     cmd: "cursor",
     args: ["--wait"],

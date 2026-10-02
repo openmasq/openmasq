@@ -5,7 +5,7 @@ import { PRIVACY_KINDS } from "../../../privacy/redactCategories";
 
 /** One by-type row: a PRIVACY_KINDS entry (key/colour/Icon) + its count — the label is
  *  `privacyKindLabel(row.key, t)`. */
-export type PrivacyRow = (typeof PRIVACY_KINDS)[number] & { count: number };
+type PrivacyRow = (typeof PRIVACY_KINDS)[number] & { count: number };
 
 export interface PrivacyBreakdown {
   /** Categories with a non-zero count, richest first. */

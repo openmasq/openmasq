@@ -45,12 +45,12 @@ export const DOC_MIN_FS = 8;
 export const DOC_MAX_COLS = 150;
 /** Monospace advance width as a fraction of the em (Space Mono ≈ 0.6; rounded UP so the
  *  fit errs toward a slightly smaller font that's guaranteed not to overflow). */
-export const DOC_CHAR_W = 0.62;
+const DOC_CHAR_W = 0.62;
 /** Page-like width bounds (px) so a sheet reads as a PAGE, not a banner or a sliver. */
 export const DOC_PAGE_MIN_W = 460;
 export const DOC_PAGE_MAX_W = 900;
 /** Total horizontal padding of the sheet (both margins) — keep in sync with `.fv-page`. */
-export const DOC_PAGE_PAD_X = 96;
+const DOC_PAGE_PAD_X = 96;
 
 /**
  * The column count to size a page to: the document's BODY width. Normally the true widest

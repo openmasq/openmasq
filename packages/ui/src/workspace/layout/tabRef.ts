@@ -15,7 +15,6 @@ const KINDS: readonly TabKind[] = ["chat", "browser", "artifact", "file"];
 export const chatRef = (convId: string): string => `chat:${convId}`;
 export const browserRef = (browserTabId: string): string => `browser:${browserTabId}`;
 export const artifactRef = (artifactId: string): string => `artifact:${artifactId}`;
-export const fileRef = (fileId: string): string => `file:${fileId}`;
 
 /** The kind of a tab ref. A bare/unknown-prefix id is legacy CHAT (back-compat). */
 export function tabKind(ref: string): TabKind {

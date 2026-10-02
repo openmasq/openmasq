@@ -30,7 +30,7 @@ function shouldEncrypt(): boolean {
  * not "insecure". Callers surface a VISIBLE warning and may HARD fail-closed
  * ({@link dbEncryptionKey}).
  */
-export function dbAtRestInsecure(): boolean {
+function dbAtRestInsecure(): boolean {
   return app.isPackaged && !encryptionAvailable();
 }
 

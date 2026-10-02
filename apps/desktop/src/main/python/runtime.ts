@@ -48,11 +48,11 @@ const devRuntimeDir = (): string => join(app.getPath("userData"), "python");
 
 /** Resolve the active runtime root: the bundled one if present, else the dev download. */
 let resolvedDir: string | undefined;
-export const runtimeDir = (): string => resolvedDir ?? devRuntimeDir();
+const runtimeDir = (): string => resolvedDir ?? devRuntimeDir();
 
 /** The base CPython interpreter for a runtime root (no venv — wheels live in its own
  *  `site-packages`, which is on `sys.path` by default, so nothing else is needed). */
-export const interpreterFor = (dir = runtimeDir()): string =>
+const interpreterFor = (dir = runtimeDir()): string =>
   isWin ? join(dir, "python", "python.exe") : join(dir, "python", "bin", "python3");
 
 /** Directory holding the brand font(s) matplotlib registers. Inside the runtime root

@@ -15,4 +15,3 @@ export * from "./primitives";
 export * from "./entities";
 export * from "./paths";
 export * from "./dispatch";
-export { fakeIp, ipPrefixPairs } from "./ip";

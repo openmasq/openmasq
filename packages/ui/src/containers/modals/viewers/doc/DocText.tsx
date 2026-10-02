@@ -45,7 +45,7 @@ export function buildDocChunks(opts: {
  * (`\f`). A marked chunk (a reveal value) never spans a page break; a plain chunk is cut
  * at each `\f`. So a multi-page document renders one sheet per page. Pure.
  */
-export function paginateChunks(chunks: DocChunk[]): DocChunk[][] {
+function paginateChunks(chunks: DocChunk[]): DocChunk[][] {
   const pages: DocChunk[][] = [[]];
   for (const c of chunks) {
     if (c.mark || !c.text.includes(PAGE_BREAK)) {

@@ -20,4 +20,4 @@ export {
 } from "./tools";
 export { analyzeNavExfil, analyzeArgExfil } from "./exfil";
 export { navCarriesRedactedData, navCarriesOfferableData } from "./navData";
-export type { NavExfilFlag, NavExfilResult } from "./exfil";
+export type { NavExfilFlag } from "./exfil";

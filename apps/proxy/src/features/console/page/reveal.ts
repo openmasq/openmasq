@@ -5,7 +5,7 @@
 // does — a file is the one copy that outlives the tab.
 
 /** An item as the bus sends it: the substitute always, the original only under reveal. */
-export interface WireItem {
+interface WireItem {
   /** The substitute — what actually left the machine. Always present. */
   tok?: string;
   /** The original. Absent whenever the run was started with `--no-console-reveal`. */

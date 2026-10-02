@@ -45,7 +45,7 @@ function orgTransport(): ReturnType<typeof orgHttpTransport> | null {
 }
 
 let cached: OrgScopeSync | null | undefined;
-export function orgSync(): OrgScopeSync | null {
+function orgSync(): OrgScopeSync | null {
   if (cached !== undefined) return cached;
   const t = orgTransport();
   cached = t

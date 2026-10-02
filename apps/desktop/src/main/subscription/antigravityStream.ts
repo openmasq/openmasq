@@ -57,7 +57,7 @@ export const ANTIGRAVITY_EMPTY_TURN =
   "Reformulez sans lui demander d'agir sur votre poste, ou choisissez un autre modèle.";
 
 /** A failed turn, made readable. Never `[object Object]`, never silence. */
-export function antigravityErrorMessage(result: Record<string, unknown>): string {
+function antigravityErrorMessage(result: Record<string, unknown>): string {
   const err = result["error"];
   const raw = isRecord(err) ? err["message"] : err;
   if (typeof raw === "string" && raw) return raw;

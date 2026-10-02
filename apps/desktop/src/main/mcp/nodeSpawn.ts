@@ -20,7 +20,7 @@ function bareName(pkg: string): string {
  *  Swaps the app.asar (virtual) path for the real app.asar.unpacked one so the
  *  path is spawnable. A trailing `@version` in `pkg` is ignored for resolution
  *  (the installed copy is pinned in package.json). Throws if not resolvable. */
-export function resolveNodeBin(pkg: string): string {
+function resolveNodeBin(pkg: string): string {
   const pkgJsonPath = require.resolve(`${bareName(pkg)}/package.json`);
   const json = require(pkgJsonPath) as { bin?: string | Record<string, string>; main?: string };
   const rel =

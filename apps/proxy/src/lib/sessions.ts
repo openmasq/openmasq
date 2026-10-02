@@ -11,7 +11,7 @@ export interface KeyedVault {
   key: string;
 }
 
-export const freshKey = (): string => randomBytes(32).toString("hex");
+const freshKey = (): string => randomBytes(32).toString("hex");
 
 export class VaultSessions {
   private readonly vaults = new Map<string, { vault: Vault; key: string; last: number }>();

@@ -10,7 +10,7 @@ import type { ModelInfo } from "@openmasq/llm";
  * CLI). Personalizing REPLACES, it doesn't add: a short list that grows with every star
  * stops being short.
  */
-export function favoriteSourceIds(
+function favoriteSourceIds(
   favorites?: readonly string[],
   factory: readonly string[] = SIMPLE_MODEL_IDS,
 ): readonly string[] {

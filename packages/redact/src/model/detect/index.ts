@@ -206,7 +206,7 @@ export function stripLeadingArticle(value: string, org = false): string {
 }
 
 /** True when a detector category names an ORGANISATION / company. */
-export function isOrgCategory(category: string): boolean {
+function isOrgCategory(category: string): boolean {
   return /^(ORG|COMPANY)/i.test(category);
 }
 

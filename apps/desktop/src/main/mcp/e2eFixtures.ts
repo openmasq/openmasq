@@ -125,7 +125,7 @@ export function e2eConnectorFilter(): ((id: string) => boolean) | null {
 
 /** One connection per declared server, each call appended to the jsonl log when set.
  *  Throws on an unreadable/invalid file. */
-export function loadE2eFixtureConnections(path: string): McpConnection[] {
+function loadE2eFixtureConnections(path: string): McpConnection[] {
   const servers = parseFixtureServers(readFileSync(path, "utf8"));
   // REAL, un-redacted arguments: the same capability and gate as OPENMASQ_MCP_RAW_LOG.
   const logPath = devOnly(process.env.OPENMASQ_E2E_TOOLCALL_LOG);

@@ -19,12 +19,12 @@ import { handle, obj } from "./handle";
  * What follows a "yes": the pointer switches to `custom` with the stack, and the app restarts
  * in ITS OWN `(Custom)` profile (`profile.ts`) — never in production's.
  */
-export type SetCustomStackResult =
+type SetCustomStackResult =
   | { ok: true; relaunching: true }
   | { ok: false; reason: "custom_not_allowed" | "invalid" | "declined" | "write_failed"; field?: keyof CustomStack; detail?: string };
 
 /** The native box's text, pure — testable and the same every time. */
-export function customStackConfirmText(stack: CustomStack): { message: string; detail: string } {
+function customStackConfirmText(stack: CustomStack): { message: string; detail: string } {
   const host = (u: string) => {
     try {
       return new URL(u).host;

@@ -3,8 +3,7 @@
 // db/index.ts) is unchanged for every consumer. Shared connection state lives ONLY in
 // connection.ts (accessed via getClient); at-rest crypto + per-account isolation are
 // isolated in encryptedMigration.ts + connection.ts (rule 7 — verbatim, fail-closed).
-export { EMBED_DIM } from "./schema";
-export { isDbConfigured, databasePath, setDbUser } from "./connection";
+export { isDbConfigured, setDbUser } from "./connection";
 export {
   dbLoad,
   dbSaveConversation,
@@ -21,14 +20,10 @@ export {
   dbDeleteFile,
   type DbFile,
 } from "./files";
-export { storeEmbedding, searchEmbeddings, type EmbeddingRow, type SearchHit } from "./embeddings";
-export { MEMORY_EMBED_DIM } from "./schema";
+export { storeEmbedding, searchEmbeddings } from "./embeddings";
 export {
   upsertMemoryEmbedding,
   memoryEmbeddingStatus,
   pruneMemoryEmbeddings,
-  searchMemoryEmbeddings,
   allMemoryEmbeddings,
-  type MemoryEmbeddingRow,
-  type MemoryEmbeddingHit,
 } from "./memoryEmbeddings";

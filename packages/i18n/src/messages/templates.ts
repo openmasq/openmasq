@@ -10,7 +10,7 @@
  * connectors, each skill's category. Here, only the words.
  */
 
-export interface TemplateCopy {
+interface TemplateCopy {
   name: string;
   desc: string;
   prompt: string;

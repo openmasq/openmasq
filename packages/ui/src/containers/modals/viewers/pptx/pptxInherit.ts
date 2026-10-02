@@ -176,5 +176,4 @@ export function xfrmOf(sp: Element | null): { x: number; y: number; w: number; h
   return { x, y, w, h, rot: rot === undefined ? undefined : rot / 60000 };
 }
 
-export { allShapes, ph as placeholderOf, normalizeType, shapeTree };
-export type { PhKey };
+export { ph as placeholderOf, shapeTree };

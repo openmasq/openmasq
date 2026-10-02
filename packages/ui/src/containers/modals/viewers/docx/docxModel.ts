@@ -12,14 +12,13 @@
 
 import type { RunStyle } from "../ooxml/textStyle";
 
-export type { RunStyle };
 
 export interface DocxRun extends RunStyle {
   kind: "run";
   text: string;
 }
 
-export interface DocxImage {
+interface DocxImage {
   kind: "image";
   /** A `data:` URI built from allow-listed raster bytes. Never a remote URL. */
   src: string;
