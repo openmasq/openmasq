@@ -285,7 +285,7 @@ export function newConversation(modelId: string): Conversation {
   const now = Date.now();
   return {
     id: uid(),
-    title: "Nouvelle conversation",
+    title: "",
     modelId,
     messages: [],
     createdAt: now,

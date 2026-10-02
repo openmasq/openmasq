@@ -34,6 +34,9 @@ import { templates } from "./en/templates";
 import { turnStatus } from "./en/turnStatus";
 import { shell } from "./en/shell";
 import { viewers } from "./en/viewers";
+import { desktopMain } from "./en/desktopMain";
+import { runtime } from "./en/runtime";
+import { documents } from "./en/documents";
 import { settings } from "./en/settings";
 import { accountTab, browserTab, modelsTab, privacyTab } from "./en/settingsTabs";
 import { billingTab, importModal, orgTab, syncTab, usageTab } from "./en/settingsMore";
@@ -70,6 +73,9 @@ const selfHost = {
 } satisfies Messages["selfHost"];
 
 export const en = {
+  desktopMain,
+  runtime,
+  documents,
   agent,
   availability,
   billing,

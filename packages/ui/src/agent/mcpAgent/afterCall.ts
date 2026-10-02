@@ -5,7 +5,8 @@ import { batchReadNudge, shouldNudgeBatch } from "../batchReads";
 import { raceAbort } from "../mcpAgentAbort";
 import { isConfidentReadOnly, isWriteTool } from "../mcpAgentClassify";
 import {
-  BROWSER_BACKEND_FAULT_MESSAGE,
+  browserFaultMessage,
+  loopCopy,
   exhaustionMessage,
   identifierTypoHint,
   isBrowserBackendFault,
@@ -68,7 +69,7 @@ function attributeAndHint(ctx: LoopCtx, c: ConnectorCall, d: CallDecision, out: 
   if (out.reason && isBrowserTool(call.name) && isBrowserBackendFault(out.toolErrRaw)) {
     captureEvent({ name: "tool_error", server, tool: call.name, reason: "browser_backend", connector: connectorId, provider: p.provider, model: p.modelId, ...(out.callMs !== undefined ? { ms: out.callMs } : {}), loopId: ctx.loopId });
     ctx.struggle.emit();
-    p.onText(p.fromWire(BROWSER_BACKEND_FAULT_MESSAGE), false);
+    p.onText(p.fromWire(browserFaultMessage(loopCopy(p.t))), false);
     ctx.emitUsage();
     ctx.emitLoopSummary("error", "browser_backend");
     return "stop";
@@ -128,7 +129,7 @@ function stuckGuards(ctx: LoopCtx, c: ConnectorCall, out: CallOutcome): Step | "
         exhaustionMessage({
           callCounts: ctx.callCounts, repeatedResult: ctx.repeatedResult, argErrored: ctx.struggle.argErrored,
           succeeded: ctx.struggle.succeeded, maxTurns: st.turnBudget, stopped: "stuck", repeatedFailure: st.repeatedFailure,
-        }),
+        }, loopCopy(p.t)),
       ),
       false,
     );

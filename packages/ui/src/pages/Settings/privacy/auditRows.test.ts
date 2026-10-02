@@ -1,3 +1,4 @@
+import { getMessages } from "@openmasq/i18n";
 import { describe, expect, it } from "vitest";
 import type { Conversation } from "../../../types";
 import {
@@ -8,6 +9,8 @@ import {
   takeAuditRows,
   type AuditGroup,
 } from "./auditRows";
+
+const fr = getMessages("fr");
 
 const conv = (p: Partial<Conversation> & { id: string }): Conversation =>
   ({
@@ -36,7 +39,7 @@ describe("buildAuditGroups", () => {
         redactionVault: { "Luc Morvan": "Julien Sabourdin" },
         redactionKinds: { "Julien Sabourdin": "name" },
       }),
-    ]);
+    ], fr);
     expect(groups.map((g) => g.convTitle)).toEqual(["Récente", "Ancienne"]);
     expect(groups.map((g) => g.at)).toEqual([99, 10]);
   });
@@ -48,7 +51,7 @@ describe("buildAuditGroups", () => {
     const groups = buildAuditGroups([
       conv({ id: "a", updatedAt: 2, redactionVault: { "Marc Rebour": "Julien Sabourdin" } }),
       conv({ id: "b", updatedAt: 1, redactionVault: { "Luc Morvan": "Julien Sabourdin" } }),
-    ]);
+    ], fr);
     expect(groups.map((g) => g.rows[0].fake)).toEqual(["Marc Rebour", "Luc Morvan"]);
     expect(new Set(groups.flatMap((g) => g.rows.map((r) => r.original)))).toEqual(
       new Set(["Julien Sabourdin"]),
@@ -59,13 +62,16 @@ describe("buildAuditGroups", () => {
     const groups = buildAuditGroups([
       conv({ id: "vide", updatedAt: 5 }),
       conv({ id: "a", updatedAt: 4, redactionVault: { X: "réel" } }),
-    ]);
+    ], fr);
     expect(groups.map((g) => g.convId)).toEqual(["a"]);
   });
 
   it("une conversation sans titre reste nommable", () => {
-    const [g] = buildAuditGroups([conv({ id: "a", updatedAt: 1, redactionVault: { X: "réel" } })]);
+    const [g] = buildAuditGroups([conv({ id: "a", updatedAt: 1, redactionVault: { X: "réel" } })], fr);
     expect(g.convTitle).toBe("Nouvelle conversation");
+    expect(buildAuditGroups([conv({ id: "a", updatedAt: 1, redactionVault: { X: "réel" } })], getMessages("en"))[0].convTitle).toBe(
+      "New conversation",
+    );
   });
 
   it("ancre le saut sur le message qui porte la valeur réelle", () => {
@@ -79,7 +85,7 @@ describe("buildAuditGroups", () => {
           { id: "m2", role: "user", content: "voici réel", at: 1 },
         ],
       } as Partial<Conversation> & { id: string }),
-    ]);
+    ], fr);
     expect(g.rows[0].msgId).toBe("m2");
   });
 });

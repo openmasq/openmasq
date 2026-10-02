@@ -2,6 +2,10 @@ import { app, dialog } from "electron";
 import type { createClient as CreateClient } from "@libsql/client";
 import { reportMainError } from "../runtime/errorReport";
 import { BRAND } from "@openmasq/branding";
+import { mainMessages } from "../i18n";
+
+/** Where the Windows runtime the driver needs is downloaded from (Microsoft's own link). */
+const VC_REDIST_URL = "https://aka.ms/vs/17/release/vc_redist.x64.exe";
 
 /**
  * LAZY loading of the native libSQL driver, and the failure made legible.
@@ -34,23 +38,10 @@ export function isNativeLoadFailure(err: unknown): boolean {
  *  "Visual C++ Redistributable", which our builds now bundle alongside the exe —
  *  a binary missing these DLLs is therefore either old or incomplete). */
 function explain(): { title: string; message: string } {
-  if (process.platform === "win32") {
-    return {
-      title: `${BRAND.name} ne peut pas démarrer`,
-      message:
-        "Un composant système requis par la base de données locale est absent de cet " +
-        "ordinateur : le « Microsoft Visual C++ Redistributable » (x64).\n\n" +
-        "Installez-le depuis https://aka.ms/vs/17/release/vc_redist.x64.exe, puis " +
-        `relancez ${BRAND.name}.\n\n` +
-        `Si le problème persiste, réinstallez ${BRAND.name} : cette version embarque normalement ` +
-        "ce composant.",
-    };
-  }
+  const t = mainMessages().desktopMain.dbFatal;
   return {
-    title: `${BRAND.name} ne peut pas démarrer`,
-    message:
-      "Le composant natif de la base de données locale n'a pas pu être chargé. " +
-      `Réinstallez ${BRAND.name} pour réparer l'installation.`,
+    title: t.title(BRAND.name),
+    message: process.platform === "win32" ? t.windows(BRAND.name, VC_REDIST_URL) : t.other(BRAND.name),
   };
 }
 

@@ -360,7 +360,7 @@ export function AttachmentPreviewModal({
       .then((r) => alive && setRedacted(r.text))
       .catch((e) => {
         if (!alive) return;
-        setRedactedErr(describeRedactFailure(e instanceof Error ? e.message : String(e), engine));
+        setRedactedErr(describeRedactFailure(e instanceof Error ? e.message : String(e), t, engine));
       });
     return () => {
       alive = false;
@@ -445,10 +445,10 @@ export function AttachmentPreviewModal({
                 Catalog order puts the identity categories first, so the cut keeps the
                 ones that matter most in a document. */}
             <span className="flex-min">
-              Non redacted ici&nbsp;: {inactiveCategories.slice(0, 5).join(", ").toLowerCase()}
+              {t.runtime.files.notMaskedHere(inactiveCategories.slice(0, 5).join(", ").toLowerCase())}
               {inactiveCategories.length > 5
-                ? ` et ${inactiveCategories.length - 5} autres catégories désactivées`
-                : " — catégories désactivées"}
+                ? t.runtime.files.notMaskedMore(inactiveCategories.length - 5)
+                : null}
               .
             </span>
             {/* No « Activer » shortcut: the categories live in Réglages → Confidentialité,
@@ -461,11 +461,11 @@ export function AttachmentPreviewModal({
           <div className="fv-redact-fail" role="alert">
             <ShieldIcon size={12} />
             <span className="flex-min">
-              {"Le redaction de ce document a échoué — rien n'est masqué dans ces vues, et l'envoi est bloqué tant qu'il n'a pas réussi."}
+              {t.runtime.files.docMaskFailed}
             </span>
             {onRerun && (
               <button className="btn-ghost btn-inline" onClick={onRerun}>
-                <RefreshIcon size={13} /> Réessayer
+                <RefreshIcon size={13} /> {t.common.retry}
               </button>
             )}
           </div>
@@ -552,7 +552,7 @@ export function AttachmentPreviewModal({
             <ShieldIcon size={22} />
             <p>{redactedErr}</p>
             <button className="btn-primary btn-inline" onClick={retryRedacted}>
-              <RefreshIcon size={14} /> Réessayer le redaction
+              <RefreshIcon size={14} /> {t.runtime.files.retryMasking}
             </button>
           </div>
         ) : redactedGrid ? (
@@ -574,7 +574,7 @@ export function AttachmentPreviewModal({
             {wireCutChars > 0 && (
               <div className="fv-truncnote" role="note">
                 <ShieldIcon size={12} />
-                {`Coupé ici — la suite (${wireCutChars.toLocaleString()} caractères) ne quitte pas la machine : l'envoi tronque chaque document à ${MAX_FILE_CHARS.toLocaleString()} caractères.`}
+                {t.runtime.files.cutHere(wireCutChars.toLocaleString(t.common.intlTag), MAX_FILE_CHARS.toLocaleString(t.common.intlTag))}
               </div>
             )}
           </>
@@ -636,9 +636,9 @@ export function AttachmentPreviewModal({
           x={wordPick.x} y={wordPick.y}
           onClose={closeWordPick} /* Escape — the outside click lives in the `away` effect above */
           origin="document" /* telemetry distinguishes the attachment from a chat selection */ expanded
-          label={`Redact « ${
-            wordPick.value.length > 42 ? `${wordPick.value.slice(0, 40)}…` : wordPick.value
-          } »`}
+          label={t.runtime.files.maskSelection(
+            wordPick.value.length > 42 ? `${wordPick.value.slice(0, 40)}…` : wordPick.value,
+          )}
           note={
             // A run absent from the PRIMARY text is image-baked (logo, stamp):
             // it is NOT part of the text sent to the model. Redact stays
@@ -646,7 +646,7 @@ export function AttachmentPreviewModal({
             // don't forbid.
             occursFlexibly(file.text ?? "", wordPick.value)
               ? undefined
-              : "Zone d'image (logo/scan), absente du texte envoyé : la redact ne sert que si le document part en images."
+              : t.runtime.files.imageOnlyZone
           }
           onPick={(token) => {
             onForceRedact(wordPick.value, token);

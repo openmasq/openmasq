@@ -4,6 +4,7 @@ import {
   extractTextInWorker as extractText,
   extractBytesInWorker as extractBytes,
 } from "./ocr/extractClient";
+import { mainMessages } from "./i18n";
 
 /**
  * File attachments for the desktop app. The text extraction + document
@@ -66,16 +67,22 @@ async function extractTagged(
   return { ...extracted, path, mime: mimeFor(path) };
 }
 
-export async function pickAndExtract(onProgress?: OcrProgressFn): Promise<ExtractedFile[]> {
-  const win = BrowserWindow.getFocusedWindow();
-  const opts: Electron.OpenDialogOptions = {
-    title: "Attach files",
+/** The native picker's options: multi-select, documents first, in main's language. */
+function pickerOptions(): Electron.OpenDialogOptions {
+  const t = mainMessages().desktopMain.filePicker;
+  return {
+    title: t.title,
     properties: ["openFile", "multiSelections"],
     filters: [
-      { name: "Documents", extensions: SUPPORTED_EXTENSIONS },
-      { name: "All files", extensions: ["*"] },
+      { name: t.documents, extensions: SUPPORTED_EXTENSIONS },
+      { name: t.allFiles, extensions: ["*"] },
     ],
   };
+}
+
+export async function pickAndExtract(onProgress?: OcrProgressFn): Promise<ExtractedFile[]> {
+  const win = BrowserWindow.getFocusedWindow();
+  const opts = pickerOptions();
   const res = win
     ? await dialog.showOpenDialog(win, opts)
     : await dialog.showOpenDialog(opts);
@@ -97,14 +104,7 @@ export async function extractPaths(
  *  PDF / scanned-doc OCR can take seconds — the file shouldn't wait to appear). */
 export async function pickPaths(): Promise<{ name: string; path: string }[]> {
   const win = BrowserWindow.getFocusedWindow();
-  const opts: Electron.OpenDialogOptions = {
-    title: "Attach files",
-    properties: ["openFile", "multiSelections"],
-    filters: [
-      { name: "Documents", extensions: SUPPORTED_EXTENSIONS },
-      { name: "All files", extensions: ["*"] },
-    ],
-  };
+  const opts = pickerOptions();
   const res = win ? await dialog.showOpenDialog(win, opts) : await dialog.showOpenDialog(opts);
   if (res.canceled) return [];
   return res.filePaths.map((p) => ({ name: p.split(/[\\/]/).pop() || p, path: p }));

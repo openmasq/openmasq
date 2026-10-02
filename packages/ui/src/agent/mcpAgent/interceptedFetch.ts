@@ -5,6 +5,7 @@ import { recordWebSearch } from "../confirmationFacts";
 import { isAbortError, raceAbort } from "../mcpAgentAbort";
 import { safeJson } from "../mcpAgentUtil";
 import { toolStartNarration } from "../toolActionLabel";
+import { loopCopy } from "../mcpAgentOutcome";
 import { MAX_CONSECUTIVE_DEAD } from "./budget";
 import type { Step, ToolCall } from "./call";
 import type { LoopCtx } from "./context";
@@ -38,7 +39,7 @@ export async function handleWebFetchMany(ctx: LoopCtx, call: ToolCall, args: Rec
     }
     accepted.push(url);
   }
-  p.onToolProgress?.(toolStartNarration("web_fetch_many", "web"));
+  p.onToolProgress?.(toolStartNarration("web_fetch_many", "web", loopCopy(p.t)));
   let items: WebFetchItem[] = [];
   if (accepted.length) {
     // An intercepted batch fetch is web ingress too — counted only when something leaves.

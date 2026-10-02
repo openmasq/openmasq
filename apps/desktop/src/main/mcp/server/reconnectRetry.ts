@@ -15,8 +15,10 @@ export const REFRESH_NETWORK_ERROR = "network failure while renewing the session
 
 // ⚠️ Speaks the PROVIDERS' language, not only ours: `invalid_grant`, « expired or
 // revoked », a bare 401/403 all announce a dead authorization, which no retry revives.
+// Ours come in EVERY shipped language (`desktopMain.mcp.apiKeyRefused` / `urlRefused`):
+// `reconnectRetry.test.ts` reads each catalogue against this pattern.
 const PERMANENT_RE =
-  /authorization required|authorization failed|dynamic client registration|clé api refusée|url refusée|unknown server|no url|invalid[_ ]grant|refresh token|expired or revoked|token (?:has )?(?:is )?(?:been )?(?:expired|revoked|invalid)|\b401\b|\b403\b|unauthorized|forbidden|invalid[_ ]client/i;
+  /authorization required|authorization failed|dynamic client registration|clé api refusée|url refusée|api key refused|url refused|unknown server|no url|invalid[_ ]grant|refresh token|expired or revoked|token (?:has )?(?:is )?(?:been )?(?:expired|revoked|invalid)|\b401\b|\b403\b|unauthorized|forbidden|invalid[_ ]client/i;
 
 /** `true` = transient failure, a retry has a chance; `false` = permanent (or no
  *  error at all). With no message, the failure is treated as non-retryable. */

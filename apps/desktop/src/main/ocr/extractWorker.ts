@@ -10,6 +10,7 @@
 import { createRequire } from "node:module";
 import { pathToFileURL } from "node:url";
 import { extractText, extractBytes, type ExtractedFile } from "@openmasq/redact/documents";
+import { DEFAULT_LOCALE, getMessages, isLocale } from "@openmasq/i18n";
 
 // ⚠️ pdf.js (legacy) under utilityProcess: since `process.versions.electron` is set, it does
 // NOT believe it's in Node and REQUIRES `GlobalWorkerOptions.workerSrc` instead of auto-loading
@@ -52,8 +53,8 @@ interface ParentPort {
   postMessage(msg: Res): void;
 }
 type Req =
-  | { id: number; kind: "path"; path: string; ocrAllPages?: boolean }
-  | { id: number; kind: "bytes"; data: string; name: string; mime?: string; ocrAllPages?: boolean };
+  | { id: number; kind: "path"; path: string; ocrAllPages?: boolean; locale?: string }
+  | { id: number; kind: "bytes"; data: string; name: string; mime?: string; ocrAllPages?: boolean; locale?: string };
 type Res =
   | { id: number; progress: { done: number; pages: number } }
   | { id: number; ok: true; file: ExtractedFile }
@@ -72,12 +73,14 @@ parentPort.on("message", (e) => {
     };
     try {
       await pdfjsReady; // pdf.js's workerSrc is pinned before any getDocument
+      // The skipped-page markers in the user's language (a catalogue locale, else the default).
+      const markers = getMessages(isLocale(req.locale) ? req.locale : DEFAULT_LOCALE).documents.markers;
       // Both entry points are BEST-EFFORT on the redact side (an unreadable file returns
       // `{error}` without throwing); the catch only covers the unexpected (a parser OOM…).
       const file =
         req.kind === "path"
-          ? await extractText(req.path, onProgress, req.ocrAllPages)
-          : await extractBytes(Buffer.from(req.data, "base64"), req.name, req.mime, onProgress, req.ocrAllPages);
+          ? await extractText(req.path, onProgress, req.ocrAllPages, markers)
+          : await extractBytes(Buffer.from(req.data, "base64"), req.name, req.mime, onProgress, req.ocrAllPages, markers);
       parentPort.postMessage({ id: req.id, ok: true, file });
     } catch (err) {
       // A pinning failure makes EVERY PDF unreadable: say so HERE, with the error, rather

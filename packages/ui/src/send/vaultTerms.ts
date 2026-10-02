@@ -100,7 +100,8 @@ export function vaultTermOccurrences(term: VaultTerm, conversations: Conversatio
     uses.push({
       convId: c.id,
       msgId,
-      title: c.title || "Sans titre",
+      // Raw: the view shows it through `displayTitle` (untitled ⇒ the UI-language label).
+      title: c.title ?? "",
       modelId: c.modelId ?? "",
       updatedAt: c.updatedAt ?? 0,
       count: Math.max(count, inVault ? 1 : 0),

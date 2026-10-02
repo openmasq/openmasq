@@ -1,4 +1,5 @@
-import { useChatStore, AppShell, ErrorBoundary, I18nProvider, resolveLocale } from "@openmasq/ui";
+import { useEffect } from "react";
+import { useChatStore, AppShell, ErrorBoundary, I18nProvider, reportLocale, resolveLocale } from "@openmasq/ui";
 import { useVaultTermsSync, useConvSync, useIntegrationSync, useOrgScopeSync, useUserdataSync, useVaultSync } from "./sync";
 import { E2eBridge } from "./e2eBridge";
 
@@ -31,6 +32,10 @@ export function App() {
   // English speaker starts in English without configuring anything. A language change is persisted
   // to settings via `onLocaleChange`.
   const forcedLocale = resolveLocale(store.settings.language) ?? undefined;
+  // A language that arrives with the settings (another device chose it) reaches main too.
+  useEffect(() => {
+    if (forcedLocale) reportLocale(forcedLocale);
+  }, [forcedLocale]);
 
   // A render-time throw anywhere in the tree used to blank the whole window (no
   // boundary) — now it shows a recoverable error card instead.

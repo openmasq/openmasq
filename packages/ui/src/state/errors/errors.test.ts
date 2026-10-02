@@ -1,7 +1,7 @@
 import { getMessages } from "@openmasq/i18n";
 import { afterEach, describe, it, expect } from "vitest";
 import { configurePlatformAccess } from "../../send/platformAccess";
-import { humanizeSendError, cleanErrorText, sendErrorAction, sendErrorReason } from "./";
+import { humanizeSendError, cleanErrorText, sendErrorAction, sendErrorReason, RedactionUnavailableError } from "./";
 
 /* The error classes and their gestures don't depend on the language; the French
    catalogue is the witness, and the patterns expected below are its own. */
@@ -44,14 +44,30 @@ describe("cleanErrorText", () => {
   it("strips the IPC wrapper and collapses a trailing JSON error body to (CODE)", () => {
     const raw =
       `Error invoking remote method 'chat:complete-tools': Error: scaleway tools request failed (402): {"error":"SOME_CODE"}`;
-    const out = cleanErrorText(raw);
+    const out = cleanErrorText(raw, t);
     expect(out).not.toContain("invoking remote method");
     expect(out).not.toContain("{");
     expect(out).toContain("(SOME_CODE)");
   });
 
   it("never returns an empty string", () => {
-    expect(cleanErrorText("")).toBe("Une erreur est survenue.");
+    expect(cleanErrorText("", t)).toBe("Une erreur est survenue.");
+    expect(cleanErrorText("", getMessages("en"))).toBe("Something went wrong.");
+  });
+});
+
+describe("RedactionUnavailableError — the user reads a sentence, the log keeps the cause", () => {
+  it("keeps the technical reason on the error, out of the message", () => {
+    const e = new RedactionUnavailableError("ECONNREFUSED 127.0.0.1:9", t);
+    expect(e.reason).toBe("ECONNREFUSED 127.0.0.1:9");
+    expect(e.message).not.toContain("ECONNREFUSED");
+    expect(e.message).toBe("Envoi bloqué : le masquage ne répond pas. Rien n'a été envoyé. Réessayez.");
+    expect(e.message).not.toMatch(/\ble redaction\b/);
+  });
+
+  it("speaks the UI language", () => {
+    const e = new RedactionUnavailableError("boom", getMessages("en"));
+    expect(e.message).toBe("Send blocked: masking could not run. Nothing was sent. Try again.");
   });
 });
 

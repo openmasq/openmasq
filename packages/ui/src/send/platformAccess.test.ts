@@ -57,11 +57,12 @@ describe("un build SANS service hébergé (ni passerelle ni comptes)", () => {
         model: { id: MODEL.id, label: "Laguna S 2.1" },
         effectivePlatform: resolveEffectivePlatform(MODEL.provider, MODEL.id, undefined, NO_KEYS),
         openaiCompatBaseUrl: "",
+        t: fr,
       });
 
     configurePlatformAccess({ served: false });
     const refused = gate();
-    expect(refused?.text).toMatch(/Clé manquante/);
+    expect(refused?.text).toMatch(/Aucune clé API/);
     expect(refused?.text).not.toMatch(/abonnement/i);
     expect(unavailableLabel("no_key", "OpenRouter", fr).title).not.toMatch(/abonnement/i);
 

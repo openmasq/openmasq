@@ -9,6 +9,8 @@ import { reportMainError } from "../runtime/errorReport";
 import { isAppQuitting } from "../runtime/quitState";
 import { BRAND } from "@openmasq/branding";
 import { createExtractQueue } from "./extractQueue";
+import { mainLocale, mainMessages } from "../i18n";
+import { localizeExtracted } from "./localizeExtracted";
 
 /**
  * CLIENT of the extraction worker (`extractWorker.ts`) — the documents counterpart of
@@ -138,8 +140,8 @@ function armIdleEviction(): void {
 
 async function run(
   req:
-    | { kind: "path"; path: string; ocrAllPages?: boolean }
-    | { kind: "bytes"; data: string; name: string; mime?: string; ocrAllPages?: boolean },
+    | { kind: "path"; path: string; ocrAllPages?: boolean; locale: string }
+    | { kind: "bytes"; data: string; name: string; mime?: string; ocrAllPages?: boolean; locale: string },
   onProgress?: (done: number, pages: number) => void,
 ): Promise<ExtractedFile> {
   if (idleTimer) {
@@ -170,8 +172,17 @@ async function run(
   }
 }
 
-/** Has the in-process fallback taken over for this request? See the header. */
+/** Has the in-process fallback taken over for this request? See the header. Both paths
+ *  come back with their failure worded in the user's language (`localizeExtracted.ts`). */
 async function withFallback(
+  viaWorker: () => Promise<ExtractedFile>,
+  inProcess: () => Promise<ExtractedFile>,
+): Promise<ExtractedFile> {
+  const file = await workerOrInProcess(viaWorker, inProcess);
+  return localizeExtracted(file, mainMessages().documents);
+}
+
+async function workerOrInProcess(
   viaWorker: () => Promise<ExtractedFile>,
   inProcess: () => Promise<ExtractedFile>,
 ): Promise<ExtractedFile> {
@@ -204,11 +215,15 @@ export function extractTextInWorker(
   /** While queued: how many files are ahead (re-told as the line moves). */
   onWaiting?: (ahead: number) => void,
 ): Promise<ExtractedFile> {
+  // The markers OCR writes into the text speak the user's language: the worker gets the
+  // locale (it rebuilds them from the catalogue), the in-process path the markers.
+  const locale = mainLocale();
+  const markers = mainMessages().documents.markers;
   return queue.run(
     () =>
       withFallback(
-        () => run({ kind: "path", path: filePath, ocrAllPages }, onOcrProgress),
-        () => extractTextInProcess(filePath, onOcrProgress, ocrAllPages),
+        () => run({ kind: "path", path: filePath, ocrAllPages, locale }, onOcrProgress),
+        () => extractTextInProcess(filePath, onOcrProgress, ocrAllPages, markers),
       ),
     onWaiting,
   );
@@ -223,11 +238,13 @@ export function extractBytesInWorker(
   ocrAllPages?: boolean,
   onWaiting?: (ahead: number) => void,
 ): Promise<ExtractedFile> {
+  const locale = mainLocale();
+  const markers = mainMessages().documents.markers;
   return queue.run(() => {
     const data = Buffer.from(bytes).toString("base64");
     return withFallback(
-      () => run({ kind: "bytes", data, name, mime, ocrAllPages }, onOcrProgress),
-      () => extractBytesInProcess(bytes, name, mime, onOcrProgress, ocrAllPages),
+      () => run({ kind: "bytes", data, name, mime, ocrAllPages, locale }, onOcrProgress),
+      () => extractBytesInProcess(bytes, name, mime, onOcrProgress, ocrAllPages, markers),
     );
   }, onWaiting);
 }

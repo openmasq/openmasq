@@ -23,12 +23,12 @@ export function makeFailClosed(ctx: TurnContext): FailClosed {
       ...c,
       messages: c.messages.map((m) =>
         m.id === assistantMsg.id
-          ? { ...m, pending: false, error: true, errorText: new RedactionUnavailableError(reason).message }
+          ? { ...m, pending: false, error: true, errorText: new RedactionUnavailableError(reason, d.t).message }
           : m,
       ),
       updatedAt: Date.now(),
     }));
     d.setIsStreaming(false);
-    throw new RedactionUnavailableError(reason);
+    throw new RedactionUnavailableError(reason, d.t);
   };
 }

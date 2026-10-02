@@ -1,6 +1,6 @@
 /**
- * **THE one place a raw tool name becomes French.** A tool name (`browser_navigate`,
- * `stripe_api_search`) is developer vocabulary; every surface that shows the user what
+ * **THE one place a raw tool name becomes words the user reads**, in the UI language (`t`).
+ * A tool name (`browser_navigate`, `stripe_api_search`) is developer vocabulary; every surface that shows the user what
  * the agent is doing goes through here — the trace row (`components/ToolTrace/`) and the
  * live loader (`toolActionLabel`, which composes this). The raw name survives only where
  * it is the POINT: the row's `title` tooltip, the write-confirm card's authorisation
@@ -17,6 +17,15 @@
  * tiers allow (the reverse would be an up-tree import — and a cycle, since the live
  * label composes this one).
  */
+import type { Messages } from "@openmasq/i18n";
+
+/** The catalogue's tool tables, keyed on ids this file owns (`tsc` pins both sides). */
+type Tools = Messages["runtime"]["tools"];
+type InterceptedToolId = keyof Tools["intercepted"];
+type ToolVerbId = keyof Tools["verbs"];
+type ToolNounActionId = keyof Tools["nounActions"];
+type ToolNoun = keyof Tools["nouns"];
+export type BrowserGesture = keyof Tools["browserRow"];
 
 /** Strip a multi-account instance suffix (`gmail--a1b2` → `gmail`). ONE definition,
  *  consumed by every label: the row drops the connector's own name with it, and
@@ -33,35 +42,31 @@ export function baseConnector(prefix: string): string {
  * `web_fetch_many` came out « Lecture · many » (the batch marker read as the object),
  * `load_tools` came out « load » ("tools" is boilerplate everywhere else, so it was
  * stripped and left a bare verb), `memory_search` « Recherche · memory ». A generic rule
- * has no business guessing at a vocabulary we define.
+ * has no business guessing at a vocabulary we define. The WORDS live in the catalogue
+ * (`t.runtime.tools.intercepted`); `run_python` is labelled by both ends of what it does:
+ * it calculates, and it generates the files handed back to the user.
  */
-export const INTERCEPTED: Record<string, string> = {
-  // ⚠️ "Analyse" alone under-described the tool: it CALCULATES, but it also PLOTS
-  // graphs and above all it GENERATES files (PDF/Excel/Word) that are handed back to
-  // the user — that's the output people see, and none of the three former names
-  // named it. The label therefore says both ends: what it does, what comes out.
-  run_python: "Analyse et génération de fichiers",
-  web_fetch_many: "Lecture de pages web",
-  load_tools: "Choix des outils",
-  suggest_integrations: "Recherche d'une intégration",
-  memory_search: "Recherche dans la mémoire",
-};
+export function interceptedLabel(tool: string, t: Messages): string | undefined {
+  const own = t.runtime.tools.intercepted;
+  return Object.hasOwn(own, tool) ? own[tool as InterceptedToolId] : undefined;
+}
 
-/** Word → FR action noun, looked up per WORD (never as a prefix). */
-const VERBS: Record<string, string> = {
-  search: "Recherche", find: "Recherche", query: "Recherche", lookup: "Recherche",
-  list: "Lecture", get: "Lecture", read: "Lecture", fetch: "Lecture", show: "Lecture",
-  retrieve: "Lecture", describe: "Lecture", view: "Lecture",
-  create: "Création", add: "Création", insert: "Création", new: "Création",
-  update: "Mise à jour", edit: "Mise à jour", modify: "Mise à jour", patch: "Mise à jour",
-  set: "Mise à jour", move: "Mise à jour", rename: "Mise à jour", write: "Mise à jour",
-  send: "Envoi", post: "Envoi", reply: "Envoi", publish: "Envoi", share: "Envoi",
-  delete: "Suppression", remove: "Suppression", archive: "Suppression", purge: "Suppression",
-  cancel: "Annulation",
-  run: "Exécution", execute: "Exécution", exec: "Exécution",
-  download: "Export", export: "Export",
-  upload: "Import", import: "Import",
-  duplicate: "Duplication", copy: "Duplication",
+/** Word → action family, looked up per WORD (never as a prefix). The label is the
+ *  catalogue's (`t.runtime.tools.verbs`). */
+const VERBS: Record<string, ToolVerbId> = {
+  search: "search", find: "search", query: "search", lookup: "search",
+  list: "read", get: "read", read: "read", fetch: "read", show: "read",
+  retrieve: "read", describe: "read", view: "read",
+  create: "create", add: "create", insert: "create", new: "create",
+  update: "update", edit: "update", modify: "update", patch: "update",
+  set: "update", move: "update", rename: "update", write: "update",
+  send: "send", post: "send", reply: "send", publish: "send", share: "send",
+  delete: "delete", remove: "delete", archive: "delete", purge: "delete",
+  cancel: "cancel",
+  run: "run", execute: "run", exec: "run",
+  download: "export", export: "export",
+  upload: "import", import: "import",
+  duplicate: "duplicate", copy: "duplicate",
 };
 
 /** A verb that DESTROYS outranks a read verb sitting earlier in the name: labelling
@@ -71,57 +76,36 @@ const DESTRUCTIVE = new Set(["delete", "remove", "purge", "archive", "cancel"]);
 
 /** A name with NO verb at all is usually one of these — say what it looks at rather
  *  than echo the bare noun. */
-const NOUN_ACTIONS: Record<string, string> = {
-  detail: "Détails", details: "Détails", info: "Détails", about: "Détails",
-  status: "État", health: "État", state: "État",
-  me: "Compte", whoami: "Compte", profile: "Compte", account: "Compte",
-  auth: "Connexion", authenticate: "Connexion", login: "Connexion", connect: "Connexion",
+const NOUN_ACTIONS: Record<string, ToolNounActionId> = {
+  detail: "details", details: "details", info: "details", about: "details",
+  status: "status", health: "status", state: "status",
+  me: "account", whoami: "account", profile: "account", account: "account",
+  auth: "connect", authenticate: "connect", login: "connect", connect: "connect",
 };
 
-/** The OBJECT half, in the product's own French. Only unambiguous single-word
- *  translations belong here — an unmapped word stays as it is, which already reads far
+/** The OBJECT half: only unambiguous single-word translations live in the catalogue
+ *  (`t.runtime.tools.nouns`) — an unmapped word stays as it is, which already reads far
  *  better than the snake_case it came from. */
-const NOUNS: Record<string, string> = {
-  issue: "ticket", issues: "tickets",
-  email: "e-mail", emails: "e-mails",
-  thread: "fil", threads: "fils",
-  channel: "canal", channels: "canaux",
-  file: "fichier", files: "fichiers",
-  folder: "dossier", folders: "dossiers",
-  event: "événement", events: "événements",
-  calendar: "agenda", calendars: "agendas",
-  task: "tâche", tasks: "tâches",
-  customer: "client", customers: "clients",
-  invoice: "facture", invoices: "factures",
-  payment: "paiement", payments: "paiements", charge: "paiement", charges: "paiements",
-  refund: "remboursement", refunds: "remboursements",
-  subscription: "abonnement", subscriptions: "abonnements",
-  balance: "solde", balances: "soldes",
-  repository: "dépôt", repositories: "dépôts", repo: "dépôt", repos: "dépôts",
-  comment: "commentaire", comments: "commentaires",
-  user: "utilisateur", users: "utilisateurs",
-  member: "membre", members: "membres",
-  resource: "ressource", resources: "ressources",
-  row: "ligne", rows: "lignes",
-  sheet: "feuille", sheets: "feuilles",
-  attachment: "pièce jointe", attachments: "pièces jointes",
-};
+function noun(w: string, t: Messages): string {
+  const nouns = t.runtime.tools.nouns;
+  return Object.hasOwn(nouns, w) ? nouns[w as ToolNoun] : w;
+}
 
 /** Boilerplate every server sprinkles over its tool names, meaning nothing to the
  *  user. The CONNECTOR's own name goes with it: the card above the row already says
  *  « Stripe », so repeating it on every row is noise, not information. */
 const NOISE = new Set(["api", "mcp", "tool", "tools", "v1", "v2", "and", "by", "for"]);
 
-/** The browser's gestures, by family — mirrors `toolActionLabel`'s browserLabel but
- *  as short row NOUNS, not live sentences. */
-function browserRowLabel(tool: string): string {
-  if (/search/.test(tool)) return "Recherche web";
-  if (/navigate|goto|open/.test(tool)) return "Ouverture d'une page";
-  if (/click|type|fill|press|select|drag|upload|submit/.test(tool)) return "Action sur la page";
-  if (/snapshot|screenshot|read|content|text|accessib/.test(tool)) return "Lecture de la page";
-  if (/tab/.test(tool)) return "Gestion des onglets";
-  if (/close/.test(tool)) return "Fermeture";
-  return "Navigation";
+/** The browser's gestures, by family — the same families as `toolActionLabel`'s live
+ *  line, but as short row NOUNS. */
+export function browserGesture(tool: string): BrowserGesture {
+  if (/search/.test(tool)) return "search";
+  if (/navigate|goto|open/.test(tool)) return "open";
+  if (/click|type|fill|press|select|drag|upload|submit/.test(tool)) return "act";
+  if (/snapshot|screenshot|read|content|text|accessib/.test(tool)) return "read";
+  if (/tab/.test(tool)) return "tabs";
+  if (/close/.test(tool)) return "close";
+  return "browse";
 }
 
 /** Split a tool name into lowercase words across EVERY convention a server may use:
@@ -134,11 +118,12 @@ function words(name: string): string[] {
     .filter(Boolean);
 }
 
-export function humanToolLabel(server: string, tool: string): string {
-  const own = INTERCEPTED[tool];
+export function humanToolLabel(server: string, tool: string, t: Messages): string {
+  const own = interceptedLabel(tool, t);
   if (own) return own;
+  const tt = t.runtime.tools;
   if (server === "browser" || /^browser/.test(tool)) {
-    return browserRowLabel(tool.replace(/^browser_/, ""));
+    return tt.browserRow[browserGesture(tool.replace(/^browser_/, ""))];
   }
 
   const all = words(tool);
@@ -149,14 +134,15 @@ export function humanToolLabel(server: string, tool: string): string {
   if (verb) {
     const object = kept
       .filter((w) => w !== verb && !(w in VERBS))
-      .map((w) => NOUNS[w] ?? w)
+      .map((w) => noun(w, t))
       .join(" ");
-    return object ? `${VERBS[verb]} · ${object}` : VERBS[verb];
+    const label = tt.verbs[VERBS[verb]!];
+    return object ? `${label} · ${object}` : label;
   }
 
-  for (const w of kept) if (w in NOUN_ACTIONS) return NOUN_ACTIONS[w];
+  for (const w of kept) if (w in NOUN_ACTIONS) return tt.nounActions[NOUN_ACTIONS[w]!];
 
   // Unknown shape — the cleaned words beat the raw snake_case. Fall back to the FULL
   // name when stripping left nothing (a tool named only after its own connector).
-  return (kept.length ? kept : all).map((w) => NOUNS[w] ?? w).join(" ");
+  return (kept.length ? kept : all).map((w) => noun(w, t)).join(" ");
 }

@@ -1,6 +1,7 @@
+import { getMessages } from "@openmasq/i18n";
 import { describe, it, expect, vi } from "vitest";
 import {
-  FOLDER_OFFER_NOTE,
+  folderOfferNote,
   dragCarriesFiles,
   folderOfferText,
   readDrop,
@@ -93,20 +94,23 @@ describe("dragCarriesFiles", () => {
 });
 
 describe("the offer's wording", () => {
+  const fr = getMessages("fr");
   const one: DroppedFolder[] = [{ name: "Contrats" }];
 
   it("names the folder in the singular case", () => {
-    expect(folderOfferText(one)).toContain("« Contrats »");
+    expect(folderOfferText(one, fr)).toContain("« Contrats »");
+    expect(folderOfferText([{ name: "" }], getMessages("en"))).toContain('the "folder" folder');
   });
 
   it("counts them in the plural case", () => {
-    expect(folderOfferText([{ name: "a" }, { name: "b" }])).toContain("2 dossiers");
+    expect(folderOfferText([{ name: "a" }, { name: "b" }], fr)).toContain("2 dossiers");
   });
 
   it("says the confirmation happens in the SYSTEM dialog — the click here is not the grant", () => {
     // Tied to the invariant on purpose: if the in-app click ever became sufficient, this
     // sentence would be a lie AND `fs/grant.ts`'s contract would be broken.
-    expect(FOLDER_OFFER_NOTE).toMatch(/fenêtre du système/);
-    expect(FOLDER_OFFER_NOTE).toMatch(/ne peut pas s'accorder un dossier tout seul/);
+    expect(folderOfferNote(fr)).toMatch(/fenêtre du système/);
+    expect(folderOfferNote(fr)).toMatch(/ne peut pas s'accorder un dossier tout seul/);
+    expect(folderOfferNote(getMessages("en"))).toMatch(/cannot grant itself a folder/);
   });
 });

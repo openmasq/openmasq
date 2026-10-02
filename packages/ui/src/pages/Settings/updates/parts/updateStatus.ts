@@ -6,18 +6,20 @@ import type { UpdateStatus } from "../../../../host";
 // UpdatesSection.tsx to keep it under the 300-LOC cap (rule 1) — and because
 // these are logic, not presentation (root rule: functionality lives in `.ts`).
 
-/** Human update weight, e.g. "596 Mo" / "1,4 Go" — shown so the user knows the download size. */
-function fmtSize(bytes?: number): string {
+/** Human update weight in the locale's units and decimal mark — "596 Mo" / "1,4 Go",
+ *  "596 MB" / "1.4 GB" — shown so the user knows the download size. */
+export function fmtSize(bytes: number | undefined, t: Messages): string {
   if (!bytes || bytes <= 0) return "";
+  const intl = t.common.intlTag;
   return bytes >= 1e9
-    ? `${(bytes / 1e9).toFixed(1).replace(".", ",")} Go`
-    : `${Math.round(bytes / 1e6)} Mo`;
+    ? t.runtime.misc.gigabytes((bytes / 1e9).toLocaleString(intl, { minimumFractionDigits: 1, maximumFractionDigits: 1 }))
+    : t.runtime.misc.megabytes(Math.round(bytes / 1e6).toLocaleString(intl));
 }
 
 /** The live status line under the installed-build card: what the updater is doing
  *  right now, plus the tone class that colours it. */
 export function statusLine(status: UpdateStatus, t: Messages): { text: string; tone: string } {
-  const size = fmtSize(status.sizeBytes);
+  const size = fmtSize(status.sizeBytes, t);
   const withSize = (s: string) => (size ? t.versionsTab.status.withSize(s, size) : s);
   switch (status.state) {
     case "checking":

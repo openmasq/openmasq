@@ -1,3 +1,4 @@
+import { displayTitle } from "../../../state/conversation/displayTitle";
 import { BRAND } from "@openmasq/branding";
 import { useMemo, useState } from "react";
 import type { Conversation } from "../../../types";
@@ -83,7 +84,7 @@ export function MobileChatList({ conversations, onSelect, onNew, onOpenSettings,
                   </span>
                   <span className="mobile-thread-body">
                     <span className="mobile-thread-top">
-                      <span className="mobile-thread-title">{c.title || t.chrome.untitledConversation}</span>
+                      <span className="mobile-thread-title">{displayTitle(c.title, t)}</span>
                       <span className="mobile-thread-time">{relTime(c.updatedAt, t)}</span>
                     </span>
                     <span className="mobile-thread-bottom">

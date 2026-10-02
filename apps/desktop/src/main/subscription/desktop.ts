@@ -11,6 +11,7 @@ import { ANTIGRAVITY_APP_DATA_DIR, ANTIGRAVITY_SETTINGS } from "./antigravityEng
 import { appCliRoots } from "./install";
 import { resolveCli, type SubscriptionCliId } from "./resolveCli";
 import type { SubscriptionTurnEnv } from "./turn";
+import { mainMessages } from "../i18n";
 
 /** Catalog provider → subscription CLI, or `null` (not a CLI path). */
 export function subscriptionCliFor(provider: string): SubscriptionCliId | null {
@@ -67,18 +68,11 @@ export function subscriptionCwd(cli: SubscriptionCliId): string {
   return dir;
 }
 
-const CLI_MISSING: Record<SubscriptionCliId, string> = {
-  claude:
-    "La CLI Claude Code est introuvable sur cette machine. Installez-la et " +
-    "connectez-la à votre abonnement Claude, ou choisissez un autre modèle.",
-  codex:
-    "La CLI Codex est introuvable sur cette machine. Installez-la " +
-    "(`npm i -g @openai/codex`), connectez-la à votre compte ChatGPT " +
-    "(`codex login`), ou choisissez un autre modèle.",
-  antigravity:
-    "La CLI Antigravity (`agy`) est introuvable sur cette machine. Installez " +
-    "Antigravity, connectez-la à votre compte Google, ou choisissez un autre modèle.",
-};
+/** What to say when a CLI is missing, in main's language (one entry per CLI). */
+function cliMissing(cli: SubscriptionCliId): string {
+  const t = mainMessages().desktopMain.subscription;
+  return { claude: t.missingClaude, codex: t.missingCodex, antigravity: t.missingAntigravity }[cli];
+}
 
 /**
  * The Antigravity CLI's ISOLATED data folder, and the settings written into it before
@@ -122,10 +116,10 @@ export function isSubscriptionCliEnabled(cli: SubscriptionCliId): boolean {
 
 export function subscriptionTurnEnv(cli: SubscriptionCliId = "claude"): SubscriptionTurnEnv {
   if (!enabledClis.has(cli)) {
-    throw new Error(`${CLI_LABEL[cli]} n'est pas activé (Réglages → Modèles).`);
+    throw new Error(mainMessages().desktopMain.subscription.notEnabled(CLI_LABEL[cli]));
   }
   const binPath = subscriptionCliPath(cli);
-  if (!binPath) throw new Error(CLI_MISSING[cli]);
+  if (!binPath) throw new Error(cliMissing(cli));
   if (cli === "antigravity") prepareAntigravityAppData();
   return { cli, label: CLI_LABEL[cli], binPath, cwd: subscriptionCwd(cli) };
 }

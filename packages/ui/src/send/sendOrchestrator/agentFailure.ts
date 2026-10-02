@@ -80,7 +80,7 @@ export function failAgentTurn(ctx: TurnContext, r: RedactionSetup, routing: Rout
   const act = sendErrorAction(detail, model.provider);
   const friendly =
     humanizeSendError(detail, d.t, { personal: !d.orgProfileRef.current, provider: model.provider }) ??
-    r.fromWire(cleanErrorText(detail));
+    r.fromWire(cleanErrorText(detail, d.t));
   commitTurnVault(ctx, r, f.toolKinds);
   updateAssistant({
     pending: false,

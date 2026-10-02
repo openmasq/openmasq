@@ -9,6 +9,55 @@
 export const msg = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
 /**
+ * A STABLE code for every failure an extraction can show a person. The engine keeps its
+ * French text as the fallback (`error`); a caller with a catalogue words the code itself
+ * (`@openmasq/i18n` `documents`, mapped in the desktop main process). This package never
+ * imports the catalogue: it stays pure. A code, once shipped, never changes meaning.
+ */
+export type DocumentErrorCode =
+  | "file_too_large"
+  | "executable"
+  | "type_mismatch"
+  | "image_too_large"
+  | "image_unreadable"
+  | "zip_entries"
+  | "zip_too_large"
+  | "zip_ratio"
+  | "ocr_failed"
+  | "ocr_engine_missing"
+  | "ocr_engine_incompatible"
+  | "pdf_renderer_missing"
+  | "pdf_renderer_incompatible"
+  | "unsupported_type";
+
+/** The numbers a code's sentence needs. Never a file name, never content. */
+export interface DocumentErrorParams {
+  mb?: number;
+  width?: number;
+  height?: number;
+  entries?: number;
+  ext?: string;
+}
+
+/** A refusal or failure: its code, its fallback text, its numbers. */
+export interface DocumentFailure {
+  code: DocumentErrorCode;
+  message: string;
+  params?: DocumentErrorParams;
+}
+
+/** An error we THROW on purpose and whose cause is safe to show (see `cleanErr`). */
+export class DocumentError extends Error {
+  constructor(
+    readonly code: DocumentErrorCode,
+    message: string,
+  ) {
+    super(message);
+    this.name = "DocumentError";
+  }
+}
+
+/**
  * OCR FALLBACKS, here because their wording is a discipline, not a string.
  *
  * ⚠️ A fallback STATES, it does not DIAGNOSE. It covers any unknown cause — a
@@ -28,6 +77,14 @@ export const IMAGE_OCR_FAILED = `Texte de l'image illisible : ${OCR_FAILED}`;
  *  `loadTesseract`/`loadCanvas`) — the only raw causes safe to show as-is. */
 const isCuratedError = (m: string) => /^moteur (OCR|de rendu)/i.test(m);
 
+/** The code of a curated error: the typed one, else read from its (fixed) wording. */
+function curatedCode(e: unknown, m: string): DocumentErrorCode {
+  if (e instanceof DocumentError) return e.code;
+  const incompatible = /incompatible/i.test(m);
+  if (/^moteur de rendu/i.test(m)) return incompatible ? "pdf_renderer_incompatible" : "pdf_renderer_missing";
+  return incompatible ? "ocr_engine_incompatible" : "ocr_engine_missing";
+}
+
 /**
  * Turn a caught extraction error into a message SAFE to show the user. ALLOW-LIST,
  * not block-list: only our own curated FR errors pass through; ANY other cause (a
@@ -35,11 +92,14 @@ const isCuratedError = (m: string) => /^moteur (OCR|de rendu)/i.test(m);
  * upstream text, a stack) is HIDDEN behind `fallback` so an internal path/detail
  * can never reach a UI banner. The raw cause is kept in the console for diagnostics.
  */
-export function cleanErr(e: unknown, fallback: string): { message: string; raw?: string } {
+export function cleanErr(
+  e: unknown,
+  fallback: string,
+): { message: string; raw?: string; code: DocumentErrorCode } {
   const raw = msg(e);
-  if (isCuratedError(raw)) return { message: raw };
+  if (e instanceof DocumentError || isCuratedError(raw)) return { message: raw, code: curatedCode(e, raw) };
   // eslint-disable-next-line no-console
   if (raw) console.warn("[redact] extraction error (hidden from UI):", raw);
-  return { message: fallback, raw: raw || undefined };
+  return { message: fallback, raw: raw || undefined, code: "ocr_failed" };
 }
 

@@ -1,14 +1,13 @@
-// Shared document-extraction CORE — pure, no Node/DOM libs.
-//
-// Owns the format dispatch + the `ExtractedFile` shape + the redact-a-document
+// Shared document-extraction CORE — pure, no Node/DOM libs. Owns the format dispatch + the `ExtractedFile` shape + the redact-a-document
 // flow. The platform-divergent parsers (PDF text layer, DOCX, OCR) are injected
 // as `ExtractDeps` by the Node entry (./node) and the browser entry (./browser),
 // so NOTHING is duplicated across platforms. Plain text (TextDecoder) and
 // spreadsheets (SheetJS is isomorphic) are handled here directly; CSV/TSV/XLSX go
 // through `./tabular` HEADER-ANNOTATED serialization (approach A) for detection.
 import { delimitedGrid, gridToAnnotatedText } from "./serialize/tabular";
-import { cleanErr, msg, OCR_FAILED, IMAGE_OCR_FAILED } from "./errors";
-import { guardUpload } from "./safety/guard";
+import { cleanErr, msg, OCR_FAILED, IMAGE_OCR_FAILED, type DocumentErrorCode, type DocumentErrorParams } from "./errors";
+import type { OcrMarkers } from "./ocrMarkers";
+import { guardUploadRefusal } from "./safety/guard";
 import { isUnreadableLayer } from "./layers/readable";
 import type { OcrWord } from "../ocr/layout";
 import type { TextLayerPage, OcrLayerPage } from "./layers/geometry";
@@ -25,6 +24,8 @@ export { spatialFieldLines } from "./layers/spatialFields";
 // Send-cut → grid-row mapping (tabular.ts) — re-exported so the UI can't grow a drifting copy.
 export { delimitedGrid, annotatedCutRow } from "./serialize/tabular";
 export type { TextLayerPage, OcrLayerPage } from "./layers/geometry";
+export type { DocumentErrorCode, DocumentErrorParams } from "./errors";
+export { DEFAULT_OCR_MARKERS, type OcrMarkers } from "./ocrMarkers";
 
 export interface ExtractedFile {
   name: string;
@@ -32,6 +33,10 @@ export interface ExtractedFile {
   text: string;
   chars: number;
   error?: string;
+  /** The STABLE code behind `error` (+ its numbers), for a caller that words it in the
+   *  user's language; `error` stays the French fallback. Absent on an uncoded cause. */
+  errorCode?: DocumentErrorCode;
+  errorParams?: DocumentErrorParams;
   /** The RAW cause behind a generic `error`. NEVER rendered in the UI (`cleanErr`'s
    *  allow-list is the display rule); consumed by the debug log (`ocrDebug.ts`). */
   rawCause?: string;
@@ -123,6 +128,8 @@ export interface ExtractDeps {
     /** Page cap (`Infinity` = "Read all"; absent ⇒ binding default, 10).
      *  ⚠️ 3rd position — the 2nd is the callback (function in `Math.min` = NaN). */
     maxPages?: number,
+    /** The skipped-page markers' wording; absent ⇒ `DEFAULT_OCR_MARKERS`. */
+    markers?: OcrMarkers,
   ): Promise<string | { text: string; meta?: OcrMeta; layout?: OcrLayerPage[] }>;
   /** OCR an image KEEPING the positioned words, so the caller can paint the
    *  redaction on the image. Optional — when absent, `ocrImage` (text only) is used.
@@ -153,6 +160,8 @@ export async function extractFromBytes(
     onOcrProgress?: (done: number, pages: number) => void;
     /** "Read all": lift the OCR cap (default 10) — opt-in by user GESTURE. */
     ocrAllPages?: boolean;
+    /** Wording of the markers OCR writes into the text (the caller's language). */
+    ocrMarkers?: OcrMarkers;
   },
   deps: ExtractDeps,
 ): Promise<ExtractedFile> {
@@ -163,8 +172,11 @@ export async function extractFromBytes(
   // SAFETY GATE — reject an oversized / type-mismatched / bomb file BEFORE it
   // reaches a heavy parser (pdf.js / mammoth / SheetJS). Best-effort contract is
   // preserved: a rejection is a `{ error }` result with empty text, never a throw.
-  const unsafe = guardUpload(bytes, ext);
-  if (unsafe) return { name, kind: ext.slice(1) || "file", text: "", chars: 0, mime, error: unsafe, blocked: true };
+  const unsafe = guardUploadRefusal(bytes, ext);
+  if (unsafe) {
+    const { message: error, code: errorCode, params: errorParams } = unsafe;
+    return { name, kind: ext.slice(1) || "file", text: "", chars: 0, mime, error, errorCode, errorParams, blocked: true };
+  }
   try {
     if (ext === ".pdf") {
       const tText = Date.now();
@@ -189,11 +201,7 @@ export async function extractFromBytes(
       let ocrText: string | undefined;
       let ocr: OcrMeta | undefined = { engine: "pdf-text", ms: layerMs };
       try {
-        const res = await deps.ocrPdf(
-          bytes,
-          opts.onOcrProgress,
-          opts.ocrAllPages ? Infinity : undefined,
-        );
+        const res = await deps.ocrPdf(bytes, opts.onOcrProgress, opts.ocrAllPages ? Infinity : undefined, opts.ocrMarkers);
         const ocrRaw = (typeof res === "string" ? res : res.text).trim();
         const ocrMeta = typeof res === "string" ? undefined : res.meta;
         ocrPages = typeof res === "string" ? undefined : res.layout;
@@ -225,7 +233,7 @@ export async function extractFromBytes(
           const c = cleanErr(e, OCR_FAILED); // the fallback STATES the fact, it does not diagnose — `errors.ts`
           return {
             name, kind: "pdf", text, chars: text.length, mime,
-            error: `PDF sans couche texte — ${c.message}`, rawCause: c.raw,
+            error: `PDF sans couche texte — ${c.message}`, errorCode: c.code, rawCause: c.raw,
           };
         }
       }
@@ -252,7 +260,7 @@ export async function extractFromBytes(
         return { name, kind: "image", text, chars: text.length, mime };
       } catch (e) {
         const c = cleanErr(e, IMAGE_OCR_FAILED);
-        return { name, kind: "image", text: "", chars: 0, mime, error: c.message, rawCause: c.raw };
+        return { name, kind: "image", text: "", chars: 0, mime, error: c.message, errorCode: c.code, rawCause: c.raw };
       }
     }
     if (SHEET_EXT.has(ext)) {
@@ -281,7 +289,7 @@ export async function extractFromBytes(
     }
     return {
       name, kind: ext.slice(1) || "file", text: "", chars: 0, mime,
-      error: `Unsupported file type: ${ext || "(none)"}`,
+      error: `Unsupported file type: ${ext || "(none)"}`, errorCode: "unsupported_type", errorParams: { ext },
     };
   } catch (e) {
     return { name, kind: "file", text: "", chars: 0, mime, error: msg(e) };

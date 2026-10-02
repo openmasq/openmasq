@@ -53,6 +53,7 @@ export function ImportModal({
         disabledKinds,
         mode: wireTokens ? "token" : "fake",
         onProgress: (done, total) => setPhase({ step: "working", done, total }),
+        t,
       });
       setPhase({ step: "done", outcome: onImport(convs) });
     } catch (e) {

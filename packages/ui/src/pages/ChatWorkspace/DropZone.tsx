@@ -5,7 +5,7 @@ import type { DeferredFile } from "../../state/files/deferredFile";
 import { bytesToBase64 } from "../../state/files/bytes";
 import { FolderIcon } from "../../components/brand";
 import {
-  FOLDER_OFFER_NOTE,
+  folderOfferNote,
   dragCarriesFiles,
   folderOfferText,
   readDrop,
@@ -123,7 +123,7 @@ export function DropZone({
       const servers = (await host.mcp?.list().catch(() => [])) ?? [];
       for (const folder of offer) {
         const outcome = await grantDroppedFolder({ mcp: host.mcp, servers }, folder.hintPath, t);
-        const message = grantMessage(outcome);
+        const message = grantMessage(outcome, t);
         if (message) setGrantNotice(message);
         // A cancelled dialog is the user declining THIS folder; stop rather than marching
         // through the remaining ones with more dialogs they did not ask for.
@@ -173,8 +173,8 @@ export function DropZone({
       {offer.length > 0 && (
         <div className="drop-offer" role="dialog" aria-label={t.composer.drop.folderDialog}>
           <div className="drop-offer-body">
-            <div className="drop-offer-title">{folderOfferText(offer)}</div>
-            <p className="drop-offer-note">{FOLDER_OFFER_NOTE}</p>
+            <div className="drop-offer-title">{folderOfferText(offer, t)}</div>
+            <p className="drop-offer-note">{folderOfferNote(t)}</p>
           </div>
           <div className="drop-offer-actions">
             <button type="button" className="btn-ghost btn-inline" onClick={() => setOffer([])}>

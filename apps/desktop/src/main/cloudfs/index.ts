@@ -3,6 +3,7 @@ import { connected, routes } from "../mcp/server/registry";
 import { directFetchJson } from "../mcp/connectors";
 import { isFolderListTool, mcpBrowseList } from "./mcpBrowse";
 import { CLOUD_PROVIDERS, MCP_BROWSABLE, type CloudEntry } from "./providers";
+import { mainMessages } from "../i18n";
 
 /**
  * Browse a connected storage (Google Drive, OneDrive, Dropbox) from the UI.
@@ -75,7 +76,7 @@ export async function cloudList(
   // Start from the source list: it already carries both checks (it's a
   // known storage, it's connected). An id not in it reaches no URL.
   const source = cloudSources().find((s) => s.id === instanceId);
-  if (!source) throw new Error("Ce stockage n'est pas connecté.");
+  if (!source) throw new Error(mainMessages().desktopMain.folders.cloudNotConnected);
   const provider = CLOUD_PROVIDERS[source.connectorId];
   if (!provider) {
     // Remote server: its own listing tool. `connected` already served as a guard

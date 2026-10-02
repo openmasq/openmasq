@@ -1,6 +1,10 @@
 import { describe, it, expect } from "vitest";
 import { withConnect, cancelConnect, connectSignal } from "./server/connectCancel";
 import { startLoopback } from "./oauthLoopback";
+import { setMainLocale } from "../i18n";
+
+// These cases read main's FRENCH wording (`../i18n.ts`); the behaviour is language-independent.
+setMainLocale("fr");
 
 describe("connectCancel — the ambient cancellation scope", () => {
   it("exposes no signal outside a connect scope", () => {

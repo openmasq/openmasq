@@ -25,6 +25,12 @@ export interface AppHost {
    * Resolves `false` when the host refuses the value rather than repairing it.
    */
   setWindowTone?(tone: string): Promise<boolean>;
+  /**
+   * Tell the host the interface language, so what IT draws (native dialogs, menus, OS
+   * pages) speaks it too. Optional within the slot: absent, the host keeps its own
+   * language. A display preference only; resolves `false` when the host refuses the value.
+   */
+  setLocale?(locale: string): Promise<boolean>;
 }
 
 /** Live auto-update status pushed as electron-updater progresses. */

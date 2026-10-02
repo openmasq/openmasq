@@ -4,7 +4,7 @@
  * API ⇒ null. Org billing is administered elsewhere.
  */
 import Debug from "debug";
-import { BillingApiError, captureError } from "@openmasq/ui";
+import { BillingApiError, captureError, getMessages, initialLocale } from "@openmasq/ui";
 import type { BillingHost, BillingSubscription, CreditBalance } from "@openmasq/ui";
 import { authHost } from "./auth";
 import { backendFetch } from "./backendFetch";
@@ -79,7 +79,8 @@ async function action<T>(path: string, body?: unknown, method: "POST" | "DELETE"
       name: e instanceof Error ? e.name : undefined,
       message: e instanceof Error ? e.message : String(e),
     });
-    throw new Error("Connexion au service de paiement impossible. Vérifiez votre réseau.");
+    // Outside React: the device's language, read the way the provider boots.
+    throw new Error(getMessages(initialLocale()).runtime.misc.billingNetwork);
   }
   debug("action %s %s ← %d", method, path, res.status);
   if (!res.ok) {

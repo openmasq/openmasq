@@ -134,6 +134,9 @@ importers:
       '@openmasq/connectors':
         specifier: workspace:*
         version: link:../../packages/connectors
+      '@openmasq/i18n':
+        specifier: workspace:*
+        version: link:../../packages/i18n
       '@openmasq/llm':
         specifier: workspace:*
         version: link:../../packages/llm

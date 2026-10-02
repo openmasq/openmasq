@@ -165,12 +165,13 @@ export async function runAgentTurn(
       onPythonScript: py.onPythonScript,
       onPythonFile: py.onPythonFile,
       fromWire: r.fromWire,
+      t: d.t,
       fromWireArgs: r.fromWireArgs,
       // The first sign of generation, prose OR a streamed tool-call argument: TTFT for a tool-first turn too.
       onFirstToken: () => {
         if (!latency.tFirst) latency.tFirst = Date.now();
       },
-      onToolArgs: (chars, name) => updateAssistant({ toolStatus: toolActionLabel(name, chars) }),
+      onToolArgs: (chars, name) => updateAssistant({ toolStatus: toolActionLabel(d.t, name, chars) }),
       onReasoning: agentReasoning.push,
       onText: (content, pending) => {
         if (!latency.tFirst && content) latency.tFirst = Date.now();

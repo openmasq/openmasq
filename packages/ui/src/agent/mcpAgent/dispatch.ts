@@ -9,6 +9,7 @@ import { opaqueIdsIn } from "../mcpAgentGuidance";
 import { safeJson } from "../mcpAgentUtil";
 import { ToolTimeoutError, liveToolStatus, toolTimeoutMs, watchToolCall } from "../mcpAgentWatchdog";
 import { toolStartNarration } from "../toolActionLabel";
+import { loopCopy } from "../mcpAgentOutcome";
 import { classifyToolError } from "../toolFault";
 import { summarizeToolResult } from "../toolResultSummary";
 import { INTERRUPTED_TOOL_RESULT, TIMED_OUT_WRITE_RESULT } from "../turnCheckpoint";
@@ -88,9 +89,9 @@ export async function dispatchCall(ctx: LoopCtx, c: ConnectorCall, d: CallDecisi
     const mcpCall: McpToolCall = { id: call.id, name: call.name, arguments: callArgs };
     callPhase = ctx.dbg({ type: "phase", scope: "tool", label: `Outil appelé · ${call.name}`, detail: "en cours…" });
     tCall = Date.now();
-    // A deterministic FR narration seeds the live row at once; the LLM narration (wire args,
+    // A deterministic narration (UI language) seeds the live row at once; the LLM narration (wire args,
     // in PARALLEL, "" on failure) upgrades it and is persisted on the trace.
-    out.progressNote = toolStartNarration(bareTool, connectorId, d.navHost || undefined);
+    out.progressNote = toolStartNarration(bareTool, connectorId, loopCopy(p.t), d.navHost || undefined);
     if (!ctx.aborted()) p.onToolProgress?.(out.progressNote);
     out.progressP = p.summarizeToolCall
       ? p.summarizeToolCall({ tool: bareTool, server: connectorId, args })

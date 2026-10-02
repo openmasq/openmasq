@@ -1,3 +1,4 @@
+import type { Messages } from "@openmasq/i18n";
 import type { Settings } from "../../types";
 import type { RedactFn } from "../../send/redactionEngine";
 import type { Attachment } from "./Composer";
@@ -35,6 +36,8 @@ export interface RedactAttachmentDeps {
    *  `attachmentVault.ts`: this is what gives ONE fake to the same person present
    *  in TWO attachments. Absent ⇒ the working vault starts empty. */
   convVault?: Record<string, string>;
+  /** The UI language of the failure text shown on the chip. */
+  t: Messages;
 }
 
 /**
@@ -85,7 +88,7 @@ export function redactAttachment(a: Attachment, deps: RedactAttachmentDeps): voi
         redactPreview: replacements.length,
         // Stamp the engine used (only on success) so a later engine change is detectable.
         redactEngineSig: modelError ? undefined : docEngine,
-        redactError: modelError ? describeRedactFailure(modelError, settings?.redactEngine) : undefined,
+        redactError: modelError ? describeRedactFailure(modelError, deps.t, settings?.redactEngine) : undefined,
       });
       // Monitor the drop-time file redaction in the Debug Log (Outils tab): count + the
       // engine, PLUS the redacted→original mapping (2-by-2) so the substitution is debuggable.
@@ -99,7 +102,7 @@ export function redactAttachment(a: Attachment, deps: RedactAttachmentDeps): voi
             ? `${replacements.length} élément${replacements.length === 1 ? "" : "s"} redacted${replacements.length === 1 ? "" : "s"}`
             : "aucun élément détecté",
           pairs: replacements.slice(0, 100).map((r) => ({ token: r.fake, original: r.real, tone: r.tone })),
-          error: modelError ? describeRedactFailure(modelError, settings?.redactEngine) : undefined,
+          error: modelError ? describeRedactFailure(modelError, deps.t, settings?.redactEngine) : undefined,
         },
         convId,
       );
@@ -110,7 +113,7 @@ export function redactAttachment(a: Attachment, deps: RedactAttachmentDeps): voi
       updateAttachment(a.cid, {
         redacting: false,
         redactProgress: undefined,
-        redactError: describeRedactFailure(e instanceof Error ? e.message : String(e), settings?.redactEngine),
+        redactError: describeRedactFailure(e instanceof Error ? e.message : String(e), deps.t, settings?.redactEngine),
       });
       pushDebug(
         {

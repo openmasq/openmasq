@@ -1,3 +1,4 @@
+import { displayTitle } from "../../state/conversation/displayTitle";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { findModel } from "@openmasq/llm";
@@ -112,7 +113,7 @@ export function ConvRow({
         />
       ) : (
         <span className="conv-title flex-min">
-          <span className="om-sweep">{conv.title || t.chrome.untitledConversation}</span>
+          <span className="om-sweep">{displayTitle(conv.title, t)}</span>
         </span>
       )}
       {!editing && <span className="conv-time">{relTime(conv.updatedAt, t)}</span>}

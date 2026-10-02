@@ -70,6 +70,7 @@
     "@openmasq/branding": "workspace:*",
     "@openmasq/catalog": "workspace:*",
     "@openmasq/connectors": "workspace:*",
+    "@openmasq/i18n": "workspace:*",
     "@openmasq/llm": "workspace:*",
     "@openmasq/mcp": "workspace:*",
     "@openmasq/redact": "workspace:*",

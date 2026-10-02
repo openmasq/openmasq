@@ -1,3 +1,4 @@
+import type { Messages } from "@openmasq/i18n";
 import type { Settings } from "../types";
 
 /**
@@ -43,34 +44,21 @@ export function redactFailureIsUserFixable(engine?: Settings["redactEngine"]): b
 }
 
 /**
- * Turn a redaction-model failure into a clear, actionable warning (FR), phrased
- * for the given engine (see the module doc for why the engine matters).
+ * Turn a masking-model failure into a clear, actionable warning in the UI language,
+ * phrased for the given engine (see the module doc for why the engine matters). The raw
+ * error is technical: it stays in the debug log, never in this sentence.
  */
-export function describeRedactFailure(raw: string, engine?: Settings["redactEngine"]): string {
+export function describeRedactFailure(raw: string, t: Messages, engine?: Settings["redactEngine"]): string {
   const kind = classifyRedactFailure(raw);
-  const unmasked = "les noms/prénoms n'ont pas été masqués";
-
-  // What never gets cut: what was NOT masked, and that nothing was sent. The
-  // rest (« contactez le support », « vérifiez votre connexion ») doesn't change the next
-  // move, which is « réessayer » (retry) either way.
+  const f = t.runtime.send.maskFail;
+  // What never gets cut: what was NOT masked, and that nothing was sent. The rest doesn't
+  // change the next move, which is « réessayer » (retry) either way.
   if (engine === "remote") {
-    if (kind === "auth")
-      return `Redaction en ligne indisponible : un souci de notre côté, ${unmasked}. Rien n'a été envoyé — réessayez plus tard, ou contactez le support.`;
-    if (kind === "network")
-      return `Redaction en ligne injoignable, ${unmasked}. Rien n'a été envoyé — vérifiez votre connexion, puis réessayez.`;
-    return `Redaction en ligne indisponible, ${unmasked}. Rien n'a été envoyé — réessayez plus tard. (${raw})`;
+    return kind === "auth" ? f.remoteAuth : kind === "network" ? f.remoteNetwork : f.remoteUnknown;
   }
-
-  if (engine === "local") {
-    // Offline GLiNER engine: no key/endpoint — a failure is a missing/broken
-    // bundled model, so point at reinstalling/retrying, not at settings.
-    return `Redaction hors ligne indisponible : le modèle de détection n'a pas pu se charger, ${unmasked}. Rien n'a été envoyé — réessayez, puis réinstallez l'app si ça persiste.`;
-  }
-
+  // Offline GLiNER engine: no key/endpoint — a failure is a missing/broken bundled model,
+  // so point at reinstalling/retrying, not at settings.
+  if (engine === "local") return f.local;
   // Local `model` engine (or unknown context): the key IS in the user's settings.
-  if (kind === "auth")
-    return `Redaction indisponible : clé manquante ou invalide, ${unmasked}. Rien n'a été envoyé — renseignez-la dans Réglages → Confidentialité.`;
-  if (kind === "network")
-    return `Redaction indisponible : modèle injoignable (Ollama démarré ? adresse correcte ?), ${unmasked}. Rien n'a été envoyé.`;
-  return `Redaction indisponible, ${unmasked}. Rien n'a été envoyé. (${raw})`;
+  return kind === "auth" ? f.modelAuth : kind === "network" ? f.modelNetwork : f.modelUnknown;
 }

@@ -1,6 +1,7 @@
 import { Notification, type BrowserWindow } from "electron";
 import { handle, obj } from "./ipc/handle";
 import { BRAND } from "@openmasq/branding";
+import { mainMessages } from "./i18n";
 
 /** What a banner carries at most. Cut short: a system notification truncates
  *  anyway, and long text becomes unreadable in it. */
@@ -35,7 +36,7 @@ export function registerNotifyIpc(getWin: () => BrowserWindow | null): void {
 
     const n = new Notification({
       title: text(arg.title, BRAND.name),
-      body: text(arg.body, "Réponse prête."),
+      body: text(arg.body, mainMessages().desktopMain.notifyReplyReady),
       silent: false,
     });
     n.on("click", () => {

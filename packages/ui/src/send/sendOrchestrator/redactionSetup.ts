@@ -86,8 +86,11 @@ export function setupRedaction(ctx: TurnContext): RedactionSetup {
   const needsMint = conv.redactionSalt == null || conv.redactionKey == null;
   if (needsMint && typeof globalThis.crypto?.getRandomValues !== "function") {
     const reason = "générateur aléatoire indisponible (clé de redaction)";
-    void failTurn(new RedactionUnavailableError(reason).message);
-    throw new RedactionUnavailableError(reason);
+    // The technical reason goes to the debug log; the bubble gets the user sentence.
+    dbg({ type: "error", scope: "redaction", message: reason });
+    const blocked = new RedactionUnavailableError(reason, d.t);
+    void failTurn(blocked.message);
+    throw blocked;
   }
   // Salt, key and mode are pinned on the CONVERSATION at its first redaction: a value keeps
   // its fake here and maps differently elsewhere; switching mode mid-way would replay a

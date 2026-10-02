@@ -1,6 +1,6 @@
 import { advanceSoloRead } from "../batchReads";
 import { connectorsForRequest, missingConnectorMessage } from "../integrationMatch";
-import { exhaustionMessage, looksLikeRefusal } from "../mcpAgentGuidance";
+import { exhaustionMessage, looksLikeRefusal, loopCopy } from "../mcpAgentGuidance";
 import { namesConnectedConnector } from "../mcpAgentOutcome";
 import { MAX_SUGGESTIONS } from "../suggestIntegrations";
 import { makeRedactionBoundary } from "./boundary";
@@ -134,7 +134,7 @@ export async function runMcpAgentLoop(p: McpAgentParams): Promise<boolean> {
       exhaustionMessage({
         callCounts: ctx.callCounts, repeatedResult: ctx.repeatedResult, argErrored: ctx.struggle.argErrored,
         succeeded: ctx.struggle.succeeded, maxTurns: st.turnBudget,
-      }),
+      }, loopCopy(p.t)),
     ),
     false,
   );

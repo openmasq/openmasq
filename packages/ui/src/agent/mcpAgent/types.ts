@@ -69,6 +69,9 @@ export interface McpAgentParams {
   };
   /** Restore placeholders for display. */
   fromWire: (s: string) => string;
+  /** The UI language, for what the USER reads (tool-step labels, stop notices) — never for
+   *  prose the model reads. Absent ⇒ the default locale (`loopCopy`). */
+  t?: import("@openmasq/i18n").Messages;
   /** URL-aware restore for the confirm card (a fake in a query is `%20`/`+`-encoded). */
   fromWireArgs?: (s: string) => string;
   onText: (content: string, pending: boolean) => void;

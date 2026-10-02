@@ -1,3 +1,4 @@
+import type { Messages } from "@openmasq/i18n";
 import type { Message } from "../types";
 import { knownTier } from "../state/billing/billing";
 import type { PlatformTokenResult } from "./tokenFetch";
@@ -32,18 +33,21 @@ export function platformTokenFailure(
     freeModel: boolean;
     /** Cached per-account subscription snapshot — `null` = unknown, NOT "free". */
     personalSub: { tier?: string } | null | undefined;
+    /** The UI language of the failure text. */
+    t: Messages;
   },
 ): { text: string; action?: Message["errorAction"] } {
+  const c = p.t.runtime.send.token;
   if (!tok.ok && (tok.reason === "timeout" || tok.reason === "error")) {
     return {
-      text: `Le serveur de connexion ${BRAND.name} ne répond pas — rien n'est parti. Vérifiez votre connexion, puis réessayez.`,
+      text: c.outage(BRAND.name),
     };
   }
   if (p.freeModel) {
     return {
       // « ne demande que votre compte » matters here: without it, an expired session
       // reads like a paywall on a free model.
-      text: `Reconnectez-vous pour continuer — ce modèle gratuit ne demande que votre compte ${BRAND.name}.`,
+      text: c.freeModel(BRAND.name),
     };
   }
   const tier = knownTier(p.personalSub);
@@ -51,16 +55,16 @@ export function platformTokenFailure(
   // is then no tier to name and no subscription to offer, only a session to reopen.
   if (tier === null || !subscriptionsSold()) {
     return {
-      text: `Ce modèle passe par votre compte ${BRAND.name}. Votre session n'est plus connectée. Reconnectez-vous.`,
+      text: c.unknownTier(BRAND.name),
     };
   }
   if (tier !== "free") {
     return {
-      text: `Votre abonnement ${BRAND.name} couvre ce modèle. Votre session n'est plus connectée. Reconnectez-vous.`,
+      text: c.paidTier(BRAND.name),
     };
   }
   return {
-    text: `Ce modèle est inclus dans l'abonnement ${BRAND.name} : prenez un abonnement pour l'utiliser, ou renseignez votre propre clé.`,
+    text: c.freeTier(BRAND.name),
     action: { kind: "upgrade_plan" },
   };
 }

@@ -52,8 +52,8 @@ export function ToolStruggleNotice({
   // l'appel… ». Deriving it HERE also repairs messages ALREADY recorded with « ipc ».
   const connectorId = connectorOfTool(struggle.tool, struggle.server);
   const connector = connectorBrandName(connectorId) ?? connectorPresentation(connectorId).name;
-  // The action, in French: « Recherche · e-mails » rather than `gmail__search_messages`.
-  const action = struggle.tool ? humanToolLabel(connectorId, splitToolName(struggle.tool).tool) : "";
+  // The action, in the UI language: « Recherche · e-mails » rather than `gmail__search_messages`.
+  const action = struggle.tool ? humanToolLabel(connectorId, splitToolName(struggle.tool).tool, t) : "";
   // The two causes that get resolved INSIDE the connector's card: an expired token for
   // one, an action that requires your own keys for the other. The other two are down
   // to the model — offering « Reconnecter » there would send to the wrong place.

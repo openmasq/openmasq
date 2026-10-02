@@ -1,7 +1,8 @@
 import { app, dialog, type BrowserWindow } from "electron";
 import electronUpdater from "electron-updater";
 
-import { APPLY_SPACE_FACTOR, fmtGB, freeBytes, totalUpdateSize } from "./disk";
+import { APPLY_SPACE_FACTOR, fmtGB, freeBytes, sizeGB, totalUpdateSize } from "./disk";
+import { mainMessages } from "../i18n";
 import { logUpdate, logUpdateError } from "./log";
 import { reportUpdateFailure } from "./report";
 import { BRAND } from "@openmasq/branding";
@@ -48,17 +49,18 @@ async function onDownloaded(
     reportUpdateFailure(getReportError(), "no_space", new Error(`need ${fmtGB(need)}, have ${fmtGB(free)}`), {
       version: info?.version,
     });
+    const t = mainMessages().desktopMain.updates;
     if (win && !win.isDestroyed())
       win.webContents.send("updates:status", {
         state: "error",
         code: "no_space",
-        message: `Espace disque insuffisant pour installer la mise à jour (~${fmtGB(need)} libres nécessaires, ${fmtGB(free)} disponibles). Libérez de l'espace, puis relancez la mise à jour.`,
+        message: t.noSpaceStatus(sizeGB(need), sizeGB(free)),
       });
     await dialog.showMessageBox({
       type: "warning",
-      buttons: ["OK"],
-      message: "Espace disque insuffisant",
-      detail: `L'installation de ${BRAND.name} ${info.version} (${fmtGB(size)}) nécessite environ ${fmtGB(need)} d'espace libre, mais il ne reste que ${fmtGB(free)}. Libérez de l'espace disque, puis relancez la mise à jour.`,
+      buttons: [t.ok],
+      message: t.noSpaceTitle,
+      detail: t.noSpaceDetail(BRAND.name, info.version ?? "", sizeGB(size), sizeGB(need), sizeGB(free)),
       ...(win ? { window: win } : {}),
     });
     return;
