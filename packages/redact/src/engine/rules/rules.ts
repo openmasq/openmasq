@@ -206,7 +206,7 @@ export const RULES: RedactionRule[] = [
   {
     type: "bic",
     pattern:
-      /(?<=\b(?:code\s+)?(?:[Bb][Ii][Cc]|[Ss][Ww][Ii][Ff][Tt])(?:\s*\/\s*(?:[Bb][Ii][Cc]|[Ss][Ww][Ii][Ff][Tt]))?\b[\s:.=/,;"'«»()[\]-]*(?:[a-zà-ÿ]+[\s:.=/,;"'«»()[\]-]+){0,4})[A-Z]{6}[A-Z0-9]{2}(?:[A-Z0-9]{3})?\b/g,
+      /(?=[A-Z])(?<=\b(?:code\s+)?(?:[Bb][Ii][Cc]|[Ss][Ww][Ii][Ff][Tt])(?:\s*\/\s*(?:[Bb][Ii][Cc]|[Ss][Ww][Ii][Ff][Tt]))?\b[\s:.=/,;"'«»()[\]-]*(?:[a-zà-ÿ]+[\s:.=/,;"'«»()[\]-]+){0,4})[A-Z]{6}[A-Z0-9]{2}(?:[A-Z0-9]{3})?\b/g,
   },
   // GPS coordinates "lat, long" — 4+ decimals + valid geographic range.
   {

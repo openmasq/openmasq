@@ -83,8 +83,11 @@ export function detectLabeledFields(text: string): Detection[] {
     // ⚠️ Template literal: `\S`/`\p` MUST be double-escaped or the STRING layer eats the
     // backslash and `[^\S\r\n]` silently becomes "anything but a capital S", which kills the
     // "label ALONE" guard. `contextFields.test.ts` pins the repro.
+    // ⚠️ The space run after the label and the one after the colon are only ever BOTH there with
+    // the colon between them: « [ ]*:?[ ]* » let two adjacent runs split the same spaces —
+    // quadratic backtracking on a long run of tabs (4 s for 50 000). `secretWhitespaceRun.test.ts`.
     const vre = new RegExp(
-      `(?<=^|\n)[ \t]*${EMPH}(?:${alt})s?((?:[^\\S\r\n]+[\\p{L}'’]+){0,3})${EMPH}[^\\S\r\n]*[:：]?${EMPH}[ \t]*\r?\n[ \t]*([^\n\r]{2,80})`,
+      `(?<=^|\n)[ \t]*${EMPH}(?:${alt})s?((?:[^\\S\r\n]+[\\p{L}'’]+){0,3})${EMPH}[^\\S\r\n]*(?:[:：]${EMPH}[ \t]*|${EMPH})\r?\n[ \t]*([^\n\r]{2,80})`,
       "giu",
     );
     let vm: RegExpExecArray | null;
