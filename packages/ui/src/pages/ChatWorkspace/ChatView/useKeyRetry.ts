@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import type { ProviderId } from "@openmasq/llm";
+import { subscriptionCliOfProvider, type ProviderId, type SubscriptionCli } from "@openmasq/llm";
+import { useHost } from "../../../host";
 import type { ChatViewProps, Message } from "./types";
 
 /**
@@ -13,6 +14,9 @@ export function useKeyRetry(p: ChatViewProps) {
   const [keyTarget, setKeyTarget] = useState<{ provider: ProviderId; label: string } | null>(null);
   // The « Modèles gratuits » explainer, opened from the picker's badge; carries the provider so the « votre clé » card can name it.
   const [accessInfo, setAccessInfo] = useState<{ focus: "free" | "credits" | "key"; providerLabel?: string } | null>(null);
+  // « Se reconnecter »: the subscription CLI to sign in again, and the turn to replay after.
+  const [reconnect, setReconnect] = useState<{ cli: SubscriptionCli; label: string; msgId: string } | null>(null);
+  const host = useHost();
   const pendingRetryRef = useRef(false);
   const keyRetryMsgIdRef = useRef<string | null>(null);
 
@@ -23,7 +27,20 @@ export function useKeyRetry(p: ChatViewProps) {
       setKeyModalOpen(true);
     } else if (action.kind === "upgrade_plan") {
       onOpenSettings("billing");
+    } else if (action.kind === "cli_signin") {
+      const cli = subscriptionCliOfProvider(action.provider);
+      // A host that cannot run the sign-in (web preview): the agent's card in Réglages.
+      if (!cli || !host.loginSubscriptionCli) return onOpenSettings("models");
+      setReconnect({ cli, label: action.label ?? action.provider, msgId: assistantId });
     }
+  }
+
+  // Signed in from the card: the session is already noted (the gate reads it in this tick),
+  // so the failed turn is replayed in place, once — like a key just saved.
+  function reconnected() {
+    const msgId = reconnect?.msgId;
+    setReconnect(null);
+    if (msgId && onRegenerate) onRegenerate(msgId);
   }
 
   useEffect(() => {
@@ -65,6 +82,9 @@ export function useKeyRetry(p: ChatViewProps) {
     saveKey,
     connectKey,
     closeKeyModal: () => setKeyModalOpen(false),
+    reconnect,
+    reconnected,
+    closeReconnect: () => setReconnect(null),
   };
 }
 

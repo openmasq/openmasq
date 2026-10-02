@@ -1,6 +1,9 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { SubscriptionCli } from "@openmasq/llm";
 import type { Host } from "../../host";
 import { refreshLocalModels } from "../../hooks/useLocalModels";
+import type { CliReadiness } from "../../send/modelAvailability";
+import { cliReadiness, useCliSession } from "./cliSession";
 
 /**
  * The two AVAILABILITY probes that the pickers and the send guard read
@@ -54,6 +57,12 @@ export function useLocalEndpointProbe(host: Host, openaiCompatBaseUrl: string, o
 /** The host's CLI probe slots — one per linked subscription CLI. */
 type CliProbeSlot = "probeClaudeCli" | "probeCodexCli" | "probeAntigravityCli";
 
+const SLOT_CLI: Record<CliProbeSlot, SubscriptionCli> = {
+  probeClaudeCli: "claude",
+  probeCodexCli: "codex",
+  probeAntigravityCli: "antigravity",
+};
+
 /**
  * The shared core of the CLI probes (claude, codex, antigravity) — one behaviour,
  * three instances: a few `access()` calls on the main side (never a spawn), on mount
@@ -62,12 +71,28 @@ type CliProbeSlot = "probeClaudeCli" | "probeCodexCli" | "probeAntigravityCli";
  * model (fail-closed — most machines don't have the CLI, fail-open would offer it
  * to everyone only to fail on the 1st send). The slot is selected BY NAME for stable
  * effect deps — an arrow recreated on every render would re-run the probe in a loop.
+ *
+ * Once the CLI is on AND found, its SESSION is read too (`useCliSession`): a KNOWN
+ * signed-out CLI reads `"signed_out"`, so the picker greys it and the send gate refuses
+ * before any spawn. An unanswered status stays `true` — unknown never blocks.
  */
 function useCliProbe(host: Host, slot: CliProbeSlot, enabled: boolean | undefined) {
   const [detected, setDetected] = useState<boolean | null>(null);
-  const ready = enabled === true && detected === true;
-  const readyRef = useRef<boolean | null>(null);
-  readyRef.current = ready;
+  const active = enabled === true && detected === true;
+  const { loggedIn, loggedInRef } = useCliSession(host, SLOT_CLI[slot], active);
+  const ready = cliReadiness(active, loggedIn);
+  // DERIVED on read: a session noted out of band (a sign-in that just succeeded) reaches
+  // the send gate in the same tick — a regenerate fired right after reads it here.
+  const activeRef = useRef(active);
+  activeRef.current = active;
+  const readyRef = useMemo<{ readonly current: CliReadiness }>(
+    () => ({
+      get current() {
+        return cliReadiness(activeRef.current, loggedInRef.current);
+      },
+    }),
+    [loggedInRef],
+  );
   useEffect(() => {
     const probe = host[slot];
     if (!probe) {

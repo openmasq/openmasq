@@ -1,4 +1,4 @@
-import type { SubscriptionAccount } from "./types.js";
+import type { ProviderId, SubscriptionAccount } from "./types.js";
 
 /**
  * Setting a subscription CLI up from INSIDE the app — install it, then sign it in — so
@@ -47,3 +47,51 @@ export type SubscriptionLoginEvent =
   | { cli: SubscriptionCli; kind: "url"; url: string }
   | { cli: SubscriptionCli; kind: "code"; code: string }
   | { cli: SubscriptionCli; kind: "done"; ok: boolean; error?: SubscriptionSetupError };
+
+/** The catalogue provider each subscription CLI serves — the ONE table both main's
+ *  switchboard (`subscriptionCliFor`) and the interface's reconnect action read. */
+export const SUBSCRIPTION_CLI_PROVIDER: Readonly<Record<SubscriptionCli, ProviderId>> = {
+  claude: "claude-cli",
+  codex: "codex-cli",
+  antigravity: "antigravity-cli",
+};
+
+/** Provider → the CLI that serves it, or `null` (not a subscription CLI). */
+export function subscriptionCliOfProvider(provider: string): SubscriptionCli | null {
+  for (const cli of Object.keys(SUBSCRIPTION_CLI_PROVIDER) as SubscriptionCli[]) {
+    if (SUBSCRIPTION_CLI_PROVIDER[cli] === provider) return cli;
+  }
+  return null;
+}
+
+/**
+ * Can the app run this CLI's OWN sign-in (claude, codex)? antigravity has no sign-in
+ * command: its account is connected from the tool itself. Main's `loginSupported`
+ * (`subscription/install/login.ts`) answers from its argv table; `login.test.ts` pins
+ * that both answers agree.
+ */
+export const SUBSCRIPTION_CLI_IN_APP_LOGIN: Readonly<Record<SubscriptionCli, boolean>> = {
+  claude: true,
+  codex: true,
+  antigravity: false,
+};
+
+/**
+ * The wire CODE of a turn refused because the CLI's OWN session is missing or expired.
+ * Errors cross main → renderer as a message string (typed classes do not survive IPC),
+ * so main leads the message with `CLI_AUTH:<cli>` and the interface reads it back here —
+ * the same shape as the gateway's `CREDITS_EXHAUSTED`. What follows the code is the CLI's
+ * raw text, for the debug log only: the bubble shows the catalogue's sentence.
+ */
+const CLI_AUTH_RE = /\bCLI_AUTH:(claude|codex|antigravity)\b/;
+
+export function cliAuthWire(cli: SubscriptionCli, detail?: string): string {
+  const raw = (detail ?? "").replace(/\s+/g, " ").trim().slice(0, 400);
+  return raw ? `CLI_AUTH:${cli} · ${raw}` : `CLI_AUTH:${cli}`;
+}
+
+/** The CLI whose session expired, read from an error message — `null` for any other error. */
+export function cliAuthOf(message: string): SubscriptionCli | null {
+  const m = CLI_AUTH_RE.exec(message || "");
+  return m ? (m[1] as SubscriptionCli) : null;
+}

@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import type { SubscriptionCliStatus } from "@openmasq/llm";
-import { ExternalIcon, KeyIcon } from "../../../components/brand";
-import { useT } from "../../../i18n";
-import { useAgentSetup } from "../../../hooks/useAgentSetup";
-import type { AgentCli } from "../../../hooks/useAgentOptIns";
+import { ExternalIcon, KeyIcon } from "../../components/brand";
+import { useT } from "../../i18n";
+import { useAgentSetup } from "../../hooks/useAgentSetup";
+import type { AgentCli } from "../../hooks/useAgentOptIns";
 
 /** Why the rows report a connected account: `read` = the status was read as it stands
  *  (mount, a finished install), `login` = the sign-in the person just ran here succeeded. */
@@ -30,9 +30,14 @@ export function AgentSetupRows({
   cli,
   label,
   onConnected,
+  signInNow = false,
 }: {
   cli: AgentCli;
   label: string;
+  /** Start the CLI's sign-in as soon as it is known installed — even when its status
+   *  says connected: a session the API refused can still read « logged in » locally
+   *  (the reconnect card, `CliReconnectModal`). */
+  signInNow?: boolean;
   /** The account is connected — with WHY the rows know it. The onboarding listens: a
    *  CLI the person signs in from this very screen is the one they mean to use. */
   onConnected?: (status: SubscriptionCliStatus, cause: AgentConnectedCause) => void;
@@ -56,6 +61,14 @@ export function AgentSetupRows({
     loginStartedRef.current = true;
     setup.login();
   };
+  // AFTER the effect above: a status read as « connected » first is reported as `read`,
+  // and only the sign-in started here is reported as `login`.
+  const autoStartedRef = useRef(false);
+  useEffect(() => {
+    if (!signInNow || autoStartedRef.current || !status?.installed || !status.connectable) return;
+    autoStartedRef.current = true;
+    login();
+  });
   if (!setup.supported) return null;
 
   if (status === undefined) {
@@ -92,15 +105,6 @@ export function AgentSetupRows({
           </div>
         )}
         {errorLine}
-      </div>
-    );
-  }
-
-  if (status.loggedIn === true) {
-    return (
-      <div className="agent-account-row agent-setup-row agent-account-kv">
-        <span className="agent-account-label">{copy.connected(status.email)}</span>
-        {status.plan && <span className="agent-account-value">{copy.plan(status.plan)}</span>}
       </div>
     );
   }
@@ -159,6 +163,15 @@ export function AgentSetupRows({
             {copy.cancel}
           </button>
         </div>
+      </div>
+    );
+  }
+
+  if (status.loggedIn === true) {
+    return (
+      <div className="agent-account-row agent-setup-row agent-account-kv">
+        <span className="agent-account-label">{copy.connected(status.email)}</span>
+        {status.plan && <span className="agent-account-value">{copy.plan(status.plan)}</span>}
       </div>
     );
   }

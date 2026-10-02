@@ -7,7 +7,7 @@ import {
 } from "@openmasq/llm";
 import type { OrgProfileInfo, CreditBalance, BillingSubscription } from "../host";
 import { hardTaskAsk, lightTaskAsk } from "./autoTaskIntent";
-import { modelUnavailableReason } from "./modelAvailability";
+import { modelUnavailableReason, type CliReadiness } from "./modelAvailability";
 import { resolveEffectivePlatform } from "./routing";
 import { subscriptionsSold } from "./platformAccess";
 
@@ -69,9 +69,9 @@ export interface AutoRouteAvailability {
   personalSub?: BillingSubscription | null;
   openaiCompatBaseUrl: string;
   localEndpointReachable?: boolean | null;
-  claudeCliReady?: boolean | null;
-  codexCliReady?: boolean | null;
-  antigravityCliReady?: boolean | null;
+  claudeCliReady?: CliReadiness;
+  codexCliReady?: CliReadiness;
+  antigravityCliReady?: CliReadiness;
 }
 
 export interface AutoRouteResult {

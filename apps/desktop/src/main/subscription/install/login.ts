@@ -128,7 +128,10 @@ export function readLoginStatus(cli: SubscriptionCli, binPath: string, cwd: stri
     child.stderr.setEncoding("utf8");
     child.stderr.on("data", (c: string) => (out += c));
     child.on("error", finish);
-    child.on("exit", finish);
+    // `close`, not `exit`: `exit` can fire before the last stdout/stderr chunk is read, and
+    // a status parsed without its « Logged in » line reads as signed OUT (which greys the
+    // model). `close` waits for the streams; the timer still bounds a held-open pipe.
+    child.on("close", finish);
   });
 }
 
@@ -214,7 +217,8 @@ export function startLogin(
     child.stderr?.setEncoding("utf8");
     child.stderr?.on("data", onData);
     child.on("error", () => finish(false));
-    child.on("exit", (code) => finish(code === 0));
+    // `close`, not `exit`: a sign-in URL printed just before the CLI ends must reach `emit`.
+    child.on("close", (code) => finish(code === 0));
   });
   const session: LoginSession = {
     done,

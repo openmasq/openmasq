@@ -1,7 +1,15 @@
 import type { Messages } from "@openmasq/i18n";
 import type { SendErrorReason } from "../../analytics/events";
 import type { Message } from "../../types";
-import { PROVIDERS, providerCreditsExhausted, rateLimitInfo, type ProviderId } from "@openmasq/llm";
+import {
+  PROVIDERS,
+  SUBSCRIPTION_CLI_IN_APP_LOGIN,
+  SUBSCRIPTION_CLI_PROVIDER,
+  cliAuthOf,
+  providerCreditsExhausted,
+  rateLimitInfo,
+  type ProviderId,
+} from "@openmasq/llm";
 import { CreditsExhaustedError, MissingApiKeyError, RateLimitError } from "./classes";
 import { BRAND } from "@openmasq/branding";
 import { subscriptionsSold } from "../../send/platformAccess";
@@ -66,6 +74,14 @@ export function humanizeSendError(
   /** « OpenAI », or null when the caller couldn't say. */
   const name = opts?.provider ? (PROVIDERS[opts.provider]?.label ?? opts.provider) : null;
   const chez = name ? e.atProvider(name) : e.theProvider;
+  // FIRST: main's wire code for a subscription CLI whose OWN session is gone. The raw CLI
+  // text rides after it (debug log only) and would otherwise read as a refused API key —
+  // a key this path never had. The cure is a sign-in, never a retry.
+  const signedOut = cliAuthOf(m);
+  if (signedOut) {
+    const cli = PROVIDERS[SUBSCRIPTION_CLI_PROVIDER[signedOut]].label;
+    return SUBSCRIPTION_CLI_IN_APP_LOGIN[signedOut] ? e.cliSessionExpired(cli) : e.cliSessionExpiredExternal(cli);
+  }
   if (/CREDITS_EXHAUSTED/.test(m)) return new CreditsExhaustedError(opts?.personal ?? false, t).message;
   if (/CREDITS_UNVERIFIABLE/.test(m)) {
     // Deliberate fail-closed by the gateway (unreadable balance ≠ zero balance): the
@@ -179,6 +195,7 @@ export function sendErrorReason(e: unknown): SendErrorReason {
   // rate limit — counted as `rate_limit`, it inflated the wrong column; Anthropic's
   // 400, meanwhile, used to count as `bad_request` for a billing problem.
   const rawText = e instanceof Error ? e.message : String(e);
+  if (cliAuthOf(rawText)) return "auth";
   if (providerCreditsExhausted(rawText)) return "provider_credits";
   if (e instanceof RateLimitError || isRateLimitError(e)) return "rate_limit";
   const t = rawText.toLowerCase();
@@ -211,6 +228,14 @@ export function sendErrorReason(e: unknown): SendErrorReason {
  */
 export function sendErrorAction(raw: string, provider?: ProviderId): Message["errorAction"] | undefined {
   const m = raw || "";
+  // A signed-out CLI: its own sign-in, when the app can run it (antigravity: the text says
+  // where to go instead). Named from the CODE, so it holds whatever model was in flight.
+  const signedOut = cliAuthOf(m);
+  if (signedOut) {
+    if (!SUBSCRIPTION_CLI_IN_APP_LOGIN[signedOut]) return undefined;
+    const pid = SUBSCRIPTION_CLI_PROVIDER[signedOut];
+    return { kind: "cli_signin", provider: pid, label: PROVIDERS[pid].label };
+  }
   if (provider && (providerCreditsExhausted(m) || INVALID_KEY.test(m))) {
     return { kind: "missing_key", provider, label: PROVIDERS[provider]?.label ?? provider };
   }

@@ -1,7 +1,7 @@
 import { PROVIDERS } from "@openmasq/llm";
 import { useRef } from "react";
 import { ModelLogo, Switch } from "../../components/brand";
-import { AgentSetupRows, type AgentConnectedCause } from "../Settings/models/AgentSetupRows";
+import { AgentSetupRows, type AgentConnectedCause } from "../../containers/agentSetup/AgentSetupRows";
 import { useT } from "../../i18n";
 import type { AgentOptIn } from "../../hooks/useAgentOptIns";
 

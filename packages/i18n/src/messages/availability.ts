@@ -25,6 +25,9 @@ export interface AvailabilityMessages {
   freeModeUnsold: (brand: string, provider: string) => string;
   cliRequired: string;
   cliUnavailable: (cli: string) => string;
+  /** The CLI is here and switched on, but its own status says signed out. */
+  cliSignedOut: string;
+  cliSignedOutTitle: (cli: string) => string;
   noEndpoint: string;
   noEndpointTitle: string;
   endpointUnreachable: string;

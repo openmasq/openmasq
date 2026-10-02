@@ -25,6 +25,8 @@ export const availability = {
   cliRequired: "CLI required",
   cliUnavailable: (cli) =>
     `This model goes through the ${cli} CLI on this machine. Install it, sign in, then turn it on in Settings → Models.`,
+  cliSignedOut: "Signed out",
+  cliSignedOutTitle: (cli) => `${cli} is no longer signed in to your account. Sign in again to continue.`,
   noEndpoint: "No server address",
   noEndpointTitle: "No server address. Add it in Settings → Models → A model on your own computer.",
   endpointUnreachable: "Server unreachable",

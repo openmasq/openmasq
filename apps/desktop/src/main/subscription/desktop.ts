@@ -7,18 +7,17 @@
 import { app } from "electron";
 import { mkdirSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
+import { subscriptionCliOfProvider } from "@openmasq/llm";
 import { ANTIGRAVITY_APP_DATA_DIR, ANTIGRAVITY_SETTINGS } from "./antigravityEngine";
 import { appCliRoots } from "./install";
 import { resolveCli, type SubscriptionCliId } from "./resolveCli";
 import type { SubscriptionTurnEnv } from "./turn";
 import { mainMessages } from "../i18n";
 
-/** Catalog provider → subscription CLI, or `null` (not a CLI path). */
+/** Catalog provider → subscription CLI, or `null` (not a CLI path). The table is
+ *  `@openmasq/llm`'s (`SUBSCRIPTION_CLI_PROVIDER`), shared with the interface. */
 export function subscriptionCliFor(provider: string): SubscriptionCliId | null {
-  if (provider === "claude-cli") return "claude";
-  if (provider === "codex-cli") return "codex";
-  if (provider === "antigravity-cli") return "antigravity";
-  return null;
+  return subscriptionCliOfProvider(provider);
 }
 
 /**

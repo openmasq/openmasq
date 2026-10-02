@@ -82,6 +82,7 @@ export async function* streamCodexSubscription(
   opts: CodexTurnOptions,
 ): AsyncGenerator<string, StreamDone> {
   return yield* streamCliProcess({
+    cli: "codex",
     binPath: opts.binPath,
     args: buildCodexArgs(opts),
     cwd: opts.cwd,

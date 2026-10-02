@@ -22,6 +22,9 @@ export const errors = {
   invalidKeyNamed: (provider) =>
     `Votre clé ${provider} a été refusée. Vérifiez-la, ou renseignez-en une nouvelle.`,
   invalidKey: "Votre clé a été refusée par le fournisseur. Vérifiez-la, ou renseignez-en une nouvelle.",
+  cliSessionExpired: (cli) => `Votre session ${cli} a expiré. Reconnectez-vous pour continuer.`,
+  cliSessionExpiredExternal: (cli) =>
+    `Votre session ${cli} a expiré. Reconnectez-vous depuis ${cli}, puis réessayez.`,
   rateBurst: (wait) => `Trop de requêtes d'un coup. Attendez ${wait} et réessayez.`,
   someSeconds: "quelques secondes",
   freeCap: (limit) => `${limit} requêtes gratuites`,
