@@ -12,14 +12,14 @@ export const connectorCatalog = {
     github: { desc: "Repositories & issues" },
     "google-calendar": { name: "Google Calendar", desc: "Events & appointments" },
     "google-drive": { desc: "Search, read and upload Drive files" },
-    "google-docs": { desc: "Create, read and extend your Google Docs" },
+    "google-docs": { desc: "Create, read and edit your Google Docs" },
     "google-sheets": { desc: "Read ranges, append rows and create spreadsheets" },
     "google-tasks": { desc: "List, create and complete your tasks" },
     "google-analytics": { desc: "GA4 properties & traffic reports (read-only)" },
     "microsoft-outlook": { desc: "Search, read and send Outlook emails" },
     "microsoft-onedrive": { desc: "Search and read your OneDrive files" },
     "microsoft-sharepoint": { desc: "Search and read your SharePoint sites and libraries" },
-    "microsoft-teams": { desc: "Teams, channels and Teams messages" },
+    "microsoft-teams": { desc: "Teams, channels and messages" },
     exa: { desc: "Web & code search, page crawling" },
     tavily: { desc: "Real-time web search + extraction/crawl" },
     firecrawl: { desc: "Scrape & crawl sites into Markdown" },
@@ -34,10 +34,10 @@ export const connectorCatalog = {
     vercel: { desc: "Track deployments, projects and logs" },
     neon: { desc: "Query your serverless Postgres databases" },
     supabase: { desc: "Database, edge functions, logs" },
-    semgrep: { desc: "Analyse your code's security" },
+    semgrep: { desc: "Analyze your code's security" },
     stripe: { desc: "Browse payments, customers and invoices" },
     paypal: { desc: "Browse payments, invoices and orders" },
-    square: { desc: "Browse payments, catalogue and orders" },
+    square: { desc: "Browse payments, catalog and orders" },
     close: { desc: "CRM: manage leads, contacts and opportunities" },
     intercom: { desc: "Browse conversations, contacts and tickets" },
     attio: { desc: "CRM: contacts, companies, deals, notes" },
@@ -55,13 +55,13 @@ export const connectorCatalog = {
     netlify: { desc: "Deploy, manage and secure Netlify sites" },
     "prisma-postgres": { desc: "Query & manage your Prisma Postgres database" },
     cloudinary: { desc: "Image and video management & transformation" },
-    jotform: { desc: "Build forms & analyse responses" },
+    jotform: { desc: "Build forms & analyze responses" },
     websitepublisher: { desc: "Build and publish sites through conversation" },
     morningstar: { desc: "Investment & market data" },
-    vantage: { desc: "Analysis of your cloud costs" },
+    vantage: { desc: "Analyze your cloud costs" },
     synapse: { desc: "Search & metadata for scientific data" },
     airtable: { desc: "Bases, tables and records: read, create and update" },
-    filesystem: { desc: "Read/write files in an authorised folder (local server)" },
+    filesystem: { desc: "Read/write files in an allowed folder (local server)" },
     browser: {
       name: "Browser",
       desc: "Let the model act in a browser (fill in forms, click) on your connected sites.",
@@ -83,49 +83,49 @@ export const connectorCatalog = {
     builtin: {
       label: "Built-in",
       title:
-        "Ships with the app: nothing to connect, nothing to pay, no account to link. Just turn it on.",
+        "Included with the app. No account needed. Turn it on to use it.",
     },
     directFull:
-      "The service's sign-in page opens: you accept, and that's it. Nothing to copy-paste, no key to create.",
+      "Sign in on the service's page and approve access. No key needed.",
     byoOnly: {
       label: "Your keys",
-      title: (what, reason) => `For ${what}, your own keys are needed — ${reason}.`,
+      title: (what, reason) => `For ${what}, you need your own keys: ${reason}.`,
     },
     byoLimited: {
-      label: "1-click, limited",
+      label: "1-click (partial)",
       title: (what, reason) =>
-        `One-click sign-in, nothing to create. For ${what}, your own keys will be needed — ${reason}.`,
+        `One-click sign-in. For ${what}, you need your own keys: ${reason}.`,
     },
     device: {
-      label: "Device",
-      title: "A code to enter on the service's site, and that's it. No key to create.",
+      label: "Code sign-in",
+      title: "Enter a code on the service's website to connect. No key needed.",
     },
     oneClick: "1-click",
     local: {
       label: "Local",
       title:
-        "This tool runs on your machine: your folders and your credentials stay with you, and are never sent to the model.",
+        "This tool runs on your device. Your folders and credentials stay on your device and are never sent to the model.",
     },
     broker: {
       label: (brand) => `Via ${brand}`,
       title: (brand) =>
-        `You sign in to your account, and ${brand} handles the rest: nothing to create, no code to paste.`,
+        `Sign in to your account and ${brand} handles the rest. No key or code needed.`,
     },
     apikey: {
       label: "Key required",
       title:
-        "This service asks for a key, to fetch on its site and paste here. There is no sign-in page.",
+        "This service needs an API key. Get it from the service's website and paste it here.",
     },
     oneClickRemote: {
       label: "1-click",
       title:
-        "The service's sign-in page opens in your browser: you accept, and that's it. Nothing to create.",
+        "Sign in on the service's page in your browser and approve access. No key needed.",
     },
     byoSafe: (brand) =>
-      `Your credentials stay encrypted on your device and go through no ${brand} server.`,
-    reasonAdminConsent: "only an administrator of your organisation can authorise it",
+      `Your credentials stay encrypted on your device and never pass through ${brand} servers.`,
+    reasonAdminConsent: "only an administrator in your organization can approve it",
     reasonGoogleReview: (brand) =>
-      `Google is still reviewing ${brand} before opening this access in one click (in progress)`,
-    thisAccess: "this access",
+      `Google is still reviewing ${brand} for one-click access`,
+    thisAccess: "this feature",
   },
 } satisfies Messages["connectorCatalog"];

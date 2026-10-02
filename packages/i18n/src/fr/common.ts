@@ -31,10 +31,10 @@ export const nav = {
 
 export const billing = {
   ctaSee: "Voir les abonnements",
-  ctaUpgrade: "Passer à un abonnement supérieur",
-  exhaustedTitle: "Vous avez utilisé tout ce qui est inclus ce mois-ci.",
+  ctaUpgrade: "Passer à l'abonnement supérieur",
+  exhaustedTitle: "Vous avez utilisé les crédits inclus ce mois-ci.",
   exhaustedBody:
-    "Tout revient au début du mois prochain. En attendant, votre protection ne s'arrête pas, et vos propres clés continuent de fonctionner.",
+    "Les crédits se renouvellent au début du mois prochain. Le masquage reste actif et vos propres clés API fonctionnent toujours.",
   tiers: {
     free: {
       name: "Gratuit",
@@ -50,7 +50,7 @@ export const billing = {
       name: "Solo",
       feats: [
         () => "Tout Gratuit, plus :",
-        () => "Tous les modèles dans un fil",
+        () => "Tous les modèles dans une conversation",
         () => "Synchro multi-appareils",
         () => "Historique illimité",
       ],
@@ -60,31 +60,31 @@ export const billing = {
       feats: [
         () => "Tout Solo, pour chaque membre, plus :",
         () => "Règles de masquage imposées",
-        () => "Modèles et connecteurs autorisés",
+        () => "Contrôle des modèles et connecteurs autorisés",
         () => "Facture unique et journal d'audit",
       ],
     },
   },
-  tierLabels: { free: "Free", solo: "Solo", team: "Team", scale: "Scale" },
+  tierLabels: { free: "Gratuit", solo: "Solo", team: "Team", scale: "Scale" },
   errors: {
     disabled:
-      "Les abonnements ne sont pas encore ouverts sur cette version. L'offre est affichée à titre indicatif.",
+      "Les abonnements ne sont pas encore ouverts dans cette version. Les offres sont affichées à titre indicatif.",
     testerMode:
-      "Ce déploiement n'encaisse pas les abonnements : les offres s'y activent sans paiement, depuis une application à jour.",
-    alreadyActive: "Un abonnement est déjà actif sur ce compte — utilisez « Ouvrir le portail » pour le gérer.",
-    noCustomer: "Aucun abonnement à gérer pour l'instant — abonnez-vous d'abord.",
+      "Ce déploiement n'encaisse aucun paiement. Les offres s'activent sans paiement depuis une application à jour.",
+    alreadyActive: "Un abonnement est déjà actif sur ce compte. Utilisez « Ouvrir le portail » pour le gérer.",
+    noCustomer: "Aucun abonnement à gérer pour l'instant : abonnez-vous d'abord.",
     priceNotConfigured: "La facturation n'est pas encore configurée côté serveur. Contactez le support.",
     stripe: "Erreur Stripe temporaire. Réessayez dans un instant.",
     signIn: "Connectez-vous pour gérer votre abonnement.",
-    accountNotFound: "Compte introuvable — reconnectez-vous.",
+    accountNotFound: "Compte introuvable. Reconnectez-vous.",
     serverDown: "Le service de paiement ne répond pas. Réessayez dans un instant.",
     generic: "Impossible d'ouvrir la page de paiement. Réessayez.",
   },
   checkoutOpenFailed: "Impossible d'ouvrir la page de paiement. Réessayez.",
   freeModeEyebrow: "VOTRE ACCÈS",
-  freeModeTitle: "Tout est inclus sur cette version",
+  freeModeTitle: "Tout est inclus dans cette version",
   freeModeBody: (brand) =>
-    `Cette installation de ${brand} n'a ni abonnement ni paiement : tous les modèles inclus sont disponibles, sans limite de crédits. Vos propres clés et vos modèles locaux fonctionnent comme d'habitude.`,
+    `Cette installation de ${brand} n'a ni abonnement ni paiement : tous les modèles inclus sont disponibles, sans limite de crédits. Vos propres clés API et vos modèles locaux fonctionnent comme d'habitude.`,
   freeModeUsed: (amount) => `${amount} utilisés ce mois-ci · sans limite`,
   unlimitedTier: "Tout inclus",
 } satisfies Messages["billing"];

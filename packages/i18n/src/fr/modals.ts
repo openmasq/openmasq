@@ -10,13 +10,13 @@ export const modals = {
   transparency: {
     title: "Ce que le modèle a vu",
     sub: (n, modelName) =>
-      `${n} information${n === 1 ? "" : "s"} remplacée${n === 1 ? "" : "s"} avant d'atteindre ${modelName}. À gauche votre texte, à droite ce qui est parti.`,
+      `${n} information${n === 1 ? "" : "s"} remplacée${n === 1 ? "" : "s"} avant d'atteindre ${modelName}. À gauche votre texte, à droite ce qui a été envoyé.`,
     theModel: "le modèle",
     close: "Fermer",
     empty:
       "Rien de sensible n'a été détecté dans cette conversation : le modèle a reçu vos messages tels quels.",
     youWrote: "Ce que vous avez écrit",
-    youRead: "Ce que vous lisez",
+    youRead: "Ce qui vous est affiché",
     modelReceived: "Ce que le modèle a reçu",
     modelWrote: "Ce que le modèle a écrit",
     yourMessage: "Votre message",
@@ -27,7 +27,7 @@ export const modals = {
   error: {
     eyebrow: "ERREUR",
     title: "Détail de l'erreur",
-    sub: "Le message brut du fournisseur / de l'outil. Il n'est pas ajouté à la conversation.",
+    sub: "Le message brut du fournisseur ou de l'outil. Il n'est pas ajouté à la conversation.",
     copy: "Copier",
     copied: "Copié",
     retry: "Réessayer",
@@ -41,9 +41,9 @@ export const modals = {
     restartNow: "Redémarrer maintenant",
     restarting: "Redémarrage…",
     restartingHint:
-      "L'app se ferme et se relance d'elle-même dans quelques secondes — inutile de la rouvrir à la main.",
+      "L'app redémarre dans quelques secondes.",
     restartSlow:
-      "C'est plus long que prévu. Vous pouvez quitter l'app vous-même : la mise à jour s'applique à la prochaine ouverture.",
+      "L'app n'a pas encore redémarré. Quittez-la : la mise à jour s'installe au prochain lancement.",
     retry: "Réessayer",
   },
 
@@ -52,9 +52,9 @@ export const modals = {
     sub: (connector) =>
       `${connector} peut être utilisé avec votre compte ou en accès anonyme. Vous pourrez changer plus tard en le reconnectant.`,
     withAccount: "Se connecter avec mon compte",
-    withAccountDesc: (connector) => `Utilise vos crédits, quotas et accès — comme sur ${connector}.`,
+    withAccountDesc: (connector) => `Utilise vos crédits, quotas et accès sur ${connector}.`,
     anonymous: "Utiliser sans compte",
-    anonymousDesc: "Accès anonyme, limité — aucun identifiant, quotas partagés.",
+    anonymousDesc: "Accès anonyme et limité, sans identifiant. Quotas partagés.",
     cancel: "Annuler",
   },
 
@@ -66,10 +66,10 @@ export const modals = {
 
   feedback: {
     title: "Votre avis",
-    sub: "Dites-nous ce qui marche — ou ce qui coince. On lit tout.",
+    sub: "Dites-nous ce qui marche et ce qui ne marche pas.",
     thanks: "Merci !",
     thanksWithLog:
-      "Message reçu, avec le journal de débogage — sans la table de correspondance, donc sans vos valeurs réelles.",
+      "Message reçu, avec le journal de débogage. Il ne contient pas vos valeurs réelles.",
     thanksPlain: "Message reçu. Aucun contenu de vos conversations n'a été joint.",
     close: "Fermer",
     moodLabel: "Comment ça se passe ?",
@@ -90,11 +90,11 @@ export const modals = {
     logDraft: "Rapport depuis le journal de débogage.\nCe qui n'allait pas : ",
     replyDraft: "À propos de cette réponse : ",
     attachLogSub:
-      "Le texte parti au modèle (déjà masqué), les outils et les erreurs — sans la table de correspondance, donc aucune valeur réelle. Aperçu ci-dessous.",
+      "Le texte envoyé au modèle (déjà masqué), les outils et les erreurs, sans vos valeurs réelles. Aperçu ci-dessous.",
     confidential: "Confidentiel",
     sendMail: "Ouvrir dans votre messagerie",
     mailDone:
-      "Votre messagerie s'est ouverte, le message est prêt — il part quand vous l'envoyez.",
+      "Votre messagerie s'est ouverte avec le message prêt à envoyer.",
     mailFallback: (address) => `Rien ne s'est ouvert ? Écrivez à ${address}.`,
     copyAddress: "Copier l'adresse",
     copied: "Copiée",
@@ -109,7 +109,7 @@ export const modals = {
     alreadySaved: (provider) =>
       `Une clé ${provider} est déjà enregistrée. En coller une nouvelle la remplacera.`,
     connectTip: (brand, provider) =>
-      `${brand} se connecte à votre compte ${provider} : vos crédits, votre quota.`,
+      `${brand} se connecte à votre compte ${provider} et utilise ses crédits et son quota.`,
     authorizing: "Autorisation dans votre navigateur…",
     getNewKey: "Obtenir une nouvelle clé",
     getFreeKey: "Obtenir une clé gratuitement",
@@ -122,7 +122,7 @@ export const modals = {
     keyPlaceholderFallback: (provider) => `Votre clé ${provider}`,
     saveAndSend: "Enregistrer et envoyer",
     replaceKey: "Remplacer la clé",
-    connectIncomplete: "Connexion non terminée. Réessayez — rien n'a été enregistré.",
+    connectIncomplete: "Connexion non terminée. Rien n'a été enregistré. Réessayez.",
     connectUnreachable: "Connexion impossible. Réessayez dans un instant.",
   },
 
@@ -135,19 +135,19 @@ export const modals = {
     searchPlaceholder: "Rechercher (valeur réelle ou masquée, outil, erreur…)",
     clearSearch: "Effacer",
     copyFullTip:
-      "Copie le journal complet, mapping masqué → original inclus (valeurs réelles — pour vos yeux)",
-    copyFull: "Copier (réel)",
+      "Copie le journal complet, avec la correspondance masqué → original (valeurs réelles, à ne pas partager)",
+    copyFull: "Copier avec valeurs réelles",
     copyNoMapTip:
-      "Copie le journal SANS le mapping masqué → original (aucune valeur réelle) — sûr à partager",
-    copyNoMap: "Sans mapping",
+      "Copie le journal sans la correspondance masqué → original (aucune valeur réelle). Vous pouvez le partager.",
+    copyNoMap: "Copier sans valeurs réelles",
     copied: "Copié",
     clearTip: "Vider le journal de cette conversation",
     clear: "Vider",
     sendToDevsTip:
-      "Ouvre « Votre avis » avec le journal SANS mapping joint — vous le voyez avant l'envoi",
-    sendToDevs: "Envoyer aux devs",
+      "Ouvre « Votre avis » avec le journal joint, sans la correspondance. Vous le relisez avant l'envoi.",
+    sendToDevs: "Envoyer au support",
     copyEntry: "Copier cette entrée",
-    tabs: { all: "Tout", phase: "Étapes", wire: "Wire", turn: "Échanges", tool: "Outils", error: "Erreurs" },
+    tabs: { all: "Tout", phase: "Étapes", wire: "Requêtes", turn: "Échanges", tool: "Outils", error: "Erreurs" },
   },
 
   guide: {
@@ -160,7 +160,7 @@ export const modals = {
     eyebrow: "DEPUIS CLAUDE",
     title: "Importer mes compétences",
     sub: (source) =>
-      `Celles que ${source} garde sur cet appareil, ou un dossier que vous déposez ici. Rien ne sort de la machine, et rien n'est modifié chez Claude.`,
+      `Celles que ${source} garde sur cet appareil, ou un dossier que vous déposez ici. Rien n'est envoyé hors de cet appareil, et rien n'est modifié chez Claude.`,
     reading: "Lecture des compétences…",
     dropTitle: "Déposez vos compétences ici",
     nothingFound: "Rien trouvé automatiquement sur cet appareil.",
@@ -170,37 +170,37 @@ export const modals = {
     eyebrow: "ACCÈS AUX MODÈLES",
     titleKey: "Ce modèle demande votre clé",
     titleCreditsSold: "Ce modèle demande un abonnement",
-    titleCreditsClosed: "Ce modèle n'est pas ouvert sur votre compte",
+    titleCreditsClosed: "Ce modèle n'est pas disponible sur votre compte",
     titleFree: "Gratuit, avec des limites",
     thisProvider: "Ce fournisseur",
     leadUnserved: (provider) =>
-      `${provider} s'utilise avec votre propre clé. Cette version n'a pas de service hébergé : un modèle local ou votre CLI d'abonnement sont les autres chemins.`,
-    leadKey: (provider) => `${provider} s'utilise avec votre propre clé — ou choisissez un autre modèle.`,
+      `${provider} demande votre propre clé API. Cette version n'a pas de service hébergé. Vous pouvez aussi utiliser un modèle local ou la CLI de votre abonnement.`,
+    leadKey: (provider) => `${provider} demande votre propre clé API. Vous pouvez aussi choisir un autre modèle.`,
     leadCreditsSold: (brand) => `Ce modèle passe par ${brand}, et votre compte n'a plus de crédits.`,
     leadCreditsClosed: (brand) =>
       `Ce modèle passe par ${brand}, et il n'est pas disponible sur votre compte pour le moment.`,
     leadFreeSold: (brand) =>
-      `Un modèle gratuit n'entame pas vos crédits : compte ${brand} connecté, sans abonnement — mais débit et disponibilité dépendent du fournisseur.`,
+      `Les modèles gratuits n'utilisent pas vos crédits. Il suffit d'être connecté à ${brand}, sans abonnement. Débit et disponibilité dépendent du fournisseur.`,
     leadFreeServed: (brand) =>
-      `Un modèle gratuit est inclus avec votre compte ${brand}, sans clé — mais débit et disponibilité dépendent du fournisseur.`,
+      `Un modèle gratuit est inclus avec votre compte ${brand}, sans clé. Débit et disponibilité dépendent du fournisseur.`,
     freeModels: "Les modèles gratuits",
     includedModels: "Les modèles inclus",
     freeDescSold: (brand) =>
-      `Inclus avec votre compte ${brand}, sans abonnement et sans clé. Usage limité — c'est ce qui est déjà sélectionné par défaut.`,
+      `Inclus avec votre compte ${brand}, sans abonnement ni clé. Usage limité. Sélectionné par défaut.`,
     freeDescServed: (brand) =>
-      `Servis sur votre compte ${brand}, sans clé à gérer. Un modèle gratuit est déjà sélectionné par défaut ; son débit dépend du fournisseur.`,
+      `Servis sur votre compte ${brand}, sans clé à gérer. Un modèle gratuit est sélectionné par défaut. Son débit dépend du fournisseur.`,
     subscription: (brand) => `Un abonnement ${brand}`,
     subscriptionDesc: (brand) =>
-      `Les modèles fournis par ${brand}, sans aucune clé à gérer : vos crédits mensuels paient l'usage.`,
+      `Les modèles fournis par ${brand}, sans clé à gérer. Vos crédits mensuels paient l'usage.`,
     subscriptionCovers: "Votre abonnement couvre déjà ces modèles",
-    subscriptionCoversDesc: "Choisissez simplement un modèle non gratuit — rien d'autre à faire.",
+    subscriptionCoversDesc: "Choisissez un modèle non gratuit.",
     ownKey: "Votre propre clé",
     ownKeyDesc: (soldSuffix) =>
-      `Branchez votre clé OpenAI, Anthropic, Mistral… : c'est votre fournisseur qui vous facture${soldSuffix}. La protection est la même.`,
-    ownKeyWithoutCredits: ", sans passer par vos crédits",
-    ownKeyStatic: "Renseignez-la depuis la puce de son fournisseur, en haut de cette page.",
+      `Ajoutez votre clé OpenAI, Anthropic, Mistral… : votre fournisseur vous facture${soldSuffix}. La protection est la même.`,
+    ownKeyWithoutCredits: ", sans utiliser vos crédits",
+    ownKeyStatic: "Ajoutez-la avec le bouton de son fournisseur, en haut de cette page.",
     openRouterNote: (brand) =>
-      `Cas particulier : dans le catalogue étendu OpenRouter, seuls les modèles proposés par ${brand} passent sans clé — les autres demandent votre propre clé OpenRouter.`,
+      `Cas particulier : dans le catalogue étendu OpenRouter, seuls les modèles proposés par ${brand} fonctionnent sans clé. Les autres demandent votre propre clé OpenRouter.`,
   },
 
   searchRows: {
@@ -218,7 +218,7 @@ export const modals = {
     defaultLevelLink: "Modifier le niveau par défaut dans Réglages → Confidentialité",
     memoryTitle: "Mémoire dans cette conversation",
     memoryDesc: (brand) =>
-      `Coupée : rien de votre mémoire n'accompagne les envois d'ici, le modèle ne peut pas la consulter, et ${brand} n'y note rien de lui-même. « Retiens que… » reste possible — c'est votre demande.`,
+      `Désactivée : votre mémoire n'est pas envoyée avec vos messages, le modèle ne peut pas la consulter, et ${brand} n'y enregistre rien de lui-même. « Retiens que… » fonctionne toujours.`,
     done: "Terminé",
   },
 } satisfies Messages["modals"];

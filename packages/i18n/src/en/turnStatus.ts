@@ -18,16 +18,16 @@ export const turnStatus = {
     limit: "Limit reached",
   },
   retry: "Retry",
-  fillKey: "Enter the key",
+  fillKey: "Enter key",
   failedDefault: "The reply failed.",
-  interrupted: "The reply was cut off before the end.",
+  interrupted: "The reply stopped before the end.",
   empty: "The model returned nothing.",
   toolFlowFailed:
-    "A step of the tool flow failed. Retrying restarts the flow (successful steps are replayed; every write asks for confirmation again).",
+    "A tool step failed. Retrying runs all steps again, and each change asks for your confirmation again.",
   credits: {
     title: "Your free credits are used up",
     desc: (brand, keyName) =>
-      `Take a subscription to keep using the models ${brand} provides, or send with your own ${keyName} key — it never touches your credits.`,
+      `Subscribe to keep using the models ${brand} provides, or use your own ${keyName} key. It doesn't use your credits.`,
     resetOn: (date) => `Resets on ${date}`,
     useKey: (name) => `Use my ${name} key`,
     useKeyTip: (name) => `Enter your ${name} key`,

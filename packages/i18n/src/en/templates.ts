@@ -15,7 +15,7 @@ export const templates = {
 2. What really differs between the two, in three lines.
 3. What the pages do NOT say and would be worth checking.
 
-Read only: fill in no form and sign in to no account.`,
+Read only: don't fill in any forms or sign in to any accounts.`,
     },
     "preparer-journee": {
       name: "Prepare my day",
@@ -28,14 +28,14 @@ Read only: fill in no form and sign in to no account.`,
     },
     "compte-rendu-reunions": {
       name: "Minutes of my meetings",
-      desc: "Decisions and actions drawn from this week's transcripts.",
+      desc: "Decisions and actions from your meeting transcripts.",
       prompt: `Go over my meetings since {date}.
 
 1. For each one: the subject, the attendees, and the decisions taken.
 2. The actions that fall to me, with the deadline if one was stated.
 3. The topics left open, to put back on the agenda.
 
-Add no decision that does not appear in the transcripts.`,
+Don't add any decision that isn't in the transcripts.`,
     },
     "recherche-notion": {
       name: "Find it in Notion",
@@ -46,7 +46,7 @@ Add no decision that does not appear in the transcripts.`,
 2. What each one says about the question, in two lines, with the link.
 3. The answer those pages support — and what they do not say.
 
-Change nothing: read only.`,
+Read only: don't change anything.`,
     },
     "revue-boite-mail": {
       name: "Review my inbox",
@@ -60,26 +60,26 @@ Change nothing: read only.`,
 Send nothing: show me first.`,
     },
     "point-hebdo-slack": {
-      name: "Weekly round-up of a channel",
+      name: "Weekly channel recap",
       desc: "Decisions, open questions, and what is addressed to me.",
-      prompt: `Read back the messages in the {channel} channel over the last {number} days.
+      prompt: `Review the messages in the {channel} channel from the last {number} days.
 
 - The decisions taken.
 - The questions left unanswered.
 - What is addressed to me directly.
 
-Finish with the three things not to miss.`,
+End with the three things I shouldn't miss.`,
     },
     "point-client": {
-      name: "Where a client stands",
-      desc: "Gathers the exchanges and documents about a client, and says where it stands.",
-      prompt: `Give me the state of play on {client}.
+      name: "Client status",
+      desc: "Gathers the emails and documents about a client, and sums up where things stand.",
+      prompt: `Give me a status update on {client}.
 
 1. The latest email exchanges: who wrote what, and when.
 2. The documents about them, with their date.
 3. What is waiting on me, and what is waiting on them.
 
-Finish with the next thing to do. Add nothing that is not in the exchanges or the
+End with the next step. Don't add anything that isn't in the emails or the
 documents.`,
     },
     "recherche-documents": {
@@ -92,31 +92,31 @@ documents.`,
 3. The answer those documents support — and what they do not say.`,
     },
     "point-paiements": {
-      name: "Where my payments stand",
-      desc: "Takings, failures and unpaid invoices for the period.",
-      prompt: `Give me the state of play on my payments since {date}.
+      name: "Payment status",
+      desc: "Payments received, failed payments and unpaid invoices for the period.",
+      prompt: `Give me a status update on my payments since {date}.
 
-1. The total taken, and the difference with the previous period.
+1. The total received, and the change from the previous period.
 2. The failed or disputed payments, with the reason.
 3. The unpaid invoices, oldest first.
 
-Read only: create nothing, refund nothing, cancel nothing.`,
+Read only: don't create, refund or cancel anything.`,
     },
     "veille-sujet": {
-      name: "Watch a topic",
+      name: "Monitor a topic",
       desc: "Searches the web and returns a sourced summary.",
-      prompt: `Watch {topic} for the last {number} days.
+      prompt: `Monitor {topic} over the last {number} days.
 
 1. What is new, with the source and the date of each item.
 2. What that changes in practice, in three lines.
-3. What you did NOT find and would be missing to conclude.
+3. What you did NOT find that would be needed to draw a conclusion.
 
-Cite your sources, and conclude nothing they do not say.`,
+Cite your sources, and don't conclude anything they don't support.`,
     },
     "revue-depot": {
       name: "Repository review",
       desc: "Open PRs, reviews waiting on you, the most active issues.",
-      prompt: `Give me the state of play on the {repository} repository.
+      prompt: `Give me a status update on the {repository} repository.
 
 1. The open pull requests: how long they have been open, and who is waiting on what.
 2. The ones waiting on my review.
@@ -125,15 +125,15 @@ Cite your sources, and conclude nothing they do not say.`,
 One line per item, with the link.`,
     },
     "suivi-projet": {
-      name: "Project follow-up",
+      name: "Project tracking",
       desc: "What is moving, what is stuck, what has slipped.",
-      prompt: `Give me the state of play on the {project} project.
+      prompt: `Give me a status update on the {project} project.
 
 - What has been finished since {date}.
 - What is in progress, and for how long.
 - What is blocked or late, with the reason if one is noted.
 
-Finish with the risks you see for the deadline.`,
+End with the risks you see to the deadline.`,
     },
     "erreurs-semaine": {
       name: "This week's errors",
@@ -151,21 +151,21 @@ Finish with the risks you see for the deadline.`,
       desc: "Writes a clear reply to an email you received.",
       prompt: `Write a professional reply to the email below.
 
-- Courteous and direct, with no empty phrases.
-- Take up every point raised, in order.
-- Finish with the concrete next step.
+- Courteous and direct, no filler.
+- Address each point raised, in order.
+- End with the concrete next step.
 
 The email:
 `,
     },
     "resume-document": {
-      name: "Summary of a document",
-      desc: "Pulls out the gist, the key points and the decisions to take.",
-      prompt: `Summarise the document below.
+      name: "Document summary",
+      desc: "Pulls out the gist, the key points and the decisions to be made.",
+      prompt: `Summarize the document below.
 
 1. The gist, in three sentences.
 2. The key points, as a list.
-3. The decisions to take or the actions expected, with who does what.
+3. The decisions to be made or the actions expected, with who does what.
 
 Flag what is missing or ambiguous rather than filling it in.
 
@@ -185,17 +185,16 @@ The code:
 `,
     },
     "lecture-contrat": {
-      name: "Reading a contract",
+      name: "Contract review",
       desc: "Spots commitments, deadlines and risky clauses.",
-      prompt: `Analyse the contract below.
+      prompt: `Analyze the contract below.
 
 - Each party's commitments.
 - The durations, deadlines, notice periods and renewals.
 - The unusual or risky clauses, and why.
 - The points to have clarified before signing.
 
-This is a reading, not legal advice: say plainly what deserves a professional's
-opinion.
+Flag clearly the points that need closer legal review.
 
 The contract:
 `,
@@ -242,11 +241,11 @@ The notes:
     },
     traduction: {
       name: "Translation FR ⇄ EN",
-      desc: "Translates while keeping the tone and the trade vocabulary.",
+      desc: "Translates while keeping the tone and the technical terms.",
       prompt: `Translate the text below into the other language (French ⇄ English).
 
 - Keep the original tone and register.
-- Preserve the formatting, the proper nouns and the trade vocabulary.
+- Preserve the formatting, the proper nouns and the technical terms.
 - At the end, flag the ambiguous passages and the choices you had to make.
 
 The text:
@@ -254,9 +253,9 @@ The text:
     },
   },
   generic: {
-    name: (service) => `Where things stand on ${service}`,
-    desc: (what) => `A starting routine: ${what}`,
-    prompt: (service) => `Give me the state of play on {what I care about} in ${service}.
+    name: (service) => `Status update on ${service}`,
+    desc: (what) => `Suggested routine: ${what}`,
+    prompt: (service) => `Give me a status update on {what I care about} in ${service}.
 
 1. What you find, most relevant first, with its date.
 2. What each item says, in two lines.

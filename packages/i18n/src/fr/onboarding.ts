@@ -17,16 +17,16 @@ export const onboarding = {
     titleLead: "Écrivez",
     titleHighlight: "librement",
     sub: (brand) =>
-      `Avant qu'un message ne parte, ${brand} repère les données sensibles et les remplace par de fausses valeurs. Le modèle ne travaille que sur celles-ci — vous, vous continuez de voir les vraies. C'est ce remplacement qu'on appelle le masquage.`,
+      `Avant l'envoi d'un message, ${brand} repère les données sensibles et les remplace par des valeurs de substitution. Le modèle ne voit que ces substituts. Vous continuez de voir les vraies valeurs.`,
     notoriety: {
       lead: "Les personnalités, grandes marques et pays ne sont ",
-      strong: "jamais masqués",
-      tail: " : une question de culture générale reste une question de culture générale.",
+      strong: "pas masqués",
+      tail: " par défaut : ils n'identifient pas votre client.",
     },
     webReveal: {
       lead: (brand) => `Avant une recherche sur le web, ${brand} vous `,
       strong: "propose de révéler",
-      tail: " ce qui est masqué — sans quoi la recherche porterait sur une entreprise ou une ville qui n'existent pas.",
+      tail: " ce qui est masqué. Sinon, la recherche porterait sur des substituts qui n'existent pas.",
     },
   },
 
@@ -36,23 +36,23 @@ export const onboarding = {
     titleIncluded: "Votre compte, ou votre clé",
     titleUnserved: "Votre clé, ou un modèle local",
     subServed:
-      "Vous changerez d'avis quand vous voudrez. Quel que soit le chemin, le masquage s'applique avant chaque envoi.",
+      "Modifiable à tout moment. Dans tous les cas, le masquage s'applique avant chaque envoi.",
     subUnserved:
-      "Une clé, un modèle qui tourne sur votre machine, ou votre abonnement Claude Code / Codex — le masquage s'applique avant chaque envoi, quel que soit le chemin.",
+      "Une clé API, un modèle qui tourne sur votre machine, ou votre abonnement Claude Code / Codex. Dans tous les cas, le masquage s'applique avant chaque envoi.",
     titleAgents: "Votre abonnement, ou une clé",
     subAgents:
-      "Claude Code ou Codex sur cette machine : vos envois passent par votre abonnement, sans clé à coller. Sinon, une clé ou un modèle local. Le masquage s'applique avant chaque envoi, quel que soit le chemin.",
+      "Avec Claude Code ou Codex sur cette machine, vos messages passent par votre abonnement. Aucune clé API nécessaire. Sinon, utilisez une clé API ou un modèle local. Dans tous les cas, le masquage s'applique avant chaque envoi.",
   },
 
   ready: {
-    title: "La protection, elle, est déjà active",
+    title: "Le masquage est actif",
     eyebrow: "C'EST PRÊT",
     subServed: (brand) =>
-      `Elle ne dépend d'aucune clé : dès votre premier message, le masquage s'applique. Un modèle gratuit est déjà sélectionné et fonctionne avec votre compte ${brand}.`,
+      `Le masquage ne dépend d'aucune clé et s'applique dès votre premier message. Un modèle gratuit est déjà sélectionné et fonctionne avec votre compte ${brand}.`,
     subUnserved:
-      "Elle ne dépend d'aucun compte : dès votre premier message, le masquage s'applique. Il ne manque qu'un accès à un modèle — une clé, un serveur local, ou votre CLI.",
+      "Le masquage ne dépend d'aucun compte et s'applique dès votre premier message. Il vous faut seulement un accès à un modèle : une clé API, un serveur local ou votre CLI.",
     modelHint:
-      "Le nom du modèle est sous la zone de saisie — cliquez-le pour en changer, ou pour brancher un accès si vous avez passé l'étape.",
+      "Le nom du modèle est sous la zone de saisie. Cliquez dessus pour changer de modèle, ou pour ajouter un accès si vous avez passé l'étape.",
     slashHint: {
       lead: "Tapez ",
       strong: "/",
@@ -61,45 +61,45 @@ export const onboarding = {
     helpHint: {
       lead: "Un doute ? ",
       strong: "Aide",
-      tail: ", en bas de la barre de droite, reprend tout ça — la démonstration comprise.",
+      tail: ", en bas de la barre de droite, reprend tout cela, démonstration comprise.",
     },
-    tuneRedaction: "Régler finement le masquage",
+    tuneRedaction: "Régler le masquage",
   },
 
   tune: {
     eyebrow: "MASQUAGE",
     title: "Régler finement",
-    sub: "Ces réglages sont déjà bons par défaut. Vous les retrouverez à tout moment dans Réglages → Confidentialité.",
+    sub: "Les réglages par défaut sont recommandés. Vous pouvez les modifier à tout moment dans Réglages → Confidentialité.",
   },
 
   keyChoice: {
     subscription: {
       title: (brand) => `Mon compte ${brand}`,
-      sub: "Aucune clé à gérer : les modèles puisent dans les crédits de votre abonnement.",
+      sub: "Aucune clé à gérer : les modèles utilisent les crédits de votre abonnement.",
     },
     included: {
-      sub: "Aucune clé à gérer : les modèles inclus sont servis sur votre compte, hébergés en France pour la plupart.",
+      sub: "Aucune clé à gérer : les modèles inclus fonctionnent avec votre compte, hébergés en France pour la plupart.",
     },
     ownKey: {
       title: "Ma propre clé API",
-      sub: "Une clé OpenRouter ouvre tous les modèles, les gratuits compris, sur votre compte. Un clic pour l'obtenir ; elle reste chiffrée sur cette machine.",
+      sub: "Une clé OpenRouter donne accès à tous les modèles, gratuits compris, facturés sur votre compte. Elle s'obtient en un clic et reste chiffrée sur cette machine.",
     },
     agent: {
       title: "Mon abonnement Claude Code / Codex",
-      sub: "Déjà payé : vos envois passent par la CLI, installée et connectée ici en deux clics si elle ne l'est pas encore. Chaque envoi consomme votre abonnement personnel, sans clé à coller.",
-      hint: "L'abonnement et le quota de chaque CLI se lisent dans Réglages → Modèles.",
+      sub: "Utilise l'abonnement que vous payez déjà. Si la CLI n'est pas installée ou connectée, deux clics suffisent ici. Chaque message est décompté de votre abonnement personnel. Aucune clé API nécessaire.",
+      hint: "L'abonnement et le quota de chaque CLI s'affichent dans Réglages → Modèles.",
     },
     recommended: "conseillé",
     otherProvider: "Autre fournisseur",
-    savedKey: (provider) => `Clé ${provider} enregistrée — vous êtes prêt.`,
+    savedKey: (provider) => `Clé ${provider} enregistrée. Vous êtes prêt.`,
     connect: "Obtenir une clé gratuitement",
-    connecting: "Autorisation dans votre navigateur…",
+    connecting: "En attente d'autorisation dans votre navigateur…",
     retry: "Réessayer",
-    connectTip: (brand) => `${brand} se connecte à votre compte OpenRouter : vos crédits, votre quota.`,
-    connectHint: "OpenRouter s'ouvre, vous acceptez, la clé revient chiffrée ici — rien à copier.",
-    manualCreate: "Créer la clé à la main",
+    connectTip: (brand) => `${brand} se connecte à votre compte OpenRouter. L'usage est décompté de vos crédits OpenRouter.`,
+    connectHint: "Autorisez l'accès sur OpenRouter. La clé est enregistrée ici, chiffrée.",
+    manualCreate: "Créer la clé manuellement",
     manualHave: "J'ai déjà une clé OpenRouter",
-    errorIncomplete: "Connexion non terminée. Réessayez — rien n'a été enregistré.",
+    errorIncomplete: "Connexion non terminée. Rien n'a été enregistré. Réessayez.",
     errorUnreachable: "Connexion impossible. Réessayez dans un instant.",
     errorSaveFailed: "La clé n'a pas pu être enregistrée. Réessayez.",
   },
@@ -111,7 +111,7 @@ export const onboarding = {
     placeholderPlain: (provider) => `Clé ${provider}`,
     save: "Enregistrer",
     saving: "Enregistrement…",
-    stepDone: (step) => `Étape ${step} : c'est fait`,
-    stepUndo: (step) => `Étape ${step} : à refaire`,
+    stepDone: (step) => `Marquer l'étape ${step} comme faite`,
+    stepUndo: (step) => `Marquer l'étape ${step} comme non faite`,
   },
 } satisfies Messages["onboarding"];

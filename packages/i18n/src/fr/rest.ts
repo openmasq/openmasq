@@ -7,25 +7,25 @@ import type { Messages } from "../messages";
 export const login = {
   heading: "Content de vous revoir.",
   headingFirst: (brand) => `Connexion à ${brand}`,
-  subheading: "Entrez votre e-mail : nous vous envoyons un lien de connexion, sans mot de passe.",
+  subheading: "Entrez votre e-mail : nous vous envoyons un lien de connexion. Pas de mot de passe.",
   inviteOnly:
-    "Accès sur invitation : votre adresse doit avoir été ouverte de notre côté avant la première connexion.",
+    "Accès sur invitation : votre adresse doit être autorisée avant votre première connexion.",
   checkYourEmail: "Consultez vos e-mails",
   passwordlessStrip: "SANS MOT DE PASSE · LIEN ENVOYÉ PAR E-MAIL",
   offline:
-    "Vous êtes hors ligne. La connexion nécessite un accès réseau — vérifiez votre connexion, puis réessayez.",
+    "Vous êtes hors ligne. La connexion demande un accès réseau. Vérifiez votre connexion, puis réessayez.",
   email: "E-mail professionnel",
   emailPlaceholder: "vous@entreprise.com",
   sending: "Envoi…",
   sendLink: "Envoyer le lien de connexion",
   or: "ou",
   continueWithGoogle: "Continuer avec Google",
-  googleSoon: "Bientôt disponible — utilisez le lien par e-mail.",
+  googleSoon: "Bientôt disponible. Utilisez le lien par e-mail.",
   noPassword: "Pas de mot de passe : votre e-mail suffit.",
   code: "Code de connexion",
   verifying: "Vérification…",
   signInWithCode: "Se connecter avec le code",
-  linkNotOpening: "Le lien ne s'ouvre pas ? Saisir le code reçu par e-mail",
+  linkNotOpening: "Le lien ne s'ouvre pas ? Saisissez le code reçu par e-mail",
   useAnotherAddress: "Utiliser une autre adresse",
   resend: "Renvoyer",
   resendLink: "Renvoyer le lien",
@@ -35,7 +35,7 @@ export const orgShares = {
   requests: "Demandes de partage",
   requestsCount: (n) => `${n} demande${n > 1 ? "s" : ""} de partage`,
   requestsShort: "Demandes",
-  empty: "Rien à examiner. Les termes et compétences proposés par vos collègues apparaîtront ici.",
+  empty: "Rien à examiner. Les termes et compétences proposés par vos collègues s'affichent ici.",
   vaultTerm: "Terme du coffre",
   skill: "Compétence",
   proposedBy: (author) => `Proposé par ${author}`,
@@ -56,10 +56,10 @@ export const orgShares = {
     previewTerm: "Le terme partagé",
     previewOther: "Ce qui sera partagé",
     termNote:
-      "Le terme et son substitut deviennent communs avec les destinataires : ce nom sera masqué de la même façon dans vos conversations.",
+      "Le terme et sa valeur de substitution sont partagés avec les destinataires : ce nom sera masqué de la même façon dans vos conversations.",
     redactedNote: (n) => `${n} élément${n > 1 ? "s" : ""} masqué${n > 1 ? "s" : ""}`,
     redactedTail:
-      " avant le partage — le texte ci-dessus est exactement ce que verront les autres.",
+      " avant le partage. Les autres verront exactement le texte ci-dessus.",
     clean: "Aucune donnée sensible détectée dans ce contenu.",
     send: "Envoyer la demande",
   },
@@ -67,12 +67,12 @@ export const orgShares = {
     org: {
       label: "Organisation",
       short: "Orga",
-      note: "Partagé à toute l'organisation — visible et utilisable par tous les membres.",
+      note: "Partagé avec toute l'organisation : visible et utilisable par tous les membres.",
     },
     team: {
       label: "Équipe",
       short: "Équipe",
-      note: "Partagé avec votre équipe — visible et utilisable par ses membres.",
+      note: "Partagé avec votre équipe : visible et utilisable par ses membres.",
     },
     personal: { label: "Personnel", short: "Perso", note: "Visible de vous seul." },
   },
@@ -80,12 +80,12 @@ export const orgShares = {
     person: {
       label: "Une personne",
       desc: "Un collègue de votre organisation.",
-      approval: "Elle reçoit une demande et accepte — rien d'autre à valider.",
+      approval: "Elle reçoit la demande et l'accepte. Aucune validation d'administrateur.",
     },
     team: {
       label: "Votre équipe",
       desc: "Les membres de votre équipe.",
-      approval: "Un administrateur est notifié et valide la demande.",
+      approval: "Un administrateur est notifié et approuve la demande.",
     },
     org: {
       label: "Toute l'organisation",
@@ -108,7 +108,7 @@ export const modelPicker = {
   sectionDefault: "Par défaut",
   sectionFavorites: "Favoris",
   sectionCurrent: "Modèle en cours",
-  freeTip: "Modèle gratuit — inclus avec votre compte, usage limité.",
+  freeTip: "Modèle gratuit, inclus avec votre compte, usage limité.",
   moreActions: "Plus d'actions",
   isDefault: "Modèle par défaut des nouvelles conversations",
   setDefault: "Définir comme modèle par défaut",
@@ -125,41 +125,41 @@ export const modelPicker = {
     label: "Adresse du modèle",
     idsLabel: "Modèles supplémentaires",
     idsHint:
-      "La liste du sélecteur est lue sur le serveur lui-même. Ajoutez ici, séparés par des virgules, les identifiants qu'il ne liste pas (un modèle pas encore chargé, un proxy sans liste).",
+      "La liste du sélecteur vient du serveur lui-même. Ajoutez ici, séparés par des virgules, les identifiants qu'il ne liste pas (un modèle pas encore chargé, un proxy sans liste).",
     idsPlaceholder: "llama3.2, qwen/qwen3-8b",
   },
   cli: {
     claude: {
       title: "Votre abonnement Claude",
-      note: "Si vous avez un abonnement Claude et la CLI Claude Code installée, vos conversations peuvent passer par elle — sans clé API. Le masquage s'applique comme partout : le modèle ne voit que des données remplacées.",
+      note: "Si vous avez un abonnement Claude et la CLI Claude Code installée, vos conversations peuvent passer par elle, sans clé API. Le masquage s'applique de la même façon.",
       rowTitle: "Utiliser ma CLI Claude Code",
       onDesc:
-        "Ajoute « Claude Code » à la liste des modèles. Chaque envoi consomme votre abonnement Claude personnel.",
+        "Ajoute « Claude Code » à la liste des modèles. Chaque message est décompté de votre abonnement Claude personnel.",
       missingDesc:
         "CLI introuvable sur cette machine : installez-la ci-dessous, puis connectez-la à votre compte Claude.",
     },
     codex: {
       title: "Votre abonnement ChatGPT",
-      note: "Si vous avez un abonnement ChatGPT et la CLI Codex installée, vos conversations peuvent passer par elle — sans clé API. Le masquage s'applique comme partout : le modèle ne voit que des données remplacées.",
+      note: "Si vous avez un abonnement ChatGPT et la CLI Codex installée, vos conversations peuvent passer par elle, sans clé API. Le masquage s'applique de la même façon.",
       rowTitle: "Utiliser ma CLI Codex",
       onDesc:
-        "Ajoute « GPT Codex » à la liste des modèles. Chaque envoi consomme votre abonnement ChatGPT personnel.",
+        "Ajoute « GPT Codex » à la liste des modèles. Chaque message est décompté de votre abonnement ChatGPT personnel.",
       missingDesc:
         "CLI introuvable sur cette machine : installez-la ci-dessous, puis connectez-la à votre compte ChatGPT.",
     },
     antigravity: {
       title: "Votre abonnement Google Antigravity",
-      note: "Si vous avez un abonnement Antigravity et sa CLI « agy » installée, vos conversations peuvent passer par elle — sans clé API. Le masquage s'applique comme partout : le modèle ne voit que des données remplacées. ⚠️ Ce chemin passe par un logiciel tiers, ce que les conditions d'Antigravity ne prévoient pas : le risque porte sur votre compte Google.",
+      note: "Si vous avez un abonnement Antigravity et sa CLI « agy » installée, vos conversations peuvent passer par elle, sans clé API. Le masquage s'applique de la même façon. ⚠️ Les conditions d'Antigravity ne prévoient pas l'usage via un logiciel tiers : votre compte Google peut en être affecté.",
       rowTitle: "Utiliser ma CLI Antigravity",
       onDesc:
-        "Ajoute « Antigravity » à la liste des modèles. Chaque envoi consomme votre abonnement Google personnel ; les connecteurs de l'app y fonctionnent comme sur les autres modèles.",
+        "Ajoute « Antigravity » à la liste des modèles. Chaque message est décompté de votre abonnement Google personnel. Les connecteurs de l'app fonctionnent comme avec les autres modèles.",
       missingDesc:
         "CLI introuvable sur cette machine : installez Antigravity, connectez-la à votre compte Google, puis revenez ici.",
     },
     setup: {
       install: "Installer",
       installNote: (label, megabytes) =>
-        `Télécharge ${label} (${megabytes} Mo) depuis son éditeur, vérifie son empreinte, puis l'installe. Rien d'autre à faire.`,
+        `Télécharge ${label} (${megabytes} Mo) depuis son éditeur, vérifie son intégrité, puis l'installe.`,
       installing: (percent) => `Téléchargement… ${percent} %`,
       finishing: "Installation…",
       notInstallable: "Cette version de l'app ne peut pas l'installer sur cette machine.",
@@ -178,8 +178,8 @@ export const modelPicker = {
       checking: "Vérification…",
       errors: {
         unsupported: "Indisponible sur cette machine.",
-        network: "Le téléchargement a échoué — vérifiez votre connexion, puis réessayez.",
-        checksum: "Le fichier téléchargé ne correspond pas à l'empreinte attendue : il n'a pas été installé.",
+        network: "Le téléchargement a échoué. Vérifiez votre connexion, puis réessayez.",
+        checksum: "Le fichier téléchargé ne correspond pas à l'empreinte attendue. Il n'a pas été installé.",
         install: "L'installation a échoué.",
         login: "La connexion n'a pas abouti.",
         busy: "Une installation est déjà en cours.",
@@ -188,7 +188,7 @@ export const modelPicker = {
     account: {
       title: "Votre compte",
       loading: "Lecture du compte…",
-      unavailable: "La CLI n'a pas répondu — est-elle connectée ?",
+      unavailable: "La CLI n'a pas répondu. Vérifiez qu'elle est connectée.",
       plan: (plan) => `Offre : ${plan}`,
       windowOf: (minutes) =>
         minutes >= 1440 ? `${Math.round(minutes / 1440)} j` : `${Math.round(minutes / 60)} h`,
@@ -203,13 +203,13 @@ export const modelPicker = {
           : window === "weekly"
             ? "fenêtre hebdomadaire"
             : window,
-      lastTurn: "Vu au dernier envoi",
+      lastTurn: "Au dernier message",
       claudeNoData:
-        "Le quota s'affichera après un premier envoi : cette CLI ne le donne qu'en cours de tour.",
+        "Le quota s'affiche après votre premier message : cette CLI ne le donne que pendant une réponse.",
       modelsTitle: "Modèles du compte",
       defaultTag: "défaut",
-      noModels: "Liste non fournie par cette CLI.",
-      noQuota: "Quota non exposé par cette CLI.",
+      noModels: "Cette CLI ne fournit pas sa liste de modèles.",
+      noQuota: "Cette CLI ne fournit pas son quota.",
     },
   },
 } satisfies Messages["modelPicker"];
@@ -218,14 +218,14 @@ export const leaves = {
   analytics: {
     privacyTitle: "Confidentialité & RGPD",
     body: (brand) =>
-      `Le masquage s'exécute en local, avant tout envoi. ${brand} mesure aussi l'usage de l'app avec des statistiques anonymes — jamais vos messages, vos fichiers ni vos données sensibles. Elles sont facultatives.`,
+      `Le masquage s'exécute en local, avant tout envoi. ${brand} mesure aussi l'usage de l'app avec des statistiques anonymes, jamais vos messages, vos fichiers ni vos données sensibles. Elles sont facultatives.`,
     local: "en local",
     alwaysOn: "Session & sécurité — toujours actifs",
     usageStats: "Statistiques d'usage",
     essentials: "Essentiels",
     disable: "Désactiver",
-    statsOn: "Actives — compteurs et écrans visités, sans contenu.",
-    statsOff: "Désactivées — plus aucune statistique n'est envoyée.",
+    statsOn: "Activées : compteurs et écrans visités, sans contenu.",
+    statsOff: "Désactivées : aucune statistique n'est envoyée.",
   },
   privacyLevels: {
     custom: "Sur mesure",
@@ -235,7 +235,7 @@ export const leaves = {
       label: "Niveau de masquage de ce connecteur",
       followsDefault: "Défaut",
       followsDefaultHint: (globalLevel) =>
-        `Suit votre niveau général (${globalLevel}). C'est le cas de presque tous les connecteurs.`,
+        `Suit votre niveau général (${globalLevel}).`,
     },
   },
   demo: { youWrite: "CE QUE VOUS ÉCRIVEZ", modelReceives: "CE QUE LE MODÈLE REÇOIT" },
@@ -245,7 +245,7 @@ export const leaves = {
   freeModelsNotice: "Vous utilisez les modèles gratuits",
   viewGrid: "Affichage en grille",
   viewList: "Affichage en liste",
-  hide: "Masquer",
+  hide: "Cacher",
   display: "Affichage",
   resize: "Redimensionner",
   loading: "Chargement",
@@ -262,7 +262,7 @@ export const leaves = {
     lines: (n) => `${n} ligne${n > 1 ? "s" : ""}`,
   },
   document: {
-    saveFailed: "Enregistrement impossible — votre texte est toujours là.",
+    saveFailed: "Enregistrement impossible. Votre texte est toujours là.",
     shortcuts: "⌘↵ pour enregistrer · Échap pour annuler",
     seeAll: "Voir tout",
     editorAria: "Contenu du document",

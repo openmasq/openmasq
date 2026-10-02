@@ -121,7 +121,7 @@ leaves once. Going from reinforced to standard confirms itself on the system win
 a weakening cannot come from anywhere but you.
 
 - [x] **Standard** mode: one card per conversation after a web search, plus the uncapped floors
-- [x] **Reinforced** mode: every write confirms, the risky ones on a system window
+- [x] **Confirm every action** mode (« Confirmer chaque action »): every write confirms, the risky ones on a system window
 - [x] The card says **which real values** are leaving, not merely "a write"
 - [x] « Autoriser » is remembered per tool and per conversation
 - [x] Going from reinforced to standard confirms itself on the system window

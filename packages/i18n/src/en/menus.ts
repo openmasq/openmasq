@@ -9,33 +9,33 @@ import type { Messages } from "../messages";
 
 export const menus = {
   selection: {
-    ariaLabel: "Actions on the selection",
+    ariaLabel: "Selection actions",
     redact: "Mask",
     redactTip: "Mask the selection",
     clarify: "Clarify",
     clarifyTip: "Ask for details",
     remember: "Remember",
     rememberTip: (brand) =>
-      `Keep this in Memory — ${brand} will recall it in your next conversations`,
-    rememberAria: "Keep this in Memory",
-    scopeAria: "Scope of the masking",
+      `Save to Memory. ${brand} will recall it in your next conversations`,
+    rememberAria: "Save to Memory",
+    scopeAria: "Masking scope",
     scopeConversation: "This conversation",
-    scopeVault: "Vault (always)",
-    typeEyebrow: "Kind of data",
+    scopeVault: "All conversations (Vault)",
+    typeEyebrow: "Data type",
   },
   link: {
-    ariaLabel: "Open the link",
+    ariaLabel: "Open link",
     integratedBrowser: "Built-in browser",
     externalBrowser: "External browser",
   },
   skills: {
     actions: "Actions",
     heading: "Skills",
-    empty: "No skills yet — your reusable prompts, inserted in one click.",
-    create: "Create a skill",
+    empty: "No skills yet. Save reusable prompts and insert them in one click.",
+    create: "Create skill",
   },
   docView: {
-    changeAria: "Change the view",
+    changeAria: "Change view",
     listAria: "Document view",
     currentTip: (view) => `View: ${view}`,
   },
@@ -43,34 +43,34 @@ export const menus = {
     ariaLabel: "Download formats",
   },
   markKeep: {
-    uncertain: (brand) => `Worth checking — ${brand} isn't sure about this one`,
+    uncertain: (brand) => `Low-confidence detection by ${brand}. Please check it.`,
   },
   page: {
     moreActions: "More actions",
     exportMemory: "Export (diagnostic)",
-    exportMemoryTip: "Export the memory and its links as text (local file, real values)",
+    exportMemoryTip: "Export memory and its links as a text file. The file contains real, unmasked values.",
   },
 } satisfies Messages["menus"];
 
 export const downloads = {
   pdf: { label: "PDF", hint: "Layout preserved, ready to print" },
-  docx: { label: "Word", hint: "A .docx document, editable" },
-  md: { label: ".md", hint: "Markdown — the document's source" },
+  docx: { label: "Word", hint: "Editable .docx document" },
+  md: { label: ".md", hint: "Markdown source of the document" },
   txt: { label: ".txt", hint: "Plain text, no formatting" },
 } satisfies Messages["downloads"];
 
 export const docViews = {
   image: "Image",
   pdfRedacted: "Masked pages",
-  pdfRedactedHint: "The pages, with fake values painted over them",
+  pdfRedactedHint: "The pages, with substitutes in place of the real values",
   sheet: "Sheet",
   presentation: "Presentation",
   document: "Document",
   rendered: "Rendered",
   original: "Original",
-  originalHint: "The file as it is, before masking",
+  originalHint: "The file as is, before masking",
   redacted: "Masked",
-  redactedHint: "What will leave the machine",
+  redactedHint: "What the model receives",
   ocr: "Text in the image",
-  ocrHint: "What the pixels of the page say",
+  ocrHint: "Text recognized in the page image",
 } satisfies Messages["docViews"];

@@ -9,12 +9,12 @@ export const modelCatalogB: Record<string, Messages["modelCatalog"]["models"][st
       "Very large context (1M) for a handful of cents",
       "Multimodal, tools and reasoning",
     ],
-    weaknesses: ["Proprietary model", "Variable hosting (aggregator)"],
-    bestFor: "The budget all-rounder of the simplified view",
+    weaknesses: ["Proprietary model", "Host varies (routed by OpenRouter)"],
+    bestFor: "Low-cost all-rounder",
   },
   "moonshotai/kimi-k2.6": {
     strengths: ["Strong at code and agentic use", "Parallel tool calls, 262k context"],
-    weaknesses: ["Output pricier than input", "Variable hosting (aggregator)"],
+    weaknesses: ["Output pricier than input", "Host varies (routed by OpenRouter)"],
     bestFor: "Code and tool chains, via OpenRouter",
   },
   "x-ai/grok-4.20": {
@@ -22,17 +22,17 @@ export const modelCatalogB: Record<string, Messages["modelCatalog"]["models"][st
       "xAI flagship, multimodal, very large context (2M)",
       "Access through a single OpenRouter key",
     ],
-    weaknesses: ["Proprietary model", "Variable price/availability (aggregator)"],
+    weaknesses: ["Proprietary model", "Price and availability vary (routed by OpenRouter)"],
     bestFor: "Multimodal reasoning over very large context",
   },
   "deepseek/deepseek-chat-v3.1": {
     strengths: ["Strong at code and reasoning (open-weight)", "Cheap via OpenRouter"],
-    weaknesses: ["Text only", "Variable hosting (aggregator)"],
+    weaknesses: ["Text only", "Host varies (routed by OpenRouter)"],
     bestFor: "Budget code and reasoning via OpenRouter",
   },
   "qwen/qwen3-vl-32b-instruct": {
     strengths: ["Open-weight multimodal (vision), cheap", "Large context"],
-    weaknesses: ["Variable hosting (aggregator)"],
+    weaknesses: ["Host varies (routed by OpenRouter)"],
     bestFor: "Image + text understanding at low cost",
   },
   "qwen/qwen3-235b-a22b": {
@@ -53,7 +53,7 @@ export const modelCatalogB: Record<string, Messages["modelCatalog"]["models"][st
   "poolside/laguna-s-2.1:free": {
     strengths: ["Free, no key or subscription", "Large context (262k), tools and reasoning"],
     weaknesses: ["Text only", "Free tier: availability not guaranteed"],
-    bestFor: "The default model — write right away, nothing to set up",
+    bestFor: "Default model: start writing with no setup",
   },
   "nvidia/nemotron-3-ultra-550b-a55b:free": {
     strengths: [
@@ -76,11 +76,11 @@ export const modelCatalogB: Record<string, Messages["modelCatalog"]["models"][st
   "google/gemma-4-26b-a4b-it:free": {
     strengths: ["Compact open-weight multimodal MoE, fast", "Free via OpenRouter"],
     weaknesses: ["Free tier: variable quotas"],
-    bestFor: "Free snappy multimodal",
+    bestFor: "Fast free multimodal",
   },
   "openai/gpt-oss-20b:free": {
     strengths: ["OpenAI open weights, light and fast", "Free via OpenRouter"],
-    weaknesses: ["Text only", "Lesser capabilities than the 120B", "Free tier: variable quotas"],
+    weaknesses: ["Text only", "Less capable than gpt-oss-120b", "Free tier: variable quotas"],
     bestFor: "Free lightweight assistant (OpenAI open weights)",
   },
   "cohere/north-mini-code:free": {
@@ -116,7 +116,7 @@ export const modelCatalogB: Record<string, Messages["modelCatalog"]["models"][st
   "qwen2.5-coder": {
     strengths: ["Excellent open-weight code model"],
     weaknesses: ["Poorly suited outside code"],
-    bestFor: "Local code (private, free)",
+    bestFor: "Coding on your device (private, free)",
   },
   "deepseek-r1": {
     strengths: ["Top-level open-weight reasoning"],
@@ -131,7 +131,7 @@ export const modelCatalogB: Record<string, Messages["modelCatalog"]["models"][st
   "glm-5.2": {
     strengths: [
       "Strong reasoning/agentic (open-weight)",
-      "Very large context (long-horizon)",
+      "Very large context, suited to long tasks",
       "Included with your account",
     ],
     weaknesses: ["Text only"],
@@ -144,7 +144,7 @@ export const modelCatalogB: Record<string, Messages["modelCatalog"]["models"][st
   },
   "qwen3.6-35b-a3b": {
     strengths: ["Compact MoE, fast and multimodal", "Included with your account"],
-    weaknesses: ["Below the 397B on the hardest tasks"],
+    weaknesses: ["Below Qwen 3.5 397B on the hardest tasks"],
     bestFor: "Fast general use with no API key",
   },
   "gemma-4-26b-a4b-it": {
@@ -169,10 +169,10 @@ export const modelCatalogB: Record<string, Messages["modelCatalog"]["models"][st
       "Included with your account",
     ],
     weaknesses: ["Text only", "Higher latency"],
-    bestFor: "Demanding (text) tasks with no API key",
+    bestFor: "Demanding text-only tasks with no API key",
   },
   "qwen3-coder-30b-a3b-instruct": {
-    strengths: ["Code-specialised, fast and cheap", "Long context", "Included with your account"],
+    strengths: ["Specialized for code, fast and cheap", "Long context", "Included with your account"],
     weaknesses: ["Text only"],
     bestFor: "Budget code with no API key",
   },
@@ -188,7 +188,7 @@ export const modelCatalogB: Record<string, Messages["modelCatalog"]["models"][st
   },
   "devstral-2-123b-instruct-2512": {
     strengths: [
-      "Code/agent-specialised (open-weight)",
+      "Specialized for code and agents (open-weight)",
       "Long context",
       "Included with your account",
     ],
@@ -210,7 +210,7 @@ export const modelCatalogB: Record<string, Messages["modelCatalog"]["models"][st
     weaknesses: ["Recent model, less proven"],
     bestFor: "Fast multimodal with no API key",
   },
-  o3: { strengths: ["Deep reasoning (maths, science)"], weaknesses: ["Slow", "Less natural in conversation"], bestFor: "Hard problems that need real thinking" },
+  o3: { strengths: ["Deep reasoning (math, science)"], weaknesses: ["Slow", "Less natural in conversation"], bestFor: "Hard math and science problems" },
   gemma2: { strengths: ["Light and efficient (Google, open-weight)"], weaknesses: ["Previous generation", "Text only"], bestFor: "A light local assistant" },
   phi4: { strengths: ["A small model that reasons well"], weaknesses: ["Text only", "More limited knowledge"], bestFor: "Light local reasoning" },
 };

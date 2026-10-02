@@ -123,7 +123,7 @@ describe("previewViews — les couches de texte", () => {
     const [rich, cav] = previewViews(previewShape(f), f, t);
     expect(rich.hint).toBe("Le fichier tel quel, avant masquage");
     // And the redacted layer is no longer called "text": for a spreadsheet, it's a table.
-    expect(cav.hint).toBe("Ce qui quittera la machine");
+    expect(cav.hint).toBe("Ce que reçoit le modèle");
     expect(cav.shield).toBe(true);
   });
 

@@ -22,7 +22,7 @@ describe("connectorErrorText — l'utilisateur lit une phrase, et le geste à fa
       const out = connectorErrorText(m, fr);
       expect(out, m).not.toBeNull();
       expect(out!.reconnect, m).toBe(true);
-      expect(out!.text, m).toContain("reconnectez-vous");
+      expect(out!.text, m).toMatch(/reconnectez-vous/i);
     }
   });
 
@@ -42,7 +42,7 @@ describe("connectorErrorText — l'utilisateur lit une phrase, et le geste à fa
 
   it("un 403 est un refus du service, pas une expiration — mais se re-tente après correction", () => {
     const f = connectorErrorText("403 Forbidden", fr);
-    expect(f?.text).toContain("refuse l'accès");
+    expect(f?.text).toContain("a refusé l'accès");
     expect(f?.reconnect).toBe(true);
   });
 

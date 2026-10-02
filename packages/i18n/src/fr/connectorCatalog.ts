@@ -10,10 +10,10 @@ export const connectorCatalog = {
     demo: { desc: "Bac à sable de démonstration (données d'exemple, sans compte)" },
     gmail: { desc: "Lire, rechercher et envoyer vos emails" },
     slack: { desc: "Lister les canaux et lire les messages récents" },
-    github: { desc: "Repositories & issues" },
+    github: { desc: "Dépôts et issues" },
     "google-calendar": { name: "Google Agenda", desc: "Événements & rendez-vous" },
     "google-drive": { desc: "Rechercher, lire et déposer des fichiers Drive" },
-    "google-docs": { desc: "Créer, lire et compléter vos documents Google Docs" },
+    "google-docs": { desc: "Créer, lire et modifier vos documents Google Docs" },
     "google-sheets": { desc: "Lire des plages, ajouter des lignes et créer des classeurs" },
     "google-tasks": { desc: "Lister, créer et terminer vos tâches" },
     "google-analytics": { desc: "Propriétés GA4 & rapports de trafic (lecture)" },
@@ -84,49 +84,49 @@ export const connectorCatalog = {
     builtin: {
       label: "Intégré",
       title:
-        "Fourni avec l'application : rien à connecter, rien à payer, aucun compte à relier. Il suffit de l'activer.",
+        "Inclus dans l'application. Aucun compte nécessaire. Activez-le pour l'utiliser.",
     },
     directFull:
-      "La page de connexion du service s'ouvre : vous acceptez, et c'est fini. Rien à copier-coller, aucune clé à créer.",
+      "Connectez-vous sur la page du service et autorisez l'accès. Aucune clé nécessaire.",
     byoOnly: {
       label: "Vos clés",
-      title: (what, reason) => `Pour ${what}, vos propres clés sont nécessaires — ${reason}.`,
+      title: (what, reason) => `Pour ${what}, vos propres clés sont nécessaires : ${reason}.`,
     },
     byoLimited: {
-      label: "1-clic limité",
+      label: "1-clic (partiel)",
       title: (what, reason) =>
-        `Connexion en un clic, rien à créer. Pour ${what}, vos propres clés seront nécessaires — ${reason}.`,
+        `Connexion en un clic. Pour ${what}, vos propres clés sont nécessaires : ${reason}.`,
     },
     device: {
       label: "Appareil",
-      title: "Un code à saisir sur le site du service, et c'est fini. Aucune clé à créer.",
+      title: "Saisissez un code sur le site du service pour vous connecter. Aucune clé nécessaire.",
     },
     oneClick: "1-clic",
     local: {
       label: "Local",
       title:
-        "Cet outil tourne sur votre machine : vos dossiers et vos identifiants restent chez vous, et ne sont jamais envoyés au modèle.",
+        "Cet outil tourne sur votre appareil. Vos dossiers et vos identifiants y restent et ne sont jamais envoyés au modèle.",
     },
     broker: {
       label: (brand) => `Via ${brand}`,
       title: (brand) =>
-        `Vous vous connectez à votre compte, et ${brand} s'occupe du reste : rien à créer, aucun code à coller.`,
+        `Connectez-vous à votre compte et ${brand} s'occupe du reste. Aucune clé ni code nécessaire.`,
     },
     apikey: {
       label: "Clé requise",
       title:
-        "Ce service demande une clé, à récupérer sur son site puis à coller ici. Il n'y a pas de page de connexion.",
+        "Ce service demande une clé API. Récupérez-la sur le site du service et collez-la ici.",
     },
     oneClickRemote: {
       label: "1-clic",
       title:
-        "La page de connexion du service s'ouvre dans votre navigateur : vous acceptez, et c'est fini. Rien à créer.",
+        "Connectez-vous sur la page du service dans votre navigateur et autorisez l'accès. Aucune clé nécessaire.",
     },
     byoSafe: (brand) =>
-      `Vos identifiants restent chiffrés sur votre appareil et ne passent par aucun serveur ${brand}.`,
+      `Vos identifiants restent chiffrés sur votre appareil et ne passent jamais par les serveurs ${brand}.`,
     reasonAdminConsent: "seul un administrateur de votre organisation peut l'autoriser",
     reasonGoogleReview: (brand) =>
-      `Google vérifie encore ${brand} avant d'ouvrir cet accès en un clic (en cours)`,
-    thisAccess: "cet accès",
+      `Google vérifie encore ${brand} pour l'accès en un clic`,
+    thisAccess: "cette fonctionnalité",
   },
 } satisfies Messages["connectorCatalog"];

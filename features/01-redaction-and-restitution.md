@@ -125,7 +125,7 @@ opens in one click from any reply.
 
 ### How protected values are displayed
 **Access**: Réglages → Confidentialité → two neighbouring settings:
-« **Afficher des jetons plutôt que des pseudonymes** » and « **Le modèle ne voit que des jetons** ».
+« **Afficher des marqueurs ([PERSON1]) plutôt que des substituts** » and « **Le modèle ne voit que des marqueurs** ».
 
 **What it makes possible.** Choosing the FORM of the masking, on two distinct planes. On
 screen: reading "[PERSON1]" rather than a fake name, to tell at a glance what is protected.
