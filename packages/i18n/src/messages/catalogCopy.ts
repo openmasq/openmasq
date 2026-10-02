@@ -39,6 +39,8 @@ export interface ConnectorCatalogMessages {
   auth: {
     builtin: { label: string; title: string };
     directFull: string;
+    /** One-click pending Google's review of the app: coming, keys meanwhile. */
+    comingSoon: { label: string; title: (brand: string) => string };
     byoOnly: { label: string; title: (what: string, reason: string) => string };
     byoLimited: { label: string; title: (what: string, reason: string) => string };
     device: { label: string; title: string };

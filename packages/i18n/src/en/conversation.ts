@@ -16,10 +16,10 @@ export const conversation = {
     connectTip: (connector, prompt) => `Connect ${connector} — ${prompt}`,
     dismiss: "Don't show again",
     cats: {
-      write: "Writing",
-      search: "Search",
+      "follow-up": "Client follow-up",
+      "contract-review": "Legal",
+      "hr-review": "HR",
       memory: "Memory",
-      analyse: "Analysis",
       "mail-triage": "Mailbox",
       "files-find": "My folders",
       "day-brief": "Calendar",
@@ -27,11 +27,14 @@ export const conversation = {
       "pr-review": "Code",
     },
     prompts: {
-      write: (domain) => `Write a thank-you email to julien@${domain}.`,
-      search: () => "What's in the news today?",
+      "follow-up": (domain) =>
+        `Write a polite reminder to Camille Salvi (camille.salvi@${domain}): her invoice F-2026-114 for €4,820 has been unpaid for 30 days. Remind her of our IBAN FR76 3000 6000 0112 3456 7890 189.`,
+      "contract-review": () =>
+        "Flag the risky clauses in this excerpt: \"Lucane SAS, SIREN 732 829 320, 12 rue des Tanneurs, Lyon, represented by Marc Wulff, commits for 36 months with no early termination; any amount due bears interest at 15% a year.\"",
+      "hr-review": () =>
+        "Summarize this review in three actions: \"Annual review of Julien Moreau, born 03/14/1988, reachable at +33 6 12 34 56 78. His manager Sophie Bernard proposes a 6% raise and a training course in March.\"",
       memory: () =>
         "Remember that on the Horizon project, my client Camille Salvi (Atelier Lucane) approves the mock-ups and Marc Wulff handles invoicing.",
-      analyse: () => "Plot a chart of this year's 5 best-performing ETFs.",
       "mail-triage": () =>
         "Sort my unread emails from this week: which ones really need a reply from me, and which can wait?",
       "files-find": () =>

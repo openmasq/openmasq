@@ -50,6 +50,8 @@ export const mcpTab = {
   adminConsent: (brand) =>
     `Première connexion pour votre organisation : un administrateur doit approuver l'application. À la connexion, ${brand} vous donne un lien à lui transmettre.`,
   myKeys: "Mes clés",
+  comingSoonNote: (brand) =>
+    `Bientôt disponible en un clic : Google vérifie encore ${brand}. En attendant, connectez-le avec vos propres clés Google (identifiant et secret d'une app OAuth créée dans Google Cloud).`,
   connectLimited: "Connecter (limité)",
   connectLimitedTip: (brand, adds) => `Sans vos clés, ${brand} ne peut pas ${adds}.`,
   whereKey: "Où trouver votre clé",

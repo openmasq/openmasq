@@ -113,8 +113,11 @@ export const googleSheetsConnector: Connector = {
   name: "Google Sheets",
   auth: "pkce",
   // `spreadsheets` is sensitive (brand verification) but NOT restricted → no CASA.
+  // One-click OFF until Google verifies the app's client (CASA for the restricted
+  // scopes): BYO only for now — main refuses the built-in mode (`byoOnly`).
+  byoOnly: true,
   scopes: {
-    managed: ["https://www.googleapis.com/auth/spreadsheets"],
+    managed: [],
     byo: ["https://www.googleapis.com/auth/spreadsheets"],
   },
   tools: [readRange, appendRow, createSpreadsheet],

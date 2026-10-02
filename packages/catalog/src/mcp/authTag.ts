@@ -39,6 +39,7 @@ function byoReasonText(c: Pick<McpConnector, "byoReason">): string {
  *  story a connector tells — only on the language it is told in. */
 export type McpAuthVariant =
   | "builtin"
+  | "comingSoon"
   | "byoOnly"
   | "byoLimited"
   | "device"
@@ -65,6 +66,8 @@ export function mcpAuthShape(
     const reason = c.byoReason === "admin-consent" ? "admin-consent" : "google-review";
     // No first-party client at all → do NOT advertise a one-click that isn't offered: the
     // modal only shows "Mes clés" here, and the chip must agree with the buttons.
+    // …and when the blocker is ours to clear, say it is COMING, not merely "your keys".
+    if (c.byoOnly && reason === "google-review") return { kind: "direct", variant: "comingSoon", reason };
     if (c.byoOnly) return { kind: "direct", variant: "byoOnly", what: c.byoAdds, reason };
     // A first-party client that covers only PART of the connector (Gmail: it sends, it
     // cannot read). The plain one-click line alone would overstate what you get.
@@ -92,6 +95,15 @@ export function mcpAuthTag(
     const what = c.byoAdds ?? "cet accès";
     // No first-party client at all → do NOT advertise a one-click that isn't offered: the
     // modal only shows "Mes clés" here, and the chip must agree with the buttons.
+    if (c.byoOnly && c.byoReason !== "admin-consent") {
+      // Ours to clear (Google is reviewing the app's client): the one-click IS coming,
+      // and a developer can connect with their own Google keys meanwhile.
+      return {
+        kind: "direct",
+        label: "Bientôt disponible",
+        title: `La connexion en un clic arrive : Google vérifie encore ${BRAND.name}. En attendant, vous pouvez la connecter avec vos propres clés Google. ${BYO_SAFE}`,
+      };
+    }
     if (c.byoOnly) {
       return {
         kind: "direct",

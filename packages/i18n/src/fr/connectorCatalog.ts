@@ -88,6 +88,11 @@ export const connectorCatalog = {
     },
     directFull:
       "Connectez-vous sur la page du service et autorisez l'accès. Aucune clé nécessaire.",
+    comingSoon: {
+      label: "Bientôt disponible",
+      title: (brand) =>
+        `La connexion en un clic arrive : Google vérifie encore ${brand}. En attendant, vous pouvez la connecter avec vos propres clés Google.`,
+    },
     byoOnly: {
       label: "Vos clés",
       title: (what, reason) => `Pour ${what}, vos propres clés sont nécessaires : ${reason}.`,

@@ -123,8 +123,11 @@ export const googleDocsConnector: Connector = {
   name: "Google Docs",
   auth: "pkce",
   // `documents` is sensitive (brand verification) but NOT restricted → no CASA.
+  // One-click OFF until Google verifies the app's client (CASA for the restricted
+  // scopes): BYO only for now — main refuses the built-in mode (`byoOnly`).
+  byoOnly: true,
   scopes: {
-    managed: ["https://www.googleapis.com/auth/documents"],
+    managed: [],
     byo: ["https://www.googleapis.com/auth/documents"],
   },
   tools: [createDocument, readDocument, appendText],

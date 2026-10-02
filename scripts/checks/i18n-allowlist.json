@@ -2,7 +2,7 @@
   "packages/catalog/src/mcp/connectors/remote.ts": 21,
   "packages/catalog/src/redaction/categories.data.ts": 18,
   "packages/catalog/src/mcp/connectors/direct.ts": 13,
-  "packages/catalog/src/mcp/authTag.ts": 9,
+  "packages/catalog/src/mcp/authTag.ts": 11,
   "packages/catalog/src/mcp/categories.ts": 9,
   "packages/ui/src/containers/modals/DebugLogModal/entryText.ts": 9,
   "packages/ui/src/send/inboundScreen.ts": 9,

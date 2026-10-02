@@ -1,4 +1,4 @@
-import { EditIcon, SearchIcon, MemoryIcon, ActivityIcon, XIcon } from "../../components/brand";
+import { EditIcon, FileIcon, UsersIcon, MemoryIcon, XIcon } from "../../components/brand";
 import { McpTile } from "../../components/media/McpTile";
 import { findConnector } from "@openmasq/catalog/mcp";
 import { useOpenConnector } from "../../containers/providers/connectors";
@@ -30,10 +30,10 @@ import { useT } from "../../i18n";
 
 /** The glyph a universal starter wears, by id. */
 const UNIVERSAL_ICON: Record<string, ReactNode> = {
-  write: <EditIcon size={16} />,
-  search: <SearchIcon size={16} />,
+  "follow-up": <EditIcon size={16} />,
+  "contract-review": <FileIcon size={16} />,
+  "hr-review": <UsersIcon size={16} />,
   memory: <MemoryIcon size={16} />,
-  analyse: <ActivityIcon size={16} />,
 };
 
 function StarterCard({

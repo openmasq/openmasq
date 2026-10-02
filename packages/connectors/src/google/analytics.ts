@@ -118,8 +118,11 @@ export const googleAnalyticsConnector: Connector = {
   name: "Google Analytics",
   auth: "pkce",
   // `analytics.readonly` is sensitive (brand verification) but NOT restricted → no CASA.
+  // One-click OFF until Google verifies the app's client (CASA for the restricted
+  // scopes): BYO only for now — main refuses the built-in mode (`byoOnly`).
+  byoOnly: true,
   scopes: {
-    managed: ["https://www.googleapis.com/auth/analytics.readonly"],
+    managed: [],
     byo: ["https://www.googleapis.com/auth/analytics.readonly"],
   },
   tools: [listProperties, runReport],

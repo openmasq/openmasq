@@ -57,6 +57,8 @@ export interface McpTabMessages {
   credsSaved: string;
   adminConsent: (brand: string) => string;
   myKeys: string;
+  /** Above « Mes clés » on a connector whose one-click is pending Google's review. */
+  comingSoonNote: (brand: string) => string;
   connectLimited: string;
   connectLimitedTip: (brand: string, adds: string) => string;
   /** « API key » / remote body. */

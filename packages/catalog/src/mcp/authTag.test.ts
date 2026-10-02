@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { mcpAuthTag } from "./authTag";
+import { mcpAuthShape, mcpAuthTag } from "./authTag";
 import { MCP_CONNECTORS, findConnector } from "./index";
 
 /**
@@ -21,13 +21,23 @@ describe("mcpAuthTag — what the app's own client can actually do", () => {
     }
   });
 
-  it("Gmail : le 1-clic est PLEIN depuis le 30/07/2026 (lecture + envoi, plus de « limité »)", () => {
-    const gmail = findConnector("gmail")!;
-    const tag = mcpAuthTag(gmail);
-    expect(gmail.byoOnly).toBeFalsy();
-    expect(gmail.byoAdds).toBeUndefined(); // nothing that byo adds → no "limited" chip
-    expect(tag.label).toBe("1-clic");
-    expect(tag.title).not.toMatch(/vos propres clés/i);
+  it("Google : « Bientôt disponible », clés seulement, tant que Google vérifie l'app", () => {
+    for (const id of ["gmail", "google-drive", "google-calendar", "google-docs", "google-sheets", "google-tasks", "google-analytics"]) {
+      const c = findConnector(id)!;
+      expect(c.byoOnly, id).toBe(true);
+      expect(mcpAuthShape(c).variant, id).toBe("comingSoon");
+      expect(mcpAuthTag(c).label, id).toBe("Bientôt disponible");
+      expect(c.scopes?.byo?.length, `${id} keeps its BYO scopes`).toBeGreaterThan(0);
+    }
+    // Restricted scopes = CASA; the rest = brand verification. Both are ours to clear.
+    expect(findConnector("gmail")!.byoReason).toBe("casa");
+    expect(findConnector("google-drive")!.byoReason).toBe("casa");
+    expect(findConnector("google-sheets")!.byoReason).toBe("google-verification");
+  });
+
+  it("admin-consent n'est JAMAIS « bientôt » : ce n'est pas à nous de lever le blocage", () => {
+    const shape = mcpAuthShape({ transport: "direct", byoOnly: true, byoReason: "admin-consent" });
+    expect(shape.variant).toBe("byoOnly");
   });
 
   it("only a CASA connector may claim the integration is under way", () => {
@@ -54,17 +64,9 @@ describe("mcpAuthTag — what the app's own client can actually do", () => {
 
   it("a reason and what-it-unlocks always travel together", () => {
     for (const c of MCP_CONNECTORS) {
-      if (c.byoReason) expect(c.byoAdds, `${c.id} has a reason but no byoAdds`).toBeTruthy();
-      if (c.byoAdds) expect(c.byoReason, `${c.id} has byoAdds but no reason`).toBeTruthy();
+      // A PARTIAL one-click must say what keys add; a keys-only one needs no such line.
+      if (c.byoReason && !c.byoOnly) expect(c.byoAdds, `${c.id} has a reason but no byoAdds`).toBeTruthy();
+      if (c.byoAdds || c.byoOnly) expect(c.byoReason, `${c.id} is BYO-gated but has no reason`).toBeTruthy();
     }
-  });
-
-  it("an unrestricted direct connector keeps the plain 1-clic blurb", () => {
-    // 30/07/2026: managed ≡ byo on the Google connectors (1-clic capabilities 100%).
-    const cal = findConnector("google-calendar")!;
-    expect(cal.scopes?.byo).toEqual(cal.scopes?.managed);
-    const tag = mcpAuthTag(cal);
-    expect(tag.label).toBe("1-clic");
-    expect(tag.title).not.toMatch(/CASA/);
   });
 });

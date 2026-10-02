@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { findConnector } from "@openmasq/catalog/mcp";
-import { pickStarters, INTEGRATION_STARTERS, UNIVERSAL_STARTERS, STARTER_COUNT } from "./starters";
+import { redact } from "@openmasq/redact";
+import { getMessages } from "@openmasq/i18n";
+import { pickStarters, starterCopy, INTEGRATION_STARTERS, UNIVERSAL_STARTERS, STARTER_COUNT } from "./starters";
 
 describe("pickStarters — deux rangées", () => {
   it("une install FRAÎCHE garde ses quatre exemples universels", () => {
@@ -17,6 +19,18 @@ describe("pickStarters — deux rangées", () => {
     expect(integrations.length).toBeGreaterThan(0);
     expect(integrations.every((s) => s.connected === false)).toBe(true);
     expect(integrations.every((s) => !!s.connectorId)).toBe(true);
+  });
+
+  it("une OFFRE ne nomme jamais un connecteur réservé aux clés (Google en attente de vérification)", () => {
+    // « Connecter Gmail » on a fresh install led to a one-click Google can't serve yet.
+    const { integrations } = pickStarters([]);
+    for (const s of integrations) expect(findConnector(s.connectorId!)?.byoOnly, s.connectorId).toBeFalsy();
+    expect(integrations.map((s) => s.connectorId)).not.toContain("gmail");
+    expect(integrations.map((s) => s.connectorId)).not.toContain("google-drive");
+  });
+
+  it("…mais un développeur qui l'a connecté avec ses clés garde sa carte", () => {
+    expect(pickStarters(["google-drive"]).integrations[0]).toMatchObject({ connectorId: "google-drive", connected: true });
   });
 
   it("un service connecté passe DEVANT les offres", () => {
@@ -75,4 +89,18 @@ describe("catalogue des amorces", () => {
     const ids = [...INTEGRATION_STARTERS, ...UNIVERSAL_STARTERS].map((s) => s.id);
     expect(new Set(ids).size).toBe(ids.length);
   });
+});
+
+describe("amorces universelles — elles MONTRENT le masquage", () => {
+  // Their whole point: the card sends data the engine masks before it leaves. A demo
+  // whose IBAN fails its checksum, or whose e-mail no longer parses, would show nothing.
+  for (const locale of ["fr", "en"] as const) {
+    it(`${locale} : chaque démonstrateur porte des données que le moteur déterministe masque`, () => {
+      const t = getMessages(locale);
+      for (const s of UNIVERSAL_STARTERS.filter((s) => s.id !== "memory")) {
+        const types = redact(starterCopy(s, t).prompt).matches.map((m) => m.type);
+        expect(types.length, `${locale}/${s.id}`).toBeGreaterThan(0);
+      }
+    });
+  }
 });

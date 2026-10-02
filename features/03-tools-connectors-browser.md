@@ -27,6 +27,10 @@ them.
 - [x] Remote (OAuth/DCR), on-device direct, local, added by you
 - [x] OAuth sign-in in the system browser (the only place an SSO works)
 - [x] Several accounts per connector, labelled
+- [x] **Google connectors (Gmail, Drive, Agenda, Docs, Sheets, Tasks, Analytics) read
+      « Bientôt disponible »** while Google reviews the app: still listed, one-click hidden
+      (and refused by main), connectable with your own Google keys — `packages/catalog/src/mcp/connectors/direct.ts`,
+      `packages/catalog/src/mcp/authTag.test.ts`
 - [x] « Ajouter un connecteur », unverified, in its own section — the toolbar button beside
       the search field opens the name / URL / key form, behind a risk acknowledgement —
       `packages/ui/src/pages/Settings/mcp/McpCustomModal.tsx`

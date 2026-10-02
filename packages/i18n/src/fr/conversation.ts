@@ -16,10 +16,10 @@ export const conversation = {
     connectTip: (connector, prompt) => `Connecter ${connector} — ${prompt}`,
     dismiss: "Ne plus afficher",
     cats: {
-      write: "Rédaction",
-      search: "Recherche",
+      "follow-up": "Relance client",
+      "contract-review": "Juridique",
+      "hr-review": "RH",
       memory: "Mémoire",
-      analyse: "Analyse",
       "mail-triage": "Boîte mail",
       "files-find": "Mes dossiers",
       "day-brief": "Agenda",
@@ -27,14 +27,21 @@ export const conversation = {
       "pr-review": "Code",
     },
     prompts: {
-      write: (domain) => `Rédige un email de remerciement à julien@${domain}.`,
-      search: () => "Quelle actualité en France aujourd'hui ?",
+      // DEMONSTRATORS of the one thing the app does: each carries invented personal data
+      // (names, an e-mail, a valid IBAN / SIREN / phone shape) that lights up as masked
+      // BEFORE it leaves, and comes back in clear in the reply. A plain chat prompt
+      // (« l'actualité du jour ») showed nothing a generic assistant doesn't.
+      "follow-up": (domain) =>
+        `Rédige une relance courtoise à Camille Salvi (camille.salvi@${domain}) : sa facture F-2026-114 de 4 820 € est impayée depuis 30 jours. Rappelle-lui notre IBAN FR76 3000 6000 0112 3456 7890 189.`,
+      "contract-review": () =>
+        "Repère les clauses à risque dans cet extrait : « La société Lucane SAS, SIREN 732 829 320, 12 rue des Tanneurs à Lyon, représentée par Marc Wulff, s'engage pour 36 mois sans résiliation anticipée ; toute somme due porte intérêt à 15 % l'an. »",
+      "hr-review": () =>
+        "Résume ce compte rendu en trois actions : « Entretien annuel de Julien Moreau, né le 14/03/1988, joignable au 06 12 34 56 78. Sa manager Sophie Bernard propose une hausse de 6 % et une formation en mars. »",
       // A DEMONSTRATOR, not a memo: named people + a named company (the redaction lights up
       // before the user's eyes BEFORE it goes out) AND several entity-linked facts (cards get
       // born, the « N faits notés » caption clicks through to the Mémoire graph).
       memory: () =>
         "Retiens que sur le projet Horizon, ma cliente Camille Salvi (Atelier Lucane) valide les maquettes et que Marc Wulff gère la facturation.",
-      analyse: () => "Trace un graphique des 5 ETF éligibles au PEA les plus performants de l'année.",
       "mail-triage": () =>
         "Trie mes e-mails non lus de la semaine : lesquels attendent vraiment une réponse de moi, et lesquels peuvent attendre ?",
       "files-find": () =>

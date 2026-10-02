@@ -182,8 +182,11 @@ export const googleCalendarConnector: Connector = {
   // that no tool uses (minimization, Google/CASA verification).
   // ⚠️ THIS list is the one OAuth requests (`main/mcp/connectors/index.ts`); the
   // catalog carries a display copy of it — `scopesParity.test.ts` keeps them equal.
+  // One-click OFF until Google verifies the app's client (CASA for the restricted
+  // scopes): BYO only for now — main refuses the built-in mode (`byoOnly`).
+  byoOnly: true,
   scopes: {
-    managed: ["https://www.googleapis.com/auth/calendar.events"],
+    managed: [],
     byo: ["https://www.googleapis.com/auth/calendar.events"],
   },
   tools: [listEvents, createEvent],

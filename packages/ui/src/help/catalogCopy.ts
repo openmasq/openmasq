@@ -47,6 +47,12 @@ export function mcpAuthTagCopy(
   switch (shape.variant) {
     case "builtin":
       return { kind: shape.kind, ...a.builtin };
+    case "comingSoon":
+      return {
+        kind: shape.kind,
+        label: a.comingSoon.label,
+        title: `${a.comingSoon.title(BRAND.name)} ${a.byoSafe(BRAND.name)}`,
+      };
     case "byoOnly":
       return {
         kind: shape.kind,

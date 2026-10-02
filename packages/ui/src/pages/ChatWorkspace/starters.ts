@@ -1,4 +1,5 @@
 import { BRAND } from "@openmasq/branding";
+import { findConnector } from "@openmasq/catalog/mcp";
 import type { Messages, StarterId } from "@openmasq/i18n";
 /**
  * The empty-thread prompt starters, and WHICH four to show.
@@ -78,23 +79,16 @@ export const INTEGRATION_STARTERS: Starter[] = [
 
 /** The starters that work on ANY install — the floor, and what a fresh one sees. */
 export const UNIVERSAL_STARTERS: Starter[] = [
-  {
-    id: "write",
-    need: { kind: "none" },
-  },
-  {
-    id: "search",
-    need: { kind: "none" },
-  },
+  // Each one SHOWS the masking (invented personal data in the prompt) — the catalogue entry
+  // says why. What a generic assistant already does is not worth a card here.
+  { id: "follow-up", need: { kind: "none" } },
+  { id: "contract-review", need: { kind: "none" } },
+  { id: "hr-review", need: { kind: "none" } },
   {
     // Teaches the MÉMOIRE's conversational gesture — an explicit « retiens que… » needs
     // no opt-in, so this one cannot fail either. Why the sentence is what it is: see the
     // catalogue entry (`fr/conversation.ts`, `starters.prompts.memory`).
     id: "memory",
-    need: { kind: "none" },
-  },
-  {
-    id: "analyse",
     need: { kind: "none" },
   },
 ];
@@ -147,7 +141,11 @@ export function pickStarters(
     const out: PickedStarter[] = [];
     for (const s of INTEGRATION_STARTERS) {
       if (s.need.kind !== "connector") continue;
-      const id = s.need.ids.find((i) => connected.has(i) === want && !spent.has(i));
+      // An OFFER (`want === false`) never names a keys-only connector: « Connecter Gmail »
+      // on a fresh install would lead to a Google Cloud form, not a connection.
+      const id = s.need.ids.find(
+        (i) => connected.has(i) === want && !spent.has(i) && (want || !findConnector(i)?.byoOnly),
+      );
       if (!id) continue;
       spent.add(id);
       out.push({ ...s, connectorId: id, connected: want });

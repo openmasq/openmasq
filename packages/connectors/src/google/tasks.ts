@@ -101,8 +101,11 @@ export const googleTasksConnector: Connector = {
   name: "Google Tasks",
   auth: "pkce",
   // `tasks` is sensitive (brand verification) but NOT restricted → no CASA.
+  // One-click OFF until Google verifies the app's client (CASA for the restricted
+  // scopes): BYO only for now — main refuses the built-in mode (`byoOnly`).
+  byoOnly: true,
   scopes: {
-    managed: ["https://www.googleapis.com/auth/tasks"],
+    managed: [],
     byo: ["https://www.googleapis.com/auth/tasks"],
   },
   tools: [listTasks, createTask, completeTask],

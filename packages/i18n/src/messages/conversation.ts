@@ -9,10 +9,10 @@
 
 /** The home starters' ids — the union `starters.ts` (packages/ui) builds its lists from. */
 export type StarterId =
-  | "write"
-  | "search"
+  | "follow-up"
+  | "contract-review"
+  | "hr-review"
   | "memory"
-  | "analyse"
   | "mail-triage"
   | "files-find"
   | "day-brief"

@@ -87,6 +87,11 @@ export const connectorCatalog = {
     },
     directFull:
       "Sign in on the service's page and approve access. No key needed.",
+    comingSoon: {
+      label: "Coming soon",
+      title: (brand) =>
+        `One-click connection is on its way: Google is still reviewing ${brand}. Until then, you can connect it with your own Google keys.`,
+    },
     byoOnly: {
       label: "Your keys",
       title: (what, reason) => `For ${what}, you need your own keys: ${reason}.`,

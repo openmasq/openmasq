@@ -93,7 +93,9 @@ describe("gmail — les listes portent l'id, get_message lit le corps", () => {
       ["get_message", "list_recent", "search_messages", "send_email"].sort(),
     );
     expect(tool("get_message").scope).toBe("https://www.googleapis.com/auth/gmail.readonly");
-    // managed ≡ byo (30/07/2026): reading is offered in 1-click mode too.
-    expect(gmailConnector.scopes.managed).toContain("https://www.googleapis.com/auth/gmail.readonly");
+    // Keys-only while Google reviews the app: the one-click requests nothing, keys read.
+    expect(gmailConnector.byoOnly).toBe(true);
+    expect(gmailConnector.scopes.managed).toEqual([]);
+    expect(gmailConnector.scopes.byo).toContain("https://www.googleapis.com/auth/gmail.readonly");
   });
 });
