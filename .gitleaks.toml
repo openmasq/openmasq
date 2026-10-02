@@ -7,7 +7,7 @@
 [extend]
 useDefault = true
 
-[allowlist]
+[[allowlists]]
 description = "Fake secrets that exist on purpose (redaction fixtures, tests, local dev stack)"
 paths = [
   '''apps/desktop/e2e/fixtures/pii/.*''',
@@ -36,3 +36,14 @@ regexes = [
   '''sb_publishable_[A-Za-z0-9_-]{16,}''',
   '''phc_[A-Za-z0-9]{40,}''',
 ]
+
+# The engine's OWN detection rule for AWS Bedrock's short-lived key: its literal head is
+# the vendor prefix, so gitleaks' rule of the same name fires on the regex SOURCE. Scoped
+# to that one rule AND to the match being followed by a character class `[` — a property
+# of a regex literal that a real key, base64 to its end, never has. A Bedrock key pasted
+# anywhere else in the tree still fires.
+[[allowlists]]
+description = "The redaction engine's Bedrock rule, written as a regex"
+targetRules = ["aws-amazon-bedrock-api-key-short-lived"]
+regexTarget = "line"
+regexes = ['''bedrock-api-key-YmVkcm9jay5hbWF6b25hd3MuY29t\[''']
