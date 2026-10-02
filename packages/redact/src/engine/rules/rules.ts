@@ -26,6 +26,7 @@ import { ENV_SECRET_RULES } from "./rules.envSecrets";
 import { CRYPTO_RULES } from "./rules.crypto";
 import { TOKEN_RULES } from "./rules.tokens";
 import { IDENTIFIER_RULES } from "./rules.identifiers";
+import { REFERENCE_RULES } from "./rules.references";
 import { HEALTH_RULES } from "./rules.health";
 import { USERNAME_RULES } from "./rules.username";
 import { WRAP, SP, gate, maxOneWrap } from "./rules.international.util";
@@ -145,6 +146,7 @@ export const RULES: RedactionRule[] = [
   // Health data (blood group / MRN / ICD-10 diagnosis code) — all context-gated, so
   // an ordinary "A+", "F32" or bare number never false-positives. See rules.health.ts.
   ...HEALTH_RULES,
+  ...REFERENCE_RULES,
   // Pseudo / handle (`@drovaksinatra`) → category "username" (OFF by default). A bare
   // leading-`@` handle, excluding emails / npm scopes / CSS at-rules. See rules.username.ts.
   ...USERNAME_RULES,
