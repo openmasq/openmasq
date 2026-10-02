@@ -181,6 +181,39 @@ describe("buildFoldedPayload", () => {
   });
 });
 
+describe("un document réutilisé transmet la CATÉGORIE de ses valeurs, pas seulement ses paires", () => {
+  // Reported: a dropped document typed each value correctly in its preview (address,
+  // company, name…), but the conversation then showed nearly all of them as « sensitive »
+  // (red) — the vault receives pairs only, so the reused values reached the conversation
+  // with no category.
+  it("chaque valeur réutilisée garde son type (réel → catégorie)", () => {
+    const r = buildFoldedPayload(
+      "donne l'adresse",
+      [{ name: "recu.pdf", text: "Ateliers Morvan, 12 rue des Lilas" }],
+      {
+        docReplacements: {
+          "recu.pdf": [
+            { real: "Ateliers Morvan", fake: "Forges Duval", tone: "violet", kind: "company" },
+            { real: "12 rue des Lilas", fake: "4 allée des Ormes", tone: "amber", kind: "address" },
+          ],
+        },
+      },
+      "",
+    );
+    expect(r.docKinds).toEqual({ "Ateliers Morvan": "company", "12 rue des Lilas": "address" });
+  });
+
+  it("un remplacement sans catégorie (ancien format) n'invente rien", () => {
+    const r = buildFoldedPayload(
+      "go",
+      [{ name: "a.txt", text: "Marc Savary" }],
+      { docReplacements: { "a.txt": [{ real: "Marc Savary", fake: "Paul Morvan", tone: "violet" }] } },
+      "",
+    );
+    expect(r.docKinds).toEqual({});
+  });
+});
+
 describe("l'alias d'une pièce est une entrée de coffre — la restitution le retourne", () => {
   // Lived 15/08 (documentalist): a whole inventory named every item
   // « Document-3 » — a name that exists on no disk — because the alias was the

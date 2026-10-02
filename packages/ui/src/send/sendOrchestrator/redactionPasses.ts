@@ -167,7 +167,7 @@ export async function runRedactionPasses(
   // The `wire` log entry always goes out (a « Votre avis » report embeds it); only the
   // console trace is behind the developer toggle. Its id receives the token cost later.
   const wireDebugId = logWireMessage(
-    { model: ctx.model.id, text: userWire.text, vault, kinds: r.convKinds, convId },
+    { model: ctx.model.id, text: userWire.text, vault, kinds: { ...r.convKinds, ...r.extraKinds }, convId },
     { toConsole: !!settings.debugLog },
   );
 

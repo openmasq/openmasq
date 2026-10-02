@@ -33,11 +33,11 @@ export function reusableDocReplacements(
   settings: Settings | undefined,
   forced: ForcedValue[] | undefined,
   orgForcedCategories?: string[],
-): Record<string, { real: string; fake: string; tone: string }[]> {
+): Record<string, { real: string; fake: string; tone: string; kind?: string }[]> {
   if (conversationRedactCategories && Object.keys(conversationRedactCategories).length) return {};
   const cur = redactEngineSig(settings, orgForcedCategories, conversationRedactCategories);
   const forcedLc = (forced ?? []).map((f) => f.value?.toLowerCase()).filter(Boolean) as string[];
-  const out: Record<string, { real: string; fake: string; tone: string }[]> = {};
+  const out: Record<string, { real: string; fake: string; tone: string; kind?: string }[]> = {};
   for (const a of list) {
     if (!a.replacements?.length || a.redactEngineSig !== cur) continue;
     const textLc = (a.text ?? "").toLowerCase();
