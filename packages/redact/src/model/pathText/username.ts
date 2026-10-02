@@ -38,8 +38,12 @@ export function fakeUsername(
   convKey?: Uint8Array,
   isFree: (candidate: string) => boolean = () => true,
 ): string {
-  const m = /^(.*?)(\d*)$/.exec(real) ?? ["", real, ""];
-  const [, body, digits] = m;
+  // Trailing digits by a backward scan, not `/^(.*?)(\d*)$/`: that lazy split is
+  // quadratic on a long digit run (CodeQL js/polynomial-redos).
+  let cut = real.length;
+  while (cut > 0 && real.charCodeAt(cut - 1) >= 48 && real.charCodeAt(cut - 1) <= 57) cut--;
+  const body = real.slice(0, cut);
+  const digits = real.slice(cut);
   for (let k = 0; k < 40; k++) {
     const seed = wordSeed("user", real, attempt + k * 131, convKey);
     const first = fold(pick(firstNamePool(body), seed)); // same gender when known
