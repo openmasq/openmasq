@@ -156,6 +156,8 @@ export const desktopMain = {
   },
   folders: {
     cloudNotConnected: "This storage is not connected.",
+    onedriveNotProvisioned:
+      "This Microsoft account has no OneDrive space yet. Open OneDrive once with this account (onedrive.com), or check that it has a OneDrive license, then try again.",
     folderNotListed: "This folder could not be listed.",
     filesystemNotConnected: "The Filesystem connector is not connected.",
   },

@@ -84,6 +84,23 @@ export async function cloudList(
     const conn = connected.get(source.id)!;
     return { entries: await mcpBrowseList(conn, folderId) };
   }
-  const body = await directFetchJson<unknown>(source.id, provider.childrenUrl(folderId));
-  return { entries: provider.parse(body) };
+  try {
+    const body = await directFetchJson<unknown>(source.id, provider.childrenUrl(folderId));
+    return { entries: provider.parse(body) };
+  } catch (e) {
+    throw cloudListError(e, source.connectorId, folderId);
+  }
+}
+
+/**
+ * A 404 on the OneDrive ROOT is not a missing folder: Graph answers it when the account has
+ * no OneDrive provisioned yet (a work account without the licence, or one that never opened
+ * OneDrive). Said as what to do, instead of a bare « Upstream request failed (404) ».
+ * Anything else passes through unchanged. `cloudfs.test.ts`.
+ */
+export function cloudListError(e: unknown, connectorId: string, folderId: string | null): unknown {
+  const status = (e as { status?: unknown } | null)?.status;
+  if (connectorId === "microsoft-onedrive" && folderId === null && status === 404)
+    return new Error(mainMessages().desktopMain.folders.onedriveNotProvisioned);
+  return e;
 }

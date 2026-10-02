@@ -155,6 +155,8 @@ export interface DesktopMainMessages {
   };
   folders: {
     cloudNotConnected: string;
+    /** A 404 on the OneDrive root: the account has no OneDrive provisioned. */
+    onedriveNotProvisioned: string;
     folderNotListed: string;
     filesystemNotConnected: string;
   };

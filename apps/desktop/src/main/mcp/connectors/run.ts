@@ -29,14 +29,16 @@ async function assertConnectorTarget(url: string): Promise<void> {
 }
 
 /**
- * A short, SAFE reason CODE from a provider error body (`error.status` or a `reason`
- * token): ONLY enum-like tokens, NEVER the free-text message, which could echo PII.
+ * A short, SAFE reason CODE from a provider error body: Google's `error.status` / `reason`,
+ * Microsoft Graph's `error.code` (`itemNotFound`, `ResourceNotFound`). ONLY enum-like
+ * tokens, NEVER the free-text message, which could echo PII.
  */
 function upstreamReason(body: string): string | undefined {
   try {
     const j = JSON.parse(body) as {
       error?: {
         status?: string;
+        code?: unknown;
         errors?: { reason?: string }[];
         details?: { reason?: string }[];
       };
@@ -46,7 +48,8 @@ function upstreamReason(body: string): string | undefined {
     const reason =
       e.errors?.find((x) => x.reason)?.reason ??
       e.details?.find((x) => x.reason)?.reason ??
-      e.status;
+      e.status ??
+      (typeof e.code === "string" ? e.code : undefined);
     // A bare enum token only, never a sentence.
     return reason && /^[A-Za-z_]+$/.test(reason) ? reason : undefined;
   } catch {

@@ -97,7 +97,8 @@ granting one's home directory. A removal takes effect immediately, not at the ne
       state — `packages/catalog/src/mcp/registry.ts`
 - [x] **Google Drive, OneDrive and Dropbox browse as a tree**, like the machine's folders —
       read-only, the token never leaves the privileged process —
-      `apps/desktop/src/main/cloudfs/`
+      `apps/desktop/src/main/cloudfs/`; a OneDrive account with no OneDrive space yet says so
+      (open OneDrive once, or check the licence) instead of a bare 404 — `cloudfs.test.ts`
 - [x] The model can **list a folder** on Drive/OneDrive, not only search it —
       `packages/connectors/src/files.ts`
 - [x] Dropbox goes through **its own MCP server's listing**, tool name allow-listed and the
