@@ -19,8 +19,8 @@ const brand = require("../../packages/branding/branding.json");
  *
  * A partial DN is stronger than either alternative. `verifySignature` parses the configured
  * name and compares ONLY the keys it contains, so `CN=…, O=…` pins the organisation
- * strictly while surviving a reissue that changes L or C. Measured against the real subject
- * `CN=Numa Studio, O=Numa Studio, L=Paris, C=FR`: the full DN matches today but REJECTS
+ * strictly while surviving a reissue that changes L or C. Measured against the certificate's real subject
+ * (a full `CN, O, L, C` DN): the full DN matches today but REJECTS
  * every update the day the city changes; the bare CN matches with a warning and pins
  * nothing but the name; this matches strictly, before and after.
  *
