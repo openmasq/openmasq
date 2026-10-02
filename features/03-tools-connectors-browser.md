@@ -54,7 +54,9 @@ them.
       or not; a company name alone (« Microsoft ») stays maskable, and a Coffre term wins —
       `packages/ui/src/send/integrationKeep.ts`
 - [x] **The item ids a direct connector lists** (« · id:… » in OneDrive, Drive, SharePoint, Slack,
-      Tasks results) **stay real**: faked as API tokens, they came back as a 404 — same file,
+      Tasks results) **stay real**: faked as API tokens, they came back as a 404 — and so do the
+      record ids (UUIDs under a JSON id key) of any catalogue connector, Notion's pages included;
+      never under a secret-named key, never for a server you added yourself — same file,
       `packages/ui/src/send/integrationKeep.test.ts`
 - [x] Enter an API key when the service asks for one — `packages/ui/src/containers/modals/ApiKeyModal.tsx`
 

@@ -60,7 +60,7 @@ describe("connectorIdKeep — les ids d'un connecteur direct ne deviennent pas d
     expect(out).toContain("A1B2C3D4E5F6G7H8!1234");
   });
 
-  it("seulement pour un connecteur DIRECT, et seulement en position `· id:`", () => {
+  it("la position `· id:` ne vaut que pour un connecteur DIRECT (notre propre rendu)", () => {
     expect(connectorIdKeep("notion__search", listing, [])).toEqual([]); // remote: its text isn't ours
     expect(connectorIdKeep("run_python", listing, [])).toEqual([]);
     expect(connectorIdKeep("microsoft-onedrive__read_document", "token sk_live_ABCDEFGH123456 ici", [])).toEqual([]);
@@ -69,5 +69,39 @@ describe("connectorIdKeep — les ids d'un connecteur direct ne deviennent pas d
   it("jamais une valeur PROTÉGÉE (coffre, vrai du vault) — fail-closed", () => {
     const keep = connectorIdKeep("microsoft-onedrive__search_files", listing, ["01BYE5RZ6QN3ZWBTUFOFD3GSPGOHDJD36K"]);
     expect(keep).not.toContain("01BYE5RZ6QN3ZWBTUFOFD3GSPGOHDJD36K");
+  });
+});
+
+describe("connectorIdKeep — les ids JSON d'un connecteur du catalogue (Notion)", () => {
+  const notion = JSON.stringify({
+    results: [
+      { id: "3a8b8e7d-4266-8152-b4b3-ce67308b22de", title: "Compte-rendu", parent_id: "36db8e7d426681e79f43d3395ddc1f87" },
+    ],
+    api_key_id: "99c9136a-638c-48f8-b52b-793ee9df8b90",
+    valid: "94302778-9b67-4fa3-9709-0434c26e6f7c",
+  });
+
+  it("l'id d'une page Notion reste réel, même en strict — le modèle le rend tel quel à notion-fetch", () => {
+    const keep = connectorIdKeep("notion__notion-search", notion, []);
+    expect(keep).toEqual(["3a8b8e7d-4266-8152-b4b3-ce67308b22de", "36db8e7d426681e79f43d3395ddc1f87"]);
+    // Control: without the keep, the engine fakes the UUID as an API key.
+    expect(redact(notion, { disabledKinds: STRICT }).text).not.toContain("3a8b8e7d-4266-8152-b4b3-ce67308b22de");
+    expect(redact(notion, { disabledKinds: STRICT, keep }).text).toContain("3a8b8e7d-4266-8152-b4b3-ce67308b22de");
+  });
+
+  it("jamais sous une clé de secret, ni sous une clé qui n'est pas un id", () => {
+    const keep = connectorIdKeep("notion__notion-search", notion, []);
+    expect(keep).not.toContain("99c9136a-638c-48f8-b52b-793ee9df8b90"); // api_key_id
+    expect(keep).not.toContain("94302778-9b67-4fa3-9709-0434c26e6f7c"); // "valid" is not an id key
+  });
+
+  it("un serveur AJOUTÉ par l'utilisateur (hors catalogue) n'a rien d'épargné", () => {
+    expect(connectorIdKeep("custom-crm__search", notion, [])).toEqual([]);
+  });
+
+  it("jamais une valeur PROTÉGÉE", () => {
+    expect(connectorIdKeep("notion__notion-search", notion, ["3a8b8e7d-4266-8152-b4b3-ce67308b22de"])).not.toContain(
+      "3a8b8e7d-4266-8152-b4b3-ce67308b22de",
+    );
   });
 });

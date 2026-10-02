@@ -53,15 +53,23 @@ export function integrationProductNames(): string[] {
 // search, Slack channels, Tasks).
 const LISTED_ID = /· id:(\S+)[ \t]*$/gm;
 
+// A record id under a JSON id KEY in a catalogue connector's result: `"id"`, `"page_id"`,
+// `"parentId"`… with a UUID value (dashed, or Notion's 32-hex form). A key naming a secret
+// (`api_key_id`, `token_id`…) never qualifies.
+const JSON_UUID_ID =
+  /"(id|[a-z][a-z0-9_]*_id|[a-z][a-zA-Z0-9]*Id)"\s*:\s*"([0-9a-fA-F]{8}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{12})"/g;
+const SECRET_KEY = /key|token|secret|session|auth|password/i;
+
 /**
- * The item ids a DIRECT connector's listing hands the model. They are the service's
- * ADDRESSING (`01BYE5RZ…`, `A1B2…!1234`), not data — but they look like API tokens, and
- * that category is on at every level: the model got a fake id, and one mangled character
- * on the way back was a 404 from the service. Spared ONLY:
- * - for a tool of a `direct` catalogue connector — our own renderer wrote the line, so the
- *   shape is ours (a remote server's free text never qualifies);
- * - in the `· id:` closing position, whole id and its segments (the engine may flag
- *   `A1B2…` inside `A1B2…!1234`);
+ * The record ids a CATALOGUE connector hands the model. They are the service's ADDRESSING,
+ * not data — but they look like API tokens, and that category is on at every level: the
+ * model got a fake id (or, on a direct connector, a 404 after one mangled character).
+ * Spared ONLY:
+ * - for a tool of a connector in the CATALOGUE — a server the user added is unknown, so
+ *   nothing of its output is presumed harmless;
+ * - in two positions: the `· id:` closing of our DIRECT connectors' own listings (whole id
+ *   and its segments — the engine may flag `A1B2…` inside `A1B2…!1234`), and a UUID under a
+ *   JSON id key in any catalogue connector's result (Notion's `"id"`);
  * - never a PROTECTED value (vault real, Coffre/forced, extra secret): fail-closed.
  */
 export function connectorIdKeep(
@@ -72,17 +80,23 @@ export function connectorIdKeep(
   if (!tool) return [];
   const px = tool.indexOf("__");
   if (px <= 0) return [];
-  if (findConnector(connectorOfServer(tool.slice(0, px)))?.transport !== "direct") return [];
+  const connector = findConnector(connectorOfServer(tool.slice(0, px)));
+  if (!connector || connector.transport === "builtin") return [];
   const guarded = protectedValues.map((v) => v.toLowerCase()).filter(Boolean);
   const touches = (v: string) => {
     const lc = v.toLowerCase();
     return guarded.some((g) => g.includes(lc) || lc.includes(g));
   };
   const out = new Set<string>();
-  for (const m of text.matchAll(LISTED_ID)) {
-    const id = m[1];
-    for (const v of [id, ...id.split(/[^A-Za-z0-9]+/).filter((s) => s.length >= 6)])
-      if (!touches(v)) out.add(v);
+  const add = (v: string) => {
+    if (!touches(v)) out.add(v);
+  };
+  if (connector.transport === "direct") {
+    for (const m of text.matchAll(LISTED_ID)) {
+      const id = m[1];
+      for (const v of [id, ...id.split(/[^A-Za-z0-9]+/).filter((s) => s.length >= 6)]) add(v);
+    }
   }
+  for (const m of text.matchAll(JSON_UUID_ID)) if (!SECRET_KEY.test(m[1])) add(m[2]);
   return [...out];
 }
