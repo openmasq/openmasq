@@ -31,6 +31,15 @@ describe("humanizeUpdateError — failure taxonomy (drives the PostHog code)", (
     expect(code("signature verification failed after download")).toBe("signature");
   });
 
+  // builder-util-runtime's HttpError for a feed 5xx: the message opens on the bare status
+  // and the body, no "HttpError"/"status" word — only `statusCode` says what happened.
+  it("reads the status an HttpError carries, not only its text", () => {
+    const err = Object.assign(new Error('500 \n"method: GET url: https://updates.example.invalid Data: {"error":"internal_error"}"'), {
+      statusCode: 500,
+    });
+    expect(humanizeUpdateError(err).code).toBe("download-500");
+  });
+
   it("always returns a user-safe FR message (never a raw dump)", () => {
     const { message } = humanizeUpdateError(new Error("ditto: pkzip signature not found"));
     expect(message).not.toMatch(/ditto|pkzip/i);
