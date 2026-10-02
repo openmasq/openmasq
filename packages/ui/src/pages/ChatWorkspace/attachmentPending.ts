@@ -1,7 +1,10 @@
 import type { Messages } from "@openmasq/i18n";
 import type { Attachment } from "./Composer";
 
-type PendingFields = Pick<Attachment, "extracting" | "extractProgress" | "redacting" | "redactProgress" | "replacements">;
+type PendingFields = Pick<
+  Attachment,
+  "extracting" | "extractProgress" | "extractQueued" | "redacting" | "redactProgress" | "replacements"
+>;
 
 /** The preview has nothing redacted to show yet: the file is still being READ, or its
  *  FIRST masking pass is running. A re-run (replacements already there) keeps the real
@@ -17,6 +20,7 @@ export function isPreviewPending(a: PendingFields): boolean {
 export function progressLabel(a: PendingFields, t: Messages): string | null {
   const at = t.composer.attachments;
   if (a.extracting) {
+    if (a.extractQueued !== undefined && a.extractQueued > 0) return at.stateQueued(a.extractQueued);
     const p = a.extractProgress;
     return p && p.total > 1 ? at.stateReadingPage(Math.min(p.done + 1, p.total), p.total) : at.stateReading;
   }
@@ -25,4 +29,26 @@ export function progressLabel(a: PendingFields, t: Messages): string | null {
     return p && p.total > 1 ? at.stateMaskingPct(Math.round((p.done / p.total) * 100)) : at.stateMasking;
   }
   return null;
+}
+
+/** The chip patch for one extraction progress event: waiting its turn (`queued`), or
+ *  reading a page — one replaces the other, so a started file never still says « waiting ». */
+export function extractProgressPatch(p: {
+  done: number;
+  total: number;
+  queued?: number;
+}): Pick<Attachment, "extractQueued" | "extractProgress"> {
+  return p.queued !== undefined
+    ? { extractQueued: p.queued, extractProgress: undefined }
+    : { extractQueued: undefined, extractProgress: { done: p.done, total: p.total } };
+}
+
+/** Whether a progress event (the channel is shared by every extraction in flight) is
+ *  about this file: by PATH when the event carries one — two picked files may share a
+ *  name — else by name (the bytes route has no path). */
+export function isProgressFor(
+  p: { name: string; path?: string },
+  file: { name: string; path?: string },
+): boolean {
+  return p.path !== undefined ? p.path === file.path : p.name === file.name;
 }

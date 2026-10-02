@@ -18,8 +18,8 @@ export interface DeferredFile {
   mime?: string;
   /** Reads and extracts. Rejects ⇒ the chip carries the failure. The callback (optional) receives
    *  OCR progress `{done, total}` — a source with no measurable pages ignores it,
-   *  the chip then keeps its indeterminate bar. */
-  load(onOcrProgress?: (p: { done: number; total: number }) => void): Promise<ExtractedFile>;
+   *  the chip then keeps its indeterminate bar — or `queued` (files ahead) while it waits. */
+  load(onOcrProgress?: (p: { done: number; total: number; queued?: number }) => void): Promise<ExtractedFile>;
 }
 
 /** Distinguishes the two shapes the shell can stage. */

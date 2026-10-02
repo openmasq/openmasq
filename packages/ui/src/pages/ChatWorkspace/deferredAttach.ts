@@ -1,6 +1,7 @@
 import type { Attachment } from "./Composer";
 import type { ExtractedFile } from "../../host";
 import type { DeferredFile } from "../../state/files/deferredFile";
+import { extractProgressPatch } from "./attachmentPending";
 
 /** What `ChatView` knows how to do and this module doesn't: setting, fixing, chaining. */
 export interface DeferredAttachDeps {
@@ -51,7 +52,7 @@ export async function stageDeferredFile(
   try {
     // OCR progress fixes the chip page by page; a source that emits none
     // leaves the bar indeterminate (the parameter is ignored harmlessly).
-    file = await d.load((p) => deps.patch(ph.cid, { extractProgress: p }, forConvId));
+    file = await d.load((p) => deps.patch(ph.cid, extractProgressPatch(p), forConvId));
   } catch {
     deps.patch(ph.cid, { extracting: false, error: "extraction échouée" }, forConvId);
     return;
@@ -61,7 +62,7 @@ export async function stageDeferredFile(
     ph.cid,
     // `extracting` drops and `redacting` takes over in the SAME patch: two
     // patches left the chip in a stateless frame, which reads as a failure.
-    { ...file, extracting: false, extractProgress: undefined, redactPreview, redacting: !!file.text.trim() },
+    { ...file, extracting: false, extractProgress: undefined, extractQueued: undefined, redactPreview, redacting: !!file.text.trim() },
     forConvId,
   );
   deps.onExtracted(file, { ...ph, ...file, redactPreview });

@@ -180,7 +180,15 @@ export interface ExtractionResult {
 /** OCR progress for an extraction in flight: `{name, page, pages}` per page read.
  *  Optional end to end — a host that doesn't relay it degrades to the chip's
  *  indeterminate bar, never a failure. */
-export type OcrProgress = { name: string; page: number; pages: number };
+export type OcrProgress = {
+  name: string;
+  page: number;
+  pages: number;
+  /** Waiting its turn: that many files ahead in the extraction queue. */
+  queued?: number;
+  /** Which picked file (two may share a name); absent on the bytes route. */
+  path?: string;
+};
 
 /** Optional file-attachment text extraction (PDF/CSV/text → plain text). */
 export interface FilesHost {

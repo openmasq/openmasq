@@ -1,6 +1,6 @@
 import { getMessages } from "@openmasq/i18n";
 import { describe, expect, it } from "vitest";
-import { isPreviewPending, progressLabel } from "./attachmentPending";
+import { extractProgressPatch, isPreviewPending, isProgressFor, progressLabel } from "./attachmentPending";
 
 const fr = getMessages("fr");
 
@@ -49,5 +49,45 @@ describe("progressLabel — la même ligne sur la chip et dans l'aperçu en atte
 
   it("ni lecture ni masquage : rien", () => {
     expect(progressLabel({}, fr)).toBeNull();
+  });
+});
+
+describe("la file d'extraction — un fichier attend son tour, et le dit", () => {
+  it("en attente : la chip dit combien de fichiers passent avant", () => {
+    expect(progressLabel({ extracting: true, extractQueued: 3 }, fr)).toBe(fr.composer.attachments.stateQueued(3));
+  });
+
+  it("0 devant = c'est son tour : la lecture reprend la parole", () => {
+    expect(progressLabel({ extracting: true, extractQueued: 0 }, fr)).toBe(fr.composer.attachments.stateReading);
+  });
+
+  it("un fichier en attente ouvre l'aperçu en attente, pas le document", () => {
+    expect(isPreviewPending({ extracting: true, extractQueued: 2 })).toBe(true);
+  });
+
+  it("une page lue remplace l'attente (et inversement), jamais les deux à la fois", () => {
+    expect(extractProgressPatch({ done: 0, total: 0, queued: 2 })).toEqual({
+      extractQueued: 2,
+      extractProgress: undefined,
+    });
+    expect(extractProgressPatch({ done: 1, total: 5 })).toEqual({
+      extractQueued: undefined,
+      extractProgress: { done: 1, total: 5 },
+    });
+  });
+});
+
+describe("isProgressFor — le canal de progression est partagé", () => {
+  it("deux fichiers de même nom ne se mélangent pas : le chemin tranche", () => {
+    const a = { name: "scan.pdf", path: "/a/scan.pdf" };
+    const b = { name: "scan.pdf", path: "/b/scan.pdf" };
+    const evt = { name: "scan.pdf", path: "/b/scan.pdf" };
+    expect(isProgressFor(evt, a)).toBe(false);
+    expect(isProgressFor(evt, b)).toBe(true);
+  });
+
+  it("sans chemin (route des octets, un dépôt), le nom suffit", () => {
+    expect(isProgressFor({ name: "x.pdf" }, { name: "x.pdf" })).toBe(true);
+    expect(isProgressFor({ name: "y.pdf" }, { name: "x.pdf" })).toBe(false);
   });
 });

@@ -12,6 +12,8 @@ export type Attachment = ExtractedFile & {
   extracting?: boolean;
   /** OCR page progress while `extracting`; absent ⇒ the chip's bar stays indeterminate. */
   extractProgress?: { done: number; total: number };
+  /** Waiting its turn in the extraction queue (files run one at a time): files ahead. */
+  extractQueued?: number;
   /** Redaction is running for this file. */
   redacting?: boolean;
   /** Chunk progress of a large document's redaction. */

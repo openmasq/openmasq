@@ -38,9 +38,16 @@ const MIME: Record<string, string> = {
 const mimeFor = (name: string): string =>
   MIME[name.slice(name.lastIndexOf(".") + 1).toLowerCase()] ?? "application/octet-stream";
 
-/** Per-file OCR progress: `(name, pagesRead, pagesTotal)` — relayed over IPC
- *  to the renderer (the attachment chip displays « OCR… page x/y »). */
-export type OcrProgressFn = (name: string, page: number, pages: number) => void;
+/** Per-file OCR progress: `(name, pagesRead, pagesTotal, meta)` — relayed over IPC
+ *  to the renderer (the attachment chip displays « OCR… page x/y »). `meta.queued`: the
+ *  file is waiting its turn with that many ahead (`ocr/extractQueue.ts`); `meta.path`:
+ *  which file, when two picked files share a name. */
+export type OcrProgressFn = (
+  name: string,
+  page: number,
+  pages: number,
+  meta?: { queued?: number; path?: string },
+) => void;
 
 /** Extract + tag each result with its source `path` and `mime`, so the renderer
  *  can later store the original file (hidden-mode redaction). */
@@ -50,7 +57,12 @@ async function extractTagged(
   ocrAllPages?: boolean,
 ): Promise<ExtractedFile> {
   const name = path.split(/[\\/]/).pop() || path;
-  const extracted = await extractText(path, (done, pages) => onProgress?.(name, done, pages), ocrAllPages);
+  const extracted = await extractText(
+    path,
+    (done, pages) => onProgress?.(name, done, pages, { path }),
+    ocrAllPages,
+    (ahead) => onProgress?.(name, 0, 0, { queued: ahead, path }),
+  );
   return { ...extracted, path, mime: mimeFor(path) };
 }
 
