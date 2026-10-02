@@ -196,7 +196,7 @@ today's.
 - [x] **The OCR ceiling is VISIBLE and liftable** — 10 pages by default (several seconds each: a 300-page file is a choice, not an imposed wait); beyond that the chip says « 10/32 pages lues » and offers « Lire tout » (re-extraction with no ceiling, same choreography as the first: progress, re-redaction) — `packages/ui/src/pages/ChatWorkspace/ocrShortfall.ts`
 - [x] In the preview, a **halo** (theme tint, light wash) marks the text that, once redacted, goes to the model; the first page's caption is a **button** that hides/shows the halo (preference remembered) — `packages/ui/src/containers/modals/viewers/pdf/textHalo.ts`
 - [x] Document redaction **on drop**, before any send
-- [x] Preview before sending: the document (Pages redacted / Feuille / Image…) · Original · Redacted (« what will leave the machine », cut at the send limit) · the image's text — with the redaction state (running / failed / count) in the header — `packages/ui/src/containers/modals/viewers/AttachmentPreviewModal.tsx`
+- [x] Preview before sending: the document — EVERY page, painted as it nears the viewport (`packages/ui/src/containers/modals/viewers/pdf/lazyPages.ts`) — (Pages redacted / Feuille / Image…) · Original · Redacted (« what will leave the machine », cut at the send limit) · the image's text — with the redaction state (running / failed / count) in the header — `packages/ui/src/containers/modals/viewers/AttachmentPreviewModal.tsx`
 - [x] Redact a word by hand in the preview (selection or click on a word)
 - [ ] Sending a document as **redacted images** to a multimodal model — not offered: a
       document leaves as its extracted, masked text (the « texte ou fichier » choice was removed)
