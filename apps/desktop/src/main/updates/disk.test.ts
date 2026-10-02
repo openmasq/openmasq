@@ -38,6 +38,7 @@ describe("humanizeUpdateError — failure taxonomy (drives the PostHog code)", (
       statusCode: 500,
     });
     expect(humanizeUpdateError(err).code).toBe("download-500");
+    expect(humanizeUpdateError(err).message).not.toMatch(/connexion/);
   });
 
   it("always returns a user-safe FR message (never a raw dump)", () => {

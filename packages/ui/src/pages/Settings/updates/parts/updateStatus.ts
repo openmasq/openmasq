@@ -1,3 +1,4 @@
+import { BRAND } from "@openmasq/branding";
 import type { Messages } from "@openmasq/i18n";
 import type { UpdateStatus } from "../../../../host";
 
@@ -39,12 +40,38 @@ export function statusLine(status: UpdateStatus, t: Messages): { text: string; t
     case "not-available":
       return { text: t.versionsTab.status.notAvailable, tone: "text-muted" };
     case "error":
-      // Already-humanised message from main (no raw ditto/pkzip dump). A disk-space
-      // error carries `code:"no_space"` — render it with a warning tone.
+      // A disk-space error carries `code:"no_space"` — render it with a warning tone.
       return {
-        text: status.message ?? t.versionsTab.status.unknownError,
+        text: updateErrorText(status, t),
         tone: status.code === "no_space" ? "text-[var(--amber-600)]" : "text-[var(--red-500)]",
       };
+  }
+}
+
+/** The line for a failed update, in the user's language, chosen by the stable `code` main
+ *  sends (`apps/desktop/src/main/updates/disk.ts`). An unknown code falls back to main's
+ *  own message, never to a raw dump. A feed 5xx (`download-5xx`) is the SERVER's fault:
+ *  telling the user to check their connection would send them after the wrong cause. */
+export function updateErrorText(status: Pick<UpdateStatus, "code" | "message">, t: Messages): string {
+  const e = t.versionsTab.status.errors;
+  const code = status.code ?? "";
+  if (/^download-5\d\d$/.test(code)) return e.server;
+  if (code === "download" || /^download-\d{3}$/.test(code)) return e.download;
+  switch (code) {
+    case "no_space":
+      return e.noSpace;
+    case "read_only_volume":
+      return e.readOnlyVolume(BRAND.name);
+    case "app_running":
+      return e.appRunning(BRAND.name);
+    case "signature":
+      return e.signature;
+    case "network":
+      return e.network;
+    case "generic":
+      return e.generic;
+    default:
+      return status.message ?? t.versionsTab.status.unknownError;
   }
 }
 

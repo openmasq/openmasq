@@ -57,6 +57,17 @@ export const versionsTab = {
     notAvailable: "Vous êtes à jour.",
     unknownError: "Erreur inconnue.",
     withSize: (text, size) => `${text} (${size})`,
+    errors: {
+      noSpace: "Espace disque insuffisant pour installer la mise à jour. Libérez de l'espace disque, puis réessayez.",
+      readOnlyVolume: (brand) =>
+        `Pour se mettre à jour, ${brand} doit être dans le dossier Applications. Déplacez l'app depuis le disque d'installation (ou Téléchargements) vers Applications, puis relancez-la.`,
+      appRunning: (brand) => `Une partie de l'app tournait encore. Quittez complètement ${brand}, puis relancez la mise à jour.`,
+      signature: "La mise à jour téléchargée n'a pas pu être vérifiée (intégrité). Réessayez.",
+      server: "Le serveur de mise à jour est momentanément indisponible. Rien à faire de votre côté : l'app réessaiera d'elle-même.",
+      download: "Téléchargement de la mise à jour impossible. Vérifiez votre connexion, puis réessayez.",
+      network: "Connexion au serveur de mise à jour impossible. Vérifiez votre réseau, puis réessayez.",
+      generic: "La mise à jour a échoué. Réessayez plus tard.",
+    },
   },
   refusal: {
     notPrivileged: (brand) =>
