@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { pseudonymize } from "../../index";
 import { detectAddresses } from ".";
 import { detectAddressComplements, fakeAddressComplement } from "./complement";
 
@@ -13,10 +14,9 @@ const complements = (text: string): string[] =>
 
 describe("detectAddressComplements — ce qui précède la rue sur la même ligne", () => {
   it("prend la résidence ET le numéro d'appartement", () => {
-    expect(complements("Résidence Les Chênes, appartement 12B, 5 allée Verte, 69003 Lyon")).toEqual([
-      "Résidence Les Chênes",
-      "appartement 12B",
-    ]);
+    expect(complements("Résidence Les Chênes, appartement 12B, 5 allée Verte, 69003 Lyon")).toEqual(
+      ["Résidence Les Chênes", "appartement 12B"],
+    );
   });
 
   it("prend les abréviations de l'enveloppe", () => {
@@ -61,16 +61,18 @@ describe("…et ce qui la SUIT (16/08/2026) — mesuré sur un bail réel", () =
    *  Asnières, appartement A02 » came out with street/zip/city faked and the apartment
    *  number in clear — word for word the consequence that gave birth to this detector. */
   it("accroche le complément traînant", () => {
-    expect(complements("2 mail Camille du Gast, 92600, Asnières, appartement A02"))
-      .toContain("appartement A02");
+    expect(complements("2 mail Camille du Gast, 92600, Asnières, appartement A02")).toContain(
+      "appartement A02",
+    );
     expect(complements("12 rue des Lilas, 75011 Paris, escalier 3")).toContain("escalier 3");
   });
 
   it("⚠️ la valeur ne DÉBORDE pas sur la suite de la ligne", () => {
     // The real document has no comma after the code: « appartement A02 Loyer de 650
     // eur ». A greedy value would have swept the rent into the fake.
-    expect(complements("2 mail Camille du Gast, 92600, Asnières, appartement A02 Loyer de 650 eur"))
-      .toEqual(["appartement A02"]);
+    expect(
+      complements("2 mail Camille du Gast, 92600, Asnières, appartement A02 Loyer de 650 eur"),
+    ).toEqual(["appartement A02"]);
   });
 
   it("⚠️ et une PHRASE qui suit une adresse n'est pas un complément", () => {
@@ -112,11 +114,46 @@ describe("…et un complément qui PASSE À LA LIGNE (persona courtier, 16/08/20
    *  one line caught it. Same tradeoff as the address shapes' `W` join: what
    *  allows the wrap is that the KEYWORD anchors the fragment. */
   it("un seul retour à la ligne est toléré avant le morceau", () => {
-    expect(complements("Le bien est 2 mail Camille du Gast, 92600, Asnières,\nappartement A02, à 385 000 €."))
-      .toContain("appartement A02");
+    expect(
+      complements(
+        "Le bien est 2 mail Camille du Gast, 92600, Asnières,\nappartement A02, à 385 000 €.",
+      ),
+    ).toContain("appartement A02");
   });
 
   it("⚠️ un SECOND retour ne l'est pas — c'est un autre bloc", () => {
     expect(complements("2 mail Camille du Gast, 92600, Asnières,\n\nappartement A02")).toEqual([]);
+  });
+});
+
+describe("a complement keyword starts a WORD", () => {
+  const vaulted = async (t: string) => {
+    const vault: Record<string, string> = {};
+    await pseudonymize(t, { vault, numbers: false });
+    return Object.values(vault);
+  };
+
+  it("« copropriétaires de la Résidence » is not the abbreviation « rés »", async () => {
+    const values = await vaulted(
+      "les copropriétaires de la Résidence 27 RUE DES ORMEAUX convoqués par le syndic",
+    );
+    expect(values.some((v) => /res de la/i.test(v))).toBe(false);
+  });
+
+  it("nor « lot » inside « pilote », « porte » inside « apporte »", async () => {
+    for (const t of [
+      "Le pilote 12 avenue Foch, 75116 Paris",
+      "Il apporte 5 rue Verte, 69003 Lyon",
+    ]) {
+      expect((await vaulted(t)).some((v) => /^(?:ilote|pporte)|^ote |^te /i.test(v))).toBe(false);
+    }
+  });
+
+  it("a real complement before the street is still faked with it", async () => {
+    const values = await vaulted(
+      "Résidence Les Chênes, appartement 12B, 5 allée Verte, 69003 Lyon",
+    );
+    expect(values.some((v) => v.includes("Les Chênes"))).toBe(true);
+    expect(values.some((v) => v.includes("12B"))).toBe(true);
   });
 });
