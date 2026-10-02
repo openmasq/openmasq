@@ -41,9 +41,14 @@ export const ENV_SECRET_RULES: RedactionRule[] = [
     // character: `pass: "Sm7p!Tanc2026#x"` was vaulted as `Sm7p!Tanc2026` and the tail shipped
     // in CLEAR. A truncated secret is a leaked secret. Lookbehind takes the opening quote,
     // lookahead the closing one, so the match stays the VALUE alone.
+    // ⚠️ COST, for every rule of this file: the big lookbehind runs at EVERY position and its
+    // `[ \t]*` reads back through a whole whitespace run — quadratic on a pasted document's long
+    // run of tabs. Each rule is therefore FRONTED by an exact cheap check on what must touch the
+    // value (here the opening quote; below, the value's own first character), which fails at once
+    // inside a run. Matches are unchanged. `secretWhitespaceRun.test.ts`.
     type: "secret",
     pattern:
-      /(?<=(?:password|passwd|pwd|secret|token|api[_-]?key|access[_-]?key|client[_-]?secret|auth[_-]?token|mot[ -]de[ -]passe|code[ -]secret|phrase[ -]secr[eè]te|cl[eé][ -]secr[eè]te|(?:^|[\s{,])(?:pass|mdp|passe))[ \t]*[:=][ \t]*["'`])(?!\[REDACTED_)[^"'`\n\r]{6,}(?=["'`])/gim,
+      /(?<=["'`])(?<=(?:password|passwd|pwd|secret|token|api[_-]?key|access[_-]?key|client[_-]?secret|auth[_-]?token|mot[ -]de[ -]passe|code[ -]secret|phrase[ -]secr[eè]te|cl[eé][ -]secr[eè]te|(?:^|[\s{,])(?:pass|mdp|passe))[ \t]*[:=][ \t]*["'`])(?!\[REDACTED_)[^"'`\n\r]{6,}(?=["'`])/gim,
     validate: (m) => notProse(m) && isValue(m),
   },
   {
@@ -53,7 +58,7 @@ export const ENV_SECRET_RULES: RedactionRule[] = [
     // open a secret.
     type: "secret",
     pattern:
-      /(?<=(?:^|[\s{,])(?:pass|mdp|passe)["']?[ \t]*[:=][ \t]*["']?)(?!\[REDACTED_)[^\s"'`#,;]{6,}/gim,
+      /(?=[^\s"'`#,;])(?<=(?:^|[\s{,])(?:pass|mdp|passe)["']?[ \t]*[:=][ \t]*["']?)(?!\[REDACTED_)[^\s"'`#,;]{6,}/gim,
     validate: isValue,
   },
   {
@@ -62,7 +67,7 @@ export const ENV_SECRET_RULES: RedactionRule[] = [
     // the OFF-by-default generic token rule — an EN/FR coverage asymmetry. `(?!\[REDACTED_)`
     // stops it re-redacting a value a structured rule already replaced.
     pattern:
-      /(?<=(?:password|passwd|pwd|secret|token|api[_-]?key|access[_-]?key|client[_-]?secret|auth[_-]?token|mot[ -]de[ -]passe|code[ -]secret|phrase[ -]secr[eè]te|cl[eé][ -]secr[eè]te)["']?\s*[:=]\s*["']?)(?!\[REDACTED_)[^\s"'#,;]{6,}/giu,
+      /(?=[^\s"'#,;])(?<=(?:password|passwd|pwd|secret|token|api[_-]?key|access[_-]?key|client[_-]?secret|auth[_-]?token|mot[ -]de[ -]passe|code[ -]secret|phrase[ -]secr[eè]te|cl[eé][ -]secr[eè]te)["']?\s*[:=]\s*["']?)(?!\[REDACTED_)[^\s"'#,;]{6,}/giu,
     validate: isValue,
   },
   {
@@ -73,7 +78,7 @@ export const ENV_SECRET_RULES: RedactionRule[] = [
     // ("id: …") or benign config (`LOG_LEVEL=debug`; `REGION` is out — `AWS_DEFAULT_REGION`).
     type: "secret",
     pattern:
-      /(?<=\b[A-Z][A-Z0-9_]*_(?:ID|URL|URI|KEY|SECRET|TOKEN|PASSWORD|PASS|PWD|DSN|HOST|HOSTNAME|ENDPOINT|ACCOUNT|PROJECT|BUCKET|CREDENTIALS?|CERT|SALT|SEED|SIGNATURE|OAUTH|WEBHOOK|CONNECTION)["']?[ \t]*[:=][ \t]*["']?)(?!\[REDACTED_)[^\s"'#,;]{3,}/g,
+      /(?=[^\s"'#,;])(?<=\b[A-Z][A-Z0-9_]*_(?:ID|URL|URI|KEY|SECRET|TOKEN|PASSWORD|PASS|PWD|DSN|HOST|HOSTNAME|ENDPOINT|ACCOUNT|PROJECT|BUCKET|CREDENTIALS?|CERT|SALT|SEED|SIGNATURE|OAUTH|WEBHOOK|CONNECTION)["']?[ \t]*[:=][ \t]*["']?)(?!\[REDACTED_)[^\s"'#,;]{3,}/g,
     // The KEY suffix is the signal; the VALUE can be plainly benign (`DATABASE_HOST=localhost`).
     // A closed value list, never a shape guess (audit R2).
     validate: (m) => !isBenignConfigValue(m) && isValue(m),
