@@ -85,7 +85,7 @@ export const lists = {
   memory: {
     empty: {
       title: "Une mémoire qui vous appartient.",
-      body: "Notez les faits durables — un client, un projet, vos préférences. Ils sont chiffrés, et vous seul pouvez les lire.",
+      body: "Notez ce qui doit durer : un client, un projet, vos préférences. Le modèle ne les reçoit que masqués.",
       points: [
         "Une fiche par personne ou projet",
         "« Retiens que… » dans le chat",

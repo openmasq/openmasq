@@ -66,13 +66,13 @@ export const mcpTab = {
   chooseDir: (label) => `${label} : choisir…`,
   guide: "guide ↗",
   browserBody:
-    "Le navigateur s'ouvre dans une fenêtre dédiée que vous pouvez surveiller. Le modèle n'en voit que le texte masqué et chaque action (clic, saisie, navigation) vous est confirmée.",
+    "Le navigateur s'ouvre dans une fenêtre dédiée que vous pouvez surveiller. Le modèle n'en voit que le texte masqué, et vous voyez chacune de ses actions.",
   activating: "Activation…",
   activate: "Activer",
   reconnectKeepsConfig:
     "Reconnectez-vous ci-dessous : votre configuration est conservée, il n'y a rien à recréer.",
   maskedAsEverywhere:
-    "Comme ailleurs, vos données sensibles sont masquées avant tout échange avec ce service.",
+    "Le modèle ne voit que des valeurs masquées. Ce service, lui, reçoit les vraies valeurs dont il a besoin pour agir.",
   customTitle: "Ajouter un connecteur personnalisé",
   customSub: "Connectez un service qui n'est pas dans la liste, via son adresse.",
   customName: "Nom",

@@ -84,7 +84,7 @@ export const lists = {
   memory: {
     empty: {
       title: "A memory that belongs to you.",
-      body: "Note the durable facts — a client, a project, your preferences. They are encrypted, and only you can read them.",
+      body: "Note what should last: a client, a project, your preferences. They reach the model only masked.",
       points: [
         "One card per person or project",
         "“Remember that…” in the chat",

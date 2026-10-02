@@ -14,7 +14,7 @@ export const guide = {
   protection: {
     title: (brand) => `What ${brand} does for you`,
     lead: (brand) =>
-      `You write normally. Before your message leaves, ${brand} spots the sensitive data — names, emails, phone numbers, addresses, account numbers — and replaces it with fake values. The model only ever works on those fake values; you keep seeing the real ones, in your message as in the reply. That replacement is what we call masking, like the blacked-out passages of an official document.`,
+      `You write normally. Before your message leaves, ${brand} spots the sensitive data — names, emails, phone numbers, addresses, account numbers — and replaces it with fake values. The model only ever works on those fake values; you keep seeing the real ones, in your message as in the reply. That replacement is what we call masking: unlike a blacked-out passage, the model gets complete, coherent text.`,
     points: [
       () => "The detection runs on your machine, before anything is sent — nothing leaves to be analysed.",
       () => "Under every sent message, a small line says how many items were protected.",
