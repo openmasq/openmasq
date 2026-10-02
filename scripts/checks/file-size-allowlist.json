@@ -9,6 +9,5 @@
   "apps/desktop/src/renderer/src/main.tsx": 386,
   "packages/ui/src/pages/Settings/mcp/useMcpConnectors.ts": 383,
   "packages/llm/src/tools/openai.ts": 357,
-  "packages/redact/src/engine/rules/rules.ts": 320,
   "apps/desktop/src/main/mcp/persist.ts": 307
 }
