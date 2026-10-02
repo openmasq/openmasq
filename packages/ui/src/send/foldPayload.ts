@@ -74,6 +74,8 @@ export interface DocReplacement {
   real: string;
   fake: string;
   tone?: string;
+  /** The FINE category the document's redaction found (name/address/…). */
+  kind?: string;
 }
 
 /** A reused document's wire part: its header + the drop-time reps + the clipped text. */
@@ -96,6 +98,10 @@ export interface FoldedPayload {
   /** fake→real entries to merge into the vault BEFORE detection, so a value seen in a
    *  reused doc AND the typed text gets ONE shared fake. */
   vaultPreload: Record<string, string>;
+  /** real→kind of the reused docs' values. The vault holds pairs only: without this the
+   *  conversation never learns a reused value's category and every display (chat marks,
+   *  debug log, audit) falls back to « sensitive ». */
+  docKinds: Record<string, string>;
 }
 
 /** Fold the attached files' text into the model payload. See the module doc. */
@@ -141,7 +147,12 @@ export function buildFoldedPayload(
   // Pre-load the reused replacements (fake→real) so the caller's vault + the typed-text
   // detector share the SAME fakes for a value seen in both.
   const vaultPreload: Record<string, string> = {};
-  for (const d of reuseDocs) for (const r of d.reps) if (r.fake && r.real) vaultPreload[r.fake] = r.real;
+  const docKinds: Record<string, string> = {};
+  for (const d of reuseDocs)
+    for (const r of d.reps) {
+      if (r.fake && r.real) vaultPreload[r.fake] = r.real;
+      if (r.real && r.kind) docKinds[r.real] = r.kind;
+    }
 
   // Global doc numbering across ALL groups (detect → reuse → image) for coherent headers.
   // Every header carries `ATTACHMENT_INLINE_NOTE` (incl. the persisted image blocks — a
@@ -190,5 +201,5 @@ export function buildFoldedPayload(
 
   // Reuse reps first: on a collision (impossible in practice, aliases are synthetic),
   // the document's map wins.
-  return { modelText, fullModelText, hasFolded, reuseParts, vaultPreload: { ...aliasVault, ...vaultPreload } };
+  return { modelText, fullModelText, hasFolded, reuseParts, vaultPreload: { ...aliasVault, ...vaultPreload }, docKinds };
 }

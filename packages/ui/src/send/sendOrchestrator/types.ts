@@ -50,7 +50,7 @@ export interface SendOptions {
    * at send instead of re-detecting the document. Only passed when the file's redaction is
    * complete and engine/category-current; absent docs fall back to fresh detection.
    */
-  docReplacements?: Record<string, { real: string; fake: string; tone?: string }[]>;
+  docReplacements?: Record<string, { real: string; fake: string; tone?: string; kind?: string }[]>;
   /** Values the user kept in clear via the composer chips: never redacted this send (case-insensitive). */
   keepValues?: string[];
   /** Manual redactions from the composer selection menu, for a send before the conversation exists. */

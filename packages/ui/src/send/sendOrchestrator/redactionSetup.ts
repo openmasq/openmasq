@@ -146,6 +146,8 @@ export function setupRedaction(ctx: TurnContext): RedactionSetup {
   // `applyVault` and the typed-text detector share the same fakes.
   const folded = buildFoldedPayload(text, attachments, opts, modelPrefix);
   Object.assign(vault, folded.vaultPreload);
+  // The reused docs' categories travel with their pairs (see `FoldedPayload.docKinds`).
+  Object.assign(extraKinds, folded.docKinds);
 
   // `forcedList` is computed BEFORE `keepList`: the keep list needs it to drop an automatic
   // connector name that collides with a Coffre term (`sendKeepList`).
