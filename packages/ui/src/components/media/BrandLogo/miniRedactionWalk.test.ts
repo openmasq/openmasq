@@ -13,6 +13,14 @@ import {
 
 const CELLS = MINI_COLS * MINI_ROWS;
 /** Run the machine far enough to wrap the cycle twice — the wrap is where it can break. */
+/** mulberry32 — a tiny deterministic PRNG, so a probabilistic case replays identically. */
+const seeded = (seed: number) => () => {
+  seed = (seed + 0x6d2b79f5) | 0;
+  let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+  t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+  return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+};
+
 const ticks = (n: number, rnd?: () => number) => {
   let s = miniInitial();
   const seen = [s];
@@ -106,7 +114,9 @@ describe("mini redaction state", () => {
   });
 
   it("exercises the whole palette over time", () => {
-    const { seen } = ticks(CELLS * 6);
+    // SEEDED: over a bounded run, Math.random can leave one swatch unused now and then —
+    // a property of the draw, not of the walk. A fixed sequence makes the case a fact.
+    const { seen } = ticks(CELLS * 6, seeded(7));
     const used = new Set(seen.slice(1).map((s) => s.cells[s.head]!));
     expect(used.size).toBe(CAV_SWATCHES.length);
   });
