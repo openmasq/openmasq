@@ -15,3 +15,15 @@ export const DOC_LIME = "#b8e635";
 export const DOC_BG = "#fbfbfa";
 export const DOC_GRID = "#dcdad2";
 export const DOC_STRIPE = "#f5f5f1";
+
+/**
+ * The document TYPEFACES. PDF: Inter (OFL), embedded by the platform from a sha256-pinned
+ * file whose family name lives in `apps/desktop/src/main/pdf/documentFontSpec.ts`. Word and
+ * PowerPoint cannot embed it portably, so they NAME a face the reader's Office resolves:
+ * Aptos (Office's default since 2023), with Calibri declared as the substitute an older
+ * Office or LibreOffice falls back to. Both copies (that spec, the sandbox's python-docx /
+ * python-pptx helpers) are held by `documentTheme.parity.test.ts`.
+ */
+export const DOC_FONT_PRINT = "Inter";
+export const DOC_FONT_OFFICE = "Aptos";
+export const DOC_FONT_OFFICE_FALLBACK = "Calibri";

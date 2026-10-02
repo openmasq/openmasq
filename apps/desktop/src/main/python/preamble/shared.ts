@@ -1,10 +1,12 @@
 /**
- * The charter every branded document helper shares: the palette, the bundled brand font,
- * and `_kv_rows` (DataFrame/list → rows of strings). Its own module so `pdf.ts`, `pptx.ts`
+ * The charter every branded document helper shares: the palette, the typefaces (the
+ * verified document font file for PDF/charts via `OPENMASQ_FONT_DIR`; Aptos, Calibri as its
+ * substitute, for Word/PowerPoint — values held by `documentTheme.parity.test.ts`), and `_kv_rows` (DataFrame/list → rows of strings). Its own module so `pdf.ts`, `pptx.ts`
  * and `docx.ts` cannot drift into three slightly different renderings of the same table.
  */
 export const DOC_SHARED = `_KV_RGB_INK = (24, 35, 13); _KV_RGB_MUTED = (76, 92, 59); _KV_RGB_LIME = (184, 230, 53)
 _KV_RGB_BG = (251, 251, 250); _KV_RGB_GRID = (220, 218, 210); _KV_RGB_STRIPE = (245, 245, 241)
+_KV_OFFICE_FONT = "Aptos"; _KV_OFFICE_FONT_ALT = "Calibri"; _KV_OFFICE_PANOSE = "020B0004020202020204"
 
 
 def _kv_font_file():
@@ -14,6 +16,18 @@ def _kv_font_file():
             if _f.lower().endswith((".ttf", ".otf")):
                 return _os.path.join(_fd, _f)
     return None
+
+
+def _kv_pptx_font(font):
+    """Aptos on a python-pptx run, with the PANOSE + sans pitch family PowerPoint matches a
+    substitute on when the reader's machine lacks it."""
+    font.name = _KV_OFFICE_FONT
+    try:
+        _l = font._rPr.find("{http://schemas.openxmlformats.org/drawingml/2006/main}latin")
+        if _l is not None:
+            _l.set("panose", _KV_OFFICE_PANOSE); _l.set("pitchFamily", "34"); _l.set("charset", "0")
+    except Exception:
+        pass
 
 
 def _kv_rows(data):

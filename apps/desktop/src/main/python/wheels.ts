@@ -79,8 +79,9 @@ _KV_BG = "#fbfbfa"     # warm off-white surface
 # Categorical cycle = the design highlight hues: lime, mint, violet, sky, amber, pink, ink.
 _KV_CYCLE = ["#b8e635", "#5fe3c0", "#b79cff", "#6fc2ff", "#ffb85c", "#ff8fa3", "#18280c"]
 
-# Brand font: register Space Grotesk (downloaded into the runtime) so plots use the
-# charter typography. Best-effort — falls back to the default sans if it's absent.
+# Charter font: register the file in OPENMASQ_FONT_DIR (the app's verified Inter, else the
+# runtime's brand font) so plots use the document typography. Best-effort — falls back to
+# the default sans if it's absent.
 _KV_FONT = "sans-serif"
 try:
     _fd = _os.environ.get("OPENMASQ_FONT_DIR")

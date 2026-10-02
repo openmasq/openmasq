@@ -6,7 +6,7 @@ import { existsSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { startEgressProxy } from "./egressProxy";
 import { ALLOW_HOSTS, buildScript } from "./wheels";
-import { fontsDir, mplConfigDir } from "./runtime";
+import { mplConfigDir, sandboxFontDir } from "./runtime";
 import { winJailCmd, winJailExe } from "./winJail";
 import { ambientSecretDirs, ambientSecretFiles } from "../security/ambientSecrets"; import { BRAND } from "@openmasq/branding";
 import { devOnly } from "../security/devOnly";
@@ -390,7 +390,7 @@ export async function runPython(
     HOME: scratch,
     ...sandboxTempEnv(tmpDir),
     OPENMASQ_FIG_DIR: figDir,
-    OPENMASQ_FONT_DIR: fontsDir(),
+    OPENMASQ_FONT_DIR: sandboxFontDir(),
     MPLBACKEND: "Agg",
     MPLCONFIGDIR: mplDir,
     PYTHONDONTWRITEBYTECODE: "1",

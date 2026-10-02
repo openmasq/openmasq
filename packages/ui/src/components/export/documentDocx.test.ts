@@ -38,3 +38,38 @@ describe("docxBytesFromBlocks", () => {
     expect(strFromU8(files["word/document.xml"])).toContain("Rapport &amp; suite");
   });
 });
+
+describe("document fonts", () => {
+  it("declares Aptos as the default face on every script slot, at 11 pt", async () => {
+    const { unzipSync, strFromU8 } = await import("fflate");
+    const files = unzipSync(await docxBytesFromBlocks(blocks));
+    const styles = strFromU8(files["word/styles.xml"]);
+    expect(styles).toContain("<w:docDefaults>");
+    expect(styles).toContain('<w:rFonts w:ascii="Aptos" w:hAnsi="Aptos" w:eastAsia="Aptos" w:cs="Aptos"/>');
+    expect(styles).toContain('<w:sz w:val="22"/>');
+  });
+
+  it("names Calibri as Aptos's substitute in the font table, and keeps Consolas for code", async () => {
+    const { unzipSync, strFromU8 } = await import("fflate");
+    const files = unzipSync(await docxBytesFromBlocks(blocks));
+    const table = strFromU8(files["word/fontTable.xml"]);
+    expect(table).toMatch(/<w:font w:name="Aptos"><w:altName w:val="Calibri"\/>.*?<w:family w:val="swiss"\/>/);
+    expect(table).toContain('<w:font w:name="Consolas">');
+  });
+
+  it("registers both parts: content types and the main part's relationships", async () => {
+    const { unzipSync, strFromU8 } = await import("fflate");
+    const files = unzipSync(await docxBytesFromBlocks(blocks));
+    const types = strFromU8(files["[Content_Types].xml"]);
+    expect(types).toContain('PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"');
+    expect(types).toContain('PartName="/word/fontTable.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.fontTable+xml"');
+    const rels = strFromU8(files["word/_rels/document.xml.rels"]);
+    expect(rels).toContain('relationships/styles" Target="styles.xml"');
+    expect(rels).toContain('relationships/fontTable" Target="fontTable.xml"');
+  });
+
+  it("keeps code listings tight (no paragraph gap between lines)", () => {
+    const xml = documentXml([{ type: "code", text: "a\nb" }]);
+    expect(xml.match(/<w:spacing w:after="0"/g)).toHaveLength(2);
+  });
+});

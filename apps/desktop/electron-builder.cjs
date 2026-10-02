@@ -161,6 +161,10 @@ module.exports = {
     // docTR models (Latin-script OCR), self-exported from the official weights, sha256-
     // verified at bake time, loaded offline (`src/main/ocrAssets.ts` → OPENMASQ_DOCTR_MODEL_PATH).
     { from: "build/doctr-models", to: "doctr-models" },
+    // The document font (Inter, OFL + its licence), sha256-verified against the official
+    // google/fonts repo at a pinned commit by `scripts/bake-document-fonts.ts`, re-verified by
+    // main before use (`src/main/pdf/documentFont.ts`). Platform-neutral: read, never executed.
+    { from: "build/document-fonts", to: "document-fonts" },
   ],
 
   mac: {
