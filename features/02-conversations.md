@@ -197,6 +197,7 @@ today's.
 - [x] In the preview, a **halo** (theme tint, light wash) marks the text that, once redacted, goes to the model; the first page's caption is a **button** that hides/shows the halo (preference remembered) — `packages/ui/src/containers/modals/viewers/pdf/textHalo.ts`
 - [x] Document redaction **on drop**, before any send
 - [x] Preview before sending: the document — EVERY page, painted as it nears the viewport (`packages/ui/src/containers/modals/viewers/pdf/lazyPages.ts`) — (Pages redacted / Feuille / Image…) · Original · Redacted (« what will leave the machine », cut at the send limit) · the image's text — with the redaction state (running / failed / count) in the header — `packages/ui/src/containers/modals/viewers/AttachmentPreviewModal.tsx`
+- [x] The preview opens while the file is still being read (OCR) or first masked: a loader with the page being read / the masking progress, then the redacted document as soon as it lands — never the document unmasked in the meantime — `packages/ui/src/containers/modals/viewers/AttachmentPendingPreview.tsx`
 - [x] Redact a word by hand in the preview (selection or click on a word)
 - [ ] Sending a document as **redacted images** to a multimodal model — not offered: a
       document leaves as its extracted, masked text (the « texte ou fichier » choice was removed)

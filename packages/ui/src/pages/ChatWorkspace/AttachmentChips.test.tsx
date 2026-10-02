@@ -43,19 +43,20 @@ describe("AttachmentChips — le chip est un bouton, clavier compris", () => {
     await m.unmount();
   });
 
-  it("en cours d'extraction : annoncé indisponible, et AUCUNE ouverture", async () => {
+  it("en cours d'OCR : s'ouvre quand même (l'aperçu montre un chargement), et dit la page lue", async () => {
     const ouverts: string[] = [];
     const m = await mount(
       <AttachmentChips
-        attachments={[piece({ extracting: true })]}
+        attachments={[piece({ extracting: true, extractProgress: { done: 2, total: 12 } })]}
         onRemove={() => {}}
         onOpen={(c) => ouverts.push(c)}
       />,
     );
     const chip = m.find('[role="button"].attach-chip');
-    expect(chip.getAttribute("aria-disabled")).toBe("true");
+    expect(chip.getAttribute("aria-disabled")).toBeNull();
+    expect(chip.getAttribute("aria-label")).toContain("3/12");
     await presser(chip, "Enter");
-    expect(ouverts).toEqual([]);
+    expect(ouverts).toEqual(["c1"]);
     await m.unmount();
   });
 

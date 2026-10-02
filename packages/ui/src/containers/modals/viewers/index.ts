@@ -1,4 +1,5 @@
 export * from "./AttachmentPreviewModal";
+export * from "./AttachmentPendingPreview";
 export * from "./FileSkeleton";
 export * from "./FileViewerModal";
 export * from "./doc/DocSearchBar";

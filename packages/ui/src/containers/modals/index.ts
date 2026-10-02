@@ -10,6 +10,7 @@ export { FileViewerModal } from "./viewers/FileViewerModal";
 export { DebugLogModal } from "./DebugLogModal";
 export { ErrorDetailModal } from "./ErrorDetailModal";
 export { AttachmentPreviewModal } from "./viewers/AttachmentPreviewModal";
+export { AttachmentPendingPreview } from "./viewers/AttachmentPendingPreview";
 export { McpToolsModal } from "./McpToolsModal";
 export { ImportSkillsModal, type SkillImportChoice } from "./ImportSkillsModal";
 export { McpAuthChoiceModal } from "./McpAuthChoiceModal";

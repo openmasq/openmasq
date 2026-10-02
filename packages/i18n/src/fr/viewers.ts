@@ -8,6 +8,7 @@ export const viewers = {
   close: "Fermer",
   closeTip: "Fermer (Échap)",
   loadingFile: "Chargement du fichier",
+  pendingNote: "L'aperçu masqué s'affichera ici dès que la lecture et le masquage seront terminés.",
   extracted: (chars, status) => `${chars} caractères extraits · ${status}`,
   staleTip: "Masqué avec vos anciens réglages",
   staleChip: "Anciens réglages",
