@@ -201,9 +201,14 @@ export function detectAddresses(text: string): Detection[] {
     "domicilie", "demeurant", "résidant", "residant", "agence", "commune", "ville", "signature",
     "sis", "située", "situee", "situé", "situe", "née", "né", "fait"]
     .sort((a, b) => b.length - a.length).map(ci).join("|");
+  // ⚠️ The unaccented « a » (an OCR'd « à ») must be a WORD, never the last letter of one:
+  // « Elena Varga (SBN 301884) » read « Elen[a] » as the preposition, « Varga (SBN » as a
+  // city and « 30188 » — the first five digits of a bar number — as its postal code. The
+  // accented « à » stays free to be GLUED (« Néà CONDOM (79000) », an OCR join). The code
+  // ends on a digit boundary for the same reason. `cityCpAnchor.test.ts`.
   const CITY_CP_RE = new RegExp(
-    `(?<=(?:[àa]\\s{1,3}|(?:${PLACE_CUE})\\b[^\\S\\r\\n]*[:,.–—-]?[^\\S\\r\\n]*(?:[dD][eu]s?[^\\S\\r\\n]+)?))` +
-      `${CITY_TOK}(?:${CITY_JOIN}${CITY_TOK}){0,4}\\s*\\(\\s*(?:${CITY_TOK}(?:[ ]${CITY_TOK}){0,3}\\s+)?(\\d{5})\\s*\\)?`,
+    `(?<=(?:(?:à|(?<!\\p{L})a)\\s{1,3}|(?:${PLACE_CUE})\\b[^\\S\\r\\n]*[:,.–—-]?[^\\S\\r\\n]*(?:[dD][eu]s?[^\\S\\r\\n]+)?))` +
+      `${CITY_TOK}(?:${CITY_JOIN}${CITY_TOK}){0,4}\\s*\\(\\s*(?:${CITY_TOK}(?:[ ]${CITY_TOK}){0,3}\\s+)?(\\d{5})(?!\\d)\\s*\\)?`,
     "gu",
   );
   for (const m of text.matchAll(CITY_CP_RE)) {
