@@ -11,6 +11,7 @@ import {
 } from "../validators/validators.international";
 import {
   atSvnrValid,
+  deRvnrValid,
   beNnValid,
   beVatValid,
   dkCvrValid,
@@ -166,6 +167,12 @@ export const EUROPE_RULES: RedactionRule[] = [
   nid(re(String.raw`\b\d{6}/\d{3,4}\b`), czRcValid),
   // Austria — SVNR (SSSC DDMMYY): banal 4+6 digits → gated + weighted check.
   nid(gate("svnr|sozialversicherungsnummer|versicherungsnummer", String.raw`\d{4}[ ]?\d{6}\b`), atSvnrValid),
+  // Germany — Rentenversicherungsnummer, spaced as printed (« 65 170839 J 003 »): the colon
+  // label caught the compact form only. Gated + check digit.
+  nid(
+    gate("rentenversicherungsnummer|sozialversicherungsnummer|sv-nummer|rvnr|versicherungsnummer", String.raw`\d{2}[ ]?\d{6}[ ]?[A-Za-z][ ]?\d{3}\b`),
+    deRvnrValid,
+  ),
   // Greece — AMKA (DDMMYY + 5): banal 11 digits → gated + date/Luhn validated.
   nid(gate("amka|αμκα", String.raw`\d{11}\b`), grAmkaValid),
   // Denmark — CPR (DDMMYY-SSSS): the checksum was abandoned in 2007, so structure
