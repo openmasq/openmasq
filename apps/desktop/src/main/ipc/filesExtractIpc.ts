@@ -4,9 +4,9 @@ import { handle, arr, obj } from "./handle";
 import { progressTo } from "./registerFilesIpc";
 
 /**
- * Extractions — by paths (normal, OCR cap at 10 pages, and
- * "Read all", cap lifted — the gesture from the "N/M pages read" chip) and by BYTES
- * (drop and MCP tool files: no path, on purpose). Split out of
+ * Extractions — by paths (capped at 10 OCR pages, and "Read all", cap lifted — what an
+ * ATTACHMENT uses, picked or re-read) and by BYTES (drop: read whole; MCP tool files: capped —
+ * no path, on purpose). Split out of
  * `registerFilesIpc.ts` (LOC cap) as a thematic block: same family, same guards,
  * same progress relay — side by side so nothing diverges.
  */
@@ -25,30 +25,36 @@ export function registerExtractIpc(): void {
   });
   // The BYTES route (base64 — drop, and a file produced by an MCP tool). No
   // read guard: the bytes are already at the renderer, nothing new is granted.
-  handle("files:extract-bytes", [obj], async (e, raw) => {
-    const p = raw as { data: string; name?: string; mime?: string };
-    // Uint8Array COPY, never the Buffer (pdf.js rejects it, and Buffer.slice is a view).
-    const bytes = new Uint8Array(Buffer.from(p.data, "base64"));
-    const name = p.name ?? "file";
-    const out = await extractBytes(bytes, name, p.mime, (d, t) => progressTo(e.sender)(name, d, t));
-    // A guard REFUSAL (`blocked`: zip bomb, oversized image, unreadable dimensions) is not
-    // a parser failure: the renderer must learn it is a refusal so it does NOT keep the
-    // bytes for a preview (audit 04/09 — a refused archive was still attached and unzipped
-    // in the renderer, because this handler folded the refusal into a generic throw).
-    if (out.blocked) return { text: "", error: out.error ?? "refusé", blocked: true };
-    // A TOTAL failure rejects ("" would read as "no text"); a partial one returns its text
-    // AND the cause, so the chip can say what was left out.
-    if (out.error && !out.text.trim()) throw new Error(out.error);
-    // STRUCTURED, not the plain text: the preview paints the redacted image from `words` — the
-    // drop route used to discard everything but the text, a dropped ID card would open WITHOUT boxes.
-    const { text, words, ocrText, ocr, ocrPages, error } = out;
-    return {
-      text,
-      ...(words && { words }),
-      ...(ocrText && { ocrText }),
-      ...(ocr && { ocr }),
-      ...(ocrPages && { ocrPages }),
-      ...(error && { error }),
-    };
-  });
+  handle("files:extract-bytes", [obj], (e, raw) => extractDroppedBytes(e.sender, raw, false));
+  // A DROPPED ATTACHMENT is read whole (OCR on every page) — the user attached the document to
+  // have it read. Same guard and result as above; a SEPARATE channel, the IPC surface stays an
+  // allow-list of named gestures. An MCP tool's file keeps the capped route above.
+  handle("files:extract-bytes-all", [obj], (e, raw) => extractDroppedBytes(e.sender, raw, true));
+}
+
+async function extractDroppedBytes(sender: Electron.WebContents, raw: unknown, ocrAllPages: boolean) {
+  const p = raw as { data: string; name?: string; mime?: string };
+  // Uint8Array COPY, never the Buffer (pdf.js rejects it, and Buffer.slice is a view).
+  const bytes = new Uint8Array(Buffer.from(p.data, "base64"));
+  const name = p.name ?? "file";
+  const out = await extractBytes(bytes, name, p.mime, (d, t) => progressTo(sender)(name, d, t), ocrAllPages);
+  // A guard REFUSAL (`blocked`: zip bomb, oversized image, unreadable dimensions) is not
+  // a parser failure: the renderer must learn it is a refusal so it does NOT keep the
+  // bytes for a preview (audit 04/09 — a refused archive was still attached and unzipped
+  // in the renderer, because this handler folded the refusal into a generic throw).
+  if (out.blocked) return { text: "", error: out.error ?? "refusé", blocked: true };
+  // A TOTAL failure rejects ("" would read as "no text"); a partial one returns its text
+  // AND the cause, so the chip can say what was left out.
+  if (out.error && !out.text.trim()) throw new Error(out.error);
+  // STRUCTURED, not the plain text: the preview paints the redacted image from `words` — the
+  // drop route used to discard everything but the text, a dropped ID card would open WITHOUT boxes.
+  const { text, words, ocrText, ocr, ocrPages, error } = out;
+  return {
+    text,
+    ...(words && { words }),
+    ...(ocrText && { ocrText }),
+    ...(ocr && { ocr }),
+    ...(ocrPages && { ocrPages }),
+    ...(error && { error }),
+  };
 }

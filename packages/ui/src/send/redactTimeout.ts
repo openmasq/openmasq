@@ -10,7 +10,10 @@
  * start + network), while a genuinely hung endpoint still fails in bounded time.
  */
 export const REDACT_TIMEOUT_MIN_MS = 15_000;
-export const REDACT_TIMEOUT_MAX_MS = 45_000;
+// A WHOLE document is detected now (`MAX_FILE_CHARS`): ~300k characters take ~40 s with the
+// local model and grow linearly. The ceiling bounds a hung engine, not a big document — at
+// 45 s it blocked the send of every long attachment, fail-closed but for nothing.
+export const REDACT_TIMEOUT_MAX_MS = 15 * 60_000;
 
 /** Timeout (ms) for redacting `text`: a floor + ~1 s per 1 000 chars, capped. */
 export function redactTimeoutMs(text: string): number {

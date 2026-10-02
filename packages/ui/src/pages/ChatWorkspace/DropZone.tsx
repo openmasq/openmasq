@@ -102,7 +102,8 @@ export function DropZone({
       onFiles(
         intake.files.map((file) =>
           deferDroppedFile(file, {
-            extractBytes: host.files!.extractBytes!,
+            // A dropped attachment is read WHOLE when the host can (`extractBytesAll`).
+            extractBytes: host.files!.extractBytesAll ?? host.files!.extractBytes!,
             toBase64: bytesToBase64,
           }),
         ),

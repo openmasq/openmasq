@@ -105,8 +105,9 @@ export function useAttachmentIntake(p: ChatViewProps, att: AttachmentsApi, redac
           extracting: true,
         }));
         setAttachments((prev) => [...prev, ...placeholders]);
-        host.files
-          .extract(picked.map((f) => f.path), (prog) => {
+        // An attachment is read WHOLE (every page OCR'd) when the host can — `extract` caps it.
+        (host.files.extractAll ?? host.files.extract)
+          .call(host.files, picked.map((f) => f.path), (prog) => {
             const ph = placeholders.find((x) => x.name === prog.name);
             if (ph) updateAttachment(ph.cid, { extractProgress: { done: prog.page, total: prog.pages } });
           })

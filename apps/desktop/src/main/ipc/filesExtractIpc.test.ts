@@ -59,3 +59,35 @@ describe("files:extract-bytes — refusal vs failure", () => {
     });
   });
 });
+
+describe("files:extract-bytes-all — a dropped attachment is read whole", () => {
+  beforeEach(() => {
+    registered.clear();
+    registerExtractIpc();
+    extractBytes.mockReset();
+  });
+  const run = (ch: string, out: Record<string, unknown>) => {
+    extractBytes.mockResolvedValueOnce(out);
+    return registered.get(ch)!(
+      { sender: {} },
+      { data: Buffer.from("x").toString("base64"), name: "f.pdf" },
+    );
+  };
+
+  it("lifts the OCR page cap; the tool-file route keeps it", async () => {
+    await run("files:extract-bytes-all", { text: "ok" });
+    expect(extractBytes.mock.calls[0][4]).toBe(true);
+    await run("files:extract-bytes", { text: "ok" });
+    expect(extractBytes.mock.calls[1][4]).toBe(false);
+  });
+
+  it("keeps the refusal contract", async () => {
+    await expect(
+      run("files:extract-bytes-all", { text: "", error: "Archive refusée", blocked: true }),
+    ).resolves.toEqual({
+      text: "",
+      error: "Archive refusée",
+      blocked: true,
+    });
+  });
+});

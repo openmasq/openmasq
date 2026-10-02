@@ -186,10 +186,9 @@ export type OcrProgress = { name: string; page: number; pages: number };
 export interface FilesHost {
   pick(): Promise<ExtractedFile[]>;
   extract(paths: string[], onOcrProgress?: (p: OcrProgress) => void): Promise<ExtractedFile[]>;
-  /** « Lire tout »: re-extract while lifting the OCR cap (10 pages by default). A
-   *  300-page scan at a few seconds per page is a CHOICE the user makes, not a
-   *  default — hence a dedicated action rather than a higher cap. Optional: absent
-   *  (browser preview), the chip doesn't offer the action. */
+  /** Extract with NO OCR page cap — what an ATTACHMENT uses: the user attached the document to
+   *  have it read whole (the time is announced before, not saved by reading less). The capped
+   *  `extract` stays for other callers. Optional: absent (browser preview) ⇒ `extract`. */
   extractAll?(paths: string[], onOcrProgress?: (p: OcrProgress) => void): Promise<ExtractedFile[]>;
   /** Native picker WITHOUT extraction — returns chosen paths + basenames instantly, so
    *  the composer can show a chip while `extract()` runs async (a big/scanned file's
@@ -201,6 +200,14 @@ export interface FilesHost {
   /** In-memory bytes (base64) — MCP tool files + the drop route. STRUCTURED result so the
    *  preview keeps `words`/`ocrText`. */
   extractBytes?(
+    data: string,
+    name: string,
+    mime?: string,
+    onOcrProgress?: (p: OcrProgress) => void,
+  ): Promise<ExtractedBytes>;
+  /** `extractBytes` with no OCR page cap — a DROPPED attachment, read whole. Absent ⇒
+   *  `extractBytes`. */
+  extractBytesAll?(
     data: string,
     name: string,
     mime?: string,

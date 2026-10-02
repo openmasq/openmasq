@@ -40,7 +40,7 @@ interface Pending {
 
 // Cleanup backstop only: the renderer bounds a detection well before this
 // (`send/redactTimeout.ts`). Reaps a pending entry if the worker wedged without exiting.
-const DETECT_TIMEOUT_MS = 5 * 60 * 1000;
+const DETECT_TIMEOUT_MS = 20 * 60 * 1000; // above the renderer's ceiling (`redactTimeout.ts`)
 // Kill the worker (a large RAM floor: weights + onnxruntime session) after this idle.
 const IDLE_MS = 10 * 60 * 1000;
 /** Bounded stderr ring of the PACKAGED worker: the only trace of a native load failure,

@@ -34,10 +34,14 @@ interface Pending {
   reject: (e: Error) => void;
   onProgress?: (done: number, pages: number) => void;
   timer: ReturnType<typeof setTimeout>;
+  /** Restart the timer — called on every progress message. */
+  rearm: () => void;
 }
 
-// Backstop only (a worker stuck without dying): OCR on a big scan on a
-// low-power machine (Intel/WASM) is counted in minutes — generous, never the nominal bound.
+// Backstop only (a worker stuck without dying), and a STALL bound, not a total one: it restarts
+// on every page read. An attachment is OCR'd whole now, and a few hundred scanned pages with
+// Tesseract alone take far longer than any total budget — what must end is a worker that went
+// SILENT, not a long document making progress.
 const EXTRACT_TIMEOUT_MS = 6 * 60 * 1000;
 // Tesseract WASM + docTR sessions are heavy: we give back the RAM after this idle period.
 const IDLE_MS = 5 * 60 * 1000;
@@ -102,6 +106,7 @@ function ensureChild(): UtilityProcess {
     const p = pending.get(msg.id);
     if (!p) return;
     if ("progress" in msg) {
+      p.rearm();
       p.onProgress?.(msg.progress.done, msg.progress.pages);
       return;
     }
@@ -150,15 +155,26 @@ async function run(
     const c = ensureChild();
     const id = ++seq;
     return await new Promise<ExtractedFile>((resolve, reject) => {
-      const timer = setTimeout(() => {
-        pending.delete(id);
-        reject(new Error("extraction : délai dépassé"));
-      }, EXTRACT_TIMEOUT_MS);
-      pending.set(id, { resolve, reject, onProgress, timer });
+      const arm = () =>
+        setTimeout(() => {
+          pending.delete(id);
+          reject(new Error("extraction : délai dépassé"));
+        }, EXTRACT_TIMEOUT_MS);
+      const entry: Pending = {
+        resolve,
+        reject,
+        onProgress,
+        timer: arm(),
+        rearm: () => {
+          clearTimeout(entry.timer);
+          entry.timer = arm();
+        },
+      };
+      pending.set(id, entry);
       try {
         c.postMessage({ id, ...req });
       } catch (err) {
-        clearTimeout(timer);
+        clearTimeout(entry.timer);
         pending.delete(id);
         reject(err instanceof Error ? err : new Error(String(err)));
       }

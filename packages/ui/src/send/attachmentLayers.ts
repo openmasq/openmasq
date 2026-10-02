@@ -9,11 +9,11 @@
 // replay of the message pass. The block itself is NEVER sent to a model.
 import { hybridLayerText, spatialFieldLines } from "@openmasq/redact/documents.browser";
 import type { ExtractedFile } from "../host/files";
-import { clipFileText } from "./foldPayload";
+import { clipFileText, MAX_FILE_CHARS } from "./foldPayload";
 
-/** Mirror of the fold's per-document clip — an enormous OCR layer must not blow the
- *  engine call; the primary text is clipped at the same bound by `buildFoldedPayload`. */
-const MAX_LAYER_CHARS = 50_000;
+/** The fold's per-document clip, IMPORTED (rule 9): an enormous OCR layer must not blow the
+ *  engine call, and the primary text is clipped at the same bound by `buildFoldedPayload`. */
+const MAX_LAYER_CHARS = MAX_FILE_CHARS;
 
 type LayeredAttachment = Pick<
   ExtractedFile,

@@ -42,8 +42,11 @@ export function typedPartOfWire(text: string): string {
 /** The per-document cap on what the WIRE carries (each folded file is clipped here,
  *  « …(truncated) » marker included) — THE single source (rule 9): the drop-time
  *  redaction scans to this bound and the preview modal shows the cut at it, so the
- *  three surfaces cannot disagree on where the document stops leaving the machine. */
-export const MAX_FILE_CHARS = 50_000;
+ *  three surfaces cannot disagree on where the document stops leaving the machine.
+ *  A document is read WHOLE: the user attached it to have it read, and a silent cut made the
+ *  model answer about a page it never saw. This bound is only a runaway guard (a multi-MB log),
+ *  ~250k tokens; what fits the MODEL is decided per send, against its context window. */
+export const MAX_FILE_CHARS = 1_000_000;
 
 /**
  * Clip `text` to at most `max` chars, cutting at the last LINE boundary within the

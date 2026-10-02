@@ -155,6 +155,8 @@ const host: Host = {
     read: (path) => window.openmasq.files.read(path),
     extractBytes: (data, name, mime, onProgress) =>
       window.openmasq.files.extractBytes(data, name, mime, onProgress),
+    extractBytesAll: (data, name, mime, onProgress) =>
+      window.openmasq.files.extractBytesAll(data, name, mime, onProgress),
     // Absent ⇒ no picker hint.
     pathForFile: window.openmasq.files.pathForFile
       ? (file: File) => window.openmasq.files.pathForFile!(file)
