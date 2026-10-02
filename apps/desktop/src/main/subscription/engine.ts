@@ -90,6 +90,7 @@ export async function* streamClaudeSubscription(
   opts: ClaudeTurnOptions,
 ): AsyncGenerator<string, StreamDone> {
   return yield* streamCliProcess({
+    cli: "claude",
     binPath: opts.binPath,
     args: buildClaudeArgs(opts),
     cwd: opts.cwd,

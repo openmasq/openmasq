@@ -30,11 +30,14 @@ export interface Message {
    * member: their budget is admin-managed).
    * `credit_options` → a platform send blocked on credits on a free-tier account: take a
    * subscription, or use your own key for `provider`.
+   * `cli_signin` → the subscription CLI behind `provider` (`claude-cli`…) is signed out:
+   * run its own sign-in from the app, then regenerate.
    */
   errorAction?:
     | { kind: "missing_key"; provider: string; label?: string }
     | { kind: "upgrade_plan" }
-    | { kind: "credit_options"; provider: string; label?: string };
+    | { kind: "credit_options"; provider: string; label?: string }
+    | { kind: "cli_signin"; provider: string; label?: string };
   /** The tool the agentic loop is calling right now — drives the "Appel de l'outil…" indicator. */
   toolCall?: string;
   /** The provider's REMAINING request quota as of this turn — numbers only. Transient like

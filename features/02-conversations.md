@@ -137,6 +137,15 @@ re-reading an old conversation means knowing who wrote what.
       the last send (`rate_limit_event`), remembered — that CLI exposes nothing to ask —
       `apps/desktop/src/main/subscription/account.ts`,
       `packages/ui/src/pages/Settings/models/AgentAccountCard.tsx`
+- [x] **A signed-out agent says so, and signs back in** — when a CLI's own session is
+      missing or expired (its status says signed out, or a send comes back refused for it),
+      the model is greyed « Non connecté » in the picker and the send is refused before
+      anything leaves; the conversation shows « Votre session Claude Code a expiré… », never
+      the CLI's raw text, with « Se reconnecter »: the CLI's own sign-in, in place, then the
+      turn is replayed (Claude Code, Codex — Antigravity is signed in from the tool itself) —
+      `apps/desktop/src/main/subscription/authFailure.ts`,
+      `packages/ui/src/containers/agentSetup/CliReconnectModal.tsx`,
+      `packages/ui/src/state/effects/cliSession.ts`
 - [x] OpenRouter catalogue fetched live
 - [x] The model that answered stays stamped on the reply
 - [ ] **« Auto » mode** — REMOVED from the picker: neither view offers it any more. The

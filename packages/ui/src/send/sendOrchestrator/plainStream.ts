@@ -1,6 +1,7 @@
 import type { ChatMessage, StreamDone } from "@openmasq/llm";
 import { captureEvent } from "../../analytics";
 import { reasoningRelay } from "../../state/conversation/reasoningRelay";
+import { noteCliAuthFailure } from "../../state/effects/cliSession";
 import { updateDebug } from "../../state/debug/debug";
 import { httpStatus, requestIdOf, retriesOf } from "../../state/errors/fields";
 import { cleanErrorText, humanizeSendError, sendErrorAction, sendErrorReason } from "../../state/errors";
@@ -124,6 +125,7 @@ export function runPlainStream(
         humanizeSendError(message, t, { personal: !d.orgProfileRef.current, provider: model.provider }) ??
         r.fromWire(cleanErrorText(message, t));
       const act = sendErrorAction(message, model.provider);
+      noteCliAuthFailure(message);
       ctx.dbg({ type: "error", scope: `stream · ${model.id}`, message: rawMsg });
       captureEvent({
         name: "send_error",

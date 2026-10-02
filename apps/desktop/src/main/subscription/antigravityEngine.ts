@@ -80,6 +80,7 @@ export async function* streamAntigravitySubscription(
   opts: AntigravityTurnOptions,
 ): AsyncGenerator<string, StreamDone> {
   return yield* streamCliProcess({
+    cli: "antigravity",
     binPath: opts.binPath,
     args: buildAntigravityArgs(opts),
     cwd: opts.cwd,

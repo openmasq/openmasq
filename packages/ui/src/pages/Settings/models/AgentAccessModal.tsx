@@ -2,7 +2,7 @@ import { ModalShell } from "../../../containers/modals";
 import { Switch } from "../../../components/brand";
 import { useT } from "../../../i18n";
 import { AgentAccountCard } from "./AgentAccountCard";
-import { AgentSetupRows } from "./AgentSetupRows";
+import { AgentSetupRows } from "../../../containers/agentSetup/AgentSetupRows";
 import type { AgentCli, AgentCopy } from "../../../hooks/useAgentOptIns";
 
 /**
@@ -12,10 +12,10 @@ import type { AgentCli, AgentCopy } from "../../../hooks/useAgentOptIns";
  * between « Claude Code » in the list and a switch right at the bottom.
  *
  * ⚠️ The setting stays OFF by default — the app never consumes someone's personal
- * subscription without an explicit gesture — and the probe stays LOCAL (presence of the
- * binary, never a spawn): authentication itself is only observable on the first send.
- * Hence `missingDesc` when the CLI is absent: the setting can be turned on, it will be of
- * no use until the tool is installed AND signed in.
+ * subscription without an explicit gesture — and the presence probe stays LOCAL (the
+ * binary, never a spawn); the sign-in state is read only once the switch is ON
+ * (`state/effects/cliSession.ts`). Hence `missingDesc` when the CLI is absent: the setting
+ * can be turned on, it will be of no use until the tool is installed AND signed in.
  *
  * Under the switch, the SET-UP rows (`AgentSetupRows`): install the CLI here, sign it
  * in, or see whose account it holds — the path for someone who never opens a terminal.

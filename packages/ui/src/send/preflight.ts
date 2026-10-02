@@ -1,7 +1,8 @@
 import type { Messages } from "@openmasq/i18n";
 import { PROVIDERS, type ProviderId } from "@openmasq/llm";
 import { ModelBlockedByOrgError, CreditsExhaustedError } from "../state/errors";
-import { modelUnavailableReason } from "./modelAvailability";
+import { SUBSCRIPTION_CLI_IN_APP_LOGIN, subscriptionCliOfProvider } from "@openmasq/llm";
+import { modelUnavailableReason, type CliReadiness } from "./modelAvailability";
 import { includedWith, platformAccessServed, subscriptionsSold } from "./platformAccess";
 import type { OrgProfileInfo, CreditBalance, BillingSubscription } from "../host";
 import type { Message } from "../types";
@@ -37,11 +38,11 @@ export interface PreflightInput {
   localEndpointReachable?: boolean | null;
   /** Is the `claude-cli` provider ready (setting enabled + CLI detected)? Passed
    *  as-is to `modelUnavailableReason` — only `true` opens it (fail-closed). */
-  claudeCliReady?: boolean | null;
+  claudeCliReady?: CliReadiness;
   /** Same for `codex-cli`. */
-  codexCliReady?: boolean | null;
+  codexCliReady?: CliReadiness;
   /** Same for `antigravity-cli`. */
-  antigravityCliReady?: boolean | null;
+  antigravityCliReady?: CliReadiness;
   /** The UI language of the failure text. */
   t: Messages;
 }
@@ -160,6 +161,18 @@ export function preflightError(p: PreflightInput): PreflightFailure | null {
     // `antigravity-cli`) while
     // the CLI has disappeared or the setting was switched off: the repair path, named.
     return { text: t.availability.cliUnavailable(label) };
+  }
+
+  if (reason === "cli_signed_out") {
+    // The CLI's own status said signed out: refused BEFORE any spawn, with the same
+    // sign-in the failed turn would offer (none for a CLI the app cannot sign in).
+    const cli = subscriptionCliOfProvider(p.provider);
+    return {
+      text: t.availability.cliSignedOutTitle(label),
+      ...(cli && SUBSCRIPTION_CLI_IN_APP_LOGIN[cli]
+        ? { action: { kind: "cli_signin" as const, provider: p.provider, label } }
+        : {}),
+    };
   }
 
   if (reason === "no_endpoint") {

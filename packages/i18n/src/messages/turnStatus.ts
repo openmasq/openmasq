@@ -17,6 +17,7 @@ export interface TurnStatusMessages {
     quota: string;
     keyRequired: string;
     planRequired: string;
+    signedOut: string;
     interrupted: string;
     empty: string;
     tool: string;
@@ -25,6 +26,9 @@ export interface TurnStatusMessages {
   /** The one « Réessayer » — the same word whatever the reason. */
   retry: string;
   fillKey: string;
+  /** A subscription CLI signed out: the button, and the title of the sign-in it opens. */
+  reconnect: string;
+  reconnectTitle: (cli: string) => string;
   /** The card's sentence, by reason (a failed turn shows its persisted text instead). */
   failedDefault: string;
   interrupted: string;

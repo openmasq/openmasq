@@ -6,6 +6,7 @@ import { Toast } from "../../../../components/feedback/Toast";
 import { SelectionMenu } from "../../../../components/SelectionMenu";
 import { ApiKeyModal, ModelAccessModal } from "../../../../containers/modals";
 import { TransparencyModal } from "../../../../containers/modals/TransparencyModal";
+import { CliReconnectModal } from "../../../../containers/agentSetup/CliReconnectModal";
 import { ChatBanners } from "../../ChatBanners";
 import type { ChatViewModel } from "../model";
 
@@ -102,6 +103,16 @@ export function AccessModals({ m }: { m: ChatViewModel }) {
             onSave={keys.saveKey}
             onConnect={keys.keyTarget.provider === "openrouter" ? keys.connectKey : undefined}
             onClose={keys.closeKeyModal}
+          />
+        )}
+      </AnimatePresence>
+      <AnimatePresence>
+        {keys.reconnect && (
+          <CliReconnectModal
+            cli={keys.reconnect.cli}
+            label={keys.reconnect.label}
+            onSignedIn={keys.reconnected}
+            onClose={keys.closeReconnect}
           />
         )}
       </AnimatePresence>

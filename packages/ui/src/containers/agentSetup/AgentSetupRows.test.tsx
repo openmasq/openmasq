@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, expect, it, vi } from "vitest";
-import type { Host } from "../../../host";
-import { mount } from "../../../testKit";
+import type { Host } from "../../host";
+import { mount } from "../../testKit";
 import { AgentSetupRows } from "./AgentSetupRows";
 
 /**

@@ -75,7 +75,7 @@ nothing becomes unreachable, only less cluttered.
       (Claude Code, Codex — a pinned, sha256-verified download of the official build that
       then places itself; never Antigravity) and **sign it in from the app** (the CLI's own
       sign-in relayed: the page to open, the code to type or to paste), then « connectée :
-      e-mail · offre » — `packages/ui/src/pages/Settings/models/AgentSetupRows.tsx`,
+      e-mail · offre » — `packages/ui/src/containers/agentSetup/AgentSetupRows.tsx`,
       `apps/desktop/src/main/subscription/install/`
 - [x] Réglages → Confidentialité → either stat card of the privacy report opens the
       **by-type breakdown** (your messages, or everything ever masked) —

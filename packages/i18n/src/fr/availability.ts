@@ -24,6 +24,8 @@ export const availability = {
   cliRequired: "CLI requise",
   cliUnavailable: (cli) =>
     `Ce modèle passe par la CLI ${cli} de cette machine. Installez-la, connectez-la, puis activez-la dans Réglages → Modèles.`,
+  cliSignedOut: "Non connecté",
+  cliSignedOutTitle: (cli) => `${cli} n'est plus connecté à votre compte. Reconnectez-vous pour continuer.`,
   noEndpoint: "Adresse manquante",
   noEndpointTitle: "Adresse manquante. Ajoutez-la dans Réglages → Modèles → Modèle sur votre ordinateur.",
   endpointUnreachable: "Serveur injoignable",

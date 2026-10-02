@@ -20,6 +20,8 @@ export const errors = {
   providerCredits: "Your provider account is out of credits. Add credits, or switch models.",
   invalidKeyNamed: (provider) => `Your ${provider} key was refused. Check it, or enter a new one.`,
   invalidKey: "Your key was refused by the provider. Check it, or enter a new one.",
+  cliSessionExpired: (cli) => `Your ${cli} session has expired. Sign in again to continue.`,
+  cliSessionExpiredExternal: (cli) => `Your ${cli} session has expired. Sign in again from ${cli}, then try again.`,
   rateBurst: (wait) => `Too many requests at once. Wait ${wait} and try again.`,
   someSeconds: "a few seconds",
   freeCap: (limit) => `${limit} free requests`,
