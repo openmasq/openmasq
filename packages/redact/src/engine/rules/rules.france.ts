@@ -240,11 +240,15 @@ export const FRANCE_RULES: RedactionRule[] = [
         "numéro de rôle|numero de role|rôle|role|" +
         "numéro d'occupant|numero d'occupant|identifiant unique|" +
         "compte cotisant|référence de paiement|reference de paiement|" +
-        "numéro de formule|numero de formule",
+        "numéro de formule|numero de formule|" +
+        // The online-access number is the LOGIN to the taxpayer's space; the télédéclarant
+        // number, the property « invariant », the taxe d'habitation number key the same file.
+        "accès en ligne|acces en ligne|télédéclarant|teledeclarant|numéro invariant|numero invariant|invariant|" +
+        "taxe d'habitation|taxe d’habitation",
       // Separator: ONE space, or a punctuation optionally flanked by ONE space each
       // ("21 / 0123456 / 45"). Never a RUN of spaces — 2+ is a COLUMN GUTTER, and
       // crossing it would glue the next column's first token onto the reference.
-      String.raw`[0-9A-Z][0-9A-Z]*(?:(?:[ ]?[.\\-\\/][ ]?|[ ])[0-9A-Z]+){1,8}`,
+      String.raw`[0-9A-Z][0-9A-Z]*(?:(?:[ ]?[.\\-\\/][ ]?|[ ])[0-9A-Z]+){0,8}`,
     ),
     validate: taxNoticeRef,
   },
@@ -259,7 +263,10 @@ export const FRANCE_RULES: RedactionRule[] = [
 function taxNoticeRef(m: string): boolean {
   if (/[a-z]/.test(m)) return false;
   const groups = m.split(/[ .\-\/]+/).filter(Boolean);
-  if (groups.length < 2) return false;
   const chars = m.replace(/[^0-9A-Z]/g, "");
-  return chars.length >= 8 && (m.match(/\d/g) ?? []).length >= 4;
+  const digits = (m.match(/\d/g) ?? []).length;
+  // The COMPACT print (« Numéro FIP : 3012345678901 », « 2533A12345678 ») is one group: it
+  // passes on length alone — 10+ characters, 8+ of them digits — which no prose word reaches.
+  if (groups.length < 2) return chars.length >= 10 && digits >= 8;
+  return chars.length >= 8 && digits >= 4;
 }
