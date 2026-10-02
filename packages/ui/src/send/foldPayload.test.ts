@@ -66,11 +66,15 @@ describe("buildFoldedPayload", () => {
       "",
     );
     // Detect block: note sits between the header and the document text.
-    expect(r.modelText).toContain(`=== Attached file: document-1.txt ===\n${ATTACHMENT_INLINE_NOTE}\naaa`);
+    expect(r.modelText).toContain(
+      `=== Attached file: document-1.txt ===\n${ATTACHMENT_INLINE_NOTE}\naaa`,
+    );
     // Reuse header carries it too (the caller appends the text after applyVault)...
     expect(r.reuseParts[0].header).toContain(ATTACHMENT_INLINE_NOTE);
     // ...and the persisted image block (re-sent on a follow-up turn) as well.
-    expect(r.fullModelText).toContain(`=== Attached file: document-3.png ===\n${ATTACHMENT_INLINE_NOTE}\nccc`);
+    expect(r.fullModelText).toContain(
+      `=== Attached file: document-3.png ===\n${ATTACHMENT_INLINE_NOTE}\nccc`,
+    );
   });
 
   it("keeps the extension only when there is a real dot (no dot ⇒ bare document-N)", () => {
@@ -98,7 +102,11 @@ describe("buildFoldedPayload", () => {
     const r = buildFoldedPayload(
       "compare",
       [{ name: "contrat.txt", text: "Marc Savary habite Lyon" }],
-      { docReplacements: { "contrat.txt": [{ real: "Marc Savary", fake: "Paul Morvan", tone: "violet" }] } },
+      {
+        docReplacements: {
+          "contrat.txt": [{ real: "Marc Savary", fake: "Paul Morvan", tone: "violet" }],
+        },
+      },
       "",
     );
     // Reused doc text is withheld from the detector input (modelText)...
@@ -107,7 +115,9 @@ describe("buildFoldedPayload", () => {
     expect(r.reuseParts).toHaveLength(1);
     expect(r.reuseParts[0].header).toContain("document-1.txt");
     expect(r.reuseParts[0].text).toBe("Marc Savary habite Lyon");
-    expect(r.reuseParts[0].reps).toEqual([{ real: "Marc Savary", fake: "Paul Morvan", tone: "violet" }]);
+    expect(r.reuseParts[0].reps).toEqual([
+      { real: "Marc Savary", fake: "Paul Morvan", tone: "violet" },
+    ]);
     // ...and the drop-time fake→real is pre-loaded into the vault preload.
     // The document's reps + the ALIAS pairs (restitution of the file name, 15/08).
     expect(r.vaultPreload).toEqual({
@@ -169,7 +179,14 @@ describe("buildFoldedPayload", () => {
     const r = buildFoldedPayload(
       "x",
       [{ name: "d.txt", text: "data" }],
-      { docReplacements: { "d.txt": [{ real: "", fake: "F" }, { real: "R", fake: "" }] } },
+      {
+        docReplacements: {
+          "d.txt": [
+            { real: "", fake: "F" },
+            { real: "R", fake: "" },
+          ],
+        },
+      },
       "",
     );
     // No lopsided rep gets seeded — only the document's ALIAS pairs remain.
@@ -248,5 +265,24 @@ describe("clipFileText — la coupe ne tranche JAMAIS une ligne (donc jamais une
     const kept = folded.slice(0, folded.indexOf("\n…(truncated)"));
     // Every line present is WHOLE (it ends with its own value).
     for (const line of kept.split("\n")) expect(line).toMatch(/^client \d+: valeur-\d+$/);
+  });
+});
+
+describe("a document is folded WHOLE — the model reads the page it is asked about", () => {
+  it("a 300 000-character contract is not cut", () => {
+    const pages = Array.from(
+      { length: 48 },
+      (_, i) => `Page ${i + 1}\n${"clause ".repeat(900)}`,
+    ).join("\n");
+    const end = "ARTICLE 48 — dernière clause.";
+    const r = buildFoldedPayload(
+      "Que dit l'article 48 ?",
+      [{ name: "contrat.pdf", text: `${pages}\n${end}` }],
+      {},
+      "",
+    );
+    expect(pages.length).toBeGreaterThan(300_000);
+    expect(r.modelText).toContain(end);
+    expect(r.modelText).not.toContain("(truncated)");
   });
 });

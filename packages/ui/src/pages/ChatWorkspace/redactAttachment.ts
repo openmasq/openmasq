@@ -14,7 +14,6 @@ import { attachmentVault } from "./attachmentVault";
 // renderer thread froze the app. Detection is value-based, so values found in the first
 // slice are still faked everywhere they occur in the full text.
 import { MAX_FILE_CHARS, clipFileText } from "../../send/foldPayload";
-export { MAX_FILE_CHARS as MAX_REDACT_CHARS } from "../../send/foldPayload";
 
 /** Component captures threaded into {@link redactAttachment} (extracted from ChatView). */
 export interface RedactAttachmentDeps {

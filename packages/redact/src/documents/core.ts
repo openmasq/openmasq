@@ -212,6 +212,8 @@ export async function extractFromBytes(
               engine: `pdf-text+${ocrMeta?.engine ?? "ocr"}`,
               ms: layerMs + (ocrMeta?.ms ?? 0),
               pages: ocrMeta?.pages,
+              // Carried on the digital branch too: without it a CAPPED OCR layer looked complete.
+              pagesTotal: ocrMeta?.pagesTotal,
               confidence: ocrMeta?.confidence,
               fellBack: ocrMeta?.fellBack,
             };

@@ -124,6 +124,17 @@ export const files = {
       () => ipcRenderer.invoke("files:extract-bytes", { data, name, mime }),
       onProgress,
     ),
+  // A DROPPED attachment, read whole (OCR on every page) — see filesExtractIpc.
+  extractBytesAll: (
+    data: string,
+    name: string,
+    mime?: string,
+    onProgress?: (p: OcrProgress) => void,
+  ): Promise<{ text: string } & Record<string, unknown>> =>
+    withOcrProgress(
+      () => ipcRenderer.invoke("files:extract-bytes-all", { data, name, mime }),
+      onProgress,
+    ),
   redactAndSave: (p: unknown): Promise<Record<string, string>> =>
     ipcRenderer.invoke("files:redact-and-save", p),
   fetchUrl: (url: string): Promise<{ path: string; name: string; mime: string }> =>

@@ -193,7 +193,7 @@ today's.
 - [x] Dropping a **folder** offers to add it to the granted folders; the confirmation
       happens in the system's own window, never in the app — `packages/ui/src/pages/ChatWorkspace/grantDroppedFolder.ts`
 - [x] OCR on a scan, with a reconciled text layer — `packages/redact/src/ocr/`
-- [x] **The OCR ceiling is VISIBLE and liftable** — 10 pages by default (several seconds each: a 300-page file is a choice, not an imposed wait); beyond that the chip says « 10/32 pages lues » and offers « Lire tout » (re-extraction with no ceiling, same choreography as the first: progress, re-redaction) — `packages/ui/src/pages/ChatWorkspace/ocrShortfall.ts`
+- [x] **An attachment is read WHOLE** — picked or dropped, every page is OCR'd and the full text (up to a 1M-char runaway guard) is redacted and sent; the send's detection timeout grows with the size, and the OCR timeout is a stall timeout re-armed by each page. An MCP tool's file keeps the 10-page cap; there, the chip says « 10/32 pages lues » and offers « Lire tout » — `packages/ui/src/pages/ChatWorkspace/ocrShortfall.ts`
 - [x] In the preview, a **halo** (theme tint, light wash) marks the text that, once redacted, goes to the model; the first page's caption is a **button** that hides/shows the halo (preference remembered) — `packages/ui/src/containers/modals/viewers/pdf/textHalo.ts`
 - [x] Document redaction **on drop**, before any send
 - [x] Preview before sending: the document (Pages redacted / Feuille / Image…) · Original · Redacted (« what will leave the machine », cut at the send limit) · the image's text — with the redaction state (running / failed / count) in the header — `packages/ui/src/containers/modals/viewers/AttachmentPreviewModal.tsx`
