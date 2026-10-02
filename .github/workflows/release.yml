@@ -533,6 +533,13 @@ jobs:
         run: echo "::warning::R2_ACCESS_KEY_ID is not configured — the e5 embedder is not fetched, and \`pnpm bake\` will skip it (bake-embed-models.ts). This build ships WITHOUT semantic Memory."
       - name: Bake bundled runtime + NER models (+ the jail launcher on Windows)
         working-directory: apps/desktop
+        env:
+          # docTR (Latin-script OCR, ~9× faster than Tesseract) MUST ship: without it the bake
+          # only warns and every PDF page is read by Tesseract alone. REQUIRED turns the skip into
+          # a failure; the source is the pinned first-party export, an https base URL held in a
+          # repository variable, sha256-verified by the bake (`bake-doctr-models.ts`).
+          OPENMASQ_DOCTR_REQUIRED: "1"
+          OPENMASQ_DOCTR_SRC: ${{ vars.OPENMASQ_DOCTR_SRC }}
         # `pnpm bake` bakes EVERY arch this platform ships (`bake-runtimes.ts`
         # reads `electron-builder.yml`), so what CI does is exactly what
         # `pnpm run release` does on a machine. No loop here: it would recreate the list.
