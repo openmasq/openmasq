@@ -125,6 +125,11 @@
   width: 100%;
   max-width: 560px;
 }
+/* « Avec vos services » — the row about the user's CONNECTED services, absent otherwise. */
+.om-starters-title {
+  margin-top: 4px;
+  color: var(--text-faint);
+}
 
 /* « Ne plus proposer » and its way back. Both discreet: they're comfort
    settings, not screen actions. Right-aligned so as not to compete with the

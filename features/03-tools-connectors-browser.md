@@ -49,6 +49,13 @@ them.
 - [x] « Mes clés » inside a connector's modal: your own OAuth client id / secret for that
       service, with the per-provider checklist — `packages/ui/src/pages/Settings/byo/ByoKeysModal.tsx`
 - [x] **Every call leaves in the clear and comes back redacted**
+- [x] **An integration's product name is never masked**, at any level, strict included —
+      « OneDrive » (and « One Drive »), « Slack », « Notion », « Google Drive », whether connected
+      or not; a company name alone (« Microsoft ») stays maskable, and a Coffre term wins —
+      `packages/ui/src/send/integrationKeep.ts`
+- [x] **The item ids a direct connector lists** (« · id:… » in OneDrive, Drive, SharePoint, Slack,
+      Tasks results) **stay real**: faked as API tokens, they came back as a 404 — same file,
+      `packages/ui/src/send/integrationKeep.test.ts`
 - [x] Enter an API key when the service asks for one — `packages/ui/src/containers/modals/ApiKeyModal.tsx`
 
 ### Local folders (the Filesystem connector)

@@ -12,7 +12,10 @@ export type StarterId =
   | "follow-up"
   | "contract-review"
   | "hr-review"
-  | "memory";
+  | "memory"
+  | "chat-catchup"
+  | "notes-find"
+  | "files-find";
 
 export interface ConversationMessages {
   /** The home of an empty conversation. */
@@ -24,9 +27,12 @@ export interface ConversationMessages {
     /** The cards' copy, keyed by the starter id of `starters.ts` — that module keeps the
      *  STRUCTURE (which cards, in what order), the words live here in every language. */
     cats: Record<StarterId, string>;
-    /** Every prompt takes the brand's domain, even the ones that ignore it: the « write »
-     *  card names an address on it, and one shape keeps the lookup by id trivial. */
-    prompts: Record<StarterId, (domain: string) => string>;
+    /** One shape for every prompt, so the lookup by id stays trivial: the brand's domain
+     *  (the follow-up card names an address on it) and the CONNECTED service's product name
+     *  (an integration card says where to look; « » for the others). */
+    prompts: Record<StarterId, (domain: string, service: string) => string>;
+    /** Eyebrow of the row of cards about the user's CONNECTED services. */
+    withServices: string;
   };
 
   /** The preview of a file produced by the model. */

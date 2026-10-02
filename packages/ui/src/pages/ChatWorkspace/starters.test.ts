@@ -1,23 +1,43 @@
 import { describe, it, expect } from "vitest";
 import { redact } from "@openmasq/redact";
 import { getMessages } from "@openmasq/i18n";
-import { pickStarters, starterCopy, UNIVERSAL_STARTERS } from "./starters";
+import { findConnector } from "@openmasq/catalog/mcp";
+import { pickStarters, starterCopy, INTEGRATION_STARTERS, UNIVERSAL_STARTERS } from "./starters";
 
-describe("pickStarters — l'accueil ne propose que ce qui marche sans rien connecter", () => {
-  it("les quatre amorces, sans aucune offre d'intégration", () => {
-    // The home screen once offered Gmail, Drive, Agenda… that a new user could not use.
-    // A starter carries no connector any more: nothing here can lead to a connection.
-    const picked = pickStarters();
-    expect(picked.map((s) => s.id)).toEqual(UNIVERSAL_STARTERS.map((s) => s.id));
-    for (const s of picked) expect(Object.keys(s)).toEqual(["id"]);
+describe("pickStarters — rien à connecter depuis l'accueil, jamais", () => {
+  it("install fraîche : les quatre amorces universelles, AUCUNE carte d'intégration", () => {
+    // The home screen once offered Gmail, Drive, Agenda… a new user could not use.
+    const { universal, integrations } = pickStarters([]);
+    expect(universal.map((s) => s.id)).toEqual(UNIVERSAL_STARTERS.map((s) => s.id));
+    expect(integrations).toEqual([]);
+  });
+
+  it("Slack, Notion, OneDrive/Dropbox CONNECTÉS : une carte chacun, qui nomme le service", () => {
+    const { integrations } = pickStarters(["slack", "notion", "dropbox"]);
+    expect(integrations).toEqual([
+      { id: "chat-catchup", connectorId: "slack" },
+      { id: "notes-find", connectorId: "notion" },
+      { id: "files-find", connectorId: "dropbox" },
+    ]);
+    const t = getMessages("fr");
+    expect(starterCopy(integrations[2], t, "OneDrive").prompt).toContain("OneDrive");
+  });
+
+  it("un service non listé ne fait apparaître aucune carte (Gmail, Drive…)", () => {
+    expect(pickStarters(["gmail", "google-drive", "github"]).integrations).toEqual([]);
+  });
+
+  it("chaque amorce d'intégration nomme des connecteurs RÉELS du catalogue", () => {
+    for (const s of INTEGRATION_STARTERS)
+      for (const id of s.connectors) expect(findConnector(id), id).toBeTruthy();
   });
 
   it("Mémoire fermée : l'amorce « Retiens que… » disparaît", () => {
-    expect(pickStarters({ memoryOpen: false }).map((s) => s.id)).not.toContain("memory");
+    expect(pickStarters([], { memoryOpen: false }).universal.map((s) => s.id)).not.toContain("memory");
   });
 
   it("des ids stables et uniques (clés React et table d'icônes)", () => {
-    const ids = UNIVERSAL_STARTERS.map((s) => s.id);
+    const ids = [...UNIVERSAL_STARTERS, ...INTEGRATION_STARTERS].map((s) => s.id);
     expect(new Set(ids).size).toBe(ids.length);
   });
 });

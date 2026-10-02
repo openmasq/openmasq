@@ -8,6 +8,13 @@ import {
   sendForcedList,
   shouldRedactSystemPrompt,
 } from "./redactionOptions";
+import { integrationProductNames } from "./integrationKeep";
+/** The list minus the catalogue's product names a test did not pass in itself — they ride
+ *  every send now (`integrationKeep.ts`), and these cases are about the OTHER entries. */
+const PRODUCTS = new Set(integrationProductNames().map((n) => n.toLowerCase()));
+const own = (list: string[], passed: string[] = []) =>
+  list.filter((k) => !PRODUCTS.has(k.toLowerCase()) || passed.some((p) => p.toLowerCase() === k.toLowerCase()));
+
 import type { VaultTerm } from "../types";
 
 describe("effectiveRedactCategories", () => {
@@ -95,7 +102,7 @@ describe("avoidBlob", () => {
 
 describe("sendKeepList", () => {
   it("concatenates connected names + revealed values + composer keeps", () => {
-    expect(sendKeepList(["Stripe"], { revealedValues: ["redonne"] }, ["france"])).toEqual([
+    expect(own(sendKeepList(["Stripe"], { revealedValues: ["redonne"] }, ["france"]), ["Stripe"])).toEqual([
       "Stripe",
       "redonne",
       "france",

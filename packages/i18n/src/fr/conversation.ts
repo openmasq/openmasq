@@ -10,11 +10,15 @@ export const conversation = {
     cardTip: (category, prompt) => `${category} — ${prompt}`,
     cardAria: (category, prompt) => `${category} : ${prompt}`,
     dismiss: "Ne plus afficher",
+    withServices: "Avec vos services",
     cats: {
       "follow-up": "Relance client",
       "contract-review": "Juridique",
       "hr-review": "RH",
       memory: "Mémoire",
+      "chat-catchup": "Messages",
+      "notes-find": "Notes",
+      "files-find": "Fichiers",
     },
     prompts: {
       // DEMONSTRATORS of the one thing the app does: each carries invented personal data
@@ -32,6 +36,12 @@ export const conversation = {
       // born, the « N faits notés » caption clicks through to the Mémoire graph).
       memory: () =>
         "Retiens que sur le projet Horizon, ma cliente Camille Salvi (Atelier Lucane) valide les maquettes et que Marc Wulff gère la facturation.",
+      "chat-catchup": (_d, service) =>
+        `Résume ce que j'ai raté cette semaine sur ${service}, et liste ce qui attend une réponse de ma part.`,
+      "notes-find": (_d, service) =>
+        `Retrouve dans ${service} les notes de ma dernière réunion de projet, et liste les décisions prises.`,
+      "files-find": (_d, service) =>
+        `Retrouve dans ${service} le dernier devis que j'ai reçu, et sors-en le montant et les dates clés.`,
     },
   },
 

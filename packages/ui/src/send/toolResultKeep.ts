@@ -1,4 +1,5 @@
 import { pythonFrameworkKeep, toolDiscoveryKeep } from "../agent/toolRedactionPolicy";
+import { connectorIdKeep } from "./integrationKeep";
 
 /**
  * The per-call `keep` list for ONE tool-result redaction pass — everything the engine may
@@ -16,6 +17,8 @@ import { pythonFrameworkKeep, toolDiscoveryKeep } from "../agent/toolRedactionPo
  *      tech terms) on a discovery-SHAPED result only — what stops the NER from vaulting
  *      `execute-sql → jade-tom` and derailing a meta-tool's loop. A DATA result gets [].
  * 3. `wireClearKeep` below — the coherence guard for values ALREADY in clear on the wire.
+ * 4. `connectorIdKeep` — a DIRECT connector's listed item ids (`· id:…`): the service's
+ *    addressing, faked as API tokens they 404 on the way back. Protected values excluded.
  */
 export function toolResultKeep(
   tool: string | undefined,
@@ -38,6 +41,7 @@ export function toolResultKeep(
     ...opts.engineKeep,
     ...shape,
     ...wireClearKeep(text, opts.wireUserTexts, [...opts.protectedValues, ...opts.vaultValues]),
+    ...connectorIdKeep(tool, text, [...opts.protectedValues, ...opts.vaultValues]),
   ];
 }
 

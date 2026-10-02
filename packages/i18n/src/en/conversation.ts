@@ -10,11 +10,15 @@ export const conversation = {
     cardTip: (category, prompt) => `${category} — ${prompt}`,
     cardAria: (category, prompt) => `${category}: ${prompt}`,
     dismiss: "Don't show again",
+    withServices: "With your services",
     cats: {
       "follow-up": "Client follow-up",
       "contract-review": "Legal",
       "hr-review": "HR",
       memory: "Memory",
+      "chat-catchup": "Messages",
+      "notes-find": "Notes",
+      "files-find": "Files",
     },
     prompts: {
       "follow-up": (domain) =>
@@ -25,6 +29,12 @@ export const conversation = {
         "Summarize this review in three actions: \"Annual review of Julien Moreau, born 03/14/1988, reachable at +33 6 12 34 56 78. His manager Sophie Bernard proposes a 6% raise and a training course in March.\"",
       memory: () =>
         "Remember that on the Horizon project, my client Camille Salvi (Atelier Lucane) approves the mock-ups and Marc Wulff handles invoicing.",
+      "chat-catchup": (_d, service) =>
+        `Summarize what I missed this week on ${service}, and list what is waiting for a reply from me.`,
+      "notes-find": (_d, service) =>
+        `Find the notes from my last project meeting in ${service}, and list the decisions made.`,
+      "files-find": (_d, service) =>
+        `Find the latest quote I received in ${service}, and pull out the amount and the key dates.`,
     },
   },
 

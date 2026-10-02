@@ -5,6 +5,7 @@ import type { Conversation, Settings } from "../../types";
 import { levelOf, notorietyForLevel } from "../../privacy/privacyLevel";
 import { redactNumbersOn } from "../../send/redactNumbers";
 import { disabledKindsOf, effectiveRedactCategories } from "../../send/redactionOptions";
+import { integrationProductNames } from "../../send/integrationKeep";
 
 export interface PiiPreview {
   matches: { value: string; category: string; uncertain?: boolean }[];
@@ -61,9 +62,9 @@ export function useDetectPii({
       const { commercial: commercialNotoriety, people: peopleNotoriety } = notorietyForLevel(
         levelOf(effective, orgProfileRef.current?.forcedCategories),
       );
-      // Connected-integration names are never flagged, like the send. The CACHED list —
-      // never re-query the MCP servers per keystroke.
-      const keep = keepListRef.current;
+      // Connected-integration names and every product name are never flagged, like the
+      // send. The CACHED list — never re-query the MCP servers per keystroke.
+      const keep = [...keepListRef.current, ...integrationProductNames()];
       const detectLocalFn = useLocal && host.detectLocalPii ? (t: string) => host.detectLocalPii!({ text: t }) : undefined;
 
       try {
