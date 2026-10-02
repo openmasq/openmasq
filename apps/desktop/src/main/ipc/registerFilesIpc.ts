@@ -48,9 +48,9 @@ let linkPreviewsEnabled = false;
 // OCR progress → renderer, best-effort; `filesExtractIpc.ts` relays the same.
 export const progressTo =
   (sender: Electron.WebContents): OcrProgressFn =>
-  (name, page, pages) => {
+  (name, page, pages, meta) => {
     try {
-      if (!sender.isDestroyed()) sender.send("files:ocr-progress", { name, page, pages });
+      if (!sender.isDestroyed()) sender.send("files:ocr-progress", { name, page, pages, ...meta });
     } catch {
       /* display only */
     }

@@ -75,7 +75,15 @@ export const embeddings = {
 };
 
 /** OCR progress during an extraction: `{name, page, pages}` per page read. */
-export type OcrProgress = { name: string; page: number; pages: number };
+export type OcrProgress = {
+  name: string;
+  page: number;
+  pages: number;
+  /** Waiting its turn: that many files ahead in the extraction queue. */
+  queued?: number;
+  /** Which picked file (two may share a name); absent on the bytes route. */
+  path?: string;
+};
 
 /** Listens to `files:ocr-progress` for the DURATION of an invoke (the `python.run` model:
  *  per-call scoped subscription, unsubscribed on settle). The channel is global, the payload
