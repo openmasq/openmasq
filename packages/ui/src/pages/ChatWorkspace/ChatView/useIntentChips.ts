@@ -44,11 +44,16 @@ export function useIntentChips(p: ChatViewProps) {
     setActiveTarget(null);
     onSkillConsumed?.();
   }, [pendingSkill]);
-  useEffect(() => {
-    if (!pendingTarget) return;
-    setActiveTarget(pendingTarget);
+  // A target replaces the other intents — whether the shell handed it over or the
+  // composer's « + » → Dossier just granted it.
+  const stageTarget = (target: AskTarget) => {
+    setActiveTarget(target);
     setActiveTag(null);
     setActiveSkill(null);
+  };
+  useEffect(() => {
+    if (!pendingTarget) return;
+    stageTarget(pendingTarget);
     onTargetConsumed?.();
   }, [pendingTarget]);
 
@@ -96,6 +101,7 @@ export function useIntentChips(p: ChatViewProps) {
     setActiveTag,
     tag: skillTag ?? targetTag ?? activeTag,
     handlePickSkill,
+    stageTarget,
     addProposedSkill,
     isProposedSkillAdded,
     clearTag,

@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { useHost, type ExtractedFile } from "../../../host";
-import { useGrantFolder } from "../../../hooks/useGrantFolder";
+import { grantedFolderTarget, useGrantFolder } from "../../../hooks/useGrantFolder";
 import { isDeferredFile, type DeferredFile } from "../../../state/files/deferredFile";
 import { DRAFT_CONV } from "../../../state/debug/debug";
 import { makeStaging } from "../attachmentStaging";
@@ -13,6 +13,7 @@ import { redactAttachment } from "../redactAttachment";
 import { redactMatchCount } from "./redactMatchCount";
 import type { AttachmentsApi } from "./useAttachments";
 import type { RedactPolicy } from "./useRedactPolicy";
+import type { AskTarget } from "../../../types";
 import type { ChatViewProps } from "./types";
 
 const newCid = () => Math.random().toString(36).slice(2);
@@ -22,7 +23,12 @@ const newCid = () => Math.random().toString(36).slice(2);
  * shell's hand-off (library re-attach, « Demander ») and « Lire tout » — all landing in the
  * same staging so no route drifts from the others. Redaction runs on drop, never lazily.
  */
-export function useAttachmentIntake(p: ChatViewProps, att: AttachmentsApi, redactPolicy: RedactPolicy) {
+export function useAttachmentIntake(
+  p: ChatViewProps,
+  att: AttachmentsApi,
+  redactPolicy: RedactPolicy,
+  stageTarget: (target: AskTarget) => void,
+) {
   const { conversation, pendingAttachment, onPendingConsumed, getStagedFiles, onStagedFilesChange } = p;
   const { setAttachments, updateAttachment, setAttachWarning, redactDeps, convIdRef } = att;
   const host = useHost();
@@ -87,6 +93,15 @@ export function useAttachmentIntake(p: ChatViewProps, att: AttachmentsApi, redac
   }
 
   const grantFolder = useGrantFolder();
+  // The grant itself changes nothing on screen, so its outcome must: the folder becomes the
+  // message's target chip (as « Demander » does from the rail), a refusal the warning banner.
+  // A folder ALREADY granted still stages — the user picked it to ask about it.
+  async function addFolder() {
+    const out = await grantFolder.addFolder();
+    if (out?.error) setAttachWarning(out.error);
+    const target = grantedFolderTarget(out);
+    if (target) stageTarget(target);
+  }
 
   async function attach() {
     if (!host.files) return;
@@ -142,7 +157,7 @@ export function useAttachmentIntake(p: ChatViewProps, att: AttachmentsApi, redac
     addDroppedFiles,
     canOcrAll,
     handleOcrAll,
-    onAddFolder: grantFolder.canAdd ? () => void grantFolder.addFolder() : undefined,
+    onAddFolder: grantFolder.canAdd ? () => void addFolder() : undefined,
   };
 }
 

@@ -74,7 +74,9 @@ granting one's home directory. A removal takes effect immediately, not at the ne
       `packages/ui/src/containers/shell/folders/FolderTreePanel.tsx`
 - [x] **Add a folder** from that same rail, or from the composer's « + » → « Dossier »
       (native picker; the grants already in place are kept — one gesture, two doors) —
-      `packages/ui/src/hooks/useGrantFolder.ts`
+      `packages/ui/src/hooks/useGrantFolder.ts`. From the composer, the picked folder
+      (even one already granted) becomes the message's **target chip**, like « Demander »;
+      a refusal shows in the attachment warning
 - [x] **« Demander »** on hovering a folder (or clicking a cloud entry): the **open**
       conversation (a new one only when none is open — the same rule as the browser's
       « Demander à propos de cette page ») receives the target as a **tag** — folder/file

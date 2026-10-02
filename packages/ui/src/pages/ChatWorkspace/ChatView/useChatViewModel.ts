@@ -48,9 +48,9 @@ export function useChatViewModel(p: ChatViewProps): ChatViewModel {
 
   const { redactPolicy, redactLevel } = useRedactPolicy(p);
   const att = useAttachments(p);
-  const intake = useAttachmentIntake(p, att, redactPolicy);
-  const forced = useForcedRedactions(p, att.setAttachments);
   const intents = useIntentChips(p);
+  const intake = useAttachmentIntake(p, att, redactPolicy, intents.stageTarget);
+  const forced = useForcedRedactions(p, att.setAttachments);
   const view = useConversationView(p, t, intents.memoryOpen);
   const scroll = useScrollFollow(p, view.messages);
   const sel = useSelectionActions(p, { scrollRef: scroll.scrollRef, input, handleInput, setActiveTag: intents.setActiveTag, t });

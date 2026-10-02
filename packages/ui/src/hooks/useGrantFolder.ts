@@ -1,6 +1,8 @@
 import { useCallback, useState } from "react";
 import { useHost, type McpHost } from "../host";
 import { FILESYSTEM_CONNECTOR_ID, localServerId } from "../state/conversation/mcpIds";
+import { baseName } from "../state/files/localFsPaths";
+import type { AskTarget } from "../types";
 
 /**
  * Grant ONE more local folder to the Filesystem connector — the gesture behind the
@@ -18,11 +20,13 @@ import { FILESYSTEM_CONNECTOR_ID, localServerId } from "../state/conversation/mc
  *  · and the connector may not be connected at all — that's even the default state
  *    of a fresh install, the one where this button gets clicked the most.
  */
-type GrantFolderOutcome =
-  /** The picker was cancelled, or the folder was already granted — nothing changed. */
-  | { granted: false; error?: undefined }
-  | { granted: false; error: string }
-  | { granted: true; error?: undefined };
+export type GrantFolderOutcome =
+  /** The picker was cancelled — nothing changed. */
+  | { granted: false; path?: undefined; error?: undefined }
+  /** The folder was already granted — nothing changed, but it IS usable: `path` says which. */
+  | { granted: false; path: string; error?: undefined }
+  | { granted: false; path?: undefined; error: string }
+  | { granted: true; path: string; error?: undefined };
 
 /** What the gesture needs of the host — `setDirs` made mandatory: without it there is
  *  no gesture at all (`canAdd` is false and the button is not drawn). */
@@ -48,7 +52,8 @@ export async function grantPickedFolder(
   // registered without it (« Dossiers autorisés requis » — `root` is required). Trying
   // to install it empty to "fix" it before asking therefore always fails.
   const picked = await mcp.pickDir();
-  if (!picked || current.includes(picked)) return { granted: false };
+  if (!picked) return { granted: false };
+  if (current.includes(picked)) return { granted: false, path: picked };
 
   // Connector absent ⇒ install it WITH the folder that was just granted, then
   // connect it. The user has nothing to connect themselves: they chose a
@@ -58,7 +63,7 @@ export async function grantPickedFolder(
     const added = await mcp.addStdio(FILESYSTEM_CONNECTOR_ID, {}, { [key]: [picked] });
     if (added?.error) return { granted: false, error: added.error };
     const started = await mcp.connect(serverId);
-    return started?.error ? { granted: false, error: started.error } : { granted: true };
+    return started?.error ? { granted: false, error: started.error } : { granted: true, path: picked };
   }
   // Registered but off: reconnect it, otherwise `setDirs` would write into the void.
   if (server.connected === false) {
@@ -66,7 +71,14 @@ export async function grantPickedFolder(
     if (started?.error) return { granted: false, error: started.error };
   }
   const info = await mcp.setDirs(server.id, key, [...current, picked]);
-  return info?.error ? { granted: false, error: info.error } : { granted: true };
+  return info?.error ? { granted: false, error: info.error } : { granted: true, path: picked };
+}
+
+/** The target chip a picked folder stages on the composer — granted now OR already
+ *  granted (the user picked it to ask about it). Cancelled or refused ⇒ none. */
+export function grantedFolderTarget(out: GrantFolderOutcome | undefined): AskTarget | null {
+  if (!out?.path || out.error) return null;
+  return { kind: "folder", name: baseName(out.path), path: out.path };
 }
 
 /**
@@ -76,7 +88,13 @@ export async function grantPickedFolder(
  */
 export function useGrantFolder(
   opts: { roots?: readonly string[]; onGranted?: () => void } = {},
-): { canAdd: boolean; adding: boolean; error: string; addFolder: () => Promise<void> } {
+): {
+  canAdd: boolean;
+  adding: boolean;
+  error: string;
+  /** Resolves with the outcome so a caller can SHOW it (`undefined` = gesture not run). */
+  addFolder: () => Promise<GrantFolderOutcome | undefined>;
+} {
   const mcp = useHost().mcp;
   const [adding, setAdding] = useState(false);
   const [error, setError] = useState("");
@@ -102,8 +120,11 @@ export function useGrantFolder(
       );
       if (out.error) setError(out.error);
       else if (out.granted) onGranted?.();
+      return out;
     } catch (e) {
-      setError(e instanceof Error ? e.message : String(e));
+      const error = e instanceof Error ? e.message : String(e);
+      setError(error);
+      return { granted: false as const, error };
     } finally {
       setAdding(false);
     }
