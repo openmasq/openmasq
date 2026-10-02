@@ -239,6 +239,10 @@ stuck with a version that breaks your use.
       at the next launch — `UpdateReadyModal`,
       `packages/ui/src/containers/modals/UpdateReadyModal.test.tsx`,
       `packages/ui/src/containers/shell/hooks/useUpdateReady.test.tsx`
+- [x] **…and by a system notification when the window is not in front** (minimized, hidden,
+      another app focused): « <app> <version> est prête — Redémarrez l'app pour l'installer »,
+      once per version; a click brings the window back to the announcement, it installs
+      nothing — `apps/desktop/src/main/updates/notifyDownloaded.test.ts`
 - [x] **Updating is always automatic — no setting turns it off.** Checking and downloading
       happen on their own; installation waits for a click on "Install and restart", the next
       close of the app — or a moment of inattention (next bullet). The switch that existed

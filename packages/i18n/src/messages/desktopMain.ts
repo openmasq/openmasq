@@ -47,6 +47,9 @@ export interface DesktopMainMessages {
     ok: string;
     failedTitle: string;
     noSpaceTitle: string;
+    /** The system banner when a downloaded version waits and the window is not in front. */
+    readyTitle: (brand: string, version: string) => string;
+    readyBody: string;
     noSpaceStatus: (need: string, free: string) => string;
     noSpaceDetail: (brand: string, version: string, size: string, need: string, free: string) => string;
     /** A size in gigabytes, already formatted for the locale (« 1,4 » / « 1.4 »). */

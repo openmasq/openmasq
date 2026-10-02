@@ -41,6 +41,8 @@ export const desktopMain = {
     ok: "OK",
     failedTitle: "Mise à jour impossible",
     noSpaceTitle: "Espace disque insuffisant",
+    readyTitle: (brand, version) => `${brand} ${version} est prête`,
+    readyBody: "Redémarrez l'app pour l'installer.",
     noSpaceStatus: (need, free) =>
       `Espace disque insuffisant pour installer la mise à jour : environ ${need} nécessaires, ${free} disponibles. Libérez de l'espace, puis relancez la mise à jour.`,
     noSpaceDetail: (brand, version, size, need, free) =>

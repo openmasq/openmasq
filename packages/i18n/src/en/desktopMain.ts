@@ -41,6 +41,8 @@ export const desktopMain = {
     ok: "OK",
     failedTitle: "Update failed",
     noSpaceTitle: "Not enough disk space",
+    readyTitle: (brand, version) => `${brand} ${version} is ready`,
+    readyBody: "Restart the app to install it.",
     noSpaceStatus: (need, free) =>
       `Not enough disk space to install the update: about ${need} needed, ${free} available. Free up space, then try the update again.`,
     noSpaceDetail: (brand, version, size, need, free) =>
