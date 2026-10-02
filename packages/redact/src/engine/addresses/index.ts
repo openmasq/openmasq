@@ -206,8 +206,12 @@ export function detectAddresses(text: string): Detection[] {
   // city and « 30188 » — the first five digits of a bar number — as its postal code. The
   // accented « à » stays free to be GLUED (« Néà CONDOM (79000) », an OCR join). The code
   // ends on a digit boundary for the same reason. `cityCpAnchor.test.ts`.
+  // ⚠️ COST: the lookbehind runs at EVERY position. It is guarded by a lookahead on the city's
+  // first character, and its separator is ONE optional punctuation between two space runs —
+  // « [ ]*[:,.]?[ ]* » let both runs split the same spaces: cubic on a long run of tabs (9 s
+  // for 2 000). `whitespaceRun.test.ts`.
   const CITY_CP_RE = new RegExp(
-    `(?<=(?:(?:à|(?<!\\p{L})a)\\s{1,3}|(?:${PLACE_CUE})\\b[^\\S\\r\\n]*[:,.–—-]?[^\\S\\r\\n]*(?:[dD][eu]s?[^\\S\\r\\n]+)?))` +
+    `(?=[\\p{Lu}\\d])(?<=(?:(?:à|(?<!\\p{L})a)\\s{1,3}|(?:${PLACE_CUE})\\b[^\\S\\r\\n]*(?:[:,.–—-][^\\S\\r\\n]*)?(?:[dD][eu]s?[^\\S\\r\\n]+)?))` +
       `${CITY_TOK}(?:${CITY_JOIN}${CITY_TOK}){0,4}\\s*\\(\\s*(?:${CITY_TOK}(?:[ ]${CITY_TOK}){0,3}\\s+)?(\\d{5})(?!\\d)\\s*\\)?`,
     "gu",
   );
