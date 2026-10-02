@@ -25,6 +25,13 @@ export const SUF_LONG =
   "|field|fields|flat|flats|ford|forest|forge|fork|forks|fort|glen|glens|green|greens|inlet|key|keys|knoll" +
   "|knolls|lake|lakes|light|lights|loaf|lock|locks|lodge|mall|bypass|camp|canyon|cape|burg|burgs|bluff|bluffs" +
   "|bottom|branch|bridge|bend|beach|bayou|arcade|annex|viaduct|walks|ways";
+// The USPS ABBREVIATIONS a US address is actually written with (« 1820 Market St », « 12
+// Seaview Ct »), and the directionals around a street (« 6120 E Saguaro Vista Dr », « 512
+// Juniper St NW »). Two-letter words ON PURPOSE kept out of `SUF`: « St » is also Saint. They
+// are only ever the LAST word of a case-sensitive « number [dir] Capitalised-name abbr [dir] »
+// shape (`addresses/index.ts` shape D''), where « St Patrick » cannot sit.
+export const SUF_ABBR = "St|Dr|Ct|Ln|Pl|Ter|Cir|Ave|Blvd|Rd|Pkwy|Hwy|Sq|Trl|Wy";
+export const DIRECTIONAL = "N|S|E|W|NE|NW|SE|SW";
 // …the Germanic and NORDIC compounds. A compound may be hyphenated (« Vadim-Pohl-Ring »):
 // `addresses.ts` carries the hyphen in its name class, this list only the type words.
 export const DE =
