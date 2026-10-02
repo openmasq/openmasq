@@ -13,7 +13,7 @@
 // category, country}` for `pseudonymize`. Deterministic + language-agnostic-by-extension.
 import type { Detection } from "../../types";
 
-import { PRE, SUF, SUF_LONG, DE, NORDIC, H, W, NAME, TAIL_CORE, TAIL_ZIPCITY, TAIL_CITYZIP } from "./shapes";
+import { PRE, SUF, SUF_LONG, SUF_ABBR, DIRECTIONAL, DE, NORDIC, H, W, NAME, TAIL_CORE, TAIL_ZIPCITY, TAIL_CITYZIP } from "./shapes";
 
 /** `SUF_LONG` with each word in its two casings (see shape D'); `DE` lowercase or ALL-CAPS. */
 const SUF_LONG_CASED = SUF_LONG.split("|").map((w) => `[${w[0]!.toUpperCase()}${w[0]}]${w.slice(1)}`).join("|");
@@ -122,6 +122,16 @@ export function detectAddresses(text: string): Detection[] {
   pushAll(
     text,
     new RegExp(`\\b\\d{1,5}${H}+\\p{Lu}${NAME}${H}+(?:${SUF_LONG_CASED})\\b${TAIL_CITYZIP}`, "gu"),
+    "ADDRESS", out, seen, 6, anglo,
+  );
+  // Shape D'' — number → [directional] → CAPITALISED name → USPS abbreviation → [directional]
+  // (`SUF_ABBR`). Case-sensitive like D'; the abbreviation must END the street.
+  pushAll(
+    text,
+    new RegExp(
+      `\\b\\d{1,5}${H}+(?:(?:${DIRECTIONAL})\\.?${H}+)?\\p{Lu}${NAME}${H}+(?:${SUF_ABBR})\\.?(?:${H}+(?:${DIRECTIONAL})\\b)?(?![\\p{L}\\d])${TAIL_CITYZIP}`,
+      "gu",
+    ),
     "ADDRESS", out, seen, 6, anglo,
   );
   // FR minor street types ("2 mail Camille du Gast", sente/venelle/hameau/clos) —

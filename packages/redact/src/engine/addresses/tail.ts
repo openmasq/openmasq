@@ -58,7 +58,12 @@ export function trimProseTail(v: string): string {
 
 /** Cuts at the END of the address. Exported because the labeled field « Adresse : … » has the
  *  same need (its capture goes to the end of the LINE) and a 2nd implementation would drift. */
+// A match at position 0 is the HOUSE NUMBER, never a postal code: « 3301 McKinney Ave » read
+// as « 3301 » + city « Mc… » and was cut to « 3301 Mc », the street itself left in clear.
+const ADDR_END_ALL = new RegExp(ADDR_END.source, "gu");
 export function trimAddressTail(v: string): string {
-  const m = ADDR_END.exec(v);
-  return m ? v.slice(0, m.index + m[0].length) : v;
+  for (const m of v.matchAll(ADDR_END_ALL)) {
+    if (m.index > 0) return v.slice(0, m.index + m[0].length);
+  }
+  return v;
 }
