@@ -4,6 +4,10 @@ import { isCountry } from "../../engine/geo/countries";
 import { isNotoriousEntity } from "../notorious";
 
 /**
+ * The FULL-SEGMENT scramble — no longer how a detected path is masked (`../paths.ts` masks it
+ * like a sentence), but the fail-closed fallback when segment detection fails, and `fakeFor`'s
+ * answer for a PATH value outside that pipeline.
+ *
  * A fake filesystem path: keep the leading root verbatim (`/Users`, `~`, `C:\` —
  * the same on every machine, so not identifying) and scramble everything after it
  * (the username + folder names) with {@link fakeToken}, which preserves every

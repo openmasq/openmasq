@@ -38,15 +38,27 @@ import { WRAP, SP, gate, maxOneWrap } from "./rules.international.util";
 // home/system root with a look-behind that skips the path part of a URL; Windows uses a
 // drive letter or a UNC share (a share path names an internal server).
 const PATH_SEG = `[^\\s/\\\\:,;"'\`<>|?*]+(?:[ \\t]+[A-Z0-9][^\\s/\\\\:,;"'\`<>|?*]*)*`;
+const FILE_EXT =
+  "pdf|docx?|xlsx?|pptx?|csv|tsv|txt|rtf|odt|ods|odp|pages|numbers|key|md|epub|mobi" +
+  "|png|jpe?g|gif|bmp|tiff?|webp|heic|svg|psd|eps|zip|rar|7z|tar|gz|tgz|dmg|pkg" +
+  "|mp3|wav|flac|aac|m4a|mp4|mov|avi|mkv|webm";
+// A segment the PATH ITSELF closes may also hold lowercase words (« Harlan v. Whitcombe/ »,
+// « Deposition of Ellen Prusik.pdf »): followed by a separator, or ended by a curated
+// extension. Never across a word that is itself a file name (`a.pdf backup/` is two paths)
+// and at most 12 words; the open last segment keeps the narrow form above, so prose after a
+// path is never swallowed. `../../__cases__/pathNames.test.ts`.
+const PATH_CH = `[^\\s/\\\\:,;"'\`<>|?*]`;
+const PATH_WIDE = `(?:(?!${PATH_CH}*\\.(?:${FILE_EXT})[ \\t])${PATH_CH}+[ \\t]+){0,11}${PATH_CH}+`;
+const PATH_SEG_ANY = `(?:${PATH_WIDE}(?=[\\\\/])|${PATH_WIDE}\\.(?:${FILE_EXT})\\b|${PATH_SEG})`;
 const PATH_ROOTS =
   "Users|home|root|Volumes|private|var|tmp|opt|srv|mnt|media|etc|usr|bin|sbin|Applications|Library|System|Network|Desktop|Documents|Downloads|data|workspace";
 const PATH_RE = new RegExp(
-  `[A-Za-z]:\\\\(?:${PATH_SEG}[\\\\/]?)+` + // Windows drive path: C:\Users\…
+  `[A-Za-z]:\\\\(?:${PATH_SEG_ANY}[\\\\/]?)+` + // Windows drive path: C:\Users\…
     "|" +
     // Windows UNC share: \\srv-fichiers\compta\2026.
-    `\\\\\\\\${PATH_SEG}(?:[\\\\/]${PATH_SEG})+` +
+    `\\\\\\\\${PATH_SEG}(?:[\\\\/]${PATH_SEG_ANY})+` +
     "|" +
-    `(?<![\\w:/\\\\])(?:~|/(?:${PATH_ROOTS}))(?:/${PATH_SEG})+`, // POSIX ~/… or /Users/…
+    `(?<![\\w:/\\\\])(?:~|/(?:${PATH_ROOTS}))(?:/${PATH_SEG_ANY})+`, // POSIX ~/… or /Users/…
   "g",
 );
 
@@ -62,10 +74,6 @@ const PATH_RE = new RegExp(
 const FC = "\\wÀ-ÖØ-öø-ÿ";
 const FILE_SEG_LOOSE = `[${FC}][${FC}()-]*(?:[ \\t]+[A-Z0-9À-ÖØ-Þ(][${FC}()-]*)*`;
 const FILE_SEG_ANCHORED = `(?:[A-Z0-9À-ÖØ-Þ][${FC}()-]*(?:[ \\t]+[A-Z0-9À-ÖØ-Þ(][${FC}()-]*)*|[${FC}][${FC}()-]*)`;
-const FILE_EXT =
-  "pdf|docx?|xlsx?|pptx?|csv|tsv|txt|rtf|odt|ods|odp|pages|numbers|key|md|epub|mobi" +
-  "|png|jpe?g|gif|bmp|tiff?|webp|heic|svg|psd|eps|zip|rar|7z|tar|gz|tgz|dmg|pkg" +
-  "|mp3|wav|flac|aac|m4a|mp4|mov|avi|mkv|webm";
 const FILE_RE = new RegExp(
   `(?<![${FC}:/\\\\.])(?:` +
     // Rooted or explicitly-relative (`/x`, `./x`, `~/x`) — a path context.

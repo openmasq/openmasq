@@ -67,6 +67,10 @@ function distinctiveWords(s: string): string[] {
 function samePlace(a: string, b: string): boolean {
   const [fa, fb] = [fold(a), fold(b)];
   if (fa.includes(fb) || fb.includes(fa)) return true;
+  // The same value in another separator layout (« Acme_Corp » in a file name, « Acme Corp »
+  // in prose) is ONE identity sharing one recased fake, not two.
+  const glue = (s: string) => s.replace(/[\s_.-]+/g, "");
+  if (glue(fa) === glue(fb)) return true;
   const city = (s: string) => s.match(/\b\d{4,5}\s+(\p{L}[\p{L}\s'’-]{1,40})$/u)?.[1]?.trim();
   const [ca, cb] = [city(fa), city(fb)];
   return ca !== undefined && ca === cb;

@@ -87,7 +87,7 @@ export const redactionCatalog = {
     path: {
       label: "Chemins de fichiers",
       detail:
-        "Chemins absolus (macOS/Windows/Linux) et noms de fichiers et dossiers personnels (documents, images, archives). Le code source n'est pas visé.",
+        "Chemins absolus (macOS/Windows/Linux) et noms de fichiers et dossiers : le nom d'utilisateur et les personnes, sociétés et numéros qu'ils contiennent sont remplacés, les mots courants restent lisibles (en Strict, tout mot non reconnu est remplacé aussi). Le code source n'est pas visé.",
     },
     url: {
       label: "Adresses web (URL)",

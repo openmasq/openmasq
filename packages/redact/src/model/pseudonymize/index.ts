@@ -22,7 +22,8 @@ import { NUMBER_RE, isBareYear } from "./numbers";
 import { redactionCategory, URL_EXEMPT_KINDS } from "../../kinds";
 import { gatherCandidates } from "./gather";
 import { buildExistingFakeGuard, buildAvoidGuard, expandVariants } from "./guards";
-import { filterCandidates, deNest, dropUnanchoredProseGeo, disabledValueSpans } from "./filter";
+import { filterCandidates, deNest, dropUnanchoredProseGeo, disabledValueSpans, type FilterCtx } from "./filter";
+import { planPathEntities } from "./pathEntities";
 import { splitLineCrossing } from "./lineSplit";
 import { allocateEntities } from "./allocate";
 import { allocateTokens } from "./allocateTokens";
@@ -106,7 +107,7 @@ export async function pseudonymize(
   // The disabled zones are computed from the SAME candidate list (variants included), so a
   // fragment of a released value is recognised whichever detector named it.
   const zones = disabledValueSpans(candidates, input, disabled);
-  const kept = filterCandidates(candidates, {
+  const filterCtx: FilterCtx = {
     keep,
     unrevealable,
     reFakeExisting: options.reFakeExisting,
@@ -121,7 +122,8 @@ export async function pseudonymize(
       people: options.peopleNotoriety !== false,
     },
     input,
-  });
+  };
+  const kept = filterCandidates(candidates, filterCtx);
   // Prose geo (REGION/DEPARTMENT): redacted only if personal data
   // is present (another surviving candidate, or a vault already seeded) — see
   // `dropUnanchoredProseGeo`. A general-geography question goes out in clear.
@@ -158,7 +160,18 @@ export async function pseudonymize(
     return undefined;
   };
 
-  const entityCandidates = deNested;
+  // What each PATH holds, read like prose (`pathEntities.ts`): its entities join the
+  // candidates AHEAD of the paths, a path where nothing identifying was found stays as is.
+  const pathPlan = options.mode === "token" ? undefined : await planPathEntities(deNested, kept, options,
+    (c, doc) => deNest(filterCandidates(c, { ...filterCtx, input: doc, urlSpans: null, emailSpans: null, disabledSpans: null, releasedValues: undefined }), doc));
+  const entityCandidates = pathPlan
+    ? [
+        ...pathPlan.extra,
+        // Every other entity BEFORE any path: a path reads its entities' fakes from the vault.
+        ...deNested.filter((c) => redactionCategory(c.category) !== "path"),
+        ...deNested.filter((c) => redactionCategory(c.category) === "path" && !pathPlan.unchanged.has(c.value)),
+      ]
+    : deNested;
 
   // Phase 3 — allocate a reversible substitute per entity (mutates the vault, fail-closed).
   // Two allocators, one single contract (« reported ⇒ vaulted ⇒ substituted », checked below):
@@ -174,7 +187,7 @@ export async function pseudonymize(
       vault, reverse, taken, entityValues, entityCanon, record, input, geoFakes, geoAnchors,
       resolveFakeCI, resolveEntityFakeCI, collidesAvoid, salt: options.salt ?? 0,
       convKey: keyFromHex(options.key),
-      notorietyCommercial: options.commercialNotoriety === true,
+      notorietyCommercial: options.commercialNotoriety === true, pathPlan,
     });
   }
 
@@ -211,7 +224,10 @@ export async function pseudonymize(
 
   // Apply every mapping in one safe pass — minus what must not take part in it
   // (`exclusions.ts` says which, and why a path SEGMENT is among them).
+  const kindOf = new Map<string, string>(Object.entries(options.kinds ?? {}));
+  for (const m of matches) if (m.value && m.category) kindOf.set(m.value, m.category);
   const exclude = forwardExclusions(vault, {
+    kindOf,
     numbers: tokenizeNumbers,
     disabledKinds: options.disabledKinds,
     kinds: options.kinds,
@@ -221,8 +237,6 @@ export async function pseudonymize(
   // A vaulted value must not rewrite the INSIDE of a URL — see `urlOccurrenceGuard`. The
   // kind comes from the caller's map ⊕ THIS pass's own matches (a value vaulted a moment
   // ago is in neither). No proven kind ⇒ EXEMPT, i.e. substituted: unknown fails CLOSED.
-  const kindOf = new Map<string, string>(Object.entries(options.kinds ?? {}));
-  for (const m of matches) if (m.value && m.category) kindOf.set(m.value, m.category);
   const urlGuard = urlSpans
     ? urlOccurrenceGuard(urlSpans, (value) => {
         const k = kindOf.get(value);
