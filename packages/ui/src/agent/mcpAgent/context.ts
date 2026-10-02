@@ -123,6 +123,7 @@ export function createLoopCtx(
       provider: p.provider, model: p.modelId, loopId,
       turns: st.currentTurn + 1, toolCalls: loopStats.toolCalls, ms: Date.now() - loopT0,
       routerOffered: setup.selected.length, routerTotal: setup.mcpTools.length,
+      ...(setup.routerMs !== undefined ? { routerMs: setup.routerMs } : {}),
       loadToolsUnknown: loopStats.loadToolsUnknown,
       navClear: loopStats.navClear, navEscalated: loopStats.navEscalated,
       outcome,

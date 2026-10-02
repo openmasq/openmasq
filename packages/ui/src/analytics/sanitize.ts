@@ -18,7 +18,7 @@ export const ALLOWED = DESKTOP_EVENTS satisfies Record<EventName, readonly strin
 /** Per-field quantisers: `chars` (a count) and `ms` (a latency) are bucketed to
  *  coarse ranges so exact values can't fingerprint a user; every other field keeps
  *  its raw primitive. Passed to the shared allow-list walk (`makeSanitize`). */
-const bucketers: Bucketers = { chars: bucket, ms: bucketMs, ttftMs: bucketMs };
+const bucketers: Bucketers = { chars: bucket, ms: bucketMs, ttftMs: bucketMs, routerMs: bucketMs };
 
 /** Quantise a count into a coarse bucket label (avoids exact-length fingerprints). */
 export function bucket(n: number): string {
