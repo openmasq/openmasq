@@ -3,6 +3,7 @@ import { useT } from "../../i18n";
 import { AlertIcon, FileIcon, RefreshIcon, ShieldIcon, XIcon } from "../../components/brand";
 import type { Attachment } from "./Composer";
 import { ocrShortfall } from "./ocrShortfall";
+import { progressLabel } from "./attachmentPending";
 
 /**
  * The composer's ATTACHMENT chip row (kit ComposerFileThumb) — peeled off
@@ -49,23 +50,11 @@ export function AttachmentChips({
         // covers everything that needs a gesture (an error, a partial read, stale rules).
         const redo = !!a.error || !!a.redactError || !!shortfall || engineChanged;
         const state = a.extracting ? "reading" : a.redacting ? "masking" : redo ? "redo" : "ready";
-        const pct = (p?: { done: number; total: number }) =>
-          p && p.total > 1 ? Math.round((p.done / p.total) * 100) : undefined;
+        // Reading / masking: the SAME line the pending preview shows (`attachmentPending.ts`).
         const stateLabel =
-          state === "reading"
-            ? a.extractProgress && a.extractProgress.total > 1
-              ? // Paginated OCR: stating the current page beats a percentage
-                // (the user sees their document, they think in pages).
-                t.composer.attachments.stateReadingPage(
-                  Math.min(a.extractProgress.done + 1, a.extractProgress.total),
-                  a.extractProgress.total,
-                )
-              : t.composer.attachments.stateReading
-            : state === "masking"
-              ? pct(a.redactProgress) !== undefined
-                ? t.composer.attachments.stateMaskingPct(pct(a.redactProgress)!)
-                : t.composer.attachments.stateMasking
-              : state === "redo"
+          state === "reading" || state === "masking"
+            ? progressLabel(a, t)!
+            : state === "redo"
                 ? t.composer.attachments.stateRedo
                 : a.redactPreview > 0
                   ? // The unit matters on a chip this small: « 10 » alone read as a
@@ -84,13 +73,15 @@ export function AttachmentChips({
                 : engineChanged
                   ? t.composer.attachments.staleTip
                   : t.composer.attachments.open;
+        // A file still being read or masked OPENS: the preview shows a loader with the
+        // progress, then the redacted document once it lands (`AttachmentPreviewHost`).
         // An image stays viewable even when text OCR failed (the picture itself is
         // fine) — so don't let its `error` block the preview. Its bytes may come from
         // a granted PATH or be held in memory (a drop / a Bibliothèque re-attach has
         // only the latter): asking for `path` alone made a dropped image's chip inert,
         // with nothing to click and nothing said.
         const openable =
-          !a.redacting && !a.extracting && (a.kind === "image" ? !!a.path || !!a.data : !a.error);
+          !!a.extracting || !!a.redacting || (a.kind === "image" ? !!a.path || !!a.data : !a.error);
         const open = () => openable && onOpen(a.cid);
         return (
           // ⚠️ A clickable `span` is INVISIBLE to the keyboard and screen reader: the
@@ -102,7 +93,13 @@ export function AttachmentChips({
             key={i}
             role="button"
             tabIndex={0}
-            aria-label={`${a.name} — ${openable ? t.composer.attachments.open : t.composer.attachments.processing}`}
+            aria-label={`${a.name} — ${
+              state === "reading" || state === "masking"
+                ? stateLabel
+                : openable
+                  ? t.composer.attachments.open
+                  : t.composer.attachments.processing
+            }`}
             aria-disabled={!openable || undefined}
             className={`attach-chip ${a.error || a.redactError ? "err" : engineChanged ? "stale" : ""}`}
             title={tip}

@@ -1,5 +1,7 @@
 import { AnimatePresence } from "framer-motion";
-import { AttachmentPreviewModal } from "../../containers/modals";
+import { AttachmentPendingPreview, AttachmentPreviewModal } from "../../containers/modals";
+import { useT } from "../../i18n";
+import { isPreviewPending, progressLabel } from "./attachmentPending";
 import type { Attachment } from "./Composer";
 
 /**
@@ -10,6 +12,10 @@ import type { Attachment } from "./Composer";
  * `key={preview.cid}`: two consecutive previews during the exit animation must never
  * share state (view, bytes) — without a key, AnimatePresence reuses the implicit child
  * (audit 2026-08-10).
+ *
+ * Opened while the file is still being read or first masked, it shows the pending frame
+ * (loader + progress); `preview` is looked up live by cid, so the real preview replaces
+ * it under the same key the moment the redaction lands.
  */
 export function AttachmentPreviewHost({
   preview,
@@ -34,9 +40,17 @@ export function AttachmentPreviewHost({
   onAddToVault?: (value: string, token: string) => void;
   onClose: () => void;
 }) {
+  const t = useT();
   return (
     <AnimatePresence>
-      {preview && (
+      {preview && isPreviewPending(preview) ? (
+        <AttachmentPendingPreview
+          key={preview.cid}
+          name={preview.name}
+          progress={progressLabel(preview, t) ?? t.viewers.loadingFile}
+          onClose={onClose}
+        />
+      ) : preview ? (
         <AttachmentPreviewModal
           key={preview.cid}
           file={preview}
@@ -62,7 +76,7 @@ export function AttachmentPreviewHost({
           convCategories={convCategories}
           onClose={onClose}
         />
-      )}
+      ) : null}
     </AnimatePresence>
   );
 }

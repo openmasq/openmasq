@@ -13,6 +13,8 @@ export interface ViewersMessages {
   close: string;
   closeTip: string;
   loadingFile: string;
+  /** Opened while the file is still being read / masked: what the wait is for. */
+  pendingNote: string;
   extracted: (chars: string, status: string) => string;
   staleTip: string;
   staleChip: string;

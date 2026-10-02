@@ -8,6 +8,7 @@ export const viewers = {
   close: "Close",
   closeTip: "Close (Esc)",
   loadingFile: "Loading the file",
+  pendingNote: "The redacted preview will show here as soon as reading and masking are done.",
   extracted: (chars, status) => `${chars} characters extracted · ${status}`,
   staleTip: "Redacted with your previous settings",
   staleChip: "Previous settings",
