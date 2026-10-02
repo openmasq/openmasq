@@ -738,6 +738,9 @@ jobs:
           AZURE_CODESIGN_ENDPOINT: ${{ vars.AZURE_CODESIGN_ENDPOINT }}
           AZURE_CODESIGN_ACCOUNT: ${{ secrets.AZURE_CODESIGN_ACCOUNT }}
           AZURE_CODESIGN_PROFILE: ${{ vars.AZURE_CODESIGN_PROFILE }}
+          # The certificate subject DN `electron-builder.cjs` pins as `publisherName`. A secret for
+          # the same masking reason as the account; signing without it fails the build.
+          AZURE_CODESIGN_PUBLISHER: ${{ secrets.AZURE_CODESIGN_PUBLISHER }}
 
       # The LAST gate that can still see this class of bug, and the only one: the
       # node_modules electron-builder just wrote is a FLATTENED copy of the workspace root

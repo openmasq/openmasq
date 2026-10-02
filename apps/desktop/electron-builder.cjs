@@ -27,7 +27,14 @@ const brand = require("../../packages/branding/branding.json");
  * The subject comes from the IDENTITY VALIDATION (the validated organisation), never from
  * the Azure account name — that one reaches no certificate and no user-facing dialog.
  */
-const WIN_PUBLISHER = "CN=Numa Studio, O=Numa Studio";
+const WIN_PUBLISHER = process.env.AZURE_CODESIGN_PUBLISHER || "";
+// The value lives OUTSIDE the tree (the release environment's secret, read by the signing
+// step only): the subject names a legal entity, which a public repository does not carry.
+// A SIGNED build without it would bake no `publisherName` and the installed base would stop
+// checking who signed its updates, so signing without it refuses to build (fail closed).
+if (process.env.AZURE_CLIENT_SECRET && process.env.AZURE_CODESIGN_ACCOUNT && !WIN_PUBLISHER) {
+  throw new Error("AZURE_CODESIGN_PUBLISHER is required to sign the Windows build (the certificate subject DN).");
+}
 
 module.exports = {
   appId: brand.desktopBundleId,

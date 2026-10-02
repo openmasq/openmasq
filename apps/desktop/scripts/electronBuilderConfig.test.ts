@@ -22,7 +22,7 @@ import { validateConfiguration } from "app-builder-lib/out/util/config/config";
  */
 async function load(env: Record<string, string> | null): Promise<Record<string, unknown>> {
   const saved = { ...process.env };
-  for (const k of ["AZURE_CLIENT_SECRET", "AZURE_CODESIGN_ACCOUNT", "AZURE_CODESIGN_ENDPOINT", "AZURE_CODESIGN_PROFILE"]) {
+  for (const k of ["AZURE_CLIENT_SECRET", "AZURE_CODESIGN_ACCOUNT", "AZURE_CODESIGN_ENDPOINT", "AZURE_CODESIGN_PROFILE", "AZURE_CODESIGN_PUBLISHER"]) {
     delete process.env[k];
   }
   Object.assign(process.env, env ?? {});
@@ -38,6 +38,8 @@ const SIGNING = {
   AZURE_CODESIGN_ACCOUNT: "an-account",
   AZURE_CODESIGN_ENDPOINT: "https://neu.codesigning.azure.net/",
   AZURE_CODESIGN_PROFILE: "a-profile",
+  // Signing refuses to build without the publisher anchor (`winPublisher.test.ts`).
+  AZURE_CODESIGN_PUBLISHER: "CN=Example, O=Example",
 };
 
 describe("electron-builder.cjs", () => {

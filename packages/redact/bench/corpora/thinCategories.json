@@ -248,26 +248,26 @@
  {
   "id": "minces-cid-kbis",
   "lang": "fr",
-  "text": "EXTRAIT KBIS — GREFFE DU TRIBUNAL DE COMMERCE DE NANTERRE\nDénomination : ATELIERS BREARAT\nImmatriculation : 947 782 603 RCS Nanterre\nSIRET (siège) : 947 782 603 00015\nTVA intracommunautaire : FR13947782603\nEUID : FR7501.947782603",
+  "text": "EXTRAIT KBIS — GREFFE DU TRIBUNAL DE COMMERCE DE NANTERRE\nDénomination : ATELIERS BREARAT\nImmatriculation : 681 248 969 RCS Nanterre\nSIRET (siège) : 681 248 969 00015\nTVA intracommunautaire : FR13681248969\nEUID : FR7501.681248969",
   "truth": [
    [
     "ATELIERS BREARAT",
     "ORG"
    ],
    [
-    "947 782 603",
+    "681 248 969",
     "COMPANY_ID"
    ],
    [
-    "947 782 603 00015",
+    "681 248 969 00015",
     "COMPANY_ID"
    ],
    [
-    "FR13947782603",
+    "FR13681248969",
     "COMPANY_ID"
    ],
    [
-    "FR7501.947782603",
+    "FR7501.681248969",
     "COMPANY_ID"
    ]
   ]
@@ -511,18 +511,18 @@
  {
   "id": "minces-cid-json-crm",
   "lang": "en",
-  "text": "CRM sync result:\n{\"account\":\"Ateliers Brearat\",\"siret\":\"94778260300015\",\"vat\":\"FR13947782603\",\"country\":\"FR\",\"hrb\":\"HRB 88231\",\"status\":\"active\"}",
+  "text": "CRM sync result:\n{\"account\":\"Ateliers Brearat\",\"siret\":\"68124896900015\",\"vat\":\"FR13681248969\",\"country\":\"FR\",\"hrb\":\"HRB 88231\",\"status\":\"active\"}",
   "truth": [
    [
     "Ateliers Brearat",
     "CONTEXT"
    ],
    [
-    "94778260300015",
+    "68124896900015",
     "COMPANY_ID"
    ],
    [
-    "FR13947782603",
+    "FR13681248969",
     "COMPANY_ID"
    ],
    [
@@ -534,14 +534,14 @@
  {
   "id": "minces-cid-mail-mixte",
   "lang": "fr",
-  "text": "Objet : ouverture de compte fournisseur\nBonjour, voici les éléments : SIREN 947 782 603, TVA FR13 947 782 603, RIB : 30002 00550 0000157841Z 25.\nCordialement, P. Estelle (p.estelle@brearat.fr)",
+  "text": "Objet : ouverture de compte fournisseur\nBonjour, voici les éléments : SIREN 947 782 603, TVA FR13 681 248 969, RIB : 30002 00550 0000157841Z 25.\nCordialement, P. Estelle (p.estelle@brearat.fr)",
   "truth": [
    [
     "947 782 603",
     "COMPANY_ID"
    ],
    [
-    "FR13 947 782 603",
+    "FR13 681 248 969",
     "COMPANY_ID"
    ],
    [

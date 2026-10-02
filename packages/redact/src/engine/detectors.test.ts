@@ -14,7 +14,7 @@ describe("detectPhones (libphonenumber)", () => {
   });
 
   it("does NOT flag random digit runs (SIRET, amounts)", () => {
-    expect(detectPhones("réf 2022B44821 montant +1 234 567 €")).toEqual([]);
+    expect(detectPhones("réf 2021B37594 montant +1 234 567 €")).toEqual([]);
   });
 
   it("returns [] fast when there is no + sign", () => {
@@ -79,7 +79,7 @@ describe("detectAddresses (multilingual street + postal)", () => {
     Object.fromEntries(detectAddresses(t).map((d) => [d.value, d.category]));
 
   it("catches street addresses across the 4 language shapes", () => {
-    expect(cat("36 AV DU CAPITAINE GLARNER")["36 AV DU CAPITAINE GLARNER"]).toBe("ADDRESS"); // FR
+    expect(cat("36 AV DU CAPITAINE VERMOND")["36 AV DU CAPITAINE VERMOND"]).toBe("ADDRESS"); // FR
     expect(cat("Calle Mayor 3")["Calle Mayor 3"]).toBe("ADDRESS"); // ES
     expect(cat("Via Roma 12")["Via Roma 12"]).toBe("ADDRESS"); // IT
     expect(cat("221 Baker Street")["221 Baker Street"]).toBe("ADDRESS"); // EN
