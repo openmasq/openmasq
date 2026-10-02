@@ -50,6 +50,22 @@ kept in the French they were sent in, for the reason given above.
 
 ---
 
+## 0.12.0 — 2026-10-02
+> Case, claim and bar numbers are masked, and each connector can keep its own masking level.
+
+### What's new
+- **A masking level per connector** — set one connected tool apart from your overall level; the Privacy screen lists the exceptions.
+- **Case and bar numbers masked** — a case, docket, claim, policy or matter number and a bar number are masked after their keyword.
+- **Open a document while it is being read** — the preview opens at once, shows the page being read, then the masked document.
+
+### Improvements & fixes
+- The PDF preview shows every page of the document.
+- Documents attached together are read one at a time, and each is ready as soon as it is read.
+- USCIS receipt, A-number, I-94, DoD ID and Medicaid numbers are masked.
+- US street addresses are recognized as written, with USPS abbreviations and directions.
+- The on-device detection model is half the size and close to twice as fast.
+- File paths stay readable unless you turn on their switch or use the Strict level.
+
 ## 0.11.2 — 2026-09-19
 > A value you mask by hand on a document is masked for the whole conversation.
 
