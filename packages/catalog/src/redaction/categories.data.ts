@@ -126,7 +126,7 @@ export const BASE: {
     key: "path",
     label: "Chemins de fichiers",
     detail:
-      "Chemins absolus (macOS/Windows/Linux), noms de fichiers et dossiers personnels (documents, images, archives) — le code source n'est pas visé.",
+      "Chemins absolus (macOS/Windows/Linux) et noms de fichiers et dossiers : le nom d'utilisateur et les personnes, sociétés et numéros qu'ils contiennent sont remplacés, les mots courants restent lisibles (en Strict, tout mot non reconnu est remplacé aussi) — le code source n'est pas visé.",
   },
   // A GATE, not a value type: when ON the sub-parts of a URL are redacted like any
   // other text; when OFF (the default) NOTHING inside a URL is touched. A browsed /

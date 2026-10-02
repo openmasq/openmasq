@@ -12,13 +12,15 @@
  * both passes, so a project folder named `echo` made every later « echo » in the conversation
  * come out as its fake, inside the shell command an agent was about to run included. It is
  * the rule `identity/name.ts` already applies to particles, civilities and countries, reached
- * through a third door.
+ * through a third door. A segment that IS an entity of a known non-path kind (a company folder
+ * whose fake is the company's fake) is the exception: that alias is the entity's own.
  */
 import { disabledVaultTokens } from "../../engine/vault";
 // Direct, not through the vault barrel: this is internal to the package, and the barrel
 // sits exactly at the 300-LOC cap.
 import { pathSegmentAliases } from "../../engine/vault/pathSegments";
 import type { Vault } from "../../types";
+import { redactionCategory } from "../../kinds";
 
 export interface ExclusionOptions {
   numbers?: boolean;
@@ -27,6 +29,9 @@ export interface ExclusionOptions {
   /** Allow-listed originals, already normalised by the caller. */
   keep: Set<string>;
   isKept: (value: string, keep: Set<string>) => boolean;
+  /** value → kind of what is known (the caller's `kinds` ⊕ this pass's matches). A segment
+   *  that is ALSO an entity of its own (a company folder) keeps its forward alias. */
+  kindOf?: ReadonlyMap<string, string>;
 }
 
 export function forwardExclusions(vault: Vault, o: ExclusionOptions): Set<string> {
@@ -40,6 +45,9 @@ export function forwardExclusions(vault: Vault, o: ExclusionOptions): Set<string
       if (o.isKept(value, o.keep)) exclude.add(token);
     }
   }
-  for (const token of pathSegmentAliases(vault)) exclude.add(token);
+  for (const token of pathSegmentAliases(vault)) {
+    const kind = o.kindOf?.get(vault[token]);
+    if (kind === undefined || redactionCategory(kind) === "path") exclude.add(token);
+  }
   return exclude;
 }

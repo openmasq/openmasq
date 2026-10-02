@@ -45,12 +45,14 @@ describe("path category", () => {
     expect(matches[0].value).toBe("/Users/tom/Downloads");
   });
 
-  it("pseudonymise swaps it for a fake path: same length, root kept, no leak", () => {
+  it("pseudonymise swaps it for a fake path: root kept, realistic username, no leak", () => {
     const vault: Vault = {};
     return pseudonymize(HOME, { vault }).then(({ text }) => {
       expect(text).not.toBe(HOME);
       expect(text).not.toContain("juliensabourdin");
-      expect(text).toHaveLength(HOME.length); // length preserved (no size hint)
+      // The username is a REALISTIC account name (identity beats layout, like NAME/EMAIL),
+      // so its length is not mirrored; the rest of the path keeps its shape.
+      expect(text).toMatch(/^\/Users\/[a-z]+\/Downloads\/\S+ \S+$/);
       expect(text.startsWith("/Users/")).toBe(true); // root verbatim, still path-shaped
       expect(vault[text]).toBe(HOME); // reversible
     });
@@ -102,11 +104,18 @@ describe("file & folder names (also `path`)", () => {
 
   it("pseudonymise keeps the extension and the length (plausible same-kind file)", async () => {
     const vault: Vault = {};
-    const { text } = await pseudonymize("report.docx", { vault });
-    expect(text).not.toBe("report.docx");
+    const { text } = await pseudonymize("Kerlavec.docx", { vault });
+    expect(text).not.toBe("Kerlavec.docx");
     expect(text.endsWith(".docx")).toBe(true);
-    expect(text).toHaveLength("report.docx".length);
-    expect(vault[text]).toBe("report.docx");
+    expect(text).toHaveLength("Kerlavec.docx".length);
+    expect(vault[text]).toBe("Kerlavec.docx");
+  });
+
+  it("a file name made only of common words names nobody: it stays as it is", async () => {
+    const vault: Vault = {};
+    const { text } = await pseudonymize("report.docx", { vault });
+    expect(text).toBe("report.docx");
+    expect(vault).toEqual({});
   });
 
   it("a model-tagged folder name (PATH) is swapped same-kind and reversibly", async () => {
@@ -188,14 +197,15 @@ describe("path segments are mapped CONSISTENTLY (structure preserved)", () => {
 
   it("laisse un segment GÉNÉRIQUE en clair, et ne cache que le distinctif", async () => {
     const vault: Vault = {};
-    const { text } = await pseudonymize("/Users/juliensabourdin/Desktop/DOCS-perso", { vault });
+    const { text } = await pseudonymize("/Users/juliensabourdin/Desktop/DOCS-Kerlavec", { vault });
     // The model keeps a readable structure — that's what a filesystem question
     // relies on (« what documents? », « go up one folder »).
     expect(text.startsWith("/Users/")).toBe(true);
     expect(text).toContain("/Desktop/");
+    expect(text).toContain("/DOCS-"); // a common word of a folder name is meaning
     // And it sees NOTHING that identifies.
     expect(text).not.toContain("juliensabourdin");
-    expect(text).not.toContain("DOCS-perso");
+    expect(text).not.toContain("Kerlavec");
   });
 
   // REGRESSION: a generic segment was FAKED without being vaulted — the worst of both.

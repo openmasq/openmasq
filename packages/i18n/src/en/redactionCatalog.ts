@@ -87,7 +87,7 @@ export const redactionCatalog = {
     path: {
       label: "File paths",
       detail:
-        "Absolute paths (macOS/Windows/Linux) and personal file and folder names (documents, images, archives). Source code is not targeted.",
+        "Absolute paths (macOS/Windows/Linux) and file and folder names: the username and the people, companies and numbers they contain are replaced, ordinary words stay readable (in Strict, any word not recognised is replaced too). Source code is not targeted.",
     },
     url: {
       label: "Web addresses (URL)",

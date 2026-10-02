@@ -56,17 +56,19 @@ describe("what it means for the conversation", () => {
   it("a folder named like a command stops rewriting that command", async () => {
     const { pseudonymize, unredactArgs } = await import("../../index");
     const vault = {};
-    // Turn 1: the path is masked and its segments vaulted.
-    await pseudonymize("Regarde /Users/thomas/echo/notes.txt", { vault });
-    expect(Object.values(vault)).toContain("echo");
+    // Turn 1: the path is masked and its segments vaulted. (`ruby`, not `echo`: a word every
+    // context spares — the flat shell vocabulary — is now kept verbatim in a path, so it is
+    // never vaulted; `ruby` is a command only where the text proves a command line.)
+    await pseudonymize("Regarde /Users/thomas/ruby/notes.txt", { vault });
+    expect(Object.values(vault)).toContain("ruby");
 
     // Turn 2, same vault: the bare word is prose, not a path segment, and must survive.
-    const second = await pseudonymize("Puis lance: echo hi ; grep -n TODO", { vault });
-    expect(second.text).toContain("echo hi");
+    const second = await pseudonymize("Puis lance: ruby hi ; grep -n TODO", { vault });
+    expect(second.text).toContain("ruby hi");
 
     // …and the reverse leg is untouched: a path the model RECOMPOSES still restores,
     // which is the whole reason the segment is vaulted.
-    const fake = Object.entries(vault).find(([, v]) => v === "echo")?.[0] as string;
-    expect(unredactArgs(`cd /Users/x/${fake} && ls`, vault)).toContain("/echo ");
+    const fake = Object.entries(vault).find(([, v]) => v === "ruby")?.[0] as string;
+    expect(unredactArgs(`cd /Users/x/${fake} && ls`, vault)).toContain("/ruby ");
   });
 });

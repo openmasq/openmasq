@@ -4,6 +4,7 @@ import { buildFakeWordIndex } from "./fakeWordIndex";
 import { recaseLike, entityKey } from "../../util";
 import { fakeFor } from "../fakes";
 import { buildFakePath } from "../paths";
+import type { PathPlan } from "./pathEntities";
 import { registerSidePairs } from "./sidePairs";
 import {
   buildFakeEmail,
@@ -35,6 +36,8 @@ export interface AllocateCtx {
   /** Per-conversation secret shift for the value→fake mapping (0 = legacy deterministic). */
   salt: number; convKey?: Uint8Array;
   notorietyCommercial?: boolean; // commercial notoriety: email fakes KEEP a notorious domain
+  /** What the paths hold (`pathEntities.ts`); absent ⇒ a path is scrambled whole. */
+  pathPlan?: PathPlan;
 }
 
 /**
@@ -154,6 +157,11 @@ export function allocateEntities(deNested: Detection[], ctx: AllocateCtx): void 
     const entityKeyStr = isRecase ? `${cat}|${entityKey(value)}` : "";
     let fake = "";
     let pathPairs: [string, string][] = [];
+    // A path's inner entities were allocated before it: their fakes come from `reverse`.
+    const plan = ctx.pathPlan;
+    const sem = isPath && plan
+      ? { ...plan, entities: plan.entities.get(value) ?? [], resolve: (r: string) => reverse.get(r), ownerOf: (f: string) => vault[f] }
+      : undefined;
     // Block-coherent geo fake (Commune/Département/… of one address block share ONE real
     // place). Use it when it survives `accept` (free / not the value / no avoid clash);
     // otherwise fall through to the independent allocator below.
@@ -163,7 +171,7 @@ export function allocateEntities(deNested: Detection[], ctx: AllocateCtx): void 
       let candidate: string;
       if (isEmail) candidate = buildFakeEmail(value, a, resolveFakeCI, mintTaken, salt, ctx.notorietyCommercial === true, convKey);
       else if (isName) candidate = buildFakeName(value, a, resolveFakeCI, mintTaken, salt, convKey);
-      else if (isPath) candidate = buildFakePath(value, a, salt, convKey).fake;
+      else if (isPath) candidate = buildFakePath(value, a, salt, convKey, sem).fake;
       else if (isRecase && a === 0) {
         // An entity keeps ONE identity across casings. Recase a canonical BASE (this
         // call's earlier casing, else a prior turn's fake, else a fresh one) to THIS
@@ -192,7 +200,7 @@ export function allocateEntities(deNested: Detection[], ctx: AllocateCtx): void 
       } else candidate = fakeFor(category, value, a, country, salt, geoAnchors, convKey);
       if (accept(candidate)) {
         fake = candidate;
-        if (isPath) pathPairs = buildFakePath(value, a, salt, convKey).pairs;
+        if (isPath) pathPairs = buildFakePath(value, a, salt, convKey, sem).pairs;
         break;
       }
     }
