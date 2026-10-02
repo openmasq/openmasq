@@ -65,6 +65,16 @@ export function detectPhones(text: string): PhoneMatch[] {
     seen.add(value);
     out.push({ value, start: m.index, end: m.index + value.length });
   }
+  // Shapes that stand WITHOUT a phone word (see `STANDALONE`): a contact line, a signature
+  // block, « …; (614) 555-0193 » after a cut sentence.
+  for (const [re, country] of STANDALONE) {
+    for (const m of text.matchAll(re)) {
+      const value = m[0];
+      if (seen.has(value) || !validNational(value, [country])) continue;
+      seen.add(value);
+      out.push({ value, start: m.index, end: m.index + value.length });
+    }
+  }
   for (const m of text.matchAll(NATIONAL_RE)) {
     const value = m[0];
     if (seen.has(value) || !phoneWordInSentence(text, m.index) || !validNational(value, NATIONAL_COUNTRIES)) continue;
@@ -83,6 +93,21 @@ export function detectPhones(text: string): PhoneMatch[] {
 // left after the NANP form were these.)
 const NATIONAL_RE = /(?<![\d\p{L}+.-])(?:\(0?\d{1,4}\)[\s.-]?|0\d{1,4}[\s.-])\d{2,4}(?:[\s.-]?\d{2,4}){1,3}(?![\d\p{L}]|[\s.-]?\d)/gu;
 const NATIONAL_COUNTRIES: CountryCode[] = ["GB", "DE", "FR", "IT", "ES", "NL", "BE", "CH", "AT", "AU", "NZ", "IN", "PK", "ZA", "IE", "PT", "SE", "NO", "DK", "PL", "BR", "MX", "JP"];
+
+// National forms DISTINCTIVE enough to need no phone word — the word gate above missed every
+// number of a CV's contact line, a letter's signature block, « just ring 07851 264309 ».
+// - GB: 11 digits grouped the way Britain prints them, on the trunks that name a PERSON or a
+//   PLACE only — mobile 07 (5-6), geographic 01 (4-3-4 / 5-6) and 02 (3-4-4). Non-geographic
+//   03/08/09 keep the word gate (« order 0301 564 9382 shipped », `nanp.test.ts`).
+// - US: the PARENTHESISED area code only, « (614) 555-0193 ». A part number takes dashes, not
+//   parentheses; the dashed 3-3-4 keeps its word gate (`NANP_RE`).
+// Both still go through libphonenumber for their one country (`validNational`).
+const GB_RE = /(?<![\d\p{L}+.-])(?:07\d{3} \d{6}|01\d{2} \d{3} \d{4}|01\d{3} \d{6}|02\d \d{4} \d{4})(?![\d\p{L}]|[ .-]?\d)/gu;
+const NANP_PAREN_RE = /(?<![\d\p{L}+.-])\([2-9]\d{2}\) ?(?![2-9]11)[2-9]\d{2}[-.]\d{4}(?![\d\p{L}]|[-.]\d)/gu;
+const STANDALONE: [RegExp, CountryCode][] = [
+  [GB_RE, "GB"],
+  [NANP_PAREN_RE, "US"],
+];
 
 function validNational(value: string, countries: CountryCode[]): boolean {
   const digits = value.replace(/\D/g, "");
