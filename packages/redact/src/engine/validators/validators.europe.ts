@@ -125,6 +125,19 @@ export function atSvnrValid(match: string): boolean {
   return sum % 11 === n[3];
 }
 
+/** Germany — Rentenversicherungsnummer (« 65 170839 J 003 »): area(2) + birth DDMMYY + the
+ *  surname's initial + serial(2) + check. The letter counts as its alphabet position (2 digits),
+ *  weights 2,1,2,5,7,1,2,1,2,1,2,1, cross-sum of each product, mod 10. */
+export function deRvnrValid(match: string): boolean {
+  const s = match.replace(/\s/g, "").toUpperCase();
+  if (!/^\d{8}[A-Z]\d{3}$/.test(s)) return false;
+  const letter = String(s.charCodeAt(8) - 64).padStart(2, "0");
+  const d = (s.slice(0, 8) + letter + s.slice(9, 11)).split("").map(Number);
+  const w = [2, 1, 2, 5, 7, 1, 2, 1, 2, 1, 2, 1];
+  const sum = d.reduce((acc, v, i) => acc + Math.floor((v * w[i]) / 10) + ((v * w[i]) % 10), 0);
+  return sum % 10 === Number(s[11]);
+}
+
 /** Greece — AMKA (11 digits: DDMMYY + 4 + Luhn check over the whole number). */
 export function grAmkaValid(match: string): boolean {
   const d = digits(match);
