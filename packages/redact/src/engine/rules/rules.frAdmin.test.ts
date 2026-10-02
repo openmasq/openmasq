@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { pseudonymize } from "../../index";
+import { detectFiscalNumbers } from "../labels/numbers";
 
 /** French administrative numbers: the tax notice's compact prints and its other labels, the
  *  fiscal number with a qualifier, the foreigner number, benefits. */
@@ -31,5 +32,13 @@ describe("French administrative identifiers", () => {
     "Accès en ligne gratuit pendant 30 jours",
   ])("leaves %s alone", async (text) => {
     expect(await out(text)).toBe(text);
+  });
+
+  it("a long run of tabs after a fiscal label stays linear", () => {
+    // The old « class* :? \s* » separator chain was polynomial: ~160 ms for 10 000 tabs,
+    // seconds for 100 000 (CodeQL js/polynomial-redos).
+    const t = Date.now();
+    detectFiscalNumbers(`numéro fiscal${"\t".repeat(100_000)}x`);
+    expect(Date.now() - t).toBeLessThan(500);
   });
 });
