@@ -98,7 +98,8 @@ granting one's home directory. A removal takes effect immediately, not at the ne
 - [x] **Google Drive, OneDrive and Dropbox browse as a tree**, like the machine's folders —
       read-only, the token never leaves the privileged process —
       `apps/desktop/src/main/cloudfs/`; a OneDrive account with no OneDrive space yet says so
-      (open OneDrive once, or check the licence) instead of a bare 404 — `cloudfs.test.ts`
+      (open OneDrive once, or check the licence) instead of a bare 404 — in the panel AND to
+      the model, which tells the user rather than retrying — `cloudfs.test.ts`
 - [x] The model can **list a folder** on Drive/OneDrive, not only search it —
       `packages/connectors/src/files.ts`
 - [x] The model can **drop a file on OneDrive** — a conversation document, a file it generated,
