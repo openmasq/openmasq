@@ -53,6 +53,7 @@ export function ModalShell({
   icon,
   tone,
   headEnd,
+  continued = false,
 }: {
   onClose: () => void;
   children: ReactNode;
@@ -70,6 +71,10 @@ export function ModalShell({
   tone?: "danger";
   /** What sits at the head's far end (a call to action). */
   headEnd?: ReactNode;
+  /** This dialog REPLACES another already on screen for the same thing (a document's
+   *  pending frame → its real preview): no opening fade, zoom or sweep, or the swap reads
+   *  as the dialog closing and reopening. */
+  continued?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const titleId = useId();
@@ -110,7 +115,7 @@ export function ModalShell({
     <motion.div
       className={`modal-scrim ${align === "top" ? "top" : ""}`}
       onClick={onClose}
-      initial={{ opacity: 0 }}
+      initial={continued ? false : { opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 0.16 }}
@@ -124,20 +129,22 @@ export function ModalShell({
         tabIndex={-1}
         onKeyDown={onKeyDown}
         onClick={(e) => e.stopPropagation()}
-        initial={{ opacity: 0, scale: 0.96, y: 8 }}
+        initial={continued ? false : { opacity: 0, scale: 0.96, y: 8 }}
         animate={{ opacity: 1, scale: 1, y: 0 }}
         exit={{ opacity: 0, scale: 0.96, y: 8 }}
         transition={{ duration: 0.22, ease: [0.16, 1, 0.3, 1] }}
         // width / maxHeight are runtime props — the rule's allowed inline case.
         style={{ width, maxHeight }}
       >
-        <motion.div
-          className="modal-sweep"
-          aria-hidden="true"
-          initial={{ x: "-70%" }}
-          animate={{ x: "190%" }}
-          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        />
+        {!continued && (
+          <motion.div
+            className="modal-sweep"
+            aria-hidden="true"
+            initial={{ x: "-70%" }}
+            animate={{ x: "190%" }}
+            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          />
+        )}
         {head}
         {children}
       </motion.div>

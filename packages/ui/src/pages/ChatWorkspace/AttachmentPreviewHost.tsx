@@ -1,5 +1,5 @@
 import { AnimatePresence } from "framer-motion";
-import { useMemo } from "react";
+import { useMemo, useRef } from "react";
 import { AttachmentPendingPreview, AttachmentPreviewModal } from "../../containers/modals";
 import { partialMaskedChunks } from "../../containers/modals/viewers/doc/partialPreview";
 import { readingPages } from "../../containers/modals/viewers/reading/pageTiles";
@@ -21,6 +21,8 @@ import type { Attachment } from "./Composer";
  * it under the same key the moment the redaction lands. Meanwhile the part already
  * masked shows, masked (`maskedSoFar` → `partialMaskedChunks`) — the rest never does — and a
  * PDF being read shows its pages blurred, the pages read masked (`reading`, PREVIEW ONLY).
+ * The real preview that takes over is `continued`: no opening animation, so the swap does
+ * not read as the dialog closing and reopening (`AttachmentPreviewHost.test.tsx`).
  */
 export function AttachmentPreviewHost({
   preview,
@@ -46,6 +48,12 @@ export function AttachmentPreviewHost({
   onClose: () => void;
 }) {
   const t = useT();
+  // The file whose PENDING frame is (or was just) on screen: its real preview continues it.
+  const pendingCid = useRef<string | null>(null);
+  const pending = !!preview && isPreviewPending(preview);
+  if (pending) pendingCid.current = preview.cid;
+  else if (!preview) pendingCid.current = null;
+  const continued = !!preview && !pending && pendingCid.current === preview.cid;
   const text = preview?.text;
   const soFar = preview?.maskedSoFar;
   const p = preview?.redactProgress;
@@ -74,7 +82,7 @@ export function AttachmentPreviewHost({
   );
   return (
     <AnimatePresence>
-      {preview && isPreviewPending(preview) ? (
+      {preview && pending ? (
         <AttachmentPendingPreview
           key={preview.cid}
           name={preview.name}
@@ -108,6 +116,7 @@ export function AttachmentPreviewHost({
           inactiveCategories={inactiveCategories}
           convCategories={convCategories}
           onClose={onClose}
+          continued={continued}
         />
       ) : null}
     </AnimatePresence>
