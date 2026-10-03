@@ -1,7 +1,8 @@
 // What a PDF being READ streams out before its result: which page is read, the FINAL text of a
-// page once it is known, and a thumbnail of each page too small to read. PREVIEW ONLY — the
-// authoritative text is still the extraction's result, read whole or not at all
-// (`pdfExtract.ts`). Pure and DOM-free: the Node binding, main's boundary check and the
+// page once it is known, and a thumbnail of each page too small to read. It never replaces the
+// result — the authoritative text is the extraction's, read whole or not at all (`pdfExtract.ts`)
+// — but its page texts let the renderer start masking early (the masking checks that the final
+// text continues what it masked). Pure and DOM-free: the Node binding, main's boundary check and the
 // renderer's assembly all import it from here.
 import { PAGE_BREAK } from "./pageBreak";
 
@@ -89,13 +90,29 @@ export function isSafeThumbnail(png: Uint8Array): boolean {
  * The text of the pages streamed so far, as the PREFIX of the final text: the pages known
  * contiguously from page 1, joined exactly as the extractor joins them (`PAGE_BREAK`, leading
  * whitespace trimmed as the final `.trim()` does). It only ever GROWS by appending, so offsets
- * computed on an earlier prefix stay valid. Returns the count of pages it covers.
+ * computed on an earlier prefix stay valid. Returns the count of pages it covers and where
+ * each of them ENDS in `text` (`ends[i]`: page i + 1).
  */
-export function streamedPrefix(texts: readonly (string | undefined)[]): { text: string; pages: number } {
+export function streamedPrefix(texts: readonly (string | undefined)[]): { text: string; pages: number; ends: number[] } {
   const known: string[] = [];
   for (const t of texts) {
     if (t === undefined) break;
     known.push(t);
   }
-  return { text: known.join(PAGE_BREAK).trimStart(), pages: known.length };
+  return { ...pageOffsets(known), pages: known.length };
+}
+
+/** `pages` joined as the extractor joins them (leading whitespace trimmed), and where each
+ *  page ends in that text. */
+export function pageOffsets(pages: readonly string[]): { text: string; ends: number[] } {
+  const joined = pages.join(PAGE_BREAK);
+  const text = joined.trimStart();
+  const shift = joined.length - text.length;
+  const ends: number[] = [];
+  let at = 0;
+  pages.forEach((t, i) => {
+    at += (i ? PAGE_BREAK.length : 0) + t.length;
+    ends.push(Math.max(0, at - shift));
+  });
+  return { text, ends };
 }

@@ -6,7 +6,8 @@ import {
   ocrFallbackBoxes,
   type PdfReplacement,
 } from "./pdfMatch";
-import { vaultReplacements, pdfReplacements, type RedactFn } from "./pdfDerive";
+import { vaultReplacements } from "./pdfDerive";
+import { pdfReplacements, type RedactFn } from "./chunkMask";
 import { reconstructLayout, type PdfTextItem } from "../documents/serialize/pdfLayout";
 
 const rep = (real: string): PdfReplacement => ({ real, fake: "X".repeat(real.length), tone: "coral" });

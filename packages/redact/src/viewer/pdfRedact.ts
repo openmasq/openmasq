@@ -30,6 +30,7 @@ export type {
 
 export * from "./pdfMatch";
 export * from "./pdfDerive";
+export * from "./chunkMask";
 
 const DEFAULT_MAX_PAGES = 15;
 
@@ -94,10 +95,11 @@ export async function loadRedactedPdf(o: RenderRedactedPdfOptions): Promise<Reda
         const vp = (await doc.getPage(p)).getViewport({ scale: PAGE_SCALE });
         return { cssW: vp.width, cssH: vp.height };
       },
-      async renderPage(p, reveal = o.reveal) {
+      async renderPage(p, reveal = o.reveal, over) {
         const page = await doc.getPage(p);
         if (aborted()) return null;
-        return paintPage(page, p, { o: { ...o, reveal }, redacted, reps, aborted });
+        const ocrPages = over?.ocrPages ?? o.ocrPages;
+        return paintPage(page, p, { o: { ...o, reveal, ocrPages }, redacted, reps: over?.replacements ?? reps, aborted });
       },
       destroy,
     };

@@ -3,6 +3,7 @@ import { useT } from "../../../i18n";
 import { useRedaction } from "../../../send/redaction";
 import { DRAFT_CONV } from "../../../state/debug/debug";
 import { maskQueue } from "../../../state/files/maskQueue";
+import { dropReadingMask } from "../readingMask";
 import { subscribeStaged } from "../../../state/files/stagedActivity";
 import { createStagedFiles } from "../../../state/files/stagedFiles";
 import type { Attachment } from "../Composer";
@@ -93,7 +94,12 @@ export function useAttachments(p: ChatViewProps) {
 
   const removeAttachment = (i: number) => {
     const a = attachments[i];
-    if (a) maskQueue.cancel(a.cid);
+    if (a) {
+      maskQueue.cancel(a.cid);
+      // The masking its read started, if any: stopped, and never handed to a later run.
+      maskQueue.cancel(`reading:${a.cid}`);
+      dropReadingMask(a.cid);
+    }
     setAttachments((prev) => prev.filter((x) => x.cid !== a?.cid));
   };
   const retryAttachment = (cid: string) => {

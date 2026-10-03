@@ -3,7 +3,7 @@ import type { Attachment } from "./Composer";
 import type { ExtractedFile } from "../../host";
 import type { DeferredFile } from "../../state/files/deferredFile";
 import { extractProgressPatch } from "./attachmentPending";
-import type { ReadingSession } from "./readingPreview";
+import type { ReadingSession } from "./readingMask";
 
 /** What `ChatView` knows how to do and this module doesn't: setting, fixing, chaining. */
 export interface DeferredAttachDeps {
@@ -17,8 +17,8 @@ export interface DeferredAttachDeps {
   onExtracted(file: ExtractedFile, attachment: Attachment): void;
   /** The copy a failed chip shows. */
   t: Messages;
-  /** The provisional preview of the file while it is read (`readingPreview.ts`). Absent ⇒
-   *  the pending preview keeps its plain loader. */
+  /** The masking of the file started while it is read (`readingMask.ts`). Absent ⇒
+   *  the file is masked once read, and the pending preview keeps its plain loader. */
   reading?(cid: string): ReadingSession;
   /** A chip identifier. Injected by the TEST only, to be deterministic. */
   newCid?(): string;
@@ -60,7 +60,7 @@ export async function stageDeferredFile(
   try {
     // OCR progress fixes the chip page by page; a source that emits none
     // leaves the bar indeterminate (the parameter is ignored harmlessly).
-    file = await d.load((p) => deps.patch(ph.cid, extractProgressPatch(p), forConvId), reading?.push);
+    file = await d.load((p) => deps.patch(ph.cid, extractProgressPatch(p), forConvId), reading?.push, reading?.bytes);
   } catch {
     reading?.end(false);
     deps.patch(ph.cid, { extracting: false, error: deps.t.composer.attachments.extractFailed }, forConvId);

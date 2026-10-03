@@ -1,0 +1,154 @@
+/* The PDF viewer's page bar (`containers/modals/viewers/pdf/PageStrip.tsx`): the page strip
+   and the zoom, stuck to the top of the scrolling panel; and the TILE a page shows while it
+   may not be shown (`pdf/pendingTile.ts`). A tile's picture is already illegible at the
+   source (≤ 40 px wide, `@openmasq/redact` `THUMB_MAX_WIDTH_PX`); the blur only turns the
+   upscale into a page. Every colour is a token both themes define; ink on `--brand` is
+   `--ink-on-brand` (rule 12). */
+.pdfv-bar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 4px 0;
+  background: var(--surface-card);
+}
+.pdfv-strip {
+  flex: 1;
+  min-width: 0;
+}
+.pdfv-strip-list {
+  list-style: none;
+  margin: 0;
+  padding: 4px 2px;
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+.pdfv-strip-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+.pdfv-strip-sheet {
+  position: relative;
+  display: block;
+  width: 26px;
+  aspect-ratio: 1 / 1.414;
+  overflow: hidden;
+  border-radius: 3px;
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-sunken);
+}
+.pdfv-strip-page.is-waiting .pdfv-strip-sheet {
+  opacity: 0.55;
+}
+.pdfv-strip-page.is-current .pdfv-strip-sheet,
+.pdfv-strip-page.is-here .pdfv-strip-sheet {
+  border-color: var(--brand);
+}
+.pdfv-strip-page.is-here .pdfv-strip-sheet {
+  box-shadow: 0 0 0 1px var(--brand);
+}
+.pdfv-strip-page:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+.pdfv-strip-thumb {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(1.5px);
+  transform: scale(1.08);
+  user-select: none;
+  pointer-events: none;
+}
+.pdfv-strip-badge {
+  position: absolute;
+  right: 1px;
+  bottom: 1px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--brand);
+  color: var(--ink-on-brand);
+}
+.pdfv-strip-spin {
+  position: absolute;
+  inset: 0;
+  margin: auto;
+  width: 10px;
+  height: 10px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  border: 2px solid var(--border-strong);
+  border-top-color: var(--brand);
+  animation: om-spin-kf 0.7s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .pdfv-strip-spin {
+    animation-duration: 1.6s;
+  }
+}
+.pdfv-strip-num {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.pdfv-strip-page.is-here .pdfv-strip-num {
+  color: var(--text-strong);
+}
+/* A page not shown yet: its blurred thumbnail at the page's size, and its state. */
+.pdfv-page.is-waiting {
+  background: var(--surface-sunken);
+}
+.pdfv-wait {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+.pdfv-wait-thumb {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(6px);
+  transform: scale(1.04);
+  opacity: 0.7;
+  user-select: none;
+  pointer-events: none;
+}
+.pdfv-wait-badge {
+  position: relative;
+  max-width: 80%;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--border-default);
+  background: var(--surface-card);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  text-align: center;
+}
+.pdfv-wait-badge.is-current {
+  border-color: var(--brand);
+  color: var(--text-strong);
+}
+/* Shown, but the masking is not over: a value found later may still mark it. */
+.pdfv-page.is-provisional {
+  outline: 1px dashed var(--border-strong);
+  outline-offset: 3px;
+}

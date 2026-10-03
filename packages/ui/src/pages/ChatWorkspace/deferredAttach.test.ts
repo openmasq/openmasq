@@ -106,8 +106,8 @@ describe("placeholderFor", () => {
   });
 });
 
-describe("stageDeferredFile — l'aperçu de lecture (`readingPreview.ts`)", () => {
-  const session = () => ({ push: vi.fn(), end: vi.fn() });
+describe("stageDeferredFile — l'aperçu de lecture (`readingMask.ts`)", () => {
+  const session = () => ({ push: vi.fn(), end: vi.fn(), bytes: vi.fn() });
 
   it("le flux de la lecture va à la session du chip, qui finit OK sur un texte entier", async () => {
     const s = session();
