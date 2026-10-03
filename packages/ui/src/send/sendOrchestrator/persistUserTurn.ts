@@ -1,5 +1,6 @@
 import { bucket, captureEvent } from "../../analytics";
 import { uid } from "../../state/storePersistence";
+import { flagClipped } from "../documentLoad";
 import { buildSendAnalyticsEvents } from "../sendAnalytics";
 import type { RedactedTurn } from "./redactionPasses";
 import type { RedactionSetup } from "./redactionSetup";
@@ -11,7 +12,7 @@ import type { TurnContext } from "./turnSetup";
  * needs on a retry, and persist the now-mutated vault so history stays reversible.
  */
 export function persistUserTurn(ctx: TurnContext, r: RedactionSetup, red: RedactedTurn): void {
-  const { d, opts, text, convId, userMsg, model, forcePython, compPrompt, atPrompt } = ctx;
+  const { d, opts, text, convId, userMsg, model, forcePython, compPrompt, atPrompt, attachments } = ctx;
   const { userWire, redactedSpans, redactionFailed, memSel, memoryWire } = red;
   for (const e of buildSendAnalyticsEvents({
     provider: model.provider,
@@ -35,6 +36,8 @@ export function persistUserTurn(ctx: TurnContext, r: RedactionSetup, red: Redact
             redactions: userWire.matches.length,
             redactedSpans: redactedSpans.length ? redactedSpans : undefined,
             redactionFailed,
+            // Display only: the card says when the wire carried just the document's start.
+            attachments: flagClipped(m.attachments, attachments, opts.imageNames),
             // Only when the injection SUCCEEDED: a fail-closed skip must not claim it happened.
             memoryUsed: memoryWire
               ? [...(memSel.profile ? ["profile"] : []), ...memSel.cards.map((mc) => mc.id)]

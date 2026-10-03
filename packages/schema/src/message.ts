@@ -68,8 +68,9 @@ export interface Message {
    *  The model only ever saw the scrubbed version. */
   redactedSpans?: { value: string; kind: string }[];
   /** Files attached to this user message — shown as chips. The redacted file lives in the
-   *  `files` table; its text is folded into the model payload only, never into `content`. */
-  attachments?: { name: string; kind: string; mime?: string }[];
+   *  `files` table; its text is folded into the model payload only, never into `content`.
+   *  `clipped`: the wire carried only the document's first `MAX_FILE_CHARS` characters. */
+  attachments?: { name: string; kind: string; mime?: string; clipped?: boolean }[];
   /** The text actually sent to the model for this user turn: `content` plus the attached
    *  files' text. Lets later turns re-include the document; absent when nothing was attached. */
   modelContent?: string;
@@ -129,6 +130,10 @@ export interface Message {
   /** The AI redaction model was meant to run on this message but failed, so free-form PII
    *  may be unmasked. Human-readable warning shown under the message. */
   redactionFailed?: string;
+  /** Names of documents (real file names, the `attachments` at-rest class) an OLDER turn
+   *  carried and that THIS turn's history window no longer sent to the model. Stamped on
+   *  the assistant turn at send time; display only, never read back into a payload. */
+  droppedDocs?: string[];
   /** A turn's tool calls went wrong, and WHOSE fault it was — each kind needs a different
    *  move from the user. */
   toolStruggle?: {

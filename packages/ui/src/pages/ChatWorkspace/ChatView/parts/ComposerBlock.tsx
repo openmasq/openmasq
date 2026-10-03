@@ -4,6 +4,7 @@ import { AUTO_MODEL_ID } from "../../../../send/autoRoute";
 import { Composer } from "../../Composer";
 import { ConversationTokens } from "../../ConversationTokens";
 import { inactiveCategoryLabels } from "../../docCategoryNotice";
+import { DocumentWeightNotice } from "../../DocumentWeightNotice";
 import { MemoryProposalCard } from "../../MemoryProposalCard";
 import { RedactionIntroCard } from "../../RedactionIntroCard";
 import { redactEngineSig } from "../../redactEngineSig";
@@ -44,6 +45,13 @@ export function ComposerBlock({ m }: { m: ChatViewModel }) {
         <MemoryProposalCard
           onActivate={() => patch({ memoryAuto: true, memoryProposalSeen: true })}
           onDismiss={() => patch({ memoryProposalSeen: true })}
+        />
+      )}
+      {conversation && (
+        <DocumentWeightNotice
+          messages={conversation.messages}
+          modelId={view.autoMode ? undefined : view.currentModel?.id}
+          modelLabel={view.currentModelLabel ?? ""}
         />
       )}
       <Composer

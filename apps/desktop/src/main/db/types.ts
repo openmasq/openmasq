@@ -20,7 +20,7 @@ export interface DbMessage {
   /** Sensitive spans + their kind, so the value->kind map can be persisted. */
   redactedSpans?: { value: string; kind: string }[];
   /** Attached-file references (chips) — restored so files survive a reload. */
-  attachments?: { name: string; kind: string; mime?: string }[];
+  attachments?: { name: string; kind: string; mime?: string; clipped?: boolean }[];
   /** Token usage for the model reply, so stats survive a reload. */
   usage?: { model: string; inputTokens: number; outputTokens: number };
   /** Model id that produced this reply — pinned so its badge survives a reload. */
@@ -28,6 +28,8 @@ export interface DbMessage {
   /** AUTO mode: how the routed turn was billed — persisted so the « choisi
    *  automatiquement · via votre abonnement » caption survives a reload. */
   autoRouted?: "free" | "byo" | "metered";
+  /** Documents this turn's history window stopped sending — the notice survives a reload. */
+  droppedDocs?: string[];
   /** "try a stronger model" hint, persisted so it survives a reload. */
   toolStruggle?: {
     tool: string;

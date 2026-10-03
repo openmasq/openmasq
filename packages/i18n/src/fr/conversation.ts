@@ -163,6 +163,22 @@ export const conversation = {
     showLess: "Réduire",
   },
 
+  docs: {
+    filesCount: (n) => `${n} fichier${n > 1 ? "s" : ""}`,
+    showFiles: "Afficher les fichiers",
+    generatedBy: (brand) => `Généré par ${brand}`,
+    clippedTag: "tronqué",
+    clipped: (name, max) => `Seuls les ${max} premiers caractères de ${name} ont été envoyés au modèle.`,
+    others: (n) => `${n} autre${n > 1 ? "s" : ""}`,
+    weight: (pct, model) =>
+      `Les documents de cette conversation occupent environ ${pct} % de la fenêtre de ${model}. Chaque question les renvoie au modèle.`,
+    weightOver: (model) =>
+      `Les documents de cette conversation dépassent la fenêtre de ${model} : les plus anciens ne lui sont plus envoyés.`,
+    dropped: (names, n) =>
+      `${names} ${n > 1 ? "ne sont plus visibles" : "n'est plus visible"} par le modèle : la conversation dépasse sa fenêtre de contexte.`,
+    roomHint: "Pour garder de la place, choisissez un modèle à plus grande fenêtre ou ouvrez une nouvelle conversation.",
+  },
+
   trace: {
     connector: "connecteur",
     calling: "Appel des outils…",

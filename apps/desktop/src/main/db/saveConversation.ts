@@ -91,13 +91,14 @@ export async function dbSaveConversation(conv: DbConversation): Promise<void> {
         }
       : { sql: "DELETE FROM messages WHERE conversation_id = ?", args: [conv.id] },
     ...conv.messages.map((m, i) => ({
-      sql: `INSERT INTO messages (id, conversation_id, role, content, redactions, error, error_text, ord, created_at, updated_at, attachments, usage, model, auto_routed, tool_struggle, tool_calls, incomplete, competence, reasoning)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      sql: `INSERT INTO messages (id, conversation_id, role, content, redactions, error, error_text, ord, created_at, updated_at, attachments, usage, model, auto_routed, tool_struggle, tool_calls, incomplete, competence, reasoning, dropped_docs)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET role=excluded.role, content=excluded.content,
               redactions=excluded.redactions, error=excluded.error, error_text=excluded.error_text, ord=excluded.ord,
               updated_at=excluded.updated_at, attachments=excluded.attachments, usage=excluded.usage,
               model=excluded.model, auto_routed=excluded.auto_routed, tool_struggle=excluded.tool_struggle, tool_calls=excluded.tool_calls,
-              incomplete=excluded.incomplete, competence=excluded.competence, reasoning=excluded.reasoning`,
+              incomplete=excluded.incomplete, competence=excluded.competence, reasoning=excluded.reasoning,
+              dropped_docs=excluded.dropped_docs`,
       args: [
         m.id,
         conv.id,
@@ -120,6 +121,7 @@ export async function dbSaveConversation(conv: DbConversation): Promise<void> {
         m.incomplete || m.pending ? 1 : 0,
         m.competence ? JSON.stringify(m.competence) : null,
         m.reasoning || null,
+        m.droppedDocs?.length ? JSON.stringify(m.droppedDocs) : null,
       ],
     })),
     { sql: "DELETE FROM redactions WHERE conversation_id = ?", args: [conv.id] },

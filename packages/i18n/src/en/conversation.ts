@@ -155,6 +155,22 @@ export const conversation = {
     showLess: "Show less",
   },
 
+  docs: {
+    filesCount: (n) => `${n} file${n > 1 ? "s" : ""}`,
+    showFiles: "Show the files",
+    generatedBy: (brand) => `Made by ${brand}`,
+    clippedTag: "cut",
+    clipped: (name, max) => `Only the first ${max} characters of ${name} were sent to the model.`,
+    others: (n) => `${n} other${n > 1 ? "s" : ""}`,
+    weight: (pct, model) =>
+      `The documents in this conversation take up about ${pct}% of ${model}'s context window. Every question sends them again.`,
+    weightOver: (model) =>
+      `The documents in this conversation no longer fit ${model}'s context window: the oldest aren't sent anymore.`,
+    dropped: (names) =>
+      `The model can no longer see ${names}: the conversation outgrew its context window.`,
+    roomHint: "To keep room, pick a model with a larger window or start a new conversation.",
+  },
+
   trace: {
     connector: "connector",
     calling: "Calling tools…",
