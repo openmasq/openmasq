@@ -182,15 +182,33 @@
   margin-top: 6px;
 }
 
-/* Attached files on a sent message — shown as chips (the redacted file is stored
-   locally), never as the file's raw text dumped into the bubble. */
+/* Attached files on a turn — compact cards two to a row (the redacted file is stored
+   locally), never the file's raw text dumped into the bubble. A long list folds into
+   one `.msg-file` row; the fold link and the « cut » caption stack under it. */
 .msg-attachments {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  max-width: 76%;
+  margin-top: 6px;
+}
+.msg.user .msg-attachments {
+  align-items: flex-end;
+}
+.msg-files-grid {
+  --msg-filecard-w: 220px;
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  max-width: calc(2 * var(--msg-filecard-w) + 6px);
+}
+.msg.user .msg-files-grid {
   justify-content: flex-end;
-  max-width: 76%;
-  margin-top: 6px;
+}
+.msg-attachments .shield-caption {
+  margin-top: 0;
+  max-width: 100%;
 }
 .msg-file {
   display: inline-flex;

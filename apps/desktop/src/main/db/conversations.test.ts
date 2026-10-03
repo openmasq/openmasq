@@ -150,6 +150,20 @@ describe("dbSaveConversation → dbLoad round-trip", () => {
     expect(msgs[0].autoRouted).toBeUndefined();
   });
 
+  it("persists the documents a turn's history window stopped sending — the notice survives a reload", async () => {
+    await dbSaveConversation(
+      conv([
+        { id: "m1", role: "user", content: "et maintenant ?", attachments: [{ name: "bail.pdf", kind: "pdf", clipped: true }] },
+        { id: "m2", role: "assistant", content: "voici.", droppedDocs: ["contrat.pdf", "annexe.docx"] },
+      ]) as any,
+    );
+
+    const msgs = (await dbLoad())!.conversations[0].messages;
+    expect(msgs[1].droppedDocs).toEqual(["contrat.pdf", "annexe.docx"]);
+    expect(msgs[0].droppedDocs).toBeUndefined();
+    expect(msgs[0].attachments).toEqual([{ name: "bail.pdf", kind: "pdf", clipped: true }]);
+  });
+
   it("survives a corrupt competence blob — drops the tag, never breaks the load", async () => {
     await dbSaveConversation(conv([{ id: "m1", role: "user", content: "a" }]) as any);
     await client.execute("UPDATE messages SET competence = '{not json' WHERE id = 'm1'");

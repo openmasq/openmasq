@@ -146,6 +146,25 @@ export interface ConversationMessages {
     showLess: string;
   };
 
+  /** Files under a turn, and what the conversation's documents cost the model's window.
+   *  Display only: none of this changes what is sent. */
+  docs: {
+    /** The summary row of a long file list (« 8 fichiers »). */
+    filesCount: (count: number) => string;
+    showFiles: string;
+    /** The eyebrow of a file the assistant produced. */
+    generatedBy: (brand: string) => string;
+    /** A document the wire cut at the per-document cap. */
+    clippedTag: string;
+    clipped: (name: string, max: string) => string;
+    /** « a, b et 2 autres » — the tail of a long name list. */
+    others: (count: number) => string;
+    weight: (percent: number, model: string) => string;
+    weightOver: (model: string) => string;
+    dropped: (names: string, count: number) => string;
+    roomHint: string;
+  };
+
   /** The tool-call trace card: one row per call, its status words. */
   trace: {
     connector: string;

@@ -1,13 +1,14 @@
-import { ShieldIcon, ZapIcon } from "../brand";
+import { FileIcon, ShieldIcon, ZapIcon } from "../brand";
 import { useT } from "../../i18n";
 import { autoRouteCaption } from "../../send/autoRoute";
+import { nameList } from "./nameList";
 import { ToolStruggleNotice } from "./ToolStruggleNotice";
 import { quotaNotice } from "./quotaNotice";
 import type { Message } from "../../types";
 
 /**
- * The captions under a settled reply: what went wrong with the turn's tools, and how
- * much of the model's quota is left.
+ * The captions under a settled reply: what went wrong with the turn's tools, which older
+ * documents the model no longer sees, and how much of the model's quota is left.
  *
  * Grouped so the bubble has ONE slot for "what the app has to say about this turn"
  * rather than a growing list of conditionals in a file that may not grow. Both are
@@ -40,6 +41,15 @@ export function MessageNotices({
       )}
       {message.toolStruggle && (
         <ToolStruggleNotice struggle={message.toolStruggle} modelName={modelName} />
+      )}
+      {/* The history window stopped sending older documents: said on the turn, by name. */}
+      {!!message.droppedDocs?.length && (
+        <div className="shield-caption warn turn-status-note" title={t.conversation.docs.roomHint}>
+          <FileIcon size={12} />
+          <span className="flex-min">
+            {t.conversation.docs.dropped(nameList(message.droppedDocs, t), message.droppedDocs.length)}
+          </span>
+        </div>
       )}
       {quota && (
         <div className="shield-caption warn turn-status-note" title={t.conversation.bubble.quotaTip}>

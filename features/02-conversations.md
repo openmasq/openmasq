@@ -223,6 +223,20 @@ today's.
 - [x] A card that has aged (rules changed) is flagged + can be re-redacted
 - [x] A document still being read (or queued), still masked, or whose masking failed blocks the send — the button says « Lecture » / « Masquage » and the draft stays; one that could not be read is NAMED in a confirmation (« Envoyer sans eux » / « Annuler ») before a send without it, never dropped silently — `packages/ui/src/pages/ChatWorkspace/submitGuard.ts`
 - [x] A message that clearly **exceeds the chosen model's context window** (typed text + attached documents, estimated) is refused BEFORE masking, naming its approximate size and the model's limit, and suggesting a larger-context model or fewer files; the draft and the files stay — `packages/ui/src/send/contextFit.ts`
+- [x] **Sent files stay compact**: small cards two to a row under the message; past 4 files, one
+      « 8 fichiers » row that opens the cards and folds them back (open state kept while
+      scrolling); click a card to open the file — `packages/ui/src/components/message/MessageAttachments/`
+- [x] A document cut at the per-document send limit (50,000 characters) says so after the send:
+      « tronqué » on its card and « Seuls les 50 000 premiers caractères de X ont été envoyés au
+      modèle » under the files — `packages/ui/src/send/documentLoad.ts` (`flagClipped`)
+- [x] **What the documents weigh**: when the conversation's documents take half or more of the
+      chosen model's window, a warning above the composer gives the share (« environ 80 % de la
+      fenêtre de GPT-4o »), says each question re-sends them, and suggests a larger-window model
+      or a new conversation; silent in Auto mode or for an unknown window. Nothing about the send
+      changes — `packages/ui/src/pages/ChatWorkspace/DocumentWeightNotice.tsx`
+- [x] When a long conversation stops sending its oldest turns, the reply NAMES the documents
+      those turns carried (« contrat.pdf n'est plus visible par le modèle »), and the note
+      survives a reload — `packages/ui/src/components/message/MessageNotices.tsx`
 
 ### Gestures on text
 **Access**: a selection in the composer or in a message → context menu.

@@ -195,6 +195,12 @@ const MIGRATIONS: { name: string; statements: string[] }[] = [
     name: "0020_message_auto_routed",
     statements: [`ALTER TABLE messages ADD COLUMN auto_routed TEXT`],
   },
+  {
+    // The documents a turn's history window no longer sent (JSON list of file names, the
+    // `attachments` column's class): the « no longer visible to the model » notice.
+    name: "0021_message_dropped_docs",
+    statements: [`ALTER TABLE messages ADD COLUMN dropped_docs TEXT`],
+  },
 ];
 
 export async function migrate(c: Client): Promise<void> {

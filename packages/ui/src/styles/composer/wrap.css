@@ -81,3 +81,9 @@
   pointer-events: none;
   color: var(--text-strong);
 }
+/* « Les documents occupent N % de la fenêtre » — a warn caption docked above the composer,
+   full width of it; non-blocking, it never sits between the user and the send button. */
+.composer-wrap > .doc-weight-note {
+  margin: 0 0 8px;
+  max-width: 100%;
+}

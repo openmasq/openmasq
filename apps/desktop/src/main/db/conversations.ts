@@ -60,6 +60,15 @@ export async function dbLoad(): Promise<{
         /* corrupt JSON → drop the tag, don't break the load */
       }
     }
+    let droppedDocs: string[] | undefined;
+    if (r.dropped_docs) {
+      try {
+        const v = JSON.parse(r.dropped_docs);
+        if (Array.isArray(v)) droppedDocs = v.filter((n: unknown): n is string => typeof n === "string");
+      } catch {
+        /* corrupt JSON → drop the notice, don't break the load */
+      }
+    }
     list.push({
       id: r.id,
       role: r.role,
@@ -76,6 +85,7 @@ export async function dbLoad(): Promise<{
       toolCalls: toolCalls?.length ? toolCalls : undefined,
       competence: skill,
       reasoning: r.reasoning || undefined,
+      droppedDocs: droppedDocs?.length ? droppedDocs : undefined,
     });
     msgsByConv.set(r.conversation_id, list);
   }

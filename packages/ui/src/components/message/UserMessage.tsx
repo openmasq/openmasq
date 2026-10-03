@@ -89,7 +89,7 @@ export function UserMessage({
         </button>
       )}
       <MessageImages images={images} conversationIds={attachmentConvIds} onOpen={onOpenAttachment} />
-      <MessageAttachments attachments={files} onOpen={onOpenAttachment} />
+      <MessageAttachments attachments={files} onOpen={onOpenAttachment} owner={message.id} />
       <MemoryCaption message={message} />
       {message.redactionFailed && (
         <div className="shield-caption warn" title={t.conversation.bubble.redactionFailedTip}>

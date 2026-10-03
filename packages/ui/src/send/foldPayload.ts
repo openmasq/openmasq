@@ -45,6 +45,12 @@ export function typedPartOfWire(text: string): string {
  *  three surfaces cannot disagree on where the document stops leaving the machine. */
 export const MAX_FILE_CHARS = 50_000;
 
+/** Does the wire CUT this document? The fold's own test, so the « only the first N
+ *  characters were sent » note on a sent turn cannot disagree with what left. */
+export function clipsOnWire(text: string, max = MAX_FILE_CHARS): boolean {
+  return text.length > max;
+}
+
 /**
  * Clip `text` to at most `max` chars, cutting at the last LINE boundary within the
  * bound — never mid-line. A raw `slice(0, max)` routinely halved a value on the
@@ -121,7 +127,7 @@ export function buildFoldedPayload(
 ): FoldedPayload {
   const imageNames = new Set(opts.imageNames ?? []);
   const clip = (t: string) =>
-    t.length > maxFileChars ? clipFileText(t, maxFileChars) + "\n…(truncated)" : t;
+    clipsOnWire(t, maxFileChars) ? clipFileText(t, maxFileChars) + "\n…(truncated)" : t;
   // The real filename can itself leak (refs, dates, names PII detection won't catch,
   // e.g. "438-GAZ-20220208.pdf") — the model only ever sees a neutral name.
   const safeName = (name: string, i: number) => {
