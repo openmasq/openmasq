@@ -26,6 +26,19 @@ export const runtimeSend = {
   paidUnavailable: "Ce modèle est indisponible pour le moment. Réessayez plus tard.",
   genericError: "Une erreur est survenue.",
   fileStillMasking: "Masquage du fichier en cours. Attendez la fin avant d'envoyer.",
+  fileStillReading: "Lecture des fichiers en cours. Attendez la fin avant d'envoyer.",
+  unreadTitle: (n) => (n > 1 ? "Fichiers illisibles" : "Fichier illisible"),
+  unreadBody: (n, names) =>
+    n > 1
+      ? `${n} fichiers n'ont pas pu être lus et ne seront pas envoyés : ${names}`
+      : `1 fichier n'a pas pu être lu et ne sera pas envoyé : ${names}`,
+  unreadSendWithout: (n) => (n > 1 ? "Envoyer sans eux" : "Envoyer sans lui"),
+  unreadNothingLeft: (n, names) =>
+    n > 1
+      ? `Ces fichiers n'ont pas pu être lus : ${names}. Rien n'a été envoyé. Retirez-les ou relancez leur lecture.`
+      : `Ce fichier n'a pas pu être lu : ${names}. Rien n'a été envoyé. Retirez-le ou relancez sa lecture.`,
+  retryMissingFiles: (n, names) =>
+    `Réessai impossible sans perdre de document. Introuvable dans la bibliothèque : ${names}. Rien n'a été envoyé. Joignez ${n > 1 ? "ces fichiers" : "ce fichier"} à nouveau, puis renvoyez le message.`,
   maskFail: {
     remoteAuth: `Masquage en ligne indisponible : erreur de notre côté. ${NOT_MASKED} Réessayez plus tard, ou contactez le support.`,
     remoteNetwork: `Masquage en ligne injoignable. ${NOT_MASKED} Vérifiez votre connexion, puis réessayez.`,

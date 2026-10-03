@@ -108,6 +108,8 @@ export const composer = {
   redacting: "Masquage",
   redactingAria: "Masquage en cours",
   redacted: "Masqué",
+  reading: "Lecture",
+  readingAria: "Lecture des fichiers en cours",
 
   detect: {
     partialNone: "analyse incomplète",

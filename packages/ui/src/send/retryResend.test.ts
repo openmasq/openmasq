@@ -1,44 +1,52 @@
 import { describe, it, expect } from "vitest";
-import { retryResendWire, retryTagPrompt } from "./retryResend";
+import { planRetryResend, retryTagPrompt } from "./retryResend";
 
-describe("retryResendWire", () => {
-  const TEXT = "fais un graphe de ce bilan";
-  const FOLDED = `${TEXT}\n\n=== Attached file: document-1.pdf ===\nRecettes 120000 Dépenses 90000`;
+describe("planRetryResend — a retry never leaves with PART of its documents", () => {
+  const TEXT = "compare ces deux contrats";
+  const FOLDED = `${TEXT}\n\n=== Attached file: document-1.pdf ===\nBail A\n\n=== Attached file: document-2.pdf ===\nBail B`;
+  const A = { name: "a.pdf", text: "Bail A" };
+  const B = { name: "b.pdf", text: "Bail B" };
 
-  it("uses the file fold when the library rebuild recovered the document text", () => {
-    // Happy path: at least one rebuilt file carries text → no resend override.
-    expect(retryResendWire(TEXT, FOLDED, [{ text: FOLDED }])).toBeUndefined();
-    expect(retryResendWire(TEXT, FOLDED, [{ text: "some doc text" }])).toBeUndefined();
+  it("folds the rebuilt files when EVERY attached document came back with text", () => {
+    expect(planRetryResend(TEXT, FOLDED, ["a.pdf", "b.pdf"], [B, A])).toEqual({ kind: "files", files: [A, B] });
   });
 
-  it("falls back to modelContent when the library rebuild yielded NO files (redaction off / no DB / name mismatch)", () => {
-    expect(retryResendWire(TEXT, FOLDED, undefined)).toBe(FOLDED);
-    expect(retryResendWire(TEXT, FOLDED, [])).toBe(FOLDED);
+  it("one of two files fails to reload → the FULL persisted payload, never the partial set", () => {
+    const plan = planRetryResend(TEXT, FOLDED, ["a.pdf", "b.pdf"], [A]);
+    expect(plan).toEqual({ kind: "wire", resendWire: FOLDED });
+    expect(plan.kind === "wire" && plan.resendWire).toContain("Bail B");
   });
 
-  it("falls back to modelContent when the rebuilt files have EMPTY text (extraction failed)", () => {
-    expect(retryResendWire(TEXT, FOLDED, [{ text: "" }])).toBe(FOLDED);
-    expect(retryResendWire(TEXT, FOLDED, [{ text: "   " }])).toBe(FOLDED);
+  it("one of two files fails and no payload survives → BLOCKED, naming the missing file", () => {
+    expect(planRetryResend(TEXT, undefined, ["a.pdf", "b.pdf"], [A])).toEqual({ kind: "blocked", missing: ["b.pdf"] });
+    expect(planRetryResend(TEXT, TEXT, ["a.pdf", "b.pdf"], [A])).toEqual({ kind: "blocked", missing: ["b.pdf"] });
   });
 
-  it("does not resend when there is no persisted modelContent (a plain text turn)", () => {
-    expect(retryResendWire(TEXT, undefined, undefined)).toBeUndefined();
-    expect(retryResendWire(TEXT, undefined, [])).toBeUndefined();
+  it("a rebuilt file with EMPTY text counts as missing (extraction failed)", () => {
+    expect(planRetryResend(TEXT, FOLDED, ["a.pdf", "b.pdf"], [A, { name: "b.pdf", text: "  " }])).toEqual({
+      kind: "wire",
+      resendWire: FOLDED,
+    });
   });
 
-  it("does not resend when modelContent is just the clean text (no document was folded)", () => {
-    expect(retryResendWire(TEXT, TEXT, undefined)).toBeUndefined();
-    expect(retryResendWire(TEXT, `  ${TEXT}  `, [])).toBeUndefined();
+  it("no library at all (no DB, redaction off) → the persisted payload, else blocked", () => {
+    expect(planRetryResend(TEXT, FOLDED, ["a.pdf"], undefined)).toEqual({ kind: "wire", resendWire: FOLDED });
+    expect(planRetryResend(TEXT, undefined, ["a.pdf"], undefined)).toEqual({ kind: "blocked", missing: ["a.pdf"] });
   });
 
-  it("prefers the real document text over an empty-text rebuild (the reported bug)", () => {
-    // The exact failure: a plot request over a PDF, retried, whose library file was
-    // not recoverable — the document must still reach the model via modelContent.
-    const resend = retryResendWire(TEXT, FOLDED, [{ text: "" }]);
-    expect(resend).toContain("Recettes 120000");
-    expect(resend).toContain("Dépenses 90000");
+  it("matches ONE file per attached name: a library duplicate never rides twice, two same-name attachments need two", () => {
+    const old = { name: "a.pdf", text: "Bail A, ancienne version" };
+    expect(planRetryResend(TEXT, FOLDED, ["a.pdf"], [A, old])).toEqual({ kind: "files", files: [A] });
+    expect(planRetryResend(TEXT, undefined, ["a.pdf", "a.pdf"], [A])).toEqual({ kind: "blocked", missing: ["a.pdf"] });
+  });
+
+  it("a turn with no document: the typed text, or its persisted payload when one differs (compétence prefix)", () => {
+    expect(planRetryResend(TEXT, undefined, [], undefined)).toEqual({ kind: "text" });
+    expect(planRetryResend(TEXT, `  ${TEXT}  `, [], undefined)).toEqual({ kind: "text" });
+    expect(planRetryResend(TEXT, `Consigne\n${TEXT}`, [], undefined)).toEqual({ kind: "wire", resendWire: `Consigne\n${TEXT}` });
   });
 });
+
 
 describe("retryTagPrompt (compétence/workflow instruction on a retry)", () => {
   it("drops the prompt when a resendWire carries it already (never send it twice)", () => {

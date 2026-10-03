@@ -92,6 +92,16 @@ export interface RuntimeMessages {
     paidUnavailable: string;
     genericError: string;
     fileStillMasking: string;
+    /** A staged file is still being READ (or queued): the send waits, nothing is cleared. */
+    fileStillReading: string;
+    /** Files with no readable content: the confirmation NAMES them before a send without them. */
+    unreadTitle: (n: number) => string;
+    unreadBody: (n: number, names: string) => string;
+    unreadSendWithout: (n: number) => string;
+    /** Nothing but unreadable files: the send is refused rather than sent empty. */
+    unreadNothingLeft: (n: number, names: string) => string;
+    /** A retry whose documents could not all be reloaded: the turn is kept, nothing is sent. */
+    retryMissingFiles: (n: number, names: string) => string;
     /** A masking-model failure, phrased by engine and cause. */
     maskFail: {
       remoteAuth: string;

@@ -105,6 +105,8 @@ export const composer = {
   redacting: "Masking",
   redactingAria: "Masking in progress",
   redacted: "Masked",
+  reading: "Reading",
+  readingAria: "Reading files",
 
   detect: {
     partialNone: "analysis incomplete",

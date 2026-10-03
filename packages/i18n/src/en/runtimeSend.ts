@@ -23,6 +23,19 @@ export const runtimeSend = {
   paidUnavailable: "This model is unavailable right now. Try again later.",
   genericError: "Something went wrong.",
   fileStillMasking: "The file is still being masked. Wait for it to finish before sending.",
+  fileStillReading: "Files are still being read. Wait until they're done before sending.",
+  unreadTitle: (n) => (n > 1 ? "Unreadable files" : "Unreadable file"),
+  unreadBody: (n, names) =>
+    n > 1
+      ? `${n} files couldn't be read and won't be sent: ${names}`
+      : `1 file couldn't be read and won't be sent: ${names}`,
+  unreadSendWithout: (n) => (n > 1 ? "Send without them" : "Send without it"),
+  unreadNothingLeft: (n, names) =>
+    n > 1
+      ? `These files couldn't be read: ${names}. Nothing was sent. Remove them or read them again.`
+      : `This file couldn't be read: ${names}. Nothing was sent. Remove it or read it again.`,
+  retryMissingFiles: (n, names) =>
+    `Can't retry without losing a document. Not found in your library: ${names}. Nothing was sent. Attach ${n > 1 ? "these files" : "this file"} again, then resend the message.`,
   maskFail: {
     remoteAuth: `Online masking is unavailable: an error on our side. ${NOT_MASKED} Try again later, or contact support.`,
     remoteNetwork: `Online masking is unreachable. ${NOT_MASKED} Check your connection, then try again.`,

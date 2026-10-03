@@ -82,7 +82,7 @@ export function Composer(p: ComposerProps) {
     if (palette.onKeyDown(e)) return;
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      // Never send while the redaction is still being computed (or a file redacted).
+      // Never send while a file is read or the redaction is still being computed (or a file redacted).
       if (!busy) onSubmit();
     }
   }
@@ -213,6 +213,7 @@ export function Composer(p: ComposerProps) {
         <SendButton
           isStreaming={p.isStreaming}
           busy={busy}
+          reading={sendState.reading}
           showDone={showDone}
           disabled={sendState.sendDisabled}
           onStop={p.onStop}
