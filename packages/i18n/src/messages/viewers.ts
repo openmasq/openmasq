@@ -36,6 +36,10 @@ export interface ViewersMessages {
   redactedToggle: string;
   /** The default storage caption, and the note line over the masked ⇄ original views. */
   storedLocally: string;
+  /** « Demander » on an opened file: idle, preparing, failed. */
+  askIdle: string;
+  askPending: string;
+  askFailed: string;
   maskedNote: (labels: string) => string;
   maskedNoteNoLabels: string;
   originalNote: string;
@@ -69,6 +73,8 @@ export interface ViewersMessages {
     hideHalo: string;
     imageZones: (pages: string) => string;
     imagePages: (count: number) => string;
+    /** Whole pages read from the image, and no outlined zone to explain. */
+    imageOnlyNote: (count: number) => string;
   };
   /** The preview's subtitle: what the redaction did to THIS document. */
   summary: {

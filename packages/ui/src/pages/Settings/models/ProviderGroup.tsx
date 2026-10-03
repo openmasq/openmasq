@@ -60,7 +60,7 @@ export function ProviderGroup({
   return (
     <div className="model-platform-group">
       <div className="model-platform-header">
-        <span className="cv-eyebrow">{providerGroupLabel(pid)}</span>
+        <span className="cv-eyebrow">{providerGroupLabel(pid, t)}</span>
         {(groupChip || keyed) && (
           <div className="model-platform-right">
             {groupChip && (

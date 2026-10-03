@@ -219,9 +219,7 @@ export function imageSourceNote(
     return t.viewers.pdf.imageZones(pages);
   }
   if (imageOnlyPages > 0) {
-    return imageOnlyPages > 1
-      ? `${imageOnlyPages} pages sont lues dans l'image : leur texte vient de la lecture des pixels, pas d'une couche texte.`
-      : "Cette page est lue dans l'image : son texte vient de la lecture des pixels, pas d'une couche texte.";
+    return t.viewers.pdf.imageOnlyNote(imageOnlyPages);
   }
   return null;
 }

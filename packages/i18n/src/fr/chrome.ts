@@ -126,11 +126,25 @@ export const composer = {
     collapse: "Replier",
   },
 
+  intent: {
+    skill: (name) => `Compétence : ${name}`,
+    routine: (name) => `Routine : ${name}`,
+    sentWith: "Envoyée avec votre message",
+    clickToEdit: " · cliquez le nom pour modifier",
+  },
+
+  utilityRisk: {
+    age: "La réponse dépend d'une date masquée : un âge ou un délai calculé peut être décalé.",
+    world: "Le modèle ne connaît pas l'entreprise sous son nom d'emprunt : il ne peut rien savoir d'elle.",
+    geo: "Distances et proximités sont calculées sur des lieux d'emprunt : le résultat ne veut rien dire.",
+  },
+
   longText: {
     openTip: "Ouvrir l'éditeur (texte long)",
     summary: (chars, lines) =>
       `Texte long — ${chars.toLocaleString("fr-FR")} caractères · ${lines.toLocaleString("fr-FR")} lignes`,
     edit: "Modifier",
+    undoTip: "Ctrl+Z ou ⌘Z pour annuler le collage",
   },
 
   modal: {
@@ -164,6 +178,17 @@ export const composer = {
     reRedact: "Remasquer",
     reRedactTip: "Remasquer (le masquage a été mis à jour)",
     remove: "Supprimer",
+    summaryFiles: (n) => `${n} fichier${n > 1 ? "s" : ""}`,
+    summaryReading: (n) => `${n} en lecture`,
+    summaryMasking: (n) => `${n} en masquage`,
+    summaryUnreadable: (n) => `${n} illisible${n > 1 ? "s" : ""}`,
+    removeAll: "Tout retirer",
+    removeAllConfirm: (n) => `Retirer les ${n} fichiers de ce message ?`,
+    extractFailed: "Lecture impossible",
+    rereadFailed: "Relecture impossible. Le texte lu avant est conservé.",
+    extractInterrupted: "Lecture interrompue. Déposez le fichier à nouveau.",
+    fileRefused: "Fichier refusé",
+    fileTooLarge: "Fichier trop volumineux",
   },
 
   drop: {

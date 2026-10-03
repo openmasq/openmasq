@@ -26,8 +26,6 @@ export interface UtilityRisk {
   kind: UtilityRiskKind;
   /** The engine categories the answer depends on (to target the values to reveal). */
   cats: readonly string[];
-  /** What the badge says — the LIMIT, never a promise. */
-  message: string;
 }
 
 /** Question pattern per risk. Multilingual FR/EN, WHOLE words, case-insensitive. */
@@ -48,12 +46,6 @@ const RISK_CATS: Record<UtilityRiskKind, readonly string[]> = {
   geo: ["location", "address"],
 };
 
-const MESSAGES: Record<UtilityRiskKind, string> = {
-  age: "La réponse dépend d'une date redacted — un âge ou un délai calculé peut être décalé.",
-  world: "Le modèle ne connaît pas l'entreprise sous son nom d'emprunt — il ne peut rien savoir d'elle.",
-  geo: "Distances et proximités sont calculées sur des lieux d'emprunt — le résultat ne veut rien dire.",
-};
-
 /**
  * The draft's utility risk, or null. `detected` is the output of the composer's TWO
  * detection layers (`Cat.cat` = the engine's fine category) — so exactly what
@@ -69,7 +61,7 @@ export function utilityRisk(text: string, detected: readonly Cat[]): UtilityRisk
     if (!PATTERNS[kind].test(text)) continue;
     const cats = RISK_CATS[kind].filter((c) => present.has(c));
     if (cats.length === 0) continue; // pattern with no redacted data → ordinary question
-    return { kind, cats, message: MESSAGES[kind] };
+    return { kind, cats };
   }
   return null;
 }

@@ -123,11 +123,25 @@ export const composer = {
     collapse: "Collapse",
   },
 
+  intent: {
+    skill: (name) => `Skill: ${name}`,
+    routine: (name) => `Routine: ${name}`,
+    sentWith: "Sent with your message",
+    clickToEdit: " · click the name to edit",
+  },
+
+  utilityRisk: {
+    age: "The answer depends on a masked date: a computed age or deadline may be off.",
+    world: "The model doesn't know the company under its stand-in name, so it knows nothing about it.",
+    geo: "Distances and nearby places are computed on stand-in locations, so the result means nothing.",
+  },
+
   longText: {
     openTip: "Open the editor (long text)",
     summary: (chars, lines) =>
       `Long text — ${chars.toLocaleString("en-US")} characters · ${lines.toLocaleString("en-US")} lines`,
     edit: "Edit",
+    undoTip: "Ctrl+Z or ⌘Z to undo the paste",
   },
 
   modal: {
@@ -161,6 +175,17 @@ export const composer = {
     reRedact: "Mask again",
     reRedactTip: "Mask again (masking was updated)",
     remove: "Remove",
+    summaryFiles: (n) => `${n} file${n === 1 ? "" : "s"}`,
+    summaryReading: (n) => `${n} reading`,
+    summaryMasking: (n) => `${n} masking`,
+    summaryUnreadable: (n) => `${n} unreadable`,
+    removeAll: "Remove all",
+    removeAllConfirm: (n) => `Remove all ${n} files from this message?`,
+    extractFailed: "Couldn't read the file",
+    rereadFailed: "Couldn't read it again. The text read earlier is kept.",
+    extractInterrupted: "Reading was interrupted. Drop the file again.",
+    fileRefused: "File refused",
+    fileTooLarge: "File too large",
   },
 
   drop: {

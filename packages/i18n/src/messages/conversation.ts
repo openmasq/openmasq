@@ -115,6 +115,13 @@ export interface ConversationMessages {
   actions: { copy: string; copied: string; regenerate: string; fork: string; feedback: string };
 
   /** What borders a bubble. */
+  /** The OS notification when a reply lands in the background: no content, no title. */
+  replyNotice: {
+    failed: string;
+    ready: (model: string) => string;
+    readyPlain: string;
+  };
+
   bubble: {
     openAttachment: (name: string) => string;
     plotTip: string;
@@ -134,6 +141,9 @@ export interface ConversationMessages {
      *  The placeholder says why; loading it is the user's own click. */
     imageWithheld: string;
     imageWithheldLoad: string;
+    /** A LONG user message is folded in the thread; the whole text is one click away. */
+    showAll: string;
+    showLess: string;
   };
 
   /** The tool-call trace card: one row per call, its status words. */
@@ -195,6 +205,8 @@ export interface ConversationMessages {
 
   /** When a tool went wrong — said with the gesture that repairs it. */
   struggle: {
+    /** Who struggled, when the model has no name to show. */
+    thisModel: string;
     /** The caption's tooltip — carries the tool's technical name, for support. */
     failedTip: (tool?: string) => string;
     unknownTool: (connector: string, action: string) => string;

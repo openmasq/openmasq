@@ -22,6 +22,7 @@ export const modals = {
     yourMessage: "Votre message",
     reply: "Réponse",
     swapped: (n) => `${n} remplacement${n === 1 ? "" : "s"}`,
+    showMore: (n) => `Afficher la suite (${n.toLocaleString("fr-FR")} caractères restants)`,
   },
 
   error: {
@@ -65,6 +66,7 @@ export const modals = {
   },
 
   feedback: {
+    sendFailed: "Votre avis n'a pas pu être envoyé. Réessayez dans un instant, votre message est conservé.",
     title: "Votre avis",
     sub: "Dites-nous ce qui marche et ce qui ne marche pas.",
     thanks: "Merci !",
@@ -127,6 +129,8 @@ export const modals = {
   },
 
   debug: {
+    emptyFiltered: "Aucune entrée ne correspond à ce filtre.",
+    empty: "Aucune entrée. Envoyez un message avec le mode débogage activé.",
     eyebrow: "DÉVELOPPEUR",
     title: "Journal de débogage",
     subLead: "Ce qui a réellement été envoyé et reçu pour ",

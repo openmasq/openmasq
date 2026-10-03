@@ -1,5 +1,6 @@
 import { useCallback } from "react";
 import { useHost } from "../../../host";
+import { useT } from "../../../i18n";
 import type { DeferredFile } from "../../../state/files/deferredFile";
 import { FileViewerModal } from "../../../containers/modals";
 import type { LoadedFile } from "../../../containers/modals/viewers/FileViewerBody";
@@ -32,6 +33,7 @@ export function LocalFilePanel({
   onAttach?: (file: DeferredFile) => void;
 }) {
   const host = useHost();
+  const t = useT();
   const fs = host.localFs;
   const mime = mimeOf(name);
 
@@ -62,7 +64,7 @@ export function LocalFilePanel({
       redactedView={false}
       onOpenExternal={fs ? () => void fs.open(path).catch(() => {}) : undefined}
       // Where it really lives — the user is looking at their own folder, not a copy.
-      storageLabel={folder ? `dans ${baseName(folder)}` : "sur votre disque"}
+      storageLabel={folder ? t.shell.folders.storedIn(baseName(folder)) : t.shell.folders.storedOnDisk}
       // READ-ONLY on purpose — no « Modifier » tab, for ANY format. In-app file
       // editing via the sidebar was removed with the CSV/Univer editors: the aperçu
       // shows the disk truth, « Ouvrir dans l'application » is where editing lives.

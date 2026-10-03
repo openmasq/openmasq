@@ -1,3 +1,4 @@
+import type { Messages } from "@openmasq/i18n";
 import type { Attachment } from "./Composer";
 import type { ExtractedFile } from "../../host";
 import type { DeferredFile } from "../../state/files/deferredFile";
@@ -13,6 +14,8 @@ export interface DeferredAttachDeps {
   countMatches(text: string): number;
   /** OCR log + start of redaction, once the content is there. */
   onExtracted(file: ExtractedFile, attachment: Attachment): void;
+  /** The copy a failed chip shows. */
+  t: Messages;
   /** A chip identifier. Injected by the TEST only, to be deterministic. */
   newCid?(): string;
 }
@@ -54,7 +57,7 @@ export async function stageDeferredFile(
     // leaves the bar indeterminate (the parameter is ignored harmlessly).
     file = await d.load((p) => deps.patch(ph.cid, extractProgressPatch(p), forConvId));
   } catch {
-    deps.patch(ph.cid, { extracting: false, error: "extraction échouée" }, forConvId);
+    deps.patch(ph.cid, { extracting: false, error: deps.t.composer.attachments.extractFailed }, forConvId);
     return;
   }
   const redactPreview = deps.countMatches(file.text);

@@ -1,5 +1,6 @@
 import { PROVIDERS, type ProviderId } from "@openmasq/llm";
 import { BRAND } from "@openmasq/branding";
+import type { Messages } from "@openmasq/i18n";
 import { subscriptionsSold } from "../../send/platformAccess";
 
 /**
@@ -31,12 +32,13 @@ export const PROVIDER_ORDER: ProviderId[] = [
 
 /** The group header a provider shows: Scaleway (the subscription-only platform) wears
  *  the brand name; everyone else uses the registry label. */
-export function providerGroupLabel(pid: ProviderId): string {
+export function providerGroupLabel(pid: ProviderId, t: Messages): string {
+  const m = t.modelPicker;
   if (pid === "scaleway") {
-    return subscriptionsSold() ? `${BRAND.name} — inclus dans l'abonnement` : `${BRAND.name} — inclus avec votre compte`;
+    return subscriptionsSold() ? m.groupIncludedSub(BRAND.name) : m.groupIncludedAccount(BRAND.name);
   }
-  if (pid === "claude-cli") return "Claude Code — votre abonnement Claude";
-  if (pid === "codex-cli") return "Codex — votre abonnement ChatGPT";
-  if (pid === "antigravity-cli") return "Antigravity — votre abonnement Google";
+  if (pid === "claude-cli") return m.groupClaudeCli;
+  if (pid === "codex-cli") return m.groupCodexCli;
+  if (pid === "antigravity-cli") return m.groupAntigravityCli;
   return PROVIDERS[pid].label;
 }

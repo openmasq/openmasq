@@ -3,14 +3,12 @@ import { AnimatePresence } from "framer-motion";
 import type { ProviderId } from "@openmasq/llm";
 import type { Message, RedactCategoryKey } from "../../types";
 import type { CreditBalance } from "../../host";
-import { RedactedText } from "./RedactedText";
-import { SkillTag } from "./SkillTag";
+import { UserMessage } from "./UserMessage";
 import { useHost } from "../../host";
-import { ModelLogo, ShieldIcon, ActivityIcon } from "../brand";
+import { ModelLogo } from "../brand";
 import { MessageActions } from "./MessageActions";
 import { Markdown } from "../markdown/Markdown";
 import type { ProposedSkill } from "../../suggestions/proposedSkill";
-import { AskTargetTag } from "./AskTargetTag";
 import { IntegrationSuggestions } from "../agent/IntegrationProposalCard";
 import { MAX_SUGGESTIONS } from "../../agent/suggestIntegrations";
 import { WriteConfirmCard } from "../../pages/ChatWorkspace/WriteConfirmCard";
@@ -29,7 +27,6 @@ import { MessageAttachments } from "./MessageAttachments";
 import { MessageImages, loadStoredImageFull } from "../media/MessageImage";
 import { findStoredFile } from "../../state/files/storedFiles";
 
-import { useT } from "../../i18n";
 interface Props {
   message: Message;
   /** Provider/name of the model this conversation talks to (for the gutter logo). */
@@ -159,7 +156,6 @@ function MessageBubbleImpl({
   highlight,
   linkPreviews,
 }: Props) {
-  const t = useT();
   const host = useHost();
   // Values suspended (revealed) for this conversation — marks render dimmed + click re-redacted.
   const revealedSet = useMemo(
@@ -168,7 +164,6 @@ function MessageBubbleImpl({
   );
   // ONE inline reveal per bubble (portal, flush to the mark) for BOTH user +
   // assistant marks — replaces the old floating tooltip.
-  const skillTag = message.competence ?? message.workflow;
   const rootRef = useRef<HTMLDivElement>(null);
   const hoverCard = onReveal ? (
     <RedactionInlineReveal
@@ -224,82 +219,40 @@ function MessageBubbleImpl({
     [attachmentConvIds, host.db],
   );
 
+  // ONE viewer for both turns (an attachment chip opens it).
+  const fileViewer = (
+    <AnimatePresence>
+      {viewFile && (
+        <FileViewerModal
+          id={viewFile.id}
+          name={viewFile.name}
+          mime={viewFile.mime}
+          redacted={viewFile.redacted}
+          vault={vault}
+          kinds={kinds}
+          onClose={() => setViewFile(null)}
+        />
+      )}
+    </AnimatePresence>
+  );
+
   if (message.role === "user") {
     return (
-      <div className={`msg user${highlight ? " msg-flash" : ""}`} data-mid={message.id} ref={rootRef}>
-        {hoverCard}
-        {message.plotTag === "graphique" && (
-          <div className="msg-tag tone-lime" title={t.conversation.bubble.plotTip}>
-            <ActivityIcon size={12} />
-            <span>{t.conversation.bubble.plot}</span>
-          </div>
-        )}
-        {message.askTarget && <AskTargetTag target={message.askTarget} />}
-        {/* ⚠️ `?? workflow`: the OLD tag, still around in history (`@openmasq/schema`). */}
-        {skillTag && <SkillTag competence={skillTag} vault={vault} kinds={kinds} />}
-        {!!message.content.trim() && (
-          <div className="msg-bubble" data-user-text>
-            <RedactedText
-              text={message.content}
-              vault={vault}
-              kinds={kinds}
-              revealed={revealedSet}
-            />
-          </div>
-        )}
-        <MessageImages
-          images={imageAttachments}
-          conversationIds={attachmentConvIds}
-          onOpen={(name) => void openAttachment(name)}
-        />
-        <MessageAttachments
-          attachments={fileAttachments}
-          onOpen={(name) => void openAttachment(name)}
-        />
-        <MemoryCaption message={message} />
-        {message.redactionFailed && (
-          <div className="shield-caption warn" title={t.conversation.bubble.redactionFailedTip}>
-            <ShieldIcon size={13} />
-            <span className="flex-min">{message.redactionFailed}</span>
-          </div>
-        )}
-        {/* ONE short, stable mention — « N protégés · voir » — that opens the transparency
-            comparison, where the per-category detail lives. The header menu and the
-            composer pill count the CONVERSATION; this counts the message. */}
-        {!!message.redactions &&
-          (onOpenTransparency ? (
-            <button
-              type="button"
-              className="shield-caption spade-corners is-button"
-              title={t.conversation.bubble.redactedTip}
-              onClick={onOpenTransparency}
-            >
-              <ShieldIcon size={13} />
-              <span>
-                {t.conversation.bubble.protectedCount(message.redactions)} ·{" "}
-                <span className="caption-see">{t.conversation.bubble.protectedSee}</span>
-              </span>
-            </button>
-          ) : (
-            <div className="shield-caption spade-corners" title={t.conversation.bubble.redactedTip}>
-              <ShieldIcon size={13} />
-              <span>{t.conversation.bubble.protectedCount(message.redactions)}</span>
-            </div>
-          ))}
-        <AnimatePresence>
-          {viewFile && (
-            <FileViewerModal
-              id={viewFile.id}
-              name={viewFile.name}
-              mime={viewFile.mime}
-              redacted={viewFile.redacted}
-              vault={vault}
-              kinds={kinds}
-              onClose={() => setViewFile(null)}
-            />
-          )}
-        </AnimatePresence>
-      </div>
+      <UserMessage
+        message={message}
+        highlight={highlight}
+        rootRef={rootRef}
+        hoverCard={hoverCard}
+        fileViewer={fileViewer}
+        vault={vault}
+        kinds={kinds}
+        revealed={revealedSet}
+        images={imageAttachments}
+        files={fileAttachments}
+        attachmentConvIds={attachmentConvIds}
+        onOpenAttachment={(name) => void openAttachment(name)}
+        onOpenTransparency={onOpenTransparency}
+      />
     );
   }
 
@@ -436,19 +389,7 @@ function MessageBubbleImpl({
             onFork={onFork}
           />
         )}
-        <AnimatePresence>
-          {viewFile && (
-            <FileViewerModal
-              id={viewFile.id}
-              name={viewFile.name}
-              mime={viewFile.mime}
-              redacted={viewFile.redacted}
-              vault={vault}
-              kinds={kinds}
-              onClose={() => setViewFile(null)}
-            />
-          )}
-        </AnimatePresence>
+        {fileViewer}
       </div>
     </div>
   );

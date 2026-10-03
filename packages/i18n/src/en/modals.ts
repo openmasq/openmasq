@@ -22,6 +22,7 @@ export const modals = {
     yourMessage: "Your message",
     reply: "Reply",
     swapped: (n) => `${n} replacement${n === 1 ? "" : "s"}`,
+    showMore: (n) => `Show more (${n.toLocaleString("en-US")} characters left)`,
   },
 
   error: {
@@ -63,6 +64,7 @@ export const modals = {
   },
 
   feedback: {
+    sendFailed: "Your feedback couldn't be sent. Try again in a moment, your message is kept.",
     title: "Your feedback",
     sub: "Tell us what works and what doesn't.",
     thanks: "Thank you!",
@@ -124,6 +126,8 @@ export const modals = {
   },
 
   debug: {
+    emptyFiltered: "No entry matches this filter.",
+    empty: "No entries yet. Send a message with debug mode on.",
     eyebrow: "DEVELOPER",
     title: "Debug log",
     subLead: "What was really sent and received for ",

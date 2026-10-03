@@ -1,3 +1,4 @@
+import type { Messages } from "@openmasq/i18n";
 import type { ExtractedFile, FilesHost, OcrProgress } from "../../host";
 import { extractProgressPatch } from "./attachmentPending";
 import type { Attachment } from "./Composer";
@@ -17,6 +18,8 @@ export interface OcrAllDeps {
   countMatches(text: string): number;
   /** Journal + re-redaction — the initial extraction's `onExtracted`. */
   onExtracted(file: ExtractedFile, attachment: Attachment): void;
+  /** The copy a failed chip shows. */
+  t: Messages;
 }
 
 export async function ocrAllAttachment(deps: OcrAllDeps, a: Attachment): Promise<void> {
@@ -31,7 +34,7 @@ export async function ocrAllAttachment(deps: OcrAllDeps, a: Attachment): Promise
     file = out[0];
   } catch {
     // Failure LEAVES the old text (10 pages read beats zero) and says so.
-    deps.patch(a.cid, { extracting: false, extractProgress: undefined, extractQueued: undefined, error: "relecture échouée" });
+    deps.patch(a.cid, { extracting: false, extractProgress: undefined, extractQueued: undefined, error: deps.t.composer.attachments.rereadFailed });
     return;
   }
   const redactPreview = deps.countMatches(file.text);

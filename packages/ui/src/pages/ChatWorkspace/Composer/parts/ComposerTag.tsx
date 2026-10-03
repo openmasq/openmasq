@@ -41,7 +41,8 @@ export function ComposerTag({ tag, onClearTag, onEditTag, t }: Props) {
             <Markdown content={tag.preview} />
           </div>
           <div className="composer-tag-pop-hint">
-            Envoyée avec votre message{onEditTag ? " · cliquez le nom pour éditer" : ""}
+            {t.composer.intent.sentWith}
+            {onEditTag ? t.composer.intent.clickToEdit : ""}
           </div>
         </div>
       )}

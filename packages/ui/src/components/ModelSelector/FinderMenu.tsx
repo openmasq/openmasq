@@ -173,7 +173,7 @@ export function FinderMenu({
                       familyKey={pid} resolves OpenAI→ChatGPT, Scaleway→Scaleway, OpenRouter
                       Zen→its mark, Local→Ollama…; OpenRouter falls back to a monogram). */}
                   <FamilyLogo familyKey={pid} label={PROVIDERS[pid].label} size={18} />
-                  <span className="model-finder-label">{providerGroupLabel(pid)}</span>
+                  <span className="model-finder-label">{providerGroupLabel(pid, t)}</span>
                   <span className="model-finder-count">{count}</span>
                 </button>
               );

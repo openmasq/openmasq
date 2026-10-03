@@ -1,14 +1,18 @@
 // @vitest-environment jsdom
 import { describe, it, expect, vi } from "vitest";
 import { mount } from "../../../testKit";
-import { useAskAction, ASK_LABEL, type AskState } from "./useAskAction";
+import { getMessages } from "@openmasq/i18n";
+import { useAskAction, askLabel, type AskState } from "./useAskAction";
+
+const fr = getMessages("fr");
+const STATES: AskState[] = ["idle", "pending", "failed"];
 
 /** The button reduced to what the hook makes of it — the viewer only adds the icon. */
 function AskButton({ onAsk }: { onAsk?: () => void | Promise<unknown> }) {
   const ask = useAskAction(onAsk);
   return (
     <button type="button" className="fv-ask" onClick={ask.run} disabled={ask.state === "pending"}>
-      {ASK_LABEL[ask.state]}
+      {askLabel(ask.state, fr)}
     </button>
   );
 }
@@ -16,7 +20,7 @@ function AskButton({ onAsk }: { onAsk?: () => void | Promise<unknown> }) {
 const label = (m: { find: (s: string) => HTMLElement }): string =>
   m.find(".fv-ask").textContent ?? "";
 const state = (m: { find: (s: string) => HTMLElement }): AskState =>
-  (Object.keys(ASK_LABEL) as AskState[]).find((k) => ASK_LABEL[k] === label(m))!;
+  STATES.find((k) => askLabel(k, fr) === label(m))!;
 
 describe("« Demander » — l'attente se voit, la panne se dit", () => {
   it("montre l'attente, puis revient au repos", async () => {

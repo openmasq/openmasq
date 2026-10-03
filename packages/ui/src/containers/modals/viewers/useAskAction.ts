@@ -1,13 +1,12 @@
+import type { Messages } from "@openmasq/i18n";
 import { useCallback, useRef, useState } from "react";
 
 /** What the « Demander » button shows at the present instant. */
 export type AskState = "idle" | "pending" | "failed";
 
-export const ASK_LABEL: Record<AskState, string> = {
-  idle: "Demander",
-  pending: "Préparation…",
-  failed: "Échec — réessayer",
-};
+export function askLabel(state: AskState, t: Messages): string {
+  return state === "pending" ? t.viewers.askPending : state === "failed" ? t.viewers.askFailed : t.viewers.askIdle;
+}
 
 /**
  * The wait for the « Demander » gesture, because it is REAL and it wasn't visible.

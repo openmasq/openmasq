@@ -45,7 +45,7 @@ export function ToolStruggleNotice({
   modelName?: string;
 }) {
   const t = useT();
-  const who = modelName ?? "Ce modèle";
+  const who = modelName ?? t.conversation.struggle.thisModel;
   const openConnector = useOpenConnector();
   // ⚠️ The connector comes from the tool's NAME (`connectorOfTool`), not from `struggle.server`
   // — that one used to hold « ipc » (the MCP client's transport id), hence « Ipc a refusé

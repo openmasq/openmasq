@@ -7,7 +7,8 @@ export function UtilityRiskNote({ util, t }: { util: ReturnType<typeof useUtilit
   if (!risk || util.dismissed === risk.kind) return null;
   return (
     <div className="utility-risk" role="note">
-      <span className="utility-risk-text">{risk.message}</span>
+      {/* What the badge says: the LIMIT, never a promise (`t.composer.utilityRisk`). */}
+      <span className="utility-risk-text">{t.composer.utilityRisk[risk.kind]}</span>
       <button type="button" className="utility-risk-keep" title={t.composer.keepInClearTip} onClick={() => util.keepInClear(risk)}>
         {t.conversation.mark.leaveClear(t.conversation.mark.scopeSend)}
       </button>

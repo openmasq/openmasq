@@ -21,6 +21,8 @@ export interface ModalsMessages {
     yourMessage: string;
     reply: string;
     swapped: (count: number) => string;
+    /** A long text shows its start; the rest comes in steps, never all at once. */
+    showMore: (remainingChars: number) => string;
   };
 
   /** A provider's or a tool's RAW message — never added to the conversation. */
@@ -72,6 +74,8 @@ export interface ModalsMessages {
    * settles back into the head of whoever writes.
    */
   feedback: {
+    /** The send failed with no message of its own. */
+    sendFailed: string;
     title: string;
     sub: string;
     thanks: string;
@@ -136,6 +140,8 @@ export interface ModalsMessages {
 
   /** The debug log — the REAL of this conversation. */
   debug: {
+    emptyFiltered: string;
+    empty: string;
     eyebrow: string;
     title: string;
     /** « Ce qui a réellement été envoyé et reçu pour CETTE conversation — N entrées. » */

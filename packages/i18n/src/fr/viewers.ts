@@ -28,6 +28,9 @@ export const viewers = {
   documentTab: "Document",
   redactedToggle: "Masqué",
   storedLocally: "stocké localement",
+  askIdle: "Demander",
+  askPending: "Préparation…",
+  askFailed: "Échec, réessayer",
   maskedNote: (labels) => `Données masquées : ${labels}`,
   maskedNoteNoLabels: "Ce que reçoit le modèle",
   originalNote: "Original : vos données réelles, jamais envoyées telles quelles",
@@ -60,6 +63,10 @@ export const viewers = {
     imageZones: (pages) =>
       `Les zones encadrées (logo, tampon, cachet) font partie de l'image. Elles ne sont pas dans le texte envoyé au modèle, donc pas surlignées.${pages}`,
     imagePages: (n) => ` ${n} page${n > 1 ? "s sont lues" : " est lue"} entièrement dans l'image.`,
+    imageOnlyNote: (n) =>
+      n > 1
+        ? `${n} pages sont lues dans l'image : leur texte vient de la lecture des pixels, pas d'une couche texte.`
+        : "Cette page est lue dans l'image : son texte vient de la lecture des pixels, pas d'une couche texte.",
   },
   summary: {
     redacting: "masquage en cours…",

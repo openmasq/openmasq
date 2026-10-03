@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, type KeyboardEvent, type RefObject } from "react";
 import { useT } from "../../i18n";
 import { FileIcon, RefreshIcon, ShieldIcon, XIcon } from "../../components/brand";
 import type { Item } from "./composerDetection";
@@ -93,20 +93,30 @@ export function DetectChips({
   );
 }
 
-/** The collapsed long-draft card (chars · lines · first line), click to edit. */
+/** The collapsed long-draft card (chars · lines · first line), click to edit. Right
+ *  after the paste that folded it, it holds the focus and Cmd/Ctrl+Z undoes the paste
+ *  (`Composer/useLongPasteUndo.ts`). */
 export function LongTextCard({
   stats,
   onOpen,
+  cardRef,
+  onKeyDown,
+  canUndo,
 }: {
   stats: ReturnType<typeof longTextStats>;
   onOpen: () => void;
+  cardRef?: RefObject<HTMLButtonElement>;
+  onKeyDown?: (e: KeyboardEvent) => void;
+  canUndo?: boolean;
 }) {
   const t = useT();
   return (
     <button
+      ref={cardRef}
       type="button"
       className="composer-longtext"
       onClick={onOpen}
+      onKeyDown={onKeyDown}
       title={t.composer.longText.openTip}
     >
       <FileIcon size={16} />
@@ -115,6 +125,7 @@ export function LongTextCard({
           {t.composer.longText.summary(stats.chars, stats.lines)}
         </span>
         {stats.preview && <span className="composer-longtext-preview">{stats.preview}</span>}
+        {canUndo && <span className="composer-longtext-preview">{t.composer.longText.undoTip}</span>}
       </span>
       <span className="composer-longtext-cta">{t.composer.longText.edit}</span>
     </button>

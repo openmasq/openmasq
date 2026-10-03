@@ -1,3 +1,4 @@
+import { getMessages } from "@openmasq/i18n";
 import { describe, expect, it } from "vitest";
 import type { ExtractedFile, OcrProgress } from "../../host";
 import type { Attachment } from "./Composer";
@@ -35,6 +36,7 @@ function harness() {
     extract: host.extract,
     update: (cid: string, p: Partial<Attachment>) => (patches[cid] ??= []).push(p),
     countMatches: () => 1,
+    t: getMessages("fr"),
     onRead: (f: ExtractedFile) => read_.push(f.name),
     warn: (m: string) => warnings.push(m),
   };
@@ -59,7 +61,7 @@ describe("extractPicked — chaque fichier choisi se termine de son côté", () 
     h.host.calls.get("/a")!.reject(new Error("illisible"));
     h.host.calls.get("/b")!.resolve([read("b.pdf")]);
     await tick();
-    expect(h.patches.c1.at(-1)).toMatchObject({ extracting: false, error: "extraction échouée" });
+    expect(h.patches.c1.at(-1)).toMatchObject({ extracting: false, error: "Lecture impossible" });
     expect(h.patches.c2.at(-1)).toMatchObject({ extracting: false });
     expect(h.patches.c2.at(-1)?.error).toBeUndefined();
     expect(h.warnings).toEqual(["illisible"]);
