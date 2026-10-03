@@ -63,6 +63,7 @@ export const EVENT_TIER = {
   update_check: "diagnostic",
   update_downloaded: "diagnostic",
   update_install: "diagnostic",
+  update_install_deferred: "diagnostic",
   update_installed: "diagnostic",
 } as const satisfies Record<EventName, EventTier>;
 

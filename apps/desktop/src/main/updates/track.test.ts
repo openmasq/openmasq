@@ -18,7 +18,7 @@ vi.mock("electron-updater", () => ({
 vi.mock("./config", () => ({ getConfig: () => config, updateConfig }));
 vi.mock("./log", () => ({ logUpdate: () => {} }));
 
-import { lastSessionEvents, setupUpdateTracking, trackUpdateInstall } from "./track";
+import { lastSessionEvents, setupUpdateTracking, trackInstallDeferred, trackUpdateInstall } from "./track";
 
 const base = { channel: "desktop-production", current: "0.3.3" };
 
@@ -74,5 +74,32 @@ describe("setupUpdateTracking", () => {
     trackUpdateInstall();
     expect(updateConfig).toHaveBeenCalledWith({ pendingInstall: "0.3.4" });
     expect(events).toEqual([]);
+  });
+});
+
+describe("one download, one event — whatever the periodic check re-emits", () => {
+  it("update_downloaded is reported once per version per session", () => {
+    const events: TrackEvent[] = [];
+    setupUpdateTracking((e) => events.push(e));
+    // electron-updater re-emits `update-downloaded` on every check once the file is cached.
+    for (let i = 0; i < 5; i++) handlers.get("update-downloaded")?.({ version: "0.9.1" });
+    handlers.get("update-downloaded")?.({ version: "0.9.2" });
+    expect(events.filter((e) => e.name === "update_downloaded").map((e) => "version" in e && e.version)).toEqual([
+      "0.9.1",
+      "0.9.2",
+    ]);
+  });
+
+  it("a deferral is reported once per version and reason", () => {
+    const events: TrackEvent[] = [];
+    setupUpdateTracking((e) => events.push(e));
+    handlers.get("update-downloaded")?.({ version: "0.9.3" });
+    trackInstallDeferred("in_use");
+    trackInstallDeferred("in_use");
+    trackInstallDeferred("busy_renderer");
+    expect(events.filter((e) => e.name === "update_install_deferred")).toEqual([
+      { name: "update_install_deferred", channel: "desktop-production", version: "0.9.3", reason: "in_use" },
+      { name: "update_install_deferred", channel: "desktop-production", version: "0.9.3", reason: "busy_renderer" },
+    ]);
   });
 });

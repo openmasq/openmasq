@@ -63,5 +63,6 @@ export const DESKTOP_EVENTS = {
   update_check: ["channel", "result", "found_version"],
   update_downloaded: ["channel", "version"],
   update_install: ["channel", "version"],
+  update_install_deferred: ["channel", "version", "reason"],
   update_installed: ["channel", "from", "to"],
 } as const;
