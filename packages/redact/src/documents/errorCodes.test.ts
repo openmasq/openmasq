@@ -78,6 +78,6 @@ describe("OCR markers are the caller's wording", () => {
     const ocrPdf = vi.fn(async () => "");
     const markers = { pageTooLarge: (n: number) => `skip ${n}` };
     await extractFromBytes(enc("%PDF"), { name: "s.pdf", ocrMarkers: markers }, deps({ ocrPdf }));
-    expect(ocrPdf).toHaveBeenCalledWith(expect.any(Uint8Array), undefined, undefined, markers);
+    expect(ocrPdf).toHaveBeenCalledWith(expect.any(Uint8Array), undefined, undefined, markers, undefined, undefined);
   });
 });

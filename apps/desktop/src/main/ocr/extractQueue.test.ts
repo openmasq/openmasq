@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { createExtractQueue } from "./extractQueue";
+import { createExtractQueue, ExtractCancelled } from "./extractQueue";
 
 /** A job the test finishes by hand. */
 const deferred = () => {
@@ -92,5 +92,57 @@ describe("createExtractQueue — one document at a time, in order", () => {
     await tick();
     expect(started).toEqual([0, 1]);
     jobs.forEach((j) => j.resolve(""));
+  });
+});
+
+describe("createExtractQueue — a removed file leaves the line", () => {
+  it("a cancelled WAITING job never starts, and the files behind it move up", async () => {
+    const q = createExtractQueue(1);
+    const jobs = [deferred(), deferred(), deferred()];
+    const ctl = new AbortController();
+    const started: number[] = [];
+    const ahead: number[][] = [[], [], []];
+    const runs = jobs.map((j, i) =>
+      q.run(() => (started.push(i), j.promise), (n) => ahead[i].push(n), i === 1 ? ctl.signal : undefined),
+    );
+    await tick();
+    ctl.abort();
+    await expect(runs[1]).rejects.toBeInstanceOf(ExtractCancelled);
+    // The 3rd had 2 ahead; with the 2nd gone it has 1 — not « 2 avant » for a file no longer shown.
+    expect(ahead[2]).toEqual([2, 1]);
+    jobs[0].resolve("a");
+    await runs[0];
+    await tick();
+    expect(started).toEqual([0, 2]);
+    jobs[2].resolve("c");
+    expect(await runs[2]).toBe("c");
+  });
+
+  it("a cancelled RUNNING job is answered at once and gets the signal; the next starts once its work settles", async () => {
+    const q = createExtractQueue(1);
+    const a = deferred();
+    const ctl = new AbortController();
+    let seen: AbortSignal | undefined;
+    const started: string[] = [];
+    const ra = q.run((s) => ((seen = s), started.push("a"), a.promise), undefined, ctl.signal);
+    const rb = q.run(async () => (started.push("b"), "B"));
+    await tick();
+    ctl.abort();
+    await expect(ra).rejects.toBeInstanceOf(ExtractCancelled);
+    expect(seen?.aborted).toBe(true);
+    // The slot is still held: a job that cannot be interrupted never runs beside the next.
+    await tick();
+    expect(started).toEqual(["a"]);
+    a.reject(new Error("killed"));
+    expect(await rb).toBe("B");
+  });
+
+  it("an already-aborted signal never queues", async () => {
+    const q = createExtractQueue(1);
+    const ctl = new AbortController();
+    ctl.abort();
+    let ran = false;
+    await expect(q.run(async () => ((ran = true), ""), undefined, ctl.signal)).rejects.toBeInstanceOf(ExtractCancelled);
+    expect(ran).toBe(false);
   });
 });

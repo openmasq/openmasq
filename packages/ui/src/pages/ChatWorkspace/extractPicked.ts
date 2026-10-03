@@ -3,6 +3,7 @@ import type { ExtractedFile, FilesHost } from "../../host";
 import type { Attachment } from "./Composer";
 import { extractProgressPatch, isProgressFor } from "./attachmentPending";
 import type { ReadingSession } from "./readingMask";
+import { isExtractionCancelled } from "../../state/files/extractCancel";
 
 export interface ExtractPickedDeps {
   extract: FilesHost["extract"];
@@ -33,8 +34,11 @@ export function extractPicked(placeholders: Attachment[], deps: ExtractPickedDep
           deps.update(ph.cid, extractProgressPatch({ done: prog.page, total: prog.pages, queued: prog.queued }));
         },
         reading?.push,
+        ph.cid, // the job id: removing the chip cancels THIS read (`useAttachments.ts`)
       )
       .then(([f]) => {
+        // Removed while read: the chip is gone, nothing to fill, nothing to mask.
+        if (isExtractionCancelled(ph.cid)) return reading?.end(false);
         // Only a whole text is content: a failed or empty read drops what it streamed.
         reading?.end(!!f && !f.error && !!f.text.trim());
         if (!f) {
@@ -54,6 +58,7 @@ export function extractPicked(placeholders: Attachment[], deps: ExtractPickedDep
       })
       .catch((e) => {
         reading?.end(false);
+        if (isExtractionCancelled(ph.cid)) return; // the user's cancel, not a failure to report
         deps.update(ph.cid, { extracting: false, extractQueued: undefined, error: deps.t.composer.attachments.extractFailed });
         deps.warn(e instanceof Error ? e.message : String(e));
       });

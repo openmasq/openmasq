@@ -3,6 +3,7 @@ import { describe, it, expect, vi } from "vitest";
 import { stageDeferredFile, placeholderFor, type DeferredAttachDeps } from "./deferredAttach";
 import type { Attachment } from "./Composer";
 import type { ExtractedFile } from "../../host";
+import { cancelExtraction } from "../../state/files/extractCancel";
 
 const FILE: ExtractedFile = { name: "scan.pdf", kind: "pdf", text: "Paul Morvanz", chars: 12 };
 
@@ -138,5 +139,24 @@ describe("stageDeferredFile — l'aperçu de lecture (`readingMask.ts`)", () => 
       deps({ reading: () => partial }),
     );
     expect(partial.end).toHaveBeenCalledWith(false);
+  });
+});
+
+describe("stageDeferredFile — un chip retiré pendant la lecture", () => {
+  it("donne son cid à la source, et ignore l'issue d'une lecture annulée", async () => {
+    const d = deps({ newCid: () => "gone1" });
+    let job: string | undefined;
+    let reject!: (e: Error) => void;
+    const p = stageDeferredFile(
+      { name: "scan.pdf", load: (_p, _s, _b, j) => ((job = j), new Promise<ExtractedFile>((_, rej) => (reject = rej))) },
+      "conv1",
+      d,
+    );
+    expect(job).toBe("gone1");
+    cancelExtraction("gone1");
+    reject(new Error("extraction annulée"));
+    await p;
+    expect(d.patches).toEqual([]); // no error chip for a file the user removed
+    expect(d.onExtracted).not.toHaveBeenCalled();
   });
 });

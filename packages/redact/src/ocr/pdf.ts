@@ -9,6 +9,8 @@ import { rasterScale } from "../documents/safety/guard";
 import type { OcrLayerPage } from "../documents/layers/geometry";
 import { ocrImageLayout } from "./ocr";
 import { pdfRenderFactories } from "./pdfFactories";
+import { ocrCanvasRegions, regionBoxes } from "./pdfRegions";
+import type { PageFractionRect } from "../documents/layers/imageRegions";
 
 const DEFAULT_LANG = OCR_LANGS.join("+");
 
@@ -81,6 +83,9 @@ export async function ocrPdf(
   /** Each page read, with the text it adds to the result, in page order — display only,
    *  swallowed on error like `onProgress`. Pages the caller excluded are not reported. */
   onPage?: (n: number, total: number, text: string) => void,
+  /** Per page, the image rectangles to read instead of the whole page (`./pdfRegions.ts`);
+   *  a page absent is read whole. Only ever handed for a page whose text layer is proved. */
+  regions?: Readonly<Record<number, readonly PageFractionRect[]>>,
 ): Promise<{ text: string; meta: OcrMeta; layout: OcrLayerPage[] }> {
   const t0 = Date.now();
   ensureWithResolvers();
@@ -132,6 +137,7 @@ export async function ocrPdf(
   // the pixel ceiling clamped it (below) — hence the `width`/`height` carried per page.
   const layout: OcrLayerPage[] = [];
   let done = 0;
+  let regionPages = 0;
   for (let i = 1; i <= total; i++) {
     if (toRead && !toRead.has(i)) {
       // Not rasterised: its text layer holds it all. A placeholder keeps `layout` indexed
@@ -163,10 +169,21 @@ export async function ocrPdf(
     const canvas = canvasMod.createCanvas(Math.ceil(viewport.width), Math.ceil(viewport.height));
     const ctx = canvas.getContext("2d");
     await page.render({ canvasContext: ctx, viewport }).promise;
-    const png: Uint8Array = await canvas.encode("png");
     // Route each page through the same docTR/Tesseract router; collect the engine(s) used.
-    const { text, words, meta } = await ocrImageLayout(png, lang);
-    engines.add(meta.engine);
+    // A page whose only unproved content is images reads just those (same raster space).
+    const boxes = regions?.[i]?.length ? regionBoxes(regions[i], canvas.width, canvas.height) : null;
+    let text: string;
+    let words: OcrLayerPage["words"];
+    if (boxes?.length) {
+      const res = await ocrCanvasRegions(canvasMod, canvas, boxes, lang);
+      ({ text, words } = res);
+      res.engines.forEach((e) => engines.add(e));
+      regionPages++;
+    } else {
+      const res = await ocrImageLayout(await canvas.encode("png"), lang);
+      ({ text, words } = res);
+      engines.add(res.meta.engine);
+    }
     out.push(text);
     layout.push({ text, words, width: canvas.width, height: canvas.height });
     pageRead(i, text);
@@ -179,7 +196,7 @@ export async function ocrPdf(
   // `pages`: how many were rasterised; `pagesTotal`: the document's page count.
   return {
     text: out.join(PAGE_BREAK).trim(),
-    meta: { engine, ms: Date.now() - t0, pages, pagesTotal: total },
+    meta: { engine, ms: Date.now() - t0, pages, pagesTotal: total, ...(regionPages ? { regionPages } : {}) },
     layout,
   };
 }

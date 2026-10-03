@@ -1,18 +1,10 @@
 import { join } from "node:path";
 import { app, utilityProcess, type UtilityProcess } from "electron";
-import {
-  extractText as extractTextInProcess,
-  extractBytes as extractBytesInProcess,
-  type ExtractedFile,
-  type ExtractStreamEvent,
-} from "@openmasq/redact/documents";
+import type { ExtractedFile, ExtractStreamEvent } from "@openmasq/redact/documents";
 import { reportMainError } from "../runtime/errorReport";
 import { isAppQuitting } from "../runtime/quitState";
 import { BRAND } from "@openmasq/branding";
 import { extractTimeoutMs } from "@openmasq/redact";
-import { createExtractQueue } from "./extractQueue";
-import { mainLocale, mainMessages } from "../i18n";
-import { localizeExtracted } from "./localizeExtracted";
 import { checkStreamMessage } from "./extractStream";
 
 /**
@@ -156,13 +148,15 @@ function armIdleEviction(): void {
   }, IDLE_MS);
 }
 
-async function run(
+export async function runInWorker(
   req:
     | { kind: "path"; path: string; locale: string }
     | { kind: "bytes"; data: string; name: string; mime?: string; locale: string },
   onProgress?: (done: number, pages: number) => void,
   onStream?: (ev: ExtractStreamEvent) => void,
+  signal?: AbortSignal,
 ): Promise<ExtractedFile> {
+  if (signal?.aborted) throw new Error("extraction annulée");
   if (idleTimer) {
     clearTimeout(idleTimer);
     idleTimer = null;
@@ -192,6 +186,10 @@ async function run(
         },
       };
       pending.set(id, entry);
+      // The user removed the file: concurrency is 1, so this job is the worker's only one —
+      // killing it is the only way to stop a page mid-OCR. Detached first (`killChild`), so
+      // the exit is « expected », never reported as a death; the next job forks afresh.
+      signal?.addEventListener("abort", () => pending.has(id) && killChild(), { once: true });
       try {
         c.postMessage({ id, ...req, stream: !!onStream });
       } catch (err) {
@@ -206,24 +204,18 @@ async function run(
   }
 }
 
-/** Has the in-process fallback taken over for this request? See the header. Both paths
- *  come back with their failure worded in the user's language (`localizeExtracted.ts`). */
-async function withFallback(
+/** The worker path, or the in-process fallback for the session (see the header). A
+ *  CANCELLED job never falls back: its worker was killed on purpose, not « never born ». */
+export async function workerOrInProcess(
   viaWorker: () => Promise<ExtractedFile>,
   inProcess: () => Promise<ExtractedFile>,
-): Promise<ExtractedFile> {
-  const file = await workerOrInProcess(viaWorker, inProcess);
-  return localizeExtracted(file, mainMessages().documents);
-}
-
-async function workerOrInProcess(
-  viaWorker: () => Promise<ExtractedFile>,
-  inProcess: () => Promise<ExtractedFile>,
+  signal?: AbortSignal,
 ): Promise<ExtractedFile> {
   if (workerBroken) return inProcess();
   try {
     return await viaWorker();
   } catch (e) {
+    if (signal?.aborted) throw e;
     // A worker that has NEVER served = it isn't getting born here (missing bundle, spawn
     // refused): in-process for the session, said once. A worker that has already served
     // then dies, on the other hand, stays on the worker path (the next fork tries again).
@@ -234,52 +226,4 @@ async function workerOrInProcess(
     }
     throw e;
   }
-}
-
-/** ONE document at a time, worker and in-process fallback alike (why: `extractQueue.ts`).
- *  The worker timeout is armed inside `run`, so it counts from the job's START. */
-const queue = createExtractQueue(1);
-
-/** Extraction of a file on disk — worker first, in-process as session fallback. */
-export function extractTextInWorker(
-  filePath: string,
-  onOcrProgress?: (done: number, pages: number) => void,
-  /** While queued: how many files are ahead (re-told as the line moves). */
-  onWaiting?: (ahead: number) => void,
-  /** The preview stream (pages, thumbnails) — worker path only: the in-process fallback
-   *  streams nothing, and the preview then keeps its plain loader. */
-  onStream?: (ev: ExtractStreamEvent) => void,
-): Promise<ExtractedFile> {
-  // The markers OCR writes into the text speak the user's language: the worker gets the
-  // locale (it rebuilds them from the catalogue), the in-process path the markers.
-  const locale = mainLocale();
-  const markers = mainMessages().documents.markers;
-  return queue.run(
-    () =>
-      withFallback(
-        () => run({ kind: "path", path: filePath, locale }, onOcrProgress, onStream),
-        () => extractTextInProcess(filePath, onOcrProgress, markers),
-      ),
-    onWaiting,
-  );
-}
-
-/** Extraction of in-memory bytes (base64 on the IPC caller side) — same contract. */
-export function extractBytesInWorker(
-  bytes: Uint8Array,
-  name: string,
-  mime?: string,
-  onOcrProgress?: (done: number, pages: number) => void,
-  onWaiting?: (ahead: number) => void,
-  onStream?: (ev: ExtractStreamEvent) => void,
-): Promise<ExtractedFile> {
-  const locale = mainLocale();
-  const markers = mainMessages().documents.markers;
-  return queue.run(() => {
-    const data = Buffer.from(bytes).toString("base64");
-    return withFallback(
-      () => run({ kind: "bytes", data, name, mime, locale }, onOcrProgress, onStream),
-      () => extractBytesInProcess(bytes, name, mime, onOcrProgress, markers),
-    );
-  }, onWaiting);
 }

@@ -1,5 +1,6 @@
 import type { ExtractStreamEvent } from "@openmasq/redact/documents";
 import { extractBytes, extractPaths, type ExtractStreamFn } from "../files";
+import { cancelExtractJob, registerExtractJob } from "../ocr/extractCancel";
 import { assertReadAllowed } from "./readGate";
 import { handle, arr, obj, optional, str } from "./handle";
 import { progressTo } from "./registerFilesIpc";
@@ -12,28 +13,37 @@ import { progressTo } from "./registerFilesIpc";
  */
 export function registerExtractIpc(): void {
   // 2nd argument: the caller's stream id (`streamTo`) — absent ⇒ no preview stream.
-  handle("files:extract", [arr, optional(str)], (e, raw, req) => {
+  // 3rd: the caller's job id (its chip), what `files:extract-cancel` names — absent ⇒ uncancellable.
+  handle("files:extract", [arr, optional(str), optional(str)], async (e, raw, req, job) => {
     const paths = raw as string[];
     paths.forEach(assertReadAllowed); // gate before the (Node-only) extractor reads them
-    return extractPaths(paths, progressTo(e.sender), streamTo(e.sender, req));
+    const { signal, done } = registerExtractJob(e.sender.id, job);
+    try {
+      return await extractPaths(paths, progressTo(e.sender), streamTo(e.sender, req), signal);
+    } finally {
+      done();
+    }
   });
+  // The user removed a file still being read: stop ITS extraction (waiting ⇒ leaves the queue,
+  // running ⇒ the worker is killed). Scoped to the SENDER: a renderer names only its own jobs
+  // (`extractCancel.ts`); an unknown id is a no-op. Stopping work grants nothing.
+  handle("files:extract-cancel", [str], (e, job) => cancelExtractJob(e.sender.id, job));
   // The BYTES route (base64 — drop, and a file produced by an MCP tool). No
   // read guard: the bytes are already at the renderer, nothing new is granted.
   handle("files:extract-bytes", [obj], async (e, raw) => {
-    const p = raw as { data: string; name?: string; mime?: string; req?: unknown };
+    const p = raw as { data: string; name?: string; mime?: string; req?: unknown; job?: unknown };
     // Uint8Array COPY, never the Buffer (pdf.js rejects it, and Buffer.slice is a view).
     const bytes = new Uint8Array(Buffer.from(p.data, "base64"));
     const name = p.name ?? "file";
     const progress = progressTo(e.sender);
     const stream = streamTo(e.sender, p.req);
-    const out = await extractBytes(
-      bytes,
-      name,
-      p.mime,
-      (d, t) => progress(name, d, t),
-      (ahead) => progress(name, 0, 0, { queued: ahead }),
-      stream ? (ev) => stream(ev, { name }) : undefined,
-    );
+    const { signal, done } = registerExtractJob(e.sender.id, p.job);
+    const out = await extractBytes(bytes, name, p.mime, {
+      onOcrProgress: (d, t) => progress(name, d, t),
+      onWaiting: (ahead) => progress(name, 0, 0, { queued: ahead }),
+      onStream: stream ? (ev) => stream(ev, { name }) : undefined,
+      signal,
+    }).finally(done);
     // A guard REFUSAL (`blocked`: zip bomb, oversized image, unreadable dimensions) is not
     // a parser failure: the renderer must learn it is a refusal so it does NOT keep the
     // bytes for a preview (audit 04/09 — a refused archive was still attached and unzipped

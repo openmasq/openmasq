@@ -3,13 +3,13 @@ import { SUPPORTED_EXTENSIONS, type ExtractedFile, type ExtractStreamEvent } fro
 import {
   extractTextInWorker as extractText,
   extractBytesInWorker as extractBytes,
-} from "./ocr/extractClient";
+} from "./ocr/extractJobs";
 import { mainMessages } from "./i18n";
 
 /**
  * File attachments for the desktop app. The text extraction + document
  * redaction lives in @openmasq/redact (shared, unit-tested) — run in the
- * extraction WORKER (`ocr/extractClient.ts`): in main, the per-page loop of a
+ * extraction WORKER (`ocr/extractJobs.ts`): in main, the per-page loop of a
  * scan blocked IPC in ~1 s bursts (measured 13/08). This module owns the
  * Electron-specific bits — the native file picker and batch extraction over chosen
  * paths — and the worker inherits the best-effort contract (a failure returns `{error}`).
@@ -55,14 +55,19 @@ export type ExtractStreamFn = (ev: ExtractStreamEvent, file: { name: string; pat
 
 /** Extract + tag each result with its source `path` and `mime`, so the renderer
  *  can later store the original file (hidden-mode redaction). */
-async function extractTagged(path: string, onProgress?: OcrProgressFn, onStream?: ExtractStreamFn): Promise<ExtractedFile> {
+async function extractTagged(
+  path: string,
+  onProgress?: OcrProgressFn,
+  onStream?: ExtractStreamFn,
+  signal?: AbortSignal,
+): Promise<ExtractedFile> {
   const name = path.split(/[\\/]/).pop() || path;
-  const extracted = await extractText(
-    path,
-    (done, pages) => onProgress?.(name, done, pages, { path }),
-    (ahead) => onProgress?.(name, 0, 0, { queued: ahead, path }),
-    onStream ? (ev) => onStream(ev, { name, path }) : undefined,
-  );
+  const extracted = await extractText(path, {
+    onOcrProgress: (done, pages) => onProgress?.(name, done, pages, { path }),
+    onWaiting: (ahead) => onProgress?.(name, 0, 0, { queued: ahead, path }),
+    onStream: onStream ? (ev) => onStream(ev, { name, path }) : undefined,
+    signal,
+  });
   return { ...extracted, path, mime: mimeFor(path) };
 }
 
@@ -93,8 +98,10 @@ export async function extractPaths(
   paths: string[],
   onProgress?: OcrProgressFn,
   onStream?: ExtractStreamFn,
+  /** The user removed the file (`ocr/extractCancel.ts`) — absent ⇒ uncancellable. */
+  signal?: AbortSignal,
 ): Promise<ExtractedFile[]> {
-  return Promise.all(paths.map((p) => extractTagged(p, onProgress, onStream)));
+  return Promise.all(paths.map((p) => extractTagged(p, onProgress, onStream, signal)));
 }
 
 /** Just the native picker — returns the chosen paths (+ basenames) WITHOUT extracting.
