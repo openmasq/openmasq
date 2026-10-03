@@ -10,6 +10,8 @@ vi.mock("./handle", () => ({
     registered.set(ch, fn),
   arr: "arr",
   obj: "obj",
+  str: "str",
+  optional: (c: unknown) => c,
 }));
 vi.mock("./readGate", () => ({ assertReadAllowed: () => {} }));
 vi.mock("./registerFilesIpc", () => ({ progressTo: () => () => {} }));
@@ -19,7 +21,7 @@ vi.mock("../files", () => ({
   extractPaths: vi.fn(),
 }));
 
-import { registerExtractIpc } from "./filesExtractIpc";
+import { registerExtractIpc, streamTo } from "./filesExtractIpc";
 
 const call = (out: Record<string, unknown>) => {
   extractBytes.mockResolvedValueOnce(out);
@@ -56,5 +58,39 @@ describe("files:extract-bytes — refusal vs failure", () => {
       text: "ok",
       words: [{ w: 1 }],
     });
+  });
+});
+
+describe("files:extract-stream — the preview stream goes to the caller, tagged with ITS id", () => {
+  const sender = () => {
+    const sent: [string, unknown][] = [];
+    return { sent, wc: { isDestroyed: () => false, send: (ch: string, p: unknown) => sent.push([ch, p]) } as never };
+  };
+
+  it("no id, or a malformed one ⇒ no stream at all", () => {
+    const { wc } = sender();
+    expect(streamTo(wc, undefined)).toBeUndefined();
+    expect(streamTo(wc, "short")).toBeUndefined();
+    expect(streamTo(wc, "../../etc/passwd-and-more")).toBeUndefined();
+    expect(streamTo(wc, 42)).toBeUndefined();
+  });
+
+  it("an event is sent to that webContents only, with the id the preload filters on", () => {
+    const { sent, wc } = sender();
+    const s = streamTo(wc, "abcDEF123_-x")!;
+    s({ page: { n: 1, total: 2, read: true, text: "p1" } }, { name: "a.pdf", path: "/x/a.pdf" });
+    expect(sent).toEqual([
+      ["files:extract-stream", { req: "abcDEF123_-x", name: "a.pdf", path: "/x/a.pdf", page: { n: 1, total: 2, read: true, text: "p1" } }],
+    ]);
+  });
+
+  it("the bytes route forwards the id to the extraction only when it is well-formed", async () => {
+    const fn = registered.get("files:extract-bytes")!;
+    extractBytes.mockResolvedValueOnce({ text: "ok" });
+    await fn({ sender: { isDestroyed: () => false, send: () => {} } }, { data: "eA==", name: "f.pdf", req: "bad id!" });
+    expect(extractBytes.mock.calls.at(-1)?.[5]).toBeUndefined();
+    extractBytes.mockResolvedValueOnce({ text: "ok" });
+    await fn({ sender: { isDestroyed: () => false, send: () => {} } }, { data: "eA==", name: "f.pdf", req: "goodid12345" });
+    expect(typeof extractBytes.mock.calls.at(-1)?.[5]).toBe("function");
   });
 });

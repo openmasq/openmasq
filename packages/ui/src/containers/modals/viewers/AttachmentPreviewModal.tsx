@@ -59,6 +59,7 @@ export function AttachmentPreviewModal({
   onDeleteRedaction,
   inactiveCategories,
   convCategories,
+  continued,
 }: {
   file: {
     name: string;
@@ -87,6 +88,8 @@ export function AttachmentPreviewModal({
     ocrText?: string;
   };
   onClose: () => void;
+  /** It takes over from the pending frame of the same file: no opening animation (`ModalShell`). */
+  continued?: boolean;
   /** Re-run this file's redaction (with the current engine). When present, the
    *  Redacted tab shows a "Reredact" button — useful after switching engine. */
   onRerun?: () => void;
@@ -399,7 +402,7 @@ export function AttachmentPreviewModal({
   const rerunBar = !!(onRerun && stale);
 
   return (
-    <ModalShell onClose={onClose} width="min(1200px, 94vw)" maxHeight="90vh">
+    <ModalShell onClose={onClose} width="min(1200px, 94vw)" maxHeight="90vh" continued={continued}>
       <div className="fv-corner">
         {views.length > 1 && <DocViewMenu views={views} view={view} onPick={setView} />}
         <button type="button" className="fv-close fv-close-x" onClick={onClose} title={t.viewers.closeTip} aria-label={t.viewers.close}>

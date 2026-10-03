@@ -65,7 +65,7 @@ export function redactAttachment(a: Attachment, deps: RedactAttachmentDeps): voi
   if (plan.kind === "refuse") {
     const why = deps.t.composer.attachments.tooLongToMask(plan.pages);
     // No map at all: a stale one from a shorter read must not ride a send either.
-    patch({ redacting: false, maskQueued: undefined, redactProgress: undefined, maskedSoFar: undefined, replacements: undefined, redactEngineSig: undefined, redactError: why });
+    patch({ redacting: false, maskQueued: undefined, redactProgress: undefined, maskedSoFar: undefined, reading: undefined, replacements: undefined, redactEngineSig: undefined, redactError: why });
     pushDebug({ type: "error", scope: "document-redaction", message: `${a.name}: ${a.text.length} chars — ${why}` }, deps.convId);
     return;
   }
@@ -118,7 +118,8 @@ function runMasking(a: Attachment, deps: RedactAttachmentDeps, queueSignal: Abor
     // documents from the same folder gave two fakes to the same person (`attachmentVault.ts`).
     vault: convId ? attachmentVault(convId, convVault) : undefined,
   });
-  const ended = { redacting: false, redactProgress: undefined, maskedSoFar: undefined } as const;
+  // `reading`: the provisional preview of the read (`readingPreview.ts`) ends with the run.
+  const ended = { redacting: false, redactProgress: undefined, maskedSoFar: undefined, reading: undefined } as const;
   return raceRedactionWork(work, { signal: ctrl.signal })
     .then(({ replacements, modelError }) => {
       clearTimeout(timer);

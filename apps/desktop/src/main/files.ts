@@ -1,5 +1,5 @@
 import { dialog, BrowserWindow } from "electron";
-import { SUPPORTED_EXTENSIONS, type ExtractedFile } from "@openmasq/redact/documents";
+import { SUPPORTED_EXTENSIONS, type ExtractedFile, type ExtractStreamEvent } from "@openmasq/redact/documents";
 import {
   extractTextInWorker as extractText,
   extractBytesInWorker as extractBytes,
@@ -50,14 +50,18 @@ export type OcrProgressFn = (
   meta?: { queued?: number; path?: string },
 ) => void;
 
+/** The preview stream of one file being read (pages, thumbnails — `ocr/extractStream.ts`). */
+export type ExtractStreamFn = (ev: ExtractStreamEvent, file: { name: string; path?: string }) => void;
+
 /** Extract + tag each result with its source `path` and `mime`, so the renderer
  *  can later store the original file (hidden-mode redaction). */
-async function extractTagged(path: string, onProgress?: OcrProgressFn): Promise<ExtractedFile> {
+async function extractTagged(path: string, onProgress?: OcrProgressFn, onStream?: ExtractStreamFn): Promise<ExtractedFile> {
   const name = path.split(/[\\/]/).pop() || path;
   const extracted = await extractText(
     path,
     (done, pages) => onProgress?.(name, done, pages, { path }),
     (ahead) => onProgress?.(name, 0, 0, { queued: ahead, path }),
+    onStream ? (ev) => onStream(ev, { name, path }) : undefined,
   );
   return { ...extracted, path, mime: mimeFor(path) };
 }
@@ -88,8 +92,9 @@ export async function pickAndExtract(onProgress?: OcrProgressFn): Promise<Extrac
 export async function extractPaths(
   paths: string[],
   onProgress?: OcrProgressFn,
+  onStream?: ExtractStreamFn,
 ): Promise<ExtractedFile[]> {
-  return Promise.all(paths.map((p) => extractTagged(p, onProgress)));
+  return Promise.all(paths.map((p) => extractTagged(p, onProgress, onStream)));
 }
 
 /** Just the native picker — returns the chosen paths (+ basenames) WITHOUT extracting.

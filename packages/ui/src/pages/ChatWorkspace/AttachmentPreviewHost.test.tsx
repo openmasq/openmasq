@@ -1,7 +1,10 @@
 // @vitest-environment jsdom
+import type { ReactNode } from "react";
 import { beforeAll, describe, expect, it } from "vitest";
 import { getMessages } from "@openmasq/i18n";
 import { mount } from "../../testKit";
+import { ChatStoreProvider } from "../../containers/providers/chatStore";
+import type { ChatStore } from "../../state/store";
 import { AttachmentPreviewHost } from "./AttachmentPreviewHost";
 import type { Attachment } from "./Composer";
 
@@ -84,6 +87,75 @@ describe("AttachmentPreviewHost — l'aperçu PROGRESSIF pendant le masquage", (
     const shown = document.body.textContent ?? "";
     expect(shown).toContain(fr.viewers.pendingNote);
     expect(shown).not.toContain("Emprunteur");
+    await m.unmount();
+  });
+});
+
+describe("AttachmentPreviewHost — un PDF ouvert pendant sa LECTURE", () => {
+  const thumb = "data:image/png;base64,iVBORw0KGgo=";
+  const reading = (masked?: boolean): Partial<Attachment> => ({
+    text: "",
+    extracting: true,
+    extractProgress: { done: 1, total: 3 },
+    reading: {
+      total: 3,
+      thumbs: [thumb, thumb, undefined],
+      read: [true],
+      ...(masked
+        ? {
+            masked: {
+              pages: 1,
+              chunks: [
+                { text: "Emprunteur : " },
+                { text: "Luc Martin", mark: { real: "Jean Dupont", tone: "violet", kind: "name", revealed: false } },
+              ],
+            },
+          }
+        : {}),
+    },
+  });
+
+  it("les pages floutées, chacune avec son état", async () => {
+    const m = await mount(<AttachmentPreviewHost preview={scan(reading())} onClose={() => {}} />);
+    expect(document.body.querySelectorAll("img.fv-reading-thumb")).toHaveLength(2);
+    expect(document.body.querySelector('[aria-label="' + fr.viewers.reading.pageRead(1) + '"]')).not.toBeNull();
+    expect(document.body.querySelector('[aria-label="' + fr.viewers.reading.pageCurrent(2) + '"]')).not.toBeNull();
+    expect(document.body.querySelector('[aria-label="' + fr.viewers.reading.pageWaiting(3) + '"]')).not.toBeNull();
+    expect(document.body.textContent).toContain(fr.viewers.reading.note);
+    await m.unmount();
+  });
+
+  it("les pages lues s'affichent MASQUÉES, provisoires — jamais la valeur réelle", async () => {
+    const m = await mount(<AttachmentPreviewHost preview={scan(reading(true))} onClose={() => {}} />);
+    const shown = document.body.textContent ?? "";
+    expect(shown).toContain("Luc Martin");
+    expect(shown).toContain(fr.viewers.partialNote);
+    expect(shown).toContain(fr.viewers.reading.maskedPages(1, 3));
+    expect(document.body.innerHTML).not.toContain("Jean Dupont");
+    await m.unmount();
+  });
+});
+
+describe("AttachmentPreviewHost — la fin de la lecture ne referme pas la fenêtre", () => {
+  const store = { settings: {} } as unknown as ChatStore;
+  const wrap = (children: ReactNode) => <ChatStoreProvider store={store}>{children}</ChatStoreProvider>;
+
+  it("l'aperçu réel prend la suite du cadre d'attente sans animation d'ouverture", async () => {
+    const m = await mount(
+      <AttachmentPreviewHost preview={scan({ extracting: true, extractProgress: { done: 2, total: 12 } })} onClose={() => {}} />,
+      { wrap },
+    );
+    expect(document.body.querySelector(".modal-sweep")).not.toBeNull();
+    await m.rerender(<AttachmentPreviewHost preview={scan({ replacements: [] })} onClose={() => {}} />);
+    // The real preview is on screen, and it did not play the opening sweep again.
+    expect(document.body.textContent ?? "").not.toContain(fr.viewers.pendingNote);
+    expect(document.body.querySelector(".modal-sweep")).toBeNull();
+    await m.unmount();
+  });
+
+  it("ouvert d'emblée sur un document prêt, il s'ouvre normalement", async () => {
+    const m = await mount(<AttachmentPreviewHost preview={scan({ replacements: [] })} onClose={() => {}} />, { wrap });
+    expect(document.body.querySelector(".modal-sweep")).not.toBeNull();
     await m.unmount();
   });
 });

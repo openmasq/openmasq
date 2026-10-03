@@ -21,7 +21,7 @@ const DEFAULT_LANG = OCR_LANGS.join("+");
  * undefined". Turn that (and a missing package) into a CLEAR, actionable error so
  * the caller degrades gracefully (the document still attaches, just without OCR).
  */
-async function loadCanvas(): Promise<any> {
+export async function loadCanvas(): Promise<any> {
   let mod: any;
   try {
     // The crash happens HERE, at module eval: a version-mismatched binary loads
@@ -46,7 +46,7 @@ async function loadCanvas(): Promise<any> {
 }
 
 /** pdfjs v4 uses Promise.withResolvers (Node 22+); polyfill for Node 20. */
-function ensureWithResolvers(): void {
+export function ensureWithResolvers(): void {
   const P = Promise as unknown as { withResolvers?: unknown };
   if (typeof P.withResolvers === "function") return;
   P.withResolvers = <T>() => {
@@ -78,6 +78,9 @@ export async function ocrPdf(
   onProgress?: (done: number, pages: number) => void,
   /** The skipped-page markers' wording (the caller's language). */
   markers: OcrMarkers = DEFAULT_OCR_MARKERS,
+  /** Each page read, with the text it adds to the result, in page order — display only,
+   *  swallowed on error like `onProgress`. Pages the caller excluded are not reported. */
+  onPage?: (n: number, total: number, text: string) => void,
 ): Promise<{ text: string; meta: OcrMeta; layout: OcrLayerPage[] }> {
   const t0 = Date.now();
   ensureWithResolvers();
@@ -114,6 +117,13 @@ export async function ocrPdf(
       /* progress is display only — it never interrupts the OCR */
     }
   };
+  const pageRead = (n: number, text: string) => {
+    try {
+      onPage?.(n, total, text);
+    } catch {
+      /* display only */
+    }
+  };
   tick(0);
   const out: string[] = [];
   const engines = new Set<string>();
@@ -144,6 +154,7 @@ export async function ocrPdf(
       // A placeholder entry, not a skipped one: `layout` is read BY PAGE INDEX
       // (`../documents/geometry.ts`), so dropping it would shift every later page.
       layout.push({ text: marker, words: [], width: 0, height: 0 });
+      pageRead(i, marker);
       tick(++done);
       page.cleanup?.();
       continue;
@@ -158,6 +169,7 @@ export async function ocrPdf(
     engines.add(meta.engine);
     out.push(text);
     layout.push({ text, words, width: canvas.width, height: canvas.height });
+    pageRead(i, text);
     tick(++done);
     page.cleanup?.();
   }

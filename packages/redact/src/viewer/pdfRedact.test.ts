@@ -41,7 +41,7 @@ function callSites(): { file: string; options: string }[] {
 }
 
 describe("pdf.js — les options de sécurité de CHAQUE getDocument", () => {
-  it("trouve bien les cinq points d'appel (sinon le test passerait à vide)", () => {
+  it("trouve bien les six points d'appel (sinon le test passerait à vide)", () => {
     const files = callSites()
       .map((c) => c.file)
       .sort();
@@ -50,6 +50,7 @@ describe("pdf.js — les options de sécurité de CHAQUE getDocument", () => {
       "documents/browser.ts",
       "documents/node.ts",
       "ocr/pdf.ts",
+      "ocr/pdfThumbs.ts",
       "viewer/pdfRedact.ts",
     ]);
   });

@@ -11,6 +11,13 @@
  *    conversation deleted (`cancelGroup`, from `dropScratch`). Re-queuing on a visit is what
  *    restarts a masking from 0 %: callers check `has` first.
  *
+ * A second, IDLE lane (`enqueueIdle`) carries the work nobody waits on — the provisional
+ * preview of a file still being READ (`pages/ChatWorkspace/readingPreview.ts`). It runs only
+ * when no real run runs or waits, never alongside one (same single detector), and a real run
+ * enqueued meanwhile PREEMPTS it: the idle job is aborted and re-queued at the head of its
+ * lane, to run again from scratch once the real line is empty. An idle job never counts as
+ * « ahead » of a real one.
+ *
  * Jobs are OPAQUE (a key, a group, a `run`): this module never reads an attachment.
  * Pinned by `maskQueue.test.ts`, `redactAttachment.test.ts`, `ChatView/useAttachments.test.tsx`.
  */
@@ -27,6 +34,9 @@ interface QueuedJob {
 
 export interface JobQueue {
   enqueue(job: QueuedJob): void;
+  /** Lowest priority: runs only when the real line is empty, preempted by any real job. Its
+   *  `run` must tolerate being aborted and called again. */
+  enqueueIdle(job: QueuedJob): void;
   /** Abort the running job or drop the waiting one with this key. */
   cancel(key: string): void;
   /** Cancel every job of a group (its conversation was deleted). */
@@ -37,17 +47,28 @@ export interface JobQueue {
 
 export function createJobQueue(): JobQueue {
   const waiting: QueuedJob[] = [];
-  let running: { job: QueuedJob; ctrl: AbortController } | null = null;
+  const idle: QueuedJob[] = [];
+  let running: { job: QueuedJob; ctrl: AbortController; idle: boolean } | null = null;
 
   const announce = () => {
-    const offset = running ? 1 : 0;
+    const offset = running && !running.idle ? 1 : 0;
     waiting.forEach((j, i) => j.onQueued?.(i + offset));
   };
 
+  /** A real job arrived: the idle one running steps aside, first in its lane again. */
+  const preemptIdle = () => {
+    if (!running?.idle) return;
+    running.ctrl.abort();
+    idle.unshift(running.job);
+    running = null;
+  };
+
   const pump = () => {
-    if (running || !waiting.length) return;
-    const job = waiting.shift()!;
-    const slot = { job, ctrl: new AbortController() };
+    if (running) return;
+    const isIdle = !waiting.length;
+    const job = isIdle ? idle.shift() : waiting.shift();
+    if (!job) return;
+    const slot = { job, ctrl: new AbortController(), idle: isIdle };
     running = slot;
     announce();
     let done: Promise<void>;
@@ -68,8 +89,10 @@ export function createJobQueue(): JobQueue {
   };
 
   const cancel = (key: string) => {
-    const i = waiting.findIndex((j) => j.key === key);
-    if (i >= 0) waiting.splice(i, 1);
+    for (const line of [waiting, idle]) {
+      const i = line.findIndex((j) => j.key === key);
+      if (i >= 0) line.splice(i, 1);
+    }
     if (running?.job.key === key) {
       running.ctrl.abort();
       running = null;
@@ -82,15 +105,21 @@ export function createJobQueue(): JobQueue {
     enqueue(job) {
       cancel(job.key);
       waiting.push(job);
+      preemptIdle();
       pump();
       announce();
     },
+    enqueueIdle(job) {
+      cancel(job.key);
+      idle.push(job);
+      pump();
+    },
     cancel,
     cancelGroup(group) {
-      const keys = [...waiting, ...(running ? [running.job] : [])].filter((j) => j.group === group).map((j) => j.key);
+      const keys = [...waiting, ...idle, ...(running ? [running.job] : [])].filter((j) => j.group === group).map((j) => j.key);
       for (const k of keys) cancel(k);
     },
-    has: (key) => running?.job.key === key || waiting.some((j) => j.key === key),
+    has: (key) => running?.job.key === key || waiting.some((j) => j.key === key) || idle.some((j) => j.key === key),
   };
 }
 

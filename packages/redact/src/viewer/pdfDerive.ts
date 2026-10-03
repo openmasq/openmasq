@@ -126,7 +126,7 @@ export async function pdfReplacements(
 /** A value longer than this never occurs — so an OVERLAP this wide guarantees any PII
  *  value straddling a chunk boundary is wholly contained in the NEXT chunk (fixes the
  *  mid-value hard-split leak). */
-const CHUNK_OVERLAP = 256;
+export const CHUNK_OVERLAP = 256;
 
 /** Split text into ≤~6k-char chunks, capped at ~25 chunks so a huge doc gets bigger
  *  chunks instead of hundreds of round-trips. **Never cuts mid-value:** each cut is

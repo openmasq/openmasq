@@ -149,13 +149,13 @@ const host: Host = {
   files: {
     pick: () => window.openmasq.files.pick(),
     pickPaths: () => window.openmasq.files.pickPaths(),
-    extract: (paths, onProgress) => window.openmasq.files.extract(paths, onProgress),
+    extract: (paths, onProgress, onStream) => window.openmasq.files.extract(paths, onProgress, onStream),
     // The re-read of a record read under the former 10-page OCR cap: the SAME whole-document
     // extraction (there is no cap left to lift), so no channel of its own.
     extractAll: (paths, onProgress) => window.openmasq.files.extract(paths, onProgress),
     read: (path) => window.openmasq.files.read(path),
-    extractBytes: (data, name, mime, onProgress) =>
-      window.openmasq.files.extractBytes(data, name, mime, onProgress),
+    extractBytes: (data, name, mime, onProgress, onStream) =>
+      window.openmasq.files.extractBytes(data, name, mime, onProgress, onStream),
     // Absent ⇒ no picker hint.
     pathForFile: window.openmasq.files.pathForFile
       ? (file: File) => window.openmasq.files.pathForFile!(file)

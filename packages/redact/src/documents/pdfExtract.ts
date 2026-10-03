@@ -7,6 +7,8 @@ import { isUnreadableLayer } from "./layers/readable";
 import { approxPages, CHARS_PER_PAGE, maskPlan } from "./safety/maskBudget";
 import type { OcrMarkers } from "./ocrMarkers";
 import type { OcrLayerPage } from "./layers/geometry";
+import { PAGE_BREAK } from "./pageBreak";
+import type { ExtractStream } from "./pageStream";
 import { PDF_MIN_CHARS_PER_PAGE, PDF_TEXT_MIN, type ExtractDeps, type ExtractedFile, type OcrMeta } from "./core";
 
 /** The characters masking will face, estimated BEFORE OCR. A document whose OCR may become
@@ -18,13 +20,20 @@ function pdfMaskEstimate(p: { layerChars: number; ocrPages: number; scanLike: bo
 
 export async function extractPdf(
   bytes: Uint8Array,
-  o: { name: string; mime?: string; onOcrProgress?: (done: number, pages: number) => void; ocrMarkers?: OcrMarkers },
+  o: {
+    name: string;
+    mime?: string;
+    onOcrProgress?: (done: number, pages: number) => void;
+    ocrMarkers?: OcrMarkers;
+    stream?: ExtractStream;
+  },
   deps: ExtractDeps,
 ): Promise<ExtractedFile> {
   const { name, mime } = o;
   const tText = Date.now();
   const raw = await deps.pdfText(bytes);
-  let text = (typeof raw === "string" ? raw : raw.text).trim();
+  const rawLayer = typeof raw === "string" ? raw : raw.text;
+  let text = rawLayer.trim();
   const pages = Math.max(1, typeof raw === "string" ? 1 : (raw.pages ?? 1));
   const imagePages = typeof raw === "string" ? 0 : (raw.imagePages ?? 0);
   // Text-layer geometry: kept only while the text layer IS the primary `text` (an
@@ -64,8 +73,12 @@ export async function extractPdf(
   // OCR PROMOTES to the primary `text` for a scan, else it is the additive `ocrText` layer.
   let ocrText: string | undefined;
   let ocr: OcrMeta | undefined = { engine: "pdf-text", ms: layerMs };
+  // The PREVIEW stream (`pageStream.ts`), only for a read long enough to watch: what each page
+  // will FINALLY say is known now for a digital PDF (its layer stays primary), after its OCR
+  // for a scan with no layer, and only at the end for a sparse scan — which streams none.
+  const streamed = startStream(o.stream, deps, bytes, { rawLayer, digital: !scanLike, noLayer, only });
   try {
-    const res = await deps.ocrPdf(bytes, o.onOcrProgress, only, o.ocrMarkers);
+    const res = await deps.ocrPdf(bytes, o.onOcrProgress, only, o.ocrMarkers, ...streamed.ocrPageArg);
     const ocrRaw = (typeof res === "string" ? res : res.text).trim();
     const ocrMeta = typeof res === "string" ? undefined : res.meta;
     ocrPages = typeof res === "string" ? undefined : res.layout;
@@ -90,6 +103,7 @@ export async function extractPdf(
       }
     }
   } catch (e) {
+    streamed.stop();
     // FAIL CLOSED, scan or not: the pages OCR had to read may carry what the layer misses
     // (a stamp, a filled field, a scanned insert). The file is in error — retried, never
     // sent with part of its pages. No text rides out: a thin layer is not the document.
@@ -101,5 +115,49 @@ export async function extractPdf(
           error: `${ocrCount} page(s) du PDF non lue(s) — ${c.message}`,
         };
   }
+  streamed.stop();
   return { name, kind: "pdf", text, chars: text.length, mime, ocrText, ocr, textPages, ocrPages };
+}
+
+/**
+ * Start the preview stream of a PDF about to be OCR'd: thumbnails of every page (until
+ * `stop`), the layer pages of a DIGITAL PDF at once (final: the layer stays primary), and the
+ * argument that makes `ocrPdf` report each page it reads — with its text only for a scan with
+ * no layer, where OCR IS the final text. The page text is `rawLayer` split on `PAGE_BREAK`,
+ * the very join the final `text` is trimmed from, so the stream never disagrees with it.
+ */
+function startStream(
+  stream: ExtractStream | undefined,
+  deps: ExtractDeps,
+  bytes: Uint8Array,
+  p: { rawLayer: string; digital: boolean; noLayer: boolean; only?: readonly number[] },
+): { ocrPageArg: [] | [(n: number, total: number, text: string) => void]; stop: () => void } {
+  const stopper = new AbortController();
+  const stop = () => stopper.abort();
+  if (!stream) return { ocrPageArg: [], stop };
+  const onThumb = stream.onThumb;
+  if (onThumb && deps.pdfThumbnails) {
+    // Display only: a thumbnail failure never touches the read.
+    deps.pdfThumbnails(bytes, onThumb, stopper.signal).catch(() => undefined);
+  }
+  const onPage = stream.onPage;
+  if (!onPage) return { ocrPageArg: [], stop };
+  const emit = (ev: Parameters<typeof onPage>[0]) => {
+    try {
+      onPage(ev);
+    } catch {
+      /* display only */
+    }
+  };
+  if (p.digital) {
+    const pages = p.rawLayer.split(PAGE_BREAK);
+    // A page OCR still reads is not READ yet, but its final text (the layer's) is known.
+    const pending = p.only ? new Set(p.only) : null;
+    pages.forEach((text, i) => emit({ n: i + 1, total: pages.length, read: !!pending && !pending.has(i + 1), text }));
+  }
+  const withText = p.noLayer;
+  return {
+    ocrPageArg: [(n, total, text) => emit({ n, total, read: true, ...(withText ? { text } : {}) })],
+    stop,
+  };
 }

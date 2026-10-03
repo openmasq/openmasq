@@ -1,6 +1,7 @@
 import type { ExtractedFile } from "../../../host";
 import type { PdfReplacement } from "../../../containers/modals/viewers/pdf/pdfReplacements";
 import type { PartialMask } from "@openmasq/redact/pdf-redact";
+import type { DocChunk } from "../../../containers/modals/viewers/doc/docSearch";
 import type { UnavailableReason } from "../../../send/modelAvailability";
 import type { Conversation, Skill } from "../../../types";
 import type { RedactLevelApi } from "../ComposerRedactMenu";
@@ -26,6 +27,9 @@ export type Attachment = ExtractedFile & {
   /** What is masked SO FAR, for the progressive preview ONLY (`PartialMask`): never a map
    *  the send or the library may use — that is `replacements`, set when the run ends. */
   maskedSoFar?: PartialMask;
+  /** A PDF still being READ: its pages (unreadable thumbnails, read or not) and the part
+   *  already read, MASKED — PREVIEW ONLY (`readingPreview.ts`), never a map the send uses. */
+  reading?: ReadingState;
   redactError?: string;
   /** Engine + model that produced `replacements`; a later engine switch offers a re-run. */
   redactEngineSig?: string;
@@ -34,6 +38,19 @@ export type Attachment = ExtractedFile & {
   /** REAL values the user chose to un-redact in the preview → SENT IN CLEAR. */
   reveal?: string[];
 };
+
+/** The provisional preview of a PDF being read (`readingPreview.ts`). */
+export interface ReadingState {
+  /** Pages the document has (0 until the first event). */
+  total: number;
+  /** Per page (index = page − 1): a `data:image/png` thumbnail too small to read. */
+  thumbs: (string | undefined)[];
+  /** Per page: its reading is over. */
+  read: (boolean | undefined)[];
+  /** The read prefix, masked and already cut for display (`partialMaskedChunks`), and how
+   *  many pages it spans. Absent: nothing masked yet, or the preview's masking failed. */
+  masked?: { chunks: DocChunk[]; pages: number };
+}
 
 /** The chip above the input for the intent staged on the next send. */
 export interface ComposerTagInfo {

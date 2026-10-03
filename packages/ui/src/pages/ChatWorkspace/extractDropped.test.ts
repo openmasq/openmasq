@@ -23,7 +23,7 @@ describe("extractDroppedFiles — bytes, never a path", () => {
     // picker may do. The bytes are already the renderer's, so nothing new is granted.
     const d = deps();
     const out = await extractDroppedFiles([f("contrat.pdf", "application/pdf")], d);
-    expect(d.extractBytes).toHaveBeenCalledWith("BASE64", "contrat.pdf", "application/pdf", undefined);
+    expect(d.extractBytes).toHaveBeenCalledWith("BASE64", "contrat.pdf", "application/pdf", undefined, undefined);
     expect(out).toEqual([
       {
         name: "contrat.pdf",
@@ -59,7 +59,7 @@ describe("extractDroppedFiles — bytes, never a path", () => {
   it("passes NO mime rather than an empty one when the drop carries none", async () => {
     const d = deps();
     await extractDroppedFiles([f("notes")], d);
-    expect(d.extractBytes).toHaveBeenCalledWith("BASE64", "notes", undefined, undefined);
+    expect(d.extractBytes).toHaveBeenCalledWith("BASE64", "notes", undefined, undefined, undefined);
   });
 
   it("fails PER FILE — a corrupt one must not throw away the others", async () => {

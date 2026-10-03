@@ -97,6 +97,7 @@
 @import "./styles/viewers/fileViewer.css";
 @import "./styles/viewers/fileViewerSearch.css";
 @import "./styles/viewers/skeleton.css";
+@import "./styles/viewers/reading.css";
 @import "./styles/viewers/spreadsheet.css";
 @import "./styles/viewers/prose.css";
 @import "./styles/viewers/pdfViewer.css";

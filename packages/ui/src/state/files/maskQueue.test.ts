@@ -90,3 +90,49 @@ describe("maskQueue — one masking run at a time, first in first out", () => {
     expect(b.rec.started).toBe(true);
   });
 });
+
+describe("maskQueue — the IDLE lane (a preview nobody waits on)", () => {
+  it("an idle job runs only when the real line is empty, and never counts as ahead", async () => {
+    const q = createJobQueue();
+    const real = job("real");
+    const idle = job("idle");
+    q.enqueue(real.job);
+    q.enqueueIdle(idle.job);
+    expect(idle.rec.started).toBe(false);
+    real.rec.end();
+    await tick();
+    expect(idle.rec.started).toBe(true);
+    const next = job("next");
+    q.enqueue(next.job);
+    // Preempted: the real job starts at once, told nothing is ahead of it.
+    expect(idle.rec.aborted).toBe(true);
+    expect(next.rec.started).toBe(true);
+    expect(next.rec.ahead).toEqual([]);
+  });
+
+  it("a preempted idle job runs AGAIN once the real line is empty", async () => {
+    const q = createJobQueue();
+    let runs = 0;
+    q.enqueueIdle({ key: "idle", group: "g", run: () => new Promise<void>(() => void runs++) });
+    expect(runs).toBe(1);
+    const real = job("real");
+    q.enqueue(real.job);
+    expect(q.has("idle")).toBe(true);
+    real.rec.end();
+    await tick();
+    expect(runs).toBe(2);
+  });
+
+  it("cancel and cancelGroup reach the idle lane too", async () => {
+    const q = createJobQueue();
+    const real = job("real", "conv");
+    const idle = job("idle", "conv");
+    q.enqueue(real.job);
+    q.enqueueIdle(idle.job);
+    q.cancelGroup("conv");
+    expect(q.has("idle")).toBe(false);
+    expect(q.has("real")).toBe(false);
+    await tick();
+    expect(idle.rec.started).toBe(false);
+  });
+});

@@ -1,0 +1,95 @@
+/* The pages of a PDF being READ (`containers/modals/viewers/reading/ReadingPages.tsx`): each a
+   blurred thumbnail with its state. The picture is already illegible at the source (≤ 40 px
+   wide, `@openmasq/redact` `THUMB_MAX_WIDTH_PX`); the blur only turns the upscale into a page.
+   Every colour is a token that both themes define; the badge ink is `--ink-on-brand`, the
+   token that inverts with `--brand` (rule 12). */
+.fv-reading {
+  padding: 4px 0 12px;
+}
+.fv-reading-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
+  gap: 12px;
+}
+.fv-reading-page {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.fv-reading-sheet {
+  width: 100%;
+  aspect-ratio: 1 / 1.414;
+  overflow: hidden;
+  border-radius: 4px;
+  border: 1px solid var(--border-subtle);
+  background: var(--surface-sunken);
+}
+.fv-reading-thumb {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: blur(2px);
+  transform: scale(1.08); /* the blur's soft edge stays inside the sheet */
+  user-select: none;
+  pointer-events: none;
+}
+.fv-reading-page.is-waiting .fv-reading-sheet {
+  opacity: 0.55;
+}
+.fv-reading-page.is-current .fv-reading-sheet {
+  border-color: var(--brand);
+}
+.fv-reading-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--surface-card);
+  border: 1px solid var(--border-default);
+  color: var(--text-muted);
+}
+.fv-reading-page.is-read .fv-reading-badge {
+  background: var(--brand);
+  border-color: var(--brand);
+  color: var(--ink-on-brand);
+}
+.fv-reading-spin {
+  width: 10px;
+  height: 10px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  border: 2px solid var(--border-strong);
+  border-top-color: var(--brand);
+  animation: om-spin-kf 0.7s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .fv-reading-spin {
+    animation-duration: 1.6s;
+  }
+}
+.fv-reading-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--border-strong);
+}
+.fv-reading-num {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.fv-reading-more {
+  padding-top: 8px;
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}

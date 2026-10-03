@@ -24,6 +24,9 @@ export { SUPPORTED_EXTENSIONS, OCR_LANGS, OCR_TRAINEDDATA_SHA256, hybridLayerTex
 // Send-cut → grid-row mapping for the preview grid (same parser/serializer as extraction).
 export { delimitedGrid, annotatedCutRow } from "./core";
 export type { ExtractedFile, RedactedDocument, TextLayerPage, OcrLayerPage, LayerGeometry, OcrMarkers } from "./core";
+// The preview stream of a PDF being read: the renderer assembles the pages as the extractor joins them.
+export { streamedPrefix, STREAM_MAX_PAGES, THUMB_MAX_WIDTH_PX } from "./core";
+export type { ExtractStreamEvent, PageEvent } from "./core";
 export type { DocumentErrorCode, DocumentErrorParams } from "./core";
 
 export interface BrowserExtractConfig {

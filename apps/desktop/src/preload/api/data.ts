@@ -1,4 +1,5 @@
 import { ipcRenderer, webUtils } from "electron";
+import { withExtractStream, type ExtractStream } from "./extractStream";
 
 /** Turso/libSQL persistence (no-ops when not configured). */
 export const db = {
@@ -109,21 +110,32 @@ export const files = {
   extract: (
     paths: string[],
     onProgress?: (p: OcrProgress) => void,
+    // The preview stream of a PDF being read (pages, unreadable thumbnails).
+    onStream?: (ev: ExtractStream) => void,
   ): Promise<
     { name: string; kind: string; text: string; chars: number; error?: string }[]
-  > => withOcrProgress(() => ipcRenderer.invoke("files:extract", paths), onProgress),
+  > =>
+    withExtractStream(
+      (req) => withOcrProgress(() => ipcRenderer.invoke("files:extract", paths, req), onProgress),
+      onStream,
+    ),
   read: (path: string): Promise<Uint8Array> => ipcRenderer.invoke("files:read", path),
   extractBytes: (
     data: string,
     name: string,
     mime?: string,
     onProgress?: (p: OcrProgress) => void,
+    onStream?: (ev: ExtractStream) => void,
     // Structured (text + words/ocrText/ocr/ocrPages): the bytes route renders the same
     // richness as the path route — a drop's preview depends on it.
   ): Promise<{ text: string } & Record<string, unknown>> =>
-    withOcrProgress(
-      () => ipcRenderer.invoke("files:extract-bytes", { data, name, mime }),
-      onProgress,
+    withExtractStream(
+      (req) =>
+        withOcrProgress(
+          () => ipcRenderer.invoke("files:extract-bytes", { data, name, mime, ...(req ? { req } : {}) }),
+          onProgress,
+        ),
+      onStream,
     ),
   redactAndSave: (p: unknown): Promise<Record<string, string>> =>
     ipcRenderer.invoke("files:redact-and-save", p),

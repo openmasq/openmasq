@@ -5,6 +5,9 @@
 // matching file is actually extracted, and never reach the renderer bundle.
 import { open } from "node:fs/promises";
 import { ocrImage, ocrImageLayout, ocrPdf } from "../ocr";
+// Not through the `../ocr` barrel: the thumbnails are preview-only, and the suites that mock
+// the OCR engines must not have to stub them.
+import { pdfThumbnails } from "../ocr/pdfThumbs";
 import type { RedactOptions } from "../index";
 import {
   baseName,
@@ -14,6 +17,7 @@ import {
   PAGE_BREAK,
   type ExtractDeps,
   type ExtractedFile,
+  type ExtractStream,
   type OcrMarkers,
   type RedactedDocument,
 } from "./core";
@@ -25,6 +29,11 @@ import { pageNeedsOcr } from "./layers/ocrSkip";
 
 export { SUPPORTED_EXTENSIONS, OCR_LANGS, OCR_TRAINEDDATA_SHA256, hybridLayerText, spatialFieldLines, DEFAULT_OCR_MARKERS } from "./core";
 export type { ExtractedFile, RedactedDocument, TextLayerPage, OcrLayerPage, LayerGeometry, OcrMarkers } from "./core";
+export {
+  isSafeThumbnail, pngSize, streamedPrefix, thumbScale, THUMB_MAX_BYTES, THUMB_MAX_HEIGHT_PX, THUMB_MAX_WIDTH_PX,
+  STREAM_MAX_PAGES, STREAM_PAGE_MAX_CHARS,
+} from "./core";
+export type { ExtractStream, ExtractStreamEvent, PageEvent, ThumbEvent } from "./core";
 export type { DocumentErrorCode, DocumentErrorParams } from "./core";
 
 /** pdfjs v4 uses Promise.withResolvers (Node 22+); polyfill for Node 20. */
@@ -194,7 +203,8 @@ const nodeDeps: ExtractDeps = {
   ocrImageLayout: (bytes) => ocrImageLayout(bytes),
   // `undefined` for lang: `ocrPdf`'s default applies; the pages to read, the progress
   // callback and the markers' wording are threaded.
-  ocrPdf: (bytes, onProgress, pages, markers) => ocrPdf(bytes, undefined, pages, onProgress, markers),
+  ocrPdf: (bytes, onProgress, pages, markers, onPage) => ocrPdf(bytes, undefined, pages, onProgress, markers, onPage),
+  pdfThumbnails,
 };
 
 /** Extract plain text from a file on disk. Best-effort (never throws). */
@@ -203,6 +213,8 @@ export async function extractText(
   onOcrProgress?: (done: number, pages: number) => void,
   /** Wording of the skipped-page markers OCR writes into the text (the user's language). */
   ocrMarkers?: OcrMarkers,
+  /** A PDF's pages and thumbnails as they are read — preview only (`pageStream.ts`). */
+  stream?: ExtractStream,
 ): Promise<ExtractedFile> {
   const name = baseName(filePath);
   try {
@@ -220,7 +232,7 @@ export async function extractText(
     } finally {
       await fh.close();
     }
-    return await extractFromBytes(bytes, { name, onOcrProgress, ocrMarkers }, nodeDeps);
+    return await extractFromBytes(bytes, { name, onOcrProgress, ocrMarkers, stream }, nodeDeps);
   } catch (e) {
     return { name, kind: "file", text: "", chars: 0, error: e instanceof Error ? e.message : String(e) };
   }
@@ -247,10 +259,11 @@ export async function extractBytes(
   mime?: string,
   onOcrProgress?: (done: number, pages: number) => void,
   ocrMarkers?: OcrMarkers,
+  stream?: ExtractStream,
 ): Promise<ExtractedFile> {
   return extractFromBytes(
     asUint8(bytes),
-    { name: baseName(name) || "file", mime, onOcrProgress, ocrMarkers },
+    { name: baseName(name) || "file", mime, onOcrProgress, ocrMarkers, stream },
     nodeDeps,
   );
 }
