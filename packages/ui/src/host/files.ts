@@ -236,6 +236,9 @@ export interface FilesHost {
     mime: string;
     vault: Record<string, string>;
     disabledKinds?: string[];
+    /** Real value → fine category of the vault's values, so main files the values it
+     *  replaces from the vault (names the rules cannot find). Display only. */
+    kinds?: Record<string, string>;
     /** Drop-time distinct-redaction count for the file's TEXT. Stored as the file's
      *  `redactedCount` for formats that can't be scrubbed in place (image/PDF), whose
      *  in-place pass throws and would otherwise record 0. Display metadata only — the

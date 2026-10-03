@@ -1,6 +1,7 @@
 import { getMessages } from "@openmasq/i18n";
 import { describe, it, expect, vi } from "vitest";
-import { MAX_DROP_BYTES, extractDroppedFiles, deferDroppedFile } from "./extractDropped";
+import { MAX_FILE_BYTES } from "@openmasq/redact";
+import { extractDroppedFiles, deferDroppedFile } from "./extractDropped";
 import type { OcrProgress } from "../../host";
 
 const deps = (over: Partial<Parameters<typeof extractDroppedFiles>[1]> = {}) => ({
@@ -73,11 +74,15 @@ describe("extractDroppedFiles — bytes, never a path", () => {
     expect(out.map((x) => x.text)).toEqual(["ok", "", "ok"]);
   });
 
-  it("refuses an oversized file BEFORE reading it into memory", async () => {
+  it("refuses an oversized file BEFORE reading it into memory — at main's own cap, limit stated", async () => {
     const d = deps();
-    const out = await extractDroppedFiles([f("image.dmg", "", MAX_DROP_BYTES + 1)], d);
-    expect(out[0]!.error).toBe("Fichier trop volumineux");
+    const out = await extractDroppedFiles([f("image.dmg", "", MAX_FILE_BYTES + 1)], d);
+    expect(out[0]!.error).toBe("Fichier trop volumineux (50 Mo maximum). Découpez-le en plusieurs parties.");
+    expect(out[0]!.blocked).toBe(true);
     expect(d.extractBytes).not.toHaveBeenCalled();
+    // The SAME constant as the pre-parse gate: a file main accepts is never refused here.
+    const ok = await extractDroppedFiles([f("ok.txt", "", MAX_FILE_BYTES)], deps());
+    expect(ok[0]!.blocked).toBeUndefined();
   });
 
   it("handles an empty drop", async () => {

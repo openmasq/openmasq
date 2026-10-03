@@ -164,6 +164,9 @@ export const composer = {
     stateReadingPage: (page, total) => `Reading · page ${page}/${total}`,
     stateMasking: "Masking…",
     stateMaskingPct: (pct) => `Masking · ${pct}%`,
+    stateMaskingLong: (pct, minutes) => `Masking · ${pct}% · about ${minutes} min`,
+    maskingLong: (minutes) => `Long document: masking, about ${minutes} min`,
+    tooLongToMask: (pages) => `Too long to mask in full (≈ ${pages} pages). Split it into smaller parts.`,
     stateRedo: "Needs action",
     stateReady: (n) => `${n} value${n > 1 ? "s" : ""}`,
     staleTip: "Masked with your previous settings. Mask again to apply the current ones.",
@@ -185,7 +188,6 @@ export const composer = {
     rereadFailed: "Couldn't read it again. The text read earlier is kept.",
     extractInterrupted: "Reading was interrupted. Drop the file again.",
     fileRefused: "File refused",
-    fileTooLarge: "File too large",
   },
 
   drop: {

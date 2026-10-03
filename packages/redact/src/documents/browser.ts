@@ -17,7 +17,7 @@ import {
   type RedactedDocument,
 } from "./core";
 import { DEFAULT_OCR_MARKERS, type OcrMarkers } from "./ocrMarkers";
-import { MAX_PDF_PAGES, rasterScale } from "./safety/guard";
+import { pdfPagesRefusal, rasterScale } from "./safety/guard";
 import { reconstructPageText } from "./serialize/pdfLayout";
 
 export { SUPPORTED_EXTENSIONS, OCR_LANGS, OCR_TRAINEDDATA_SHA256, hybridLayerText, spatialFieldLines } from "./core";
@@ -57,8 +57,13 @@ async function pdfText(bytes: Uint8Array): Promise<string> {
   const lib = await pdfjs();
   const doc = await lib.getDocument({ data: bytes, isEvalSupported: false }).promise;
   const out: string[] = [];
-  const pages = Math.min(doc.numPages, MAX_PDF_PAGES); // cap: a huge page count can't hang extraction
-  for (let i = 1; i <= pages; i++) {
+  // Past the cap the PDF is REFUSED, never read up to it (`pdfPagesRefusal`).
+  const tooMany = pdfPagesRefusal(doc.numPages);
+  if (tooMany) {
+    await doc.destroy?.();
+    throw tooMany;
+  }
+  for (let i = 1; i <= doc.numPages; i++) {
     const page = await doc.getPage(i);
     const tc = await page.getTextContent();
     // Approach A (geometric): rebuild reading order + columns from item.transform

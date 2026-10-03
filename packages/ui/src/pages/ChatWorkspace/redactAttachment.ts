@@ -1,21 +1,14 @@
 import type { Messages } from "@openmasq/i18n";
 import type { Settings } from "../../types";
-import type { RedactFn } from "../../send/redactionEngine";
+import { raceRedactionWork, type RedactFn } from "../../send/redactionEngine";
 import type { Attachment } from "./Composer";
 import { pdfReplacements } from "../../containers/modals/viewers/pdf/pdfReplacements";
 import { redactEngineSig } from "./redactEngineSig";
 import { describeRedactFailure } from "../../send/redaction";
 import { pushDebug } from "../../state/debug/debug";
 import { attachmentVault } from "./attachmentVault";
-
-// Upper bound on how much of an attached file's text we RUN THE REDACTION ENGINE over —
-// the SAME bound the send clips each folded file to (`send/foldPayload.ts`
-// `MAX_FILE_CHARS`, imported rather than mirrored, rule 9): detecting past the wire cut
-// is wasted work, and a huge file (a multi-MB log) redacted synchronously on the
-// renderer thread froze the app. Detection is value-based, so values found in the first
-// slice are still faked everywhere they occur in the full text.
-import { MAX_FILE_CHARS, clipFileText } from "../../send/foldPayload";
-export { MAX_FILE_CHARS as MAX_REDACT_CHARS } from "../../send/foldPayload";
+import { maskPlan, maskTimeoutMs } from "@openmasq/redact";
+import { redactTimeoutMessage } from "../../send/redactTimeout";
 
 /** Component captures threaded into {@link redactAttachment} (extracted from ChatView). */
 export interface RedactAttachmentDeps {
@@ -43,9 +36,14 @@ export interface RedactAttachmentDeps {
 /**
  * Run (or RE-run) redaction for ONE attachment, in place — the drop-time file redaction,
  * cancellable + chunked + progress-reported, stamping the engine signature on success and a
- * user-safe warning on failure, and logging the substitution to the Debug Log. Byte-identical
- * to the former ChatView method (rule 7 — the file redaction is unchanged); the component
- * state it touched (settings/refs/setters) is now passed in via {@link RedactAttachmentDeps}.
+ * user-safe warning on failure, and logging the substitution to the Debug Log.
+ *
+ * ⚠️ The WHOLE extracted text is masked, never a first slice. The map this produces is what
+ * the send reuses (`reusableDocReplacements`) and what the library's masked copy of a
+ * DOCX/XLSX is scrubbed with (`files:redact-and-save`), so a value seen only past the wire
+ * cut must be in it. A text too long to mask in
+ * full (`maskPlan`, `@openmasq/redact`) is REFUSED with `redactError` — which `submitGuard`
+ * refuses to send — and a run past its deadline (`maskTimeoutMs`) fails the same way.
  */
 export function redactAttachment(a: Attachment, deps: RedactAttachmentDeps): void {
   const { settings, orgForcedCategories, redactAsync, ctrls, updateAttachment, convId, convCategories, convVault } =
@@ -56,15 +54,31 @@ export function redactAttachment(a: Attachment, deps: RedactAttachmentDeps): voi
   // Abort a previous in-flight redaction for this file (a retry) + make THIS one
   // cancellable — removing the chip aborts its signal (see onRemoveAttachment).
   ctrls.get(a.cid)?.abort();
+  ctrls.delete(a.cid);
+  const plan = maskPlan(a.text.length);
+  if (plan.kind === "refuse") {
+    const why = deps.t.composer.attachments.tooLongToMask(plan.pages);
+    // No map at all: a stale one from a shorter read must not ride a send either.
+    updateAttachment(a.cid, { redacting: false, redactProgress: undefined, replacements: undefined, redactEngineSig: undefined, redactError: why });
+    pushDebug({ type: "error", scope: "document-redaction", message: `${a.name}: ${a.text.length} chars — ${why}` }, convId);
+    return;
+  }
   const ctrl = new AbortController();
   ctrls.set(a.cid, ctrl);
   updateAttachment(a.cid, { redacting: true, redactError: undefined, redactProgress: undefined });
-  // Bound the text the engine scans (a multi-MB log froze the app) — with the SAME
-  // line-boundary clip as the wire (`clipFileText`, rule 9), so the boundary line is
-  // scanned WHOLE or not sent at all: a mid-value slice shipped the fragment in clear.
-  // Detection is value-based, so the fakes still apply to the whole file.
-  const scanText = clipFileText(a.text, MAX_FILE_CHARS);
-  pdfReplacements(scanText, redactAsync, {
+  // Deadline scaled to the text (same constants as the estimate): past it the run is
+  // abandoned and the chip FAILS (redactError → « Réessayer »), never sendable unmasked.
+  const deadline = maskTimeoutMs(a.text.length);
+  let timedOut = false;
+  const timer = setTimeout(() => {
+    timedOut = true;
+    ctrl.abort();
+  }, deadline);
+  ctrl.signal.addEventListener("abort", () => clearTimeout(timer), { once: true });
+  const timeoutError = () => describeRedactFailure(redactTimeoutMessage(deadline), deps.t, settings?.redactEngine);
+  // Raced against the signal HERE too: the deadline must not depend on the engine honouring
+  // the abort mid-chunk (a wedged detector would otherwise leave the chip masking forever).
+  const work = pdfReplacements(a.text, redactAsync, {
     signal: ctrl.signal,
     // Multi-chunk (multi-page) doc → advance a progress bar on the chip.
     onProgress: (done, total) => {
@@ -74,8 +88,11 @@ export function redactAttachment(a: Attachment, deps: RedactAttachmentDeps): voi
     // ⚠️ The CONVERSATION's vault, shared by all its attachments: without it, two
     // documents from the same folder gave two fakes to the same person (`attachmentVault.ts`).
     vault: convId ? attachmentVault(convId, convVault) : undefined,
-  })
+  });
+  raceRedactionWork(work, { signal: ctrl.signal })
     .then(({ replacements, modelError }) => {
+      clearTimeout(timer);
+      if (timedOut) throw new Error(redactTimeoutMessage(deadline)); // too late: a failure, below
       if (ctrl.signal.aborted) return; // cancelled — drop the stale result
       ctrls.delete(a.cid);
       updateAttachment(a.cid, {
@@ -108,18 +125,21 @@ export function redactAttachment(a: Attachment, deps: RedactAttachmentDeps): voi
       );
     })
     .catch((e) => {
-      if (ctrl.signal.aborted) return; // user-cancelled — no error, no stale update
-      ctrls.delete(a.cid);
+      clearTimeout(timer);
+      if (ctrl.signal.aborted && !timedOut) return; // user-cancelled — no error, no stale update
+      if (ctrls.get(a.cid) === ctrl) ctrls.delete(a.cid);
       updateAttachment(a.cid, {
         redacting: false,
         redactProgress: undefined,
-        redactError: describeRedactFailure(e instanceof Error ? e.message : String(e), deps.t, settings?.redactEngine),
+        redactError: timedOut
+          ? timeoutError()
+          : describeRedactFailure(e instanceof Error ? e.message : String(e), deps.t, settings?.redactEngine),
       });
       pushDebug(
         {
           type: "error",
           scope: "document-redaction",
-          message: `${a.name}: ${e instanceof Error ? e.message : String(e)}`,
+          message: `${a.name}: ${timedOut ? redactTimeoutMessage(deadline) : e instanceof Error ? e.message : String(e)}`,
         },
         convId,
       );

@@ -5,7 +5,8 @@ import type { Messages } from "../messages";
 
 export const documents = {
   refused: {
-    fileTooLarge: (mb) => `File too large (${mb} MB max).`,
+    fileTooLarge: (mb) => `File too large (${mb} MB max). Split it into smaller parts.`,
+    pdfTooManyPages: (pages, max) => `PDF too long (${pages} pages, ${max} max). Split it into smaller parts.`,
     executable: "File type not allowed: the file contains executable code.",
     typeMismatch: "File refused: its content does not match its extension.",
     imageTooLarge: (width, height) => `Image refused: dimensions too large (${width}×${height}).`,

@@ -1,4 +1,5 @@
 import type { Messages } from "@openmasq/i18n";
+import { estimateMaskMs, maskPlan } from "@openmasq/redact";
 import type { Attachment } from "./Composer";
 
 type PendingFields = Pick<
@@ -15,9 +16,10 @@ export function isPreviewPending(a: PendingFields): boolean {
 }
 
 /** The in-progress line shared by the chip and the pending preview: the page being read
- *  (a paginated OCR — the user thinks in pages), else the masking percentage. `null`
- *  when the file is neither being read nor masked. */
-export function progressLabel(a: PendingFields, t: Messages): string | null {
+ *  (a paginated OCR — the user thinks in pages), else the masking percentage — with the
+ *  minutes left for a LONG document (`maskPlan`, from its character count). `null` when
+ *  the file is neither being read nor masked. */
+export function progressLabel(a: PendingFields & { chars?: number }, t: Messages): string | null {
   const at = t.composer.attachments;
   if (a.extracting) {
     if (a.extractQueued !== undefined && a.extractQueued > 0) return at.stateQueued(a.extractQueued);
@@ -26,9 +28,23 @@ export function progressLabel(a: PendingFields, t: Messages): string | null {
   }
   if (a.redacting) {
     const p = a.redactProgress;
+    const left = longMaskingMinutesLeft(a);
+    if (left !== null) {
+      return p && p.total > 1 ? at.stateMaskingLong(Math.round((p.done / p.total) * 100), left) : at.maskingLong(left);
+    }
     return p && p.total > 1 ? at.stateMaskingPct(Math.round((p.done / p.total) * 100)) : at.stateMasking;
   }
   return null;
+}
+
+/** Minutes left (at least 1) of a LONG document's masking, from its size and progress;
+ *  `null` when the document is not long. An estimate (`estimateMaskMs`), for the copy only. */
+export function longMaskingMinutesLeft(a: Pick<Attachment, "redactProgress"> & { chars?: number }): number | null {
+  const chars = a.chars ?? 0;
+  if (maskPlan(chars).kind !== "long") return null;
+  const p = a.redactProgress;
+  const leftShare = p && p.total > 0 ? 1 - p.done / p.total : 1;
+  return Math.max(1, Math.ceil((estimateMaskMs(chars) * leftShare) / 60_000));
 }
 
 /** The chip patch for one extraction progress event: waiting its turn (`queued`), or

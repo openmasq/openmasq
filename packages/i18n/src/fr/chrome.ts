@@ -167,6 +167,10 @@ export const composer = {
     stateReadingPage: (page, total) => `Lecture · page ${page}/${total}`,
     stateMasking: "Masquage…",
     stateMaskingPct: (pct) => `Masquage · ${pct} %`,
+    stateMaskingLong: (pct, minutes) => `Masquage · ${pct} % · environ ${minutes} min`,
+    maskingLong: (minutes) => `Document long : masquage en cours, environ ${minutes} min`,
+    tooLongToMask: (pages) =>
+      `Document trop long pour être masqué en entier (≈ ${pages} pages). Découpez-le en plusieurs parties.`,
     stateRedo: "Action requise",
     stateReady: (n) => `${n} valeur${n > 1 ? "s" : ""}`,
     staleTip: "Masqué avec vos anciens réglages. Remasquez pour appliquer les réglages actuels.",
@@ -188,7 +192,6 @@ export const composer = {
     rereadFailed: "Relecture impossible. Le texte lu avant est conservé.",
     extractInterrupted: "Lecture interrompue. Déposez le fichier à nouveau.",
     fileRefused: "Fichier refusé",
-    fileTooLarge: "Fichier trop volumineux",
   },
 
   drop: {

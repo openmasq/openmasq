@@ -3,7 +3,7 @@
 // SAME public API the desktop already uses: extractText / extractBytes /
 // redactDocument. Heavy libs stay lazy `import()`ed so they never load unless a
 // matching file is actually extracted, and never reach the renderer bundle.
-import { readFile } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
 import { ocrImage, ocrImageLayout, ocrPdf } from "../ocr";
 import type { RedactOptions } from "../index";
 import {
@@ -17,7 +17,8 @@ import {
   type OcrMarkers,
   type RedactedDocument,
 } from "./core";
-import { MAX_PDF_PAGES } from "./safety/guard";
+import { fileTooLargeRefusal, MAX_FILE_BYTES, pdfPagesRefusal } from "./safety/guard";
+import { DocumentError } from "./errors";
 import { reconstructPageText } from "./serialize/pdfLayout";
 import { buildTextLayerPage, type TextLayerPage } from "./layers/geometry";
 
@@ -78,14 +79,19 @@ async function pdfPages(
   const doc = await getDocument({ data: bytes.slice(), useSystemFonts: true, isEvalSupported: false }).promise;
   const out: string[] = [];
   const total = doc.numPages;
+  // Past the cap the PDF is REFUSED, never read up to it (`pdfPagesRefusal`).
+  const tooMany = pdfPagesRefusal(total);
+  if (tooMany) {
+    await doc.destroy?.();
+    throw tooMany;
+  }
   let imagePages = 0;
   // Per-page text-layer geometry (glyph boxes + char-run map + scale-1 page size), the
   // text-layer half of the cross-layer alignment. Built by `buildTextLayerPage`, whose
   // text IS the positional render — one reconstruction, reused as the page text.
   const layout: TextLayerPage[] | undefined = withLayout ? [] : undefined;
   try {
-    const pages = Math.min(total, MAX_PDF_PAGES); // cap: a huge page count can't hang extraction
-    for (let i = 1; i <= pages; i++) {
+    for (let i = 1; i <= total; i++) {
       const page = await doc.getPage(i);
       const tc = await page.getTextContent();
       let pageText: string;
@@ -116,7 +122,7 @@ async function pdfPages(
   }
   // Return the RENDERED page count (denominator for the density check) + how many sparse
   // pages carry an image (a scan → route to OCR; a short digital page has none → keep text).
-  return { text: out.join(PAGE_BREAK), pages: Math.min(total, MAX_PDF_PAGES), imagePages, layout };
+  return { text: out.join(PAGE_BREAK), pages: total, imagePages, layout };
 }
 
 /**
@@ -149,14 +155,18 @@ const nodeDeps: ExtractDeps = {
     try {
       // Structured extraction first (positions → reading order + columns).
       return await pdfjsText(bytes);
-    } catch {
+    } catch (e) {
+      // A deliberate refusal (too many pages) is the answer, not a parse failure: it must
+      // not fall through to the flat reader, nor to OCR on a « text-less » PDF.
+      if (e instanceof DocumentError) throw e;
       // The geometric reconstruction failed on an odd item stream → FLAT first-party
       // extraction on the SAME pdf.js (no external `pdf-parse`). If pdf.js itself can't
       // parse the file, this throws too → return "" so `core.ts` routes the file to OCR
       // (rasterise + read), the universal fallback for scanned / text-broken PDFs.
       try {
         return await pdfFlatText(bytes);
-      } catch {
+      } catch (e2) {
+        if (e2 instanceof DocumentError) throw e2;
         return { text: "", pages: 0, imagePages: 0 };
       }
     }
@@ -185,6 +195,12 @@ export async function extractText(
 ): Promise<ExtractedFile> {
   const name = baseName(filePath);
   try {
+    // The size gate runs on the file's STAT, before a byte is read: the byte gate inside
+    // `extractFromBytes` would only refuse a file already loaded whole into memory.
+    if ((await stat(filePath)).size > MAX_FILE_BYTES) {
+      const { message: error, code: errorCode, params: errorParams } = fileTooLargeRefusal();
+      return { name, kind: "file", text: "", chars: 0, error, errorCode, errorParams, blocked: true };
+    }
     const bytes = new Uint8Array(await readFile(filePath));
     return await extractFromBytes(bytes, { name, onOcrProgress, ocrAllPages, ocrMarkers }, nodeDeps);
   } catch (e) {

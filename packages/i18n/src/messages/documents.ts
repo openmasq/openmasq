@@ -10,6 +10,8 @@ export interface DocumentsMessages {
   /** The safety guard refused the file before any parser ran. */
   refused: {
     fileTooLarge: (mb: number) => string;
+    /** A PDF past the page cap, refused whole rather than read in part. */
+    pdfTooManyPages: (pages: number, max: number) => string;
     executable: string;
     typeMismatch: string;
     imageTooLarge: (width: number, height: number) => string;

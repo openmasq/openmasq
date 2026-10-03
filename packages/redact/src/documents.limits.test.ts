@@ -1,0 +1,92 @@
+import { mkdtempSync, writeFileSync, truncateSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { afterAll, describe, expect, it, vi } from "vitest";
+
+// Same module-load budget as the other files that import the real document stack.
+vi.setConfig({ testTimeout: 20_000 });
+
+/* A document is read WHOLE or refused, never in part. Two doors pinned here:
+   - a PDF past `MAX_PDF_PAGES` is refused before ANY page is read: a tail silently missing
+     from what is masked and sent is a document the person believes handled whole;
+   - a picked file past `MAX_FILE_BYTES` is refused on its STAT, before a byte is read. */
+
+const pdf = vi.hoisted(() => ({ numPages: 0, getPage: vi.fn() }));
+vi.mock("pdfjs-dist/legacy/build/pdf.mjs", () => ({
+  getDocument: () => ({
+    promise: Promise.resolve({
+      get numPages() {
+        return pdf.numPages;
+      },
+      getPage: pdf.getPage,
+      destroy() {},
+    }),
+  }),
+  OPS: {},
+}));
+
+const ocr = vi.hoisted(() => ({ ocrPdf: vi.fn(async () => "texte océrisé") }));
+vi.mock("./ocr", () => ({ ocrImage: vi.fn(async () => ""), ocrImageLayout: undefined, ocrPdf: ocr.ocrPdf }));
+
+const fsSpy = vi.hoisted(() => ({ readFile: vi.fn() }));
+vi.mock("node:fs/promises", async (orig) => {
+  const real = (await orig()) as typeof import("node:fs/promises");
+  fsSpy.readFile.mockImplementation(real.readFile as never);
+  return { ...real, readFile: fsSpy.readFile };
+});
+
+import { extractBytes, extractText } from "./documents/documents";
+import { MAX_FILE_BYTES, MAX_PDF_PAGES } from "./index";
+
+const dir = mkdtempSync(join(tmpdir(), "redact-limits-"));
+afterAll(() => rmSync(dir, { recursive: true, force: true }));
+
+describe("PDF past the page cap", () => {
+  it("is REFUSED with its page count — no page read, no OCR, no partial text", async () => {
+    pdf.numPages = MAX_PDF_PAGES + 1;
+    pdf.getPage.mockClear();
+    ocr.ocrPdf.mockClear();
+    const f = await extractBytes(new Uint8Array(64).fill(37), "rapport.pdf", "application/pdf");
+    expect(f.errorCode).toBe("pdf_too_many_pages");
+    expect(f.errorParams).toEqual({ pages: MAX_PDF_PAGES + 1, max: MAX_PDF_PAGES });
+    expect(f.blocked).toBe(true);
+    expect(f.text).toBe("");
+    expect(pdf.getPage).not.toHaveBeenCalled();
+    expect(ocr.ocrPdf).not.toHaveBeenCalled();
+  });
+
+  it("at the cap, every page is read", async () => {
+    pdf.numPages = 3;
+    pdf.getPage.mockReset();
+    pdf.getPage.mockImplementation(async (i: number) => ({
+      getTextContent: async () => ({ items: [{ str: `page ${i} texte`, hasEOL: true, transform: [1, 0, 0, 1, 0, 700] }] }),
+      getViewport: () => ({ width: 600, height: 800 }),
+      cleanup() {},
+    }));
+    const f = await extractBytes(new Uint8Array(64).fill(37), "court.pdf", "application/pdf");
+    expect(f.errorCode).toBeUndefined();
+    expect(pdf.getPage).toHaveBeenCalledTimes(3);
+  });
+});
+
+describe("picked file past the byte cap", () => {
+  it("is refused on its size, before it is read into memory — limit stated", async () => {
+    const big = join(dir, "enorme.txt");
+    writeFileSync(big, "");
+    truncateSync(big, MAX_FILE_BYTES + 1); // sparse: no 50 MiB written to disk
+    fsSpy.readFile.mockClear();
+    const f = await extractText(big);
+    expect(f.errorCode).toBe("file_too_large");
+    expect(f.blocked).toBe(true);
+    expect(f.error).toContain("50 Mo maximum");
+    expect(fsSpy.readFile).not.toHaveBeenCalled();
+  });
+
+  it("a file within the cap is read", async () => {
+    const ok = join(dir, "ok.txt");
+    writeFileSync(ok, "bonjour");
+    const f = await extractText(ok);
+    expect(f.text).toBe("bonjour");
+    expect(f.error).toBeUndefined();
+  });
+});

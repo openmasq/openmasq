@@ -151,3 +151,14 @@ export {
   type Sniffed,
   type SniffFamily,
 } from "./documents/safety/guard";
+// How long a document may be and still be masked IN FULL (the drop-time chip, « Lire tout »).
+export {
+  MAX_MASK_CHARS,
+  LONG_MASK_CHARS,
+  CHARS_PER_PAGE,
+  estimateMaskMs,
+  approxPages,
+  maskPlan,
+  maskTimeoutMs,
+  type MaskPlan,
+} from "./documents/safety/maskBudget";
