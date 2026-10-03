@@ -2,6 +2,8 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useT } from "../../../i18n";
 import { useRedaction } from "../../../send/redaction";
 import { DRAFT_CONV } from "../../../state/debug/debug";
+import { useHost } from "../../../host";
+import { cancelExtraction } from "../../../state/files/extractCancel";
 import { maskQueue } from "../../../state/files/maskQueue";
 import { dropReadingMask } from "../readingMask";
 import { subscribeStaged } from "../../../state/files/stagedActivity";
@@ -58,6 +60,7 @@ export function useAttachments(p: ChatViewProps) {
   const updateAttachment = (cid: string, patch: Partial<Attachment>) => patchFor(convIdRef.current)(cid, patch);
   const [attachWarning, setAttachWarning] = useState<string | null>(null);
   const t = useT();
+  const host = useHost();
 
   // Fresh per render so it always sees the current settings/engine. `convId` is never
   // undefined: with no conversation yet, the DRAFT, which the first send adopts (`ocrDebug.ts`).
@@ -95,6 +98,9 @@ export function useAttachments(p: ChatViewProps) {
   const removeAttachment = (i: number) => {
     const a = attachments[i];
     if (a) {
+      // A file still being read: its extraction stops (leaves main's queue, or its worker is
+      // killed) — otherwise it holds the line and the next file reads « 2 avant » for nothing.
+      if (a.extracting) cancelExtraction(a.cid, host.files?.cancelExtract?.bind(host.files));
       maskQueue.cancel(a.cid);
       // The masking its read started, if any: stopped, and never handed to a later run.
       maskQueue.cancel(`reading:${a.cid}`);

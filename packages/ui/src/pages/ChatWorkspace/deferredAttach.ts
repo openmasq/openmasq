@@ -4,6 +4,7 @@ import type { ExtractedFile } from "../../host";
 import type { DeferredFile } from "../../state/files/deferredFile";
 import { extractProgressPatch } from "./attachmentPending";
 import type { ReadingSession } from "./readingMask";
+import { isExtractionCancelled } from "../../state/files/extractCancel";
 
 /** What `ChatView` knows how to do and this module doesn't: setting, fixing, chaining. */
 export interface DeferredAttachDeps {
@@ -60,12 +61,16 @@ export async function stageDeferredFile(
   try {
     // OCR progress fixes the chip page by page; a source that emits none
     // leaves the bar indeterminate (the parameter is ignored harmlessly).
-    file = await d.load((p) => deps.patch(ph.cid, extractProgressPatch(p), forConvId), reading?.push, reading?.bytes);
+    // `ph.cid` is the job id: removing the chip cancels THIS read (`useAttachments.ts`).
+    file = await d.load((p) => deps.patch(ph.cid, extractProgressPatch(p), forConvId), reading?.push, reading?.bytes, ph.cid);
   } catch {
     reading?.end(false);
+    if (isExtractionCancelled(ph.cid)) return;
     deps.patch(ph.cid, { extracting: false, error: deps.t.composer.attachments.extractFailed }, forConvId);
     return;
   }
+  // Removed while read: the chip is gone, its result is dropped (never masked).
+  if (isExtractionCancelled(ph.cid)) return reading?.end(false);
   // A read that failed or found nothing drops what it streamed: only a whole text is content.
   reading?.end(!file.error && !!file.text.trim());
   const redactPreview = deps.countMatches(file.text);

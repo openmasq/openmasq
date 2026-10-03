@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { ExtractedFile, OcrProgress } from "../../host";
 import type { Attachment } from "./Composer";
 import { extractPicked } from "./extractPicked";
+import { cancelExtraction } from "../../state/files/extractCancel";
 
 const placeholder = (name: string, path: string, cid: string): Attachment => ({
   name,
@@ -19,10 +20,13 @@ const tick = () => new Promise((r) => setTimeout(r, 0));
 
 /** A host whose extractions the test settles by hand, one per path. */
 function fakeHost() {
-  const calls = new Map<string, { resolve: (f: ExtractedFile[]) => void; reject: (e: Error) => void; progress?: (p: OcrProgress) => void }>();
-  const extract = (paths: string[], onProgress?: (p: OcrProgress) => void) =>
+  const calls = new Map<
+    string,
+    { resolve: (f: ExtractedFile[]) => void; reject: (e: Error) => void; progress?: (p: OcrProgress) => void; job?: string }
+  >();
+  const extract = (paths: string[], onProgress?: (p: OcrProgress) => void, _s?: unknown, job?: string) =>
     new Promise<ExtractedFile[]>((resolve, reject) => {
-      calls.set(paths[0], { resolve, reject, progress: onProgress });
+      calls.set(paths[0], { resolve, reject, progress: onProgress, job });
     });
   return { calls, extract };
 }
@@ -79,5 +83,31 @@ describe("extractPicked — chaque fichier choisi se termine de son côté", () 
     both({ name: "scan.pdf", path: "/x/scan.pdf", page: 2, pages: 8 });
     expect(h.patches.c2).toEqual([{ extractQueued: 1, extractProgress: undefined }]);
     expect(h.patches.c1).toEqual([{ extractQueued: undefined, extractProgress: { done: 2, total: 8 } }]);
+  });
+});
+
+describe("extractPicked — un chip retiré pendant la lecture", () => {
+  it("passe son cid comme id de tâche, et son annulation ne fait ni bandeau ni masquage", async () => {
+    const h = harness();
+    extractPicked([placeholder("retire.pdf", "/r", "cut1"), placeholder("garde.pdf", "/g", "keep1")], h.deps);
+    expect(h.host.calls.get("/r")!.job).toBe("cut1");
+    const cancelled: string[] = [];
+    cancelExtraction("cut1", (job) => cancelled.push(job));
+    expect(cancelled).toEqual(["cut1"]);
+    h.host.calls.get("/r")!.reject(new Error("extraction annulée"));
+    h.host.calls.get("/g")!.reject(new Error("illisible"));
+    await tick();
+    expect(h.warnings).toEqual(["illisible"]); // only the file still shown reports its failure
+    expect(h.patches.cut1).toBeUndefined();
+  });
+
+  it("un résultat qui arrive APRÈS le retrait n'est ni posé ni masqué", async () => {
+    const h = harness();
+    extractPicked([placeholder("tard.pdf", "/t", "late1")], h.deps);
+    cancelExtraction("late1");
+    h.host.calls.get("/t")!.resolve([read("tard.pdf")]);
+    await tick();
+    expect(h.read).toEqual([]);
+    expect(h.patches.late1).toBeUndefined();
   });
 });

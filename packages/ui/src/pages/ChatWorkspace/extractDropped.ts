@@ -26,6 +26,7 @@ export interface ExtractDroppedDeps {
     mime?: string,
     onOcrProgress?: (p: OcrProgress) => void,
     onStream?: (ev: ExtractStream) => void,
+    job?: string,
   ): Promise<ExtractedBytes>;
   toBase64(bytes: Uint8Array): string;
   /** The copy a failed or refused file shows. */
@@ -50,7 +51,7 @@ export function deferDroppedFile(file: File, deps: ExtractDroppedDeps): Deferred
     name: file.name,
     ...(file.type ? { mime: file.type } : {}),
     // The stream needs no name filter: the preload scopes it to this one call.
-    load: (onOcrProgress, onStream, onBytes) =>
+    load: (onOcrProgress, onStream, onBytes, job) =>
       extractOne(
         file,
         deps,
@@ -59,6 +60,7 @@ export function deferDroppedFile(file: File, deps: ExtractDroppedDeps): Deferred
         },
         onStream,
         onBytes,
+        job,
       ),
   };
 }
@@ -76,6 +78,7 @@ async function extractOne(
   onOcrProgress?: (p: OcrProgress) => void,
   onStream?: (ev: ExtractStream) => void,
   onBytes?: (data: string) => void,
+  job?: string,
 ): Promise<ExtractedFile> {
   const base: ExtractedFile = { name: file.name, kind: file.type || "", text: "", chars: 0 };
   if (file.size > MAX_DROP_BYTES) {
@@ -95,7 +98,7 @@ async function extractOne(
   const carried: ExtractedFile = { ...base, data, ...(file.type ? { mime: file.type } : {}) };
   onBytes?.(data);
   try {
-    const r = await deps.extractBytes(data, file.name, file.type || undefined, onOcrProgress, onStream);
+    const r = await deps.extractBytes(data, file.name, file.type || undefined, onOcrProgress, onStream, job);
     // ⚠️ A REFUSAL travels first, and it travels WITHOUT the bytes. `blocked` is the
     // pre-parse safety gate's verdict (`@openmasq/redact` `guardUpload`: oversize, a
     // magic-byte/extension contradiction, a decompression bomb) — not "extraction

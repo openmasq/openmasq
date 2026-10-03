@@ -4,9 +4,9 @@
 // for the preview, where an unguarded `unzipSync` then inflated the bomb (audit 04/09).
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-const registered = new Map<string, (e: unknown, raw: unknown) => unknown>();
+const registered = new Map<string, (e: unknown, ...raw: unknown[]) => unknown>();
 vi.mock("./handle", () => ({
-  handle: (ch: string, _shape: unknown, fn: (e: unknown, raw: unknown) => unknown) =>
+  handle: (ch: string, _shape: unknown, fn: (e: unknown, ...raw: unknown[]) => unknown) =>
     registered.set(ch, fn),
   arr: "arr",
   obj: "obj",
@@ -16,9 +16,10 @@ vi.mock("./handle", () => ({
 vi.mock("./readGate", () => ({ assertReadAllowed: () => {} }));
 vi.mock("./registerFilesIpc", () => ({ progressTo: () => () => {} }));
 const extractBytes = vi.fn();
+const extractPaths = vi.fn();
 vi.mock("../files", () => ({
   extractBytes: (...a: unknown[]) => extractBytes(...a),
-  extractPaths: vi.fn(),
+  extractPaths: (...a: unknown[]) => extractPaths(...a),
 }));
 
 import { registerExtractIpc, streamTo } from "./filesExtractIpc";
@@ -26,7 +27,7 @@ import { registerExtractIpc, streamTo } from "./filesExtractIpc";
 const call = (out: Record<string, unknown>) => {
   extractBytes.mockResolvedValueOnce(out);
   const fn = registered.get("files:extract-bytes")!;
-  return fn({ sender: {} }, { data: Buffer.from("x").toString("base64"), name: "f.docx" });
+  return fn({ sender: { id: 1 } }, { data: Buffer.from("x").toString("base64"), name: "f.docx" });
 };
 
 describe("files:extract-bytes — refusal vs failure", () => {
@@ -88,9 +89,46 @@ describe("files:extract-stream — the preview stream goes to the caller, tagged
     const fn = registered.get("files:extract-bytes")!;
     extractBytes.mockResolvedValueOnce({ text: "ok" });
     await fn({ sender: { isDestroyed: () => false, send: () => {} } }, { data: "eA==", name: "f.pdf", req: "bad id!" });
-    expect(extractBytes.mock.calls.at(-1)?.[5]).toBeUndefined();
+    expect(extractBytes.mock.calls.at(-1)?.[3].onStream).toBeUndefined();
     extractBytes.mockResolvedValueOnce({ text: "ok" });
     await fn({ sender: { isDestroyed: () => false, send: () => {} } }, { data: "eA==", name: "f.pdf", req: "goodid12345" });
-    expect(typeof extractBytes.mock.calls.at(-1)?.[5]).toBe("function");
+    expect(typeof extractBytes.mock.calls.at(-1)?.[3].onStream).toBe("function");
+  });
+});
+
+// A removed chip stops ITS read, and only its sender's: the renderer is untrusted, so the
+// job id it names is checked against the webContents that started the job.
+describe("files:extract-cancel — a renderer stops its own reads only", () => {
+  beforeEach(() => {
+    registered.clear();
+    registerExtractIpc();
+  });
+  const wc = (id: number) => ({ sender: { id, isDestroyed: () => false, send: () => {} } });
+
+  it("cancels the path extraction its sender started under that job id", async () => {
+    let signal: AbortSignal | undefined;
+    extractPaths.mockImplementationOnce((_p, _pr, _st, s: AbortSignal) => {
+      signal = s;
+      return new Promise((_, rej) => s.addEventListener("abort", () => rej(new Error("annulée"))));
+    });
+    const run = registered.get("files:extract")!(wc(7), ["/a.pdf"], undefined, "chip123");
+    expect(registered.get("files:extract-cancel")!(wc(8), "chip123")).toBe(false); // another window
+    expect(signal?.aborted).toBe(false);
+    expect(registered.get("files:extract-cancel")!(wc(7), "chip123")).toBe(true);
+    expect(signal?.aborted).toBe(true);
+    await expect(run).rejects.toThrow(/annulée/);
+    // Settled ⇒ unregistered: removing the chip again reaches nothing.
+    expect(registered.get("files:extract-cancel")!(wc(7), "chip123")).toBe(false);
+  });
+
+  it("the bytes route registers its job the same way, and a finished one is gone", async () => {
+    let signal: AbortSignal | undefined;
+    extractBytes.mockImplementationOnce(async (_b, _n, _m, cb: { signal?: AbortSignal }) => {
+      signal = cb.signal;
+      return { text: "ok" };
+    });
+    await registered.get("files:extract-bytes")!(wc(3), { data: "eA==", name: "f.pdf", job: "dropA1" });
+    expect(signal).toBeDefined();
+    expect(registered.get("files:extract-cancel")!(wc(3), "dropA1")).toBe(false);
   });
 });

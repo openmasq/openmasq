@@ -205,7 +205,12 @@ export interface FilesHost {
     paths: string[],
     onOcrProgress?: (p: OcrProgress) => void,
     onStream?: (ev: ExtractStream) => void,
+    /** The caller's job id (the chip's `cid`) — what `cancelExtract` names. */
+    job?: string,
   ): Promise<ExtractedFile[]>;
+  /** Stop the extraction started under `job`: the user removed its chip. Fire-and-forget;
+   *  a job already finished (or unknown) is a no-op. Absent ⇒ reads run to their end. */
+  cancelExtract?(job: string): void;
   /** « Lire tout »: re-extract a record read under the FORMER 10-page OCR cap. Extraction
    *  reads every page now, so this is the same whole-document read as `extract`; it stays
    *  a separate slot only so a host without re-reading (browser preview) can omit it. */
@@ -225,6 +230,7 @@ export interface FilesHost {
     mime?: string,
     onOcrProgress?: (p: OcrProgress) => void,
     onStream?: (ev: ExtractStream) => void,
+    job?: string,
   ): Promise<ExtractedBytes>;
   /** The on-disk path of a DROPPED item. ⚠️ Not a read capability. Its only sanctioned use
    *  is pre-positioning the native folder picker (`pages/ChatWorkspace/dropIntake.ts`); a

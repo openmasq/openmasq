@@ -112,11 +112,13 @@ export const files = {
     onProgress?: (p: OcrProgress) => void,
     // The preview stream of a PDF being read (pages, unreadable thumbnails).
     onStream?: (ev: ExtractStream) => void,
+    // The caller's job id (its chip), what `cancelExtract` names. Absent ⇒ uncancellable.
+    job?: string,
   ): Promise<
     { name: string; kind: string; text: string; chars: number; error?: string }[]
   > =>
     withExtractStream(
-      (req) => withOcrProgress(() => ipcRenderer.invoke("files:extract", paths, req), onProgress),
+      (req) => withOcrProgress(() => ipcRenderer.invoke("files:extract", paths, req, job), onProgress),
       onStream,
     ),
   read: (path: string): Promise<Uint8Array> => ipcRenderer.invoke("files:read", path),
@@ -126,17 +128,20 @@ export const files = {
     mime?: string,
     onProgress?: (p: OcrProgress) => void,
     onStream?: (ev: ExtractStream) => void,
+    job?: string,
     // Structured (text + words/ocrText/ocr/ocrPages): the bytes route renders the same
     // richness as the path route — a drop's preview depends on it.
   ): Promise<{ text: string } & Record<string, unknown>> =>
     withExtractStream(
       (req) =>
         withOcrProgress(
-          () => ipcRenderer.invoke("files:extract-bytes", { data, name, mime, ...(req ? { req } : {}) }),
+          () => ipcRenderer.invoke("files:extract-bytes", { data, name, mime, ...(req ? { req } : {}), ...(job ? { job } : {}) }),
           onProgress,
         ),
       onStream,
     ),
+  /** Stop the read started under `job` (a removed chip). Main scopes it to THIS window's jobs. */
+  cancelExtract: (job: string): Promise<boolean> => ipcRenderer.invoke("files:extract-cancel", job),
   redactAndSave: (p: unknown): Promise<Record<string, string>> =>
     ipcRenderer.invoke("files:redact-and-save", p),
   fetchUrl: (url: string): Promise<{ path: string; name: string; mime: string }> =>
