@@ -8,6 +8,7 @@ import { DEFAULT_OCR_MARKERS, type OcrMarkers } from "../documents/ocrMarkers";
 import { rasterScale } from "../documents/safety/guard";
 import type { OcrLayerPage } from "../documents/layers/geometry";
 import { ocrImageLayout } from "./ocr";
+import { pdfRenderFactories } from "./pdfFactories";
 
 const DEFAULT_LANG = OCR_LANGS.join("+");
 
@@ -97,6 +98,8 @@ export async function ocrPdf(
     data: buf.slice(),
     useSystemFonts: true,
     isEvalSupported: false,
+    // Never pdf.js's defaults: in the extraction worker (a utilityProcess) they are the DOM ones.
+    ...pdfRenderFactories(canvasMod),
   }).promise;
 
   const total: number = doc.numPages;
