@@ -12,6 +12,7 @@ import { extractPdf } from "./pdfExtract";
 import type { OcrWord } from "../ocr/layout";
 import type { ExtractStream, ThumbEvent } from "./pageStream";
 import type { TextLayerPage, OcrLayerPage } from "./layers/geometry";
+import type { PageFractionRect } from "./layers/imageRegions";
 import {
   TEXT_EXT, SHEET_EXT, IMAGE_EXT, MIME_EXT,
   baseName, extOf, sheetText, pptxText,
@@ -25,6 +26,7 @@ export { spatialFieldLines } from "./layers/spatialFields";
 // Send-cut → grid-row mapping (tabular.ts) — re-exported so the UI can't grow a drifting copy.
 export { delimitedGrid, annotatedCutRow } from "./serialize/tabular";
 export type { TextLayerPage, OcrLayerPage } from "./layers/geometry";
+export type { PageFractionRect } from "./layers/imageRegions";
 export type { DocumentErrorCode, DocumentErrorParams } from "./errors";
 export { DEFAULT_OCR_MARKERS, type OcrMarkers } from "./ocrMarkers";
 export * from "./pageStream";
@@ -88,6 +90,8 @@ export interface OcrMeta {
    *  is one its text layer proved complete), so it exceeds `pages` only on a record read under
    *  the former 10-page cap — which the UI still says (`ocrShortfall`). */
   pagesTotal?: number;
+  /** Of `pages`, how many were read only under their images (`../ocr/pdfRegions.ts`). */
+  regionPages?: number;
   /** docTR only: mean CTC confidence 0–1 of the recognised text (the routing signal). */
   confidence?: number;
   /** True when docTR ran but the router FELL BACK to Tesseract (non-latin / low confidence). */
@@ -111,10 +115,19 @@ export interface ExtractDeps {
    *  may return a bare string (⇒ pages=1, imagePages=0, so only an EMPTY layer routes to OCR).
    *  `layout` (optional): the per-page text-layer geometry, absent on the flat fallback.
    *  `needsOcr` (optional): the 1-based pages whose content may be missing from the text layer
-   *  (`layers/ocrSkip.ts`); absent ⇒ the binding cannot tell, and OCR reads every page. */
+   *  (`layers/ocrSkip.ts`); absent ⇒ the binding cannot tell, and OCR reads every page.
+   *  `ocrRegions` (optional): of those, the pages whose only unproved content is images, with
+   *  the rectangles OCR may limit itself to (`layers/imageRegions.ts`); a page absent is read whole. */
   pdfText(bytes: Uint8Array): Promise<
     | string
-    | { text: string; pages?: number; imagePages?: number; layout?: TextLayerPage[]; needsOcr?: number[] }
+    | {
+        text: string;
+        pages?: number;
+        imagePages?: number;
+        layout?: TextLayerPage[];
+        needsOcr?: number[];
+        ocrRegions?: Readonly<Record<number, readonly PageFractionRect[]>>;
+      }
   >;
   /** DOCX raw paragraph text. */
   docxText(bytes: Uint8Array): Promise<string>;
@@ -136,6 +149,9 @@ export interface ExtractDeps {
     /** Each page OCR read, with its text, once read (display only) — passed only when a
      *  stream asked for it. */
     onPage?: (n: number, total: number, text: string) => void,
+    /** Per page, the rectangles to read instead of the whole page; a page absent is read
+     *  whole. A binding may ignore it (it then reads MORE, never less). */
+    regions?: Readonly<Record<number, readonly PageFractionRect[]>>,
   ): Promise<string | { text: string; meta?: OcrMeta; layout?: OcrLayerPage[] }>;
   /** Thumbnails of every page, unreadable by construction (`pageStream.ts` `thumbScale`),
    *  until `signal` aborts. Optional: a binding without it streams no thumbnail. */

@@ -53,6 +53,9 @@ export async function extractPdf(
   // (`needsOcr` absent: the browser binding, a file pdf.js cannot parse) reads every page.
   const scanLike = noLayer || sparseScan;
   const only = scanLike || typeof raw === "string" ? undefined : raw.needsOcr;
+  // …and, on a digital one, the pages it may read only where their images sit. Never on a
+  // scan: its OCR may become the primary text, which must then cover the whole page.
+  const regions = scanLike || typeof raw === "string" ? undefined : raw.ocrRegions;
   const ocrCount = only ? only.length : pages;
 
   // Refused BEFORE minutes of OCR, by the same rule masking applies once read (`maskPlan`).
@@ -78,7 +81,7 @@ export async function extractPdf(
   // for a scan with no layer, and only at the end for a sparse scan — which streams none.
   const streamed = startStream(o.stream, deps, bytes, { rawLayer, digital: !scanLike, noLayer, only });
   try {
-    const res = await deps.ocrPdf(bytes, o.onOcrProgress, only, o.ocrMarkers, ...streamed.ocrPageArg);
+    const res = await deps.ocrPdf(bytes, o.onOcrProgress, only, o.ocrMarkers, streamed.onPage, regions);
     const ocrRaw = (typeof res === "string" ? res : res.text).trim();
     const ocrMeta = typeof res === "string" ? undefined : res.meta;
     ocrPages = typeof res === "string" ? undefined : res.layout;
@@ -99,6 +102,7 @@ export async function extractPdf(
           pages: ocrMeta?.pages,
           confidence: ocrMeta?.confidence,
           fellBack: ocrMeta?.fellBack,
+          regionPages: ocrMeta?.regionPages,
         };
       }
     }
@@ -131,17 +135,17 @@ function startStream(
   deps: ExtractDeps,
   bytes: Uint8Array,
   p: { rawLayer: string; digital: boolean; noLayer: boolean; only?: readonly number[] },
-): { ocrPageArg: [] | [(n: number, total: number, text: string) => void]; stop: () => void } {
+): { onPage?: (n: number, total: number, text: string) => void; stop: () => void } {
   const stopper = new AbortController();
   const stop = () => stopper.abort();
-  if (!stream) return { ocrPageArg: [], stop };
+  if (!stream) return { stop };
   const onThumb = stream.onThumb;
   if (onThumb && deps.pdfThumbnails) {
     // Display only: a thumbnail failure never touches the read.
     deps.pdfThumbnails(bytes, onThumb, stopper.signal).catch(() => undefined);
   }
   const onPage = stream.onPage;
-  if (!onPage) return { ocrPageArg: [], stop };
+  if (!onPage) return { stop };
   const emit = (ev: Parameters<typeof onPage>[0]) => {
     try {
       onPage(ev);
@@ -157,7 +161,7 @@ function startStream(
   }
   const withText = p.noLayer;
   return {
-    ocrPageArg: [(n, total, text) => emit({ n, total, read: true, ...(withText ? { text } : {}) })],
+    onPage: (n, total, text) => emit({ n, total, read: true, ...(withText ? { text } : {}) }),
     stop,
   };
 }

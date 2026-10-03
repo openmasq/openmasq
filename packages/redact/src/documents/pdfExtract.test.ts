@@ -31,7 +31,7 @@ describe("OCR reads every page it must, and only those", () => {
   it("a digital PDF OCRs exactly the pages its layer could not prove (3rd argument)", async () => {
     const ocrPdf = vi.fn(async () => ({ text: "Tampon : Jean Rebour", meta: { engine: "doctr", ms: 1, pages: 1 } }));
     const f = await extractFromBytes(PDF, { name: "bail.pdf" }, deps(digital(3, [2]), ocrPdf));
-    expect(ocrPdf).toHaveBeenCalledWith(expect.any(Uint8Array), undefined, [2], undefined);
+    expect(ocrPdf).toHaveBeenCalledWith(expect.any(Uint8Array), undefined, [2], undefined, undefined, undefined);
     expect(f.ocrText).toBe("Tampon : Jean Rebour");
     expect(f.text).toContain("Contrat de bail"); // the layer stays primary
   });
@@ -39,15 +39,27 @@ describe("OCR reads every page it must, and only those", () => {
   it("a binding that cannot tell (no `needsOcr`) gets EVERY page read", async () => {
     const ocrPdf = vi.fn(async () => "");
     await extractFromBytes(PDF, { name: "a.pdf" }, deps(digital(2), ocrPdf));
-    expect(ocrPdf).toHaveBeenCalledWith(expect.any(Uint8Array), undefined, undefined, undefined);
+    expect(ocrPdf).toHaveBeenCalledWith(expect.any(Uint8Array), undefined, undefined, undefined, undefined, undefined);
   });
 
   it("a scan reads EVERY page, whatever the binding listed (its OCR becomes the text)", async () => {
     const ocrPdf = vi.fn(async () => "IBAN FR76 3000 4000 0512 3456 789");
     const scan = async () => ({ text: "", pages: 30, imagePages: 30, needsOcr: [1] });
     const f = await extractFromBytes(PDF, { name: "scan.pdf" }, deps(scan, ocrPdf));
-    expect(ocrPdf).toHaveBeenCalledWith(expect.any(Uint8Array), undefined, undefined, undefined);
+    expect(ocrPdf).toHaveBeenCalledWith(expect.any(Uint8Array), undefined, undefined, undefined, undefined, undefined);
     expect(f.text).toContain("FR76");
+  });
+
+  it("a digital PDF hands the image regions on (6th argument); a scan never does", async () => {
+    const logo = { 2: [{ x0: 0.1, y0: 0.1, x1: 0.2, y1: 0.15 }] };
+    const ocrPdf = vi.fn(async () => "");
+    await extractFromBytes(PDF, { name: "bail.pdf" }, deps(async () => ({ ...(await digital(3, [2])()), ocrRegions: logo }), ocrPdf));
+    expect((ocrPdf.mock.calls[0] as unknown[])[5]).toEqual(logo);
+    ocrPdf.mockClear();
+    // A scan's OCR may become the text: it must cover each page whole.
+    const scan = async () => ({ text: "", pages: 3, imagePages: 3, needsOcr: [2], ocrRegions: logo });
+    await extractFromBytes(PDF, { name: "scan.pdf" }, deps(scan, ocrPdf));
+    expect((ocrPdf.mock.calls[0] as unknown[])[5]).toBeUndefined();
   });
 });
 
