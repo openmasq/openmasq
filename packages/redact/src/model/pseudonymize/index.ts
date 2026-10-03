@@ -66,6 +66,8 @@ export async function pseudonymize(
 
   // Phase 1 — gather candidates (model + rules + deterministic detectors + forced/secrets).
   const { candidates, modelError } = await gatherCandidates(input, options);
+  // A stale caller stops here, before the synchronous phases (seconds on a long text).
+  options.signal?.throwIfAborted();
 
   // Tokenising bare numbers into n1/n2 is opt-in (default off).
   const tokenizeNumbers = options.numbers === true;

@@ -15,6 +15,7 @@ export const runtimeSend = {
     auth: "masking failed on our side",
     unknown: "masking could not run",
   },
+  maskingTimeout: "Send blocked: masking took too long. Nothing was sent. Try again. If the text is long, send it in several parts.",
   modelBlockedByOrg: (model) => `Your organization turned off the model "${model}". Choose another one.`,
   creditsSold: "You are out of credits. Upgrade your plan, use your own API key, or wait for the renewal.",
   creditsUnsold: "This model is not available on your account right now. Use your own API key, or choose another model.",
@@ -24,6 +25,8 @@ export const runtimeSend = {
   genericError: "Something went wrong.",
   fileStillMasking: "The file is still being masked. Wait for it to finish before sending.",
   fileStillReading: "Files are still being read. Wait until they're done before sending.",
+  contextTooLarge: (model, tokens, limit, hasFiles) =>
+    `Too long for ${model}: about ${tokens} tokens, over its ${limit} limit. Nothing was sent. Choose a model with a larger context window, or ${hasFiles ? "attach fewer files" : "shorten the text"}.`,
   unreadTitle: (n) => (n > 1 ? "Unreadable files" : "Unreadable file"),
   unreadBody: (n, names) =>
     n > 1
@@ -44,6 +47,7 @@ export const runtimeSend = {
     modelAuth: `Masking is unavailable: the API key is missing or invalid. ${NOT_MASKED} Add the key in Settings → Privacy.`,
     modelNetwork: `Masking is unavailable: the model is unreachable. Check that Ollama is running and the address is correct. ${NOT_MASKED}`,
     modelUnknown: `Masking is unavailable. ${NOT_MASKED}`,
+    timeout: `Masking took too long. ${NOT_MASKED} Try again. If the document is long, split it.`,
   },
   token: {
     outage: (brand) =>

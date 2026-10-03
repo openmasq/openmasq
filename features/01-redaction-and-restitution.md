@@ -32,6 +32,8 @@ a real city — the model reasons correctly, on values that are not yours.
 - [x] **Marker** substitutes `[PERSON1]` (plain mode, opt-in) — `packages/redact/src/model/pseudonymize/allocateTokens.ts`
 - [x] Restitution of the reply through the conversation's vault — `packages/redact/src/engine/vault/index.ts`
 - [x] **Failure = the send is blocked**, never a silent fallback to less protection
+- [x] A masking pass that **runs out of time** says so plainly (« le masquage a pris trop de temps ») and suggests retrying or sending a long text in several parts — never « ne répond pas »; the send stays blocked — `packages/ui/src/send/redactFailure.ts`
+- [x] A long paste (200k characters) masks without freezing the app, the composer preview included: the candidate gates search the text through shared indexes, never once per candidate — `packages/redact/src/__cases__/longPaste.test.ts`
 - [x] One substitute per value, across the whole conversation (cases, fragments, tool echoes)
 - [x] A secret salt per conversation: the same name does not yield the same fake elsewhere
 - [x] Public figures and countries are not masked (otherwise the model answers about nobody)
@@ -87,6 +89,7 @@ holds, it is not merely displayed.
 - [x] Exactly ONE preset lowers the protection (« Allégé »), marked with the eye, never the install default, floor kept — `packages/ui/src/privacy/privacyLevel.test.ts`
 - [x] A category mandated by the organization can be neither disabled nor revealed
 - [x] The composer's preview obeys the same rules as the send
+- [x] A keystroke or a new paste **cancels** the preview's running detection, down to the offline NER worker: a stale run never competes with the next one or with the send — `apps/desktop/src/main/ner/cancelRuns.ts`
 - [x] Reveal a detected value one at a time (and re-mask it)
 - [x] An uncertain detection is marked « **à vérifier** » (dotted) in the preview — masked by default, kept in the clear with one click if it is a false positive — `packages/ui/src/pages/ChatWorkspace/composerDetection.ts`
 - [x] Notoriety follows the level: Allégé/Renforcé spare big brands, MCP integrations and public figures; **Strict** masks them too — `packages/ui/src/privacy/privacyLevel.ts`

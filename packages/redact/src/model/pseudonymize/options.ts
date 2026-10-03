@@ -92,4 +92,12 @@ export interface PseudonymizeOptions {
    * Persisted on `Conversation.redactionKey`. Pinned by `src/model/fakes/keyedMapping.test.ts`.
    */
   key?: string;
+  /**
+   * Abandons the pass: once aborted, `pseudonymize` REJECTS with the signal's reason at its
+   * next phase boundary instead of finishing. For a caller whose result went stale (the
+   * composer preview, superseded by a keystroke). Never a partial result: an aborted pass
+   * returns nothing, and a detector that failed BECAUSE of the abort is not reported as a
+   * coverage downgrade — it is the abort.
+   */
+  signal?: AbortSignal;
 }

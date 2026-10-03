@@ -40,10 +40,13 @@ export async function gatherCandidates(
       })),
     );
   }
+  options.signal?.throwIfAborted();
   if (options.detectLocal) {
     try {
       candidates.push(...(await options.detectLocal(input)));
     } catch (err) {
+      // A detector that stopped because the caller abandoned the pass is not a downgrade.
+      options.signal?.throwIfAborted();
       // A thrown local detector (e.g. weights failed to load) is a coverage
       // downgrade, not corruption — record it like a model failure so the caller
       // can fail-closed, and continue with the regex rules.

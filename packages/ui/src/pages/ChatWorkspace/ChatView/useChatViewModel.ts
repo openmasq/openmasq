@@ -56,7 +56,8 @@ export function useChatViewModel(p: ChatViewProps): ChatViewModel {
   const sel = useSelectionActions(p, { scrollRef: scroll.scrollRef, input, handleInput, setActiveTag: intents.setActiveTag, t });
   const gates = usePendingGates(p, view.activeStreaming);
   const keys = useKeyRetry(p);
-  const send = useSendPipeline(p, { input, clearInput, activeStreaming: view.activeStreaming, att, forced, intents, gates });
+  const modelId = p.conversation?.modelId ?? view.defaultModelId;
+  const send = useSendPipeline(p, { input, clearInput, activeStreaming: view.activeStreaming, att, forced, intents, gates, modelId });
 
   return {
     p,

@@ -29,9 +29,11 @@ export function reconcileMatches(
   let unreversible = false;
   for (const m of matches) {
     const restored = vault[m.placeholder];
-    const sameEntity =
+    // `sameEntity` only matters when the vault restores something else — and its
+    // `text.includes` is a scan of the whole text, so it is not paid per ordinary match.
+    const sameEntity = () =>
       restored !== undefined && entityKey(restored) === entityKey(m.value) && !text.includes(m.value);
-    if (restored !== m.value && !sameEntity) {
+    if (restored !== m.value && !sameEntity()) {
       unreversible = true;
       continue;
     }

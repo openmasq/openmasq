@@ -19,9 +19,14 @@ describe("classifyRedactFailure", () => {
 
   it("treats reachability problems as network", () => {
     expect(classifyRedactFailure("fetch failed")).toBe("network");
-    expect(classifyRedactFailure("remote redaction timed out")).toBe("network");
     expect(classifyRedactFailure("HTTP 503 unavailable")).toBe("network");
     expect(classifyRedactFailure("ECONNREFUSED")).toBe("network");
+  });
+
+  it("tells a pass that ran out of time from an unreachable service", () => {
+    expect(classifyRedactFailure("timed out after 45s")).toBe("timeout");
+    expect(classifyRedactFailure("remote redaction timed out")).toBe("timeout");
+    expect(classifyRedactFailure("détection locale : délai dépassé")).toBe("timeout");
   });
 
   it("falls back to unknown", () => {

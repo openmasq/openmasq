@@ -212,6 +212,7 @@ today's.
       document leaves as its extracted, masked text (the « texte ou fichier » choice was removed)
 - [x] A card that has aged (rules changed) is flagged + can be re-redacted
 - [x] A document still being read (or queued), still masked, or whose masking failed blocks the send — the button says « Lecture » / « Masquage » and the draft stays; one that could not be read is NAMED in a confirmation (« Envoyer sans eux » / « Annuler ») before a send without it, never dropped silently — `packages/ui/src/pages/ChatWorkspace/submitGuard.ts`
+- [x] A message that clearly **exceeds the chosen model's context window** (typed text + attached documents, estimated) is refused BEFORE masking, naming its approximate size and the model's limit, and suggesting a larger-context model or fewer files; the draft and the files stay — `packages/ui/src/send/contextFit.ts`
 
 ### Gestures on text
 **Access**: a selection in the composer or in a message → context menu.
