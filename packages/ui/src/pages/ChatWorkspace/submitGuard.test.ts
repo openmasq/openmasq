@@ -71,3 +71,40 @@ describe("checkSubmit — no staged file is ever dropped silently", () => {
     expect(checkSubmit({ text: "", attachments: [file()], t })).toEqual({ kind: "send" });
   });
 });
+
+describe("checkSubmit — a message too big for the model is refused BEFORE masking", () => {
+  // gpt-4o: a 128K window. chars/4 ⇒ 4 characters per estimated token.
+  const big = (tokens: number) => "a".repeat(tokens * 4);
+
+  it("refuses, naming the size and the limit, and suggests a larger model or fewer files", () => {
+    const doc = file({ name: "dossier.pdf", text: big(200_000) });
+    const r = checkSubmit({ text: "résume", attachments: [doc], t, modelId: "gpt-4o" });
+    expect(r).toEqual({ kind: "refuse", warning: t.runtime.send.contextTooLarge("GPT-4o", "200K", "128K", true) });
+    if (r.kind === "refuse") {
+      expect(r.warning).toContain("Rien n'a été envoyé");
+      expect(r.warning).toContain("moins de fichiers");
+    }
+  });
+
+  it("the typed text alone counts too — and then the advice is to shorten it", () => {
+    const r = checkSubmit({ text: big(200_000), attachments: [], t, modelId: "gpt-4o" });
+    expect(r.kind === "refuse" && r.warning).toContain("raccourcissez le texte");
+  });
+
+  it("never refuses near the limit: the estimate is rough, the provider stays the backstop", () => {
+    expect(checkSubmit({ text: big(150_000), attachments: [], t, modelId: "gpt-4o" })).toEqual({ kind: "send" });
+  });
+
+  it("never refuses for Auto, an unknown window, or a model with room", () => {
+    const doc = file({ text: big(200_000) });
+    expect(checkSubmit({ text: "go", attachments: [doc], t, modelId: "auto" })).toEqual({ kind: "send" });
+    expect(checkSubmit({ text: "go", attachments: [doc], t, modelId: "llama3:local" })).toEqual({ kind: "send" });
+    expect(checkSubmit({ text: "go", attachments: [doc], t, modelId: "gpt-4.1" })).toEqual({ kind: "send" });
+    expect(checkSubmit({ text: "go", attachments: [doc], t })).toEqual({ kind: "send" });
+  });
+
+  it("a file without text (unread) adds nothing to the estimate", () => {
+    const empty = file({ name: "scan.pdf", text: "" });
+    expect(checkSubmit({ text: "go", attachments: [empty], t, modelId: "gpt-4o", accepted: ["scan.pdf"] })).toEqual({ kind: "send" });
+  });
+});

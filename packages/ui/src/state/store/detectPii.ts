@@ -46,6 +46,7 @@ export function useDetectPii({
         if (signal?.aborted) throw new DOMException("aborted", "AbortError");
       };
       if (!text.trim()) return { matches: [], engine };
+      throwIfAborted();
 
       // `redactEngine` is only ever "local" or "patterns" here: `normalizeSettings`
       // coerces retired engines to "local". Never reintroduce a remote branch.
@@ -65,7 +66,10 @@ export function useDetectPii({
       // Connected-integration names and every product name are never flagged, like the
       // send. The CACHED list — never re-query the MCP servers per keystroke.
       const keep = [...keepListRef.current, ...integrationProductNames()];
-      const detectLocalFn = useLocal && host.detectLocalPii ? (t: string) => host.detectLocalPii!({ text: t }) : undefined;
+      // The SIGNAL rides end to end: a superseded preview stops the NER inference itself
+      // (host → worker) and the engine's synchronous phases, instead of finishing a stale run
+      // that would compete for the CPU with the next one — or with the send.
+      const detectLocalFn = useLocal && host.detectLocalPii ? (t: string) => host.detectLocalPii!({ text: t }, signal) : undefined;
 
       try {
         const res = await pseudonymize(text, {
@@ -76,6 +80,7 @@ export function useDetectPii({
           keep,
           commercialNotoriety,
           peopleNotoriety,
+          signal,
         });
         throwIfAborted();
         return {

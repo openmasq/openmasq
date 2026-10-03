@@ -19,7 +19,7 @@ const file = (over: Partial<Attachment>): Attachment => ({
 });
 
 /** The submit's collaborators as spies: what a refusal must NOT touch is observable. */
-async function setup(attachments: Attachment[], input = "compare ces baux") {
+async function setup(attachments: Attachment[], input = "compare ces baux", modelId?: string) {
   const spies = {
     onSend: vi.fn(async () => {}),
     clearInput: vi.fn(),
@@ -37,6 +37,7 @@ async function setup(attachments: Attachment[], input = "compare ces baux") {
     forced: { pendingForced: [], clearPendingForced: spies.clearPendingForced, forcedValues: [], docDeletedRef: { current: new Set() } },
     intents: { resetAll: spies.resetAll },
     gates: {},
+    modelId,
   } as unknown as Parameters<typeof useSendPipeline>[1];
   const api: { current: SendPipelineApi | null } = { current: null };
   function Probe() {
@@ -83,6 +84,17 @@ describe("ChatView submit — never drops a staged file silently", () => {
     const [, sent] = spies.onSend.mock.calls[0] as unknown as [string, Attachment[]];
     expect(sent.map((a) => a.name)).toEqual(["bail.pdf"]);
     expect(api.current!.unreadConfirm).toBeNull();
+    await ui.unmount();
+  });
+});
+
+describe("ChatView submit — a message too big for the model", () => {
+  it("is refused before masking: the warning names it, NOTHING is cleared, nothing sent", async () => {
+    const huge = file({ name: "dossier.pdf", text: "a".repeat(800_000) });
+    const { api, spies, ui } = await setup([huge], "résume", "gpt-4o");
+    await act(async () => api.current!.submit());
+    expect(spies.setAttachWarning).toHaveBeenCalledWith(t.runtime.send.contextTooLarge("GPT-4o", "200K", "128K", true));
+    nothingCleared(spies);
     await ui.unmount();
   });
 });

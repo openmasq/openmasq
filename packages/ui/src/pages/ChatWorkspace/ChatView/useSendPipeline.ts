@@ -25,6 +25,8 @@ interface Deps {
   forced: ForcedRedactionsApi;
   intents: IntentChipsApi;
   gates: PendingGatesApi;
+  /** The model this send goes to (the conversation's, else the default; « auto » allowed). */
+  modelId?: string;
 }
 
 /** The send: what leaves the composer, with which gates, and the reset that follows. */
@@ -88,8 +90,9 @@ export function useSendPipeline(p: ChatViewProps, d: Deps) {
     const text = d.input.trim();
     if (d.activeStreaming) return;
     // Never drop a file silently (`submitGuard.ts`): one still read or masked refuses, one
-    // with nothing to send is named first. A refusal clears NOTHING — draft and chips stay.
-    const check = checkSubmit({ text, attachments, t, accepted });
+    // with nothing to send is named first, a message too big for the model refuses before
+    // masking. A refusal clears NOTHING — draft and chips stay.
+    const check = checkSubmit({ text, attachments, t, accepted, modelId: d.modelId });
     if (check.kind === "idle") return;
     if (check.kind === "refuse") {
       d.att.setAttachWarning(check.warning);

@@ -2,6 +2,7 @@ import type { Detection } from "../../types";
 // The « released zones of a disabled category » family lives in its own file;
 // re-exported from here so callers keep ONE phase entry point.
 export { disabledValueSpans } from "./disabledZones";
+export { deNest } from "./deNest";
 import { RELEASABLE_FRAGMENT } from "./disabledZones";
 import { redactionCategory, URL_EXEMPT_KINDS } from "../../kinds";
 import { isKept, escapeRegExp } from "../../util";
@@ -105,6 +106,7 @@ export function filterCandidates(candidates: Detection[], ctx: FilterCtx): Detec
   // Trim BEFORE filtering: the gates below compare STRINGS, and a glued comma makes them all
   // miss. On a NAME, strip the civil-status marker glued on by the detector.
   const forcedValues = candidates.filter((c) => c.forced && c.value).map((c) => c.value);
+  const containsEmailSpan = emailSpanTest(input, emailSpans);
   return candidates
     .map((c) => {
       let v = trimSpanEdges(c.value);
@@ -120,7 +122,7 @@ export function filterCandidates(candidates: Detection[], ctx: FilterCtx): Detec
       }
       return v === c.value ? c : { ...c, value: v };
     })
-    .filter((c) => {
+    .filter(memoVerdict((c) => {
     // `keep` wins over everything — EXCEPT an org-MANDATED category, which a member can't reveal.
     if (isKept(c.value, keep) && !(unrevealable?.size && unrevealable.has(redactionCategory(c.category))))
       return false; // allow-listed → never redact (keep wins over forced, but not over org-forced)
@@ -203,16 +205,39 @@ export function filterCandidates(candidates: Detection[], ctx: FilterCtx): Detec
     if (
       emailSpans &&
       redactionCategory(c.category) !== "email" &&
-      !emailSpans.some(([s, e]) => {
-        const span = input.slice(s, e);
-        return c.value.length > span.length && c.value.includes(span);
-      }) &&
+      !containsEmailSpan(c.value) &&
       !occursOutsideUrl(c.value, input, emailSpans)
     )
       return false;
     if (isBareNumber(c.value) && !numberCarriesMeaning(c.category)) return false;
     return true;
-  });
+  }));
+}
+
+/** A gate verdict reads the candidate's value, category and `forced` flag only, against a
+ *  fixed context: memoised, so a long text — which repeats values thousands of times —
+ *  pays each gate once per distinct candidate. */
+function memoVerdict(pass: (c: Detection) => boolean): (c: Detection) => boolean {
+  const seen = new Map<string, boolean>();
+  return (c) => {
+    const key = `${c.forced ? 1 : 0}\u0000${c.category}\u0000${c.value}`;
+    let ok = seen.get(key);
+    if (ok === undefined) {
+      ok = pass(c);
+      seen.set(key, ok);
+    }
+    return ok;
+  };
+}
+
+/** Does `value` STRICTLY contain one of the e-mail spans' texts? Asked of the DISTINCT
+ *  texts, and skipped for a value with no « @ » when every span text carries one. */
+function emailSpanTest(input: string, spans: UrlSpans | null): (value: string) => boolean {
+  if (!spans) return () => false;
+  const texts = [...new Set(spans.map(([s, e]) => input.slice(s, e)))];
+  const allAt = texts.every((t) => t.includes("@"));
+  return (value) =>
+    (!allAt || value.includes("@")) && texts.some((t) => value.length > t.length && value.includes(t));
 }
 
 /** Prose-geo categories: a region/department mentioned in PROSE. Emitted ungated by
@@ -229,30 +254,4 @@ const PROSE_GEO = new Set(["REGION", "DEPARTMENT"]);
 export function dropUnanchoredProseGeo(kept: Detection[], vaultEmpty: boolean): Detection[] {
   const anchored = !vaultEmpty || kept.some((c) => !PROSE_GEO.has(c.category) || c.forced);
   return anchored ? kept : kept.filter((c) => !PROSE_GEO.has(c.category) || c.forced);
-}
-
-/**
- * Drop candidates fully SUBSUMED by a longer one — e.g. a NER-detected NAME
- * ("julien.sabourdin") inside a regex EMAIL ("julien.sabourdin@gmail.com") would
- * otherwise be redacted as a SECOND, overlapping item (2 chips for 1 email).
- * Value-based + occurrence-safe: a candidate is dropped only when EVERY occurrence
- * of its value sits inside a longer candidate's value — a standalone occurrence
- * elsewhere (a real name NOT in an email) is still caught.
- */
-export function deNest(kept: Detection[], input: string): Detection[] {
-  // Exact VALUE duplicate between the generic `apikey` heuristic and a SPECIFIC rule: the
-  // rule wins, else the LAST category overwrites the display (« api token » on a BIC).
-  const hasSpecific = new Set(
-    kept.filter((c) => redactionCategory(c.category) !== "apikey").map((c) => c.value),
-  );
-  kept = kept.filter((c) => !(redactionCategory(c.category) === "apikey" && hasSpecific.has(c.value)));
-  return kept.filter((c) => {
-    const supers = kept.filter(
-      (o) => o.value.length > c.value.length && o.value.includes(c.value),
-    );
-    if (!supers.length) return true;
-    let masked = input;
-    for (const s of supers) masked = masked.split(s.value).join(" ".repeat(s.value.length));
-    return masked.includes(c.value);
-  });
 }

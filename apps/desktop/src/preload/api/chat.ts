@@ -70,6 +70,11 @@ export const chat = {
     return ipcRenderer.invoke("redact:detect-local", payload);
   },
 
+  /** Stop the run started with this `cancelKey`: it REJECTS (never a partial result). */
+  cancelLocalPii(cancelKey: string): void {
+    ipcRenderer.send("redact:detect-local-cancel", cancelKey);
+  },
+
   /** Reachability probe of a self-hosted (openai-compat / Ollama) endpoint — true if the
    *  local server answered, false otherwise. Drives the picker's reachable/unreachable tag. */
   probeLocalEndpoint(baseUrl: string): Promise<boolean> {

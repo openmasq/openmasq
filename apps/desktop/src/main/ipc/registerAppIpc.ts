@@ -1,7 +1,7 @@
 // Process-level channels: local PII detection, versions, the e2e flag, the auth store.
 import { ipcMain, app } from "electron";
 import { release } from "os";
-import { type DetectLocalPayload, detectLocalPii } from "../localNer";
+import { type DetectLocalPayload, cancelLocalPii, detectLocalPii } from "../localNer";
 import { authStoreGet, authStoreSet, authStoreRemove } from "../store/authStore";
 import { whenWindowShown } from "../store/safeStore";
 import { devOnly } from "../security/devOnly";
@@ -21,6 +21,9 @@ export function registerAppHandlers(): void {
   // Runs in-process (Node); the renderer wraps it into the redaction pipeline.
   ipcMain.handle("redact:detect-local", (_e, payload: DetectLocalPayload) => detectLocalPii(payload)
   );
+  // A superseded preview stops its inference. Cancelling can only make a run REJECT (every
+  // caller fails closed on that), so the renderer gains no capability; the key is checked.
+  ipcMain.on("redact:detect-local-cancel", (_e, key: unknown) => cancelLocalPii(key));
   // App + runtime component versions for the Versions settings tab.
   ipcMain.handle("app:versions", () => ({
     app: app.getVersion(),

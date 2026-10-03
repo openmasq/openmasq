@@ -17,6 +17,7 @@ import {
 } from "./sync";
 import { billingHost } from "./billing";
 import { subscriptionHost } from "./hostSubscription";
+import { localPiiDetector } from "./localPiiHost";
 import { feedbackHost, mailtoFeedbackHost } from "./feedback";
 // THE renderer's environment reader (`./appEnv`).
 import {
@@ -165,9 +166,7 @@ const host: Host = {
   },
   complete: (payload) => window.openmasq.complete(payload),
   // Absent ⇒ the local engine is unavailable (the store falls back to the pattern rules).
-  detectLocalPii: window.openmasq.detectLocalPii
-    ? (payload) => window.openmasq.detectLocalPii!(payload)
-    : undefined,
+  detectLocalPii: localPiiDetector(),
   probeLocalEndpoint: window.openmasq.probeLocalEndpoint
     ? (baseUrl) => window.openmasq.probeLocalEndpoint!(baseUrl)
     : undefined,

@@ -1,3 +1,4 @@
+import { positionsOf } from "../../positions";
 import type { Detection } from "../../types";
 import { redactionCategory } from "../../kinds";
 
@@ -48,12 +49,14 @@ function isSwiftFieldHead(line: string, column: number): boolean {
 /** Every occurrence of `value` in `input`, as its line and its column within that line. */
 function occurrences(value: string, input: string): { line: string; column: number }[] {
   const out: { line: string; column: number }[] = [];
-  let at = input.indexOf(value);
-  while (at !== -1) {
+  let next = 0;
+  for (const at of positionsOf(input, value)) {
+    // Non-overlapping, left to right (the walk this replaces stepped past each hit).
+    if (at < next) continue;
+    next = at + value.length;
     const start = input.lastIndexOf("\n", at) + 1;
     const end = input.indexOf("\n", at);
     out.push({ line: input.slice(start, end === -1 ? input.length : end), column: at - start });
-    at = input.indexOf(value, at + value.length);
   }
   return out;
 }
@@ -61,6 +64,8 @@ function occurrences(value: string, input: string): { line: string; column: numb
 /** Drop the candidates every occurrence of which is a heading (entities) or the head of a
  *  SWIFT field's payload (high-entropy tokens). A `forced` candidate is never dropped. */
 export function dropLineNoise(candidates: Detection[], input: string): Detection[] {
+  // The verdict depends on the value and its family only; a long text repeats values.
+  const verdict = new Map<string, boolean>();
   return candidates.filter((c) => {
     if (c.forced) return true;
     const cat = redactionCategory(c.category);
@@ -70,7 +75,13 @@ export function dropLineNoise(candidates: Detection[], input: string): Detection
         ? (o: { line: string; column: number }) => isSwiftFieldHead(o.line, o.column)
         : null;
     if (!noise) return true;
-    const occ = occurrences(c.value, input);
-    return !(occ.length && occ.every(noise));
+    const key = `${ENTITY.has(cat) ? "e" : "h"}\u0000${c.value}`;
+    let keep = verdict.get(key);
+    if (keep === undefined) {
+      const occ = occurrences(c.value, input);
+      keep = !(occ.length && occ.every(noise));
+      verdict.set(key, keep);
+    }
+    return keep;
   });
 }

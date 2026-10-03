@@ -11,7 +11,7 @@ const REDACT_TIMEOUT_MS = 12000;
 
 type CompleteMessages = { role: "system" | "user" | "assistant"; content: string }[];
 export type CompleteFn = (messages: CompleteMessages) => Promise<string>;
-export type DetectLocalFn = (text: string) => Promise<Awaited<ReturnType<NonNullable<Host["detectLocalPii"]>>>>;
+export type DetectLocalFn = (text: string, signal?: AbortSignal) => Promise<Awaited<ReturnType<NonNullable<Host["detectLocalPii"]>>>>;
 
 /**
  * The model-based detector: any non-session provider the settings name. The key is
@@ -81,10 +81,10 @@ export function makeCompleteFn(host: Host, settings: Settings, dbg: Dbg): Comple
  */
 export function makeDetectLocalFn(host: Host, dbg: Dbg): DetectLocalFn | undefined {
   if (!host.detectLocalPii) return undefined;
-  return async (t) => {
+  return async (t, signal) => {
     const t0 = performance.now();
     try {
-      const found = await host.detectLocalPii!({ text: t });
+      const found = await host.detectLocalPii!({ text: t }, signal);
       const ms = performance.now() - t0;
       const cold = !isNerWarmed();
       markNerWarmed();

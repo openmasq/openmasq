@@ -43,7 +43,9 @@ export class RedactionUnavailableError extends Error {
     // wording detail — and it's the first question one asks here.
     // ⚠️ No « changez de moteur » : that selector no longer exists for the user
     // (`Settings.redactEngine` is locked on "local").
-    return s.maskingBlocked(s.maskingCause[classifyRedactFailure(reason)]);
+    const kind = classifyRedactFailure(reason);
+    // A time-out is not an outage: its advice is « retry, or split a long text ».
+    return kind === "timeout" ? s.maskingTimeout : s.maskingBlocked(s.maskingCause[kind]);
   }
 }
 

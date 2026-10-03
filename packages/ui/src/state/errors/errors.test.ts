@@ -69,6 +69,17 @@ describe("RedactionUnavailableError — the user reads a sentence, the log keeps
     const e = new RedactionUnavailableError("boom", getMessages("en"));
     expect(e.message).toBe("Send blocked: masking could not run. Nothing was sent. Try again.");
   });
+
+  it("a pass that ran out of time says so — not « ne répond pas » — and keeps the block", () => {
+    const e = new RedactionUnavailableError("détection des couches document échouée (timed out after 45s)", t);
+    expect(e.message).toBe(t.runtime.send.maskingTimeout);
+    expect(e.message).toContain("Rien n'a été envoyé");
+    expect(e.message).toMatch(/plusieurs parties/);
+    expect(e.message).not.toContain("ne répond pas");
+    const en = new RedactionUnavailableError("timed out after 45s", getMessages("en"));
+    expect(en.message).toBe("Send blocked: masking took too long. Nothing was sent. Try again. If the text is long, send it in several parts.");
+    expect(en.message).not.toMatch(/redact/i);
+  });
 });
 
 describe("humanizeSendError — un quota épuisé, dit en français", () => {

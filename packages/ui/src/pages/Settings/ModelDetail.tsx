@@ -10,6 +10,7 @@ import { useT } from "../../i18n";
 import { ModelLogo } from "../../components/brand";
 import { CountryFlag } from "../../components/media/CountryFlag";
 import { modelCopy, modelTagLabel } from "../../help/catalogCopy";
+import { formatTokenCount } from "../../send/contextFit";
 
 /** A USD-per-1M-tokens figure, trimmed (2.5 → "2,50 $", 0.04 → "0,04 $"). FR decimal
  *  comma to match the rest of the UI; the raw prices are USD list estimates. */
@@ -33,13 +34,6 @@ function Bar({ label, value }: { label: string; value: number }) {
       </span>
     </div>
   );
-}
-
-/** Human context-window figure (e.g. "1M", "200K"). */
-function fmtCtx(n: number): string {
-  if (n >= 1_000_000) return `${n / 1_000_000}M`;
-  if (n >= 1_000) return `${Math.round(n / 1_000)}K`;
-  return String(n);
 }
 
 /**
@@ -79,7 +73,7 @@ export function ModelDetail({ model }: { model: ModelInfo }) {
         <span className={`model-badge ${meta.openSource ? "oss" : "hosted"}`}>
           {meta.openSource ? t.modelsTab.detail.openSource : t.modelsTab.detail.hosted}
         </span>
-        {ctx && <span className="model-badge ctx">{t.modelsTab.detail.context(fmtCtx(ctx))}</span>}
+        {ctx && <span className="model-badge ctx">{t.modelsTab.detail.context(formatTokenCount(ctx))}</span>}
         {model.vision && <span className="model-badge">{t.modelsTab.detail.vision}</span>}
       </div>
 

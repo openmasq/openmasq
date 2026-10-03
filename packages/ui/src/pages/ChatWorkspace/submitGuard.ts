@@ -1,5 +1,7 @@
 import type { Messages } from "@openmasq/i18n";
 import type { Attachment } from "./Composer";
+import { findModelAny } from "../../prompt/models";
+import { contextOverflow, formatTokenCount } from "../../send/contextFit";
 
 /** What a composer submit may do with the staged files, decided BEFORE anything is cleared. */
 export type SubmitCheck =
@@ -22,6 +24,8 @@ export type SubmitCheck =
  * `imageNames`: files the send carries as PICTURES — those reach the model without text.
  * It only decides what is dropped; masking never depends on it (the send pipeline redacts
  * whatever rides).
+ * `modelId`: the model this send goes to. A message that clearly overflows its context
+ * window is refused HERE, before masking and before any network (`send/contextFit.ts`).
  */
 export function checkSubmit(p: {
   text: string;
@@ -29,6 +33,7 @@ export function checkSubmit(p: {
   t: Messages;
   imageNames?: string[];
   accepted?: string[];
+  modelId?: string;
 }): SubmitCheck {
   const { attachments, t } = p;
   const send = t.runtime.send;
@@ -43,6 +48,13 @@ export function checkSubmit(p: {
     return unread.length
       ? { kind: "refuse", warning: send.unreadNothingLeft(unread.length, unread.join(", ")) }
       : { kind: "idle" };
+  }
+  const withText = attachments.filter((a) => a.text.trim());
+  const over = contextOverflow({ modelId: p.modelId, text: p.text, files: withText });
+  if (over) {
+    const label = findModelAny(over.modelId)?.label ?? over.modelId;
+    const warning = send.contextTooLarge(label, formatTokenCount(over.tokens), formatTokenCount(over.limit), withText.length > 0);
+    return { kind: "refuse", warning };
   }
   const accepted = new Set(p.accepted ?? []);
   if (unread.some((n) => !accepted.has(n))) return { kind: "confirm", unread };

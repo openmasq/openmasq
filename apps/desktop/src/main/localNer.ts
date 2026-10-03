@@ -13,6 +13,8 @@ import { BRAND } from "@openmasq/branding";
 
 export interface DetectLocalPayload {
   text: string;
+  /** Opaque name of this run, for {@link cancelLocalPii}. */
+  cancelKey?: string;
 }
 
 /**
@@ -49,6 +51,9 @@ const STDERR_RING_MAX = 2000;
 let stderrRing = "";
 
 let child: UtilityProcess | null = null;
+/** In-flight runs by the renderer's `cancelKey` → worker request id. */
+const byCancelKey = new Map<string, number>();
+const CANCEL_KEY_RE = /^[\w-]{1,64}$/;
 let seq = 0;
 let inflight = 0;
 let idleTimer: NodeJS.Timeout | null = null;
@@ -122,6 +127,29 @@ function ensureChild(): UtilityProcess {
 }
 
 /**
+ * Stop the run the renderer named `key` (a preview superseded by a keystroke): the pending
+ * call REJECTS now — never a partial `[]` — and the worker drops the rest of its chunks, so
+ * a stale document stops competing for the CPU with the next run or the send. An unknown or
+ * malformed key is ignored.
+ */
+export function cancelLocalPii(key: unknown): void {
+  if (typeof key !== "string" || !CANCEL_KEY_RE.test(key)) return;
+  const id = byCancelKey.get(key);
+  byCancelKey.delete(key);
+  if (id === undefined) return;
+  const p = pending.get(id);
+  if (!p) return;
+  clearTimeout(p.timer);
+  pending.delete(id);
+  p.reject(new Error("détection locale annulée"));
+  try {
+    child?.postMessage({ cancel: id });
+  } catch {
+    /* the worker is gone: nothing left to stop */
+  }
+}
+
+/**
  * BEST-EFFORT warm-up (fork + weights + session: seconds on a weak machine), called on
  * window focus so the cold cost is paid BEFORE the user types. NEVER a guarantee: the send
  * keeps its fail-closed path and surfaces the real error.
@@ -142,9 +170,11 @@ export async function detectLocalPii(payload: DetectLocalPayload): Promise<Detec
     idleTimer = null;
   }
   inflight++;
+  const id = ++seq;
+  const key = typeof payload.cancelKey === "string" && CANCEL_KEY_RE.test(payload.cancelKey) ? payload.cancelKey : null;
   try {
     const c = ensureChild();
-    const id = ++seq;
+    if (key) byCancelKey.set(key, id);
     return await new Promise<Detection[]>((resolve, reject) => {
       const timer = setTimeout(() => {
         pending.delete(id);
@@ -160,6 +190,7 @@ export async function detectLocalPii(payload: DetectLocalPayload): Promise<Detec
       }
     });
   } finally {
+    if (key && byCancelKey.get(key) === id) byCancelKey.delete(key);
     inflight--;
     // Re-arm idle eviction; only kills when nothing is in flight.
     if (idleTimer) clearTimeout(idleTimer);

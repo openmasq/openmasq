@@ -15,6 +15,8 @@ export const runtimeSend = {
     auth: "le masquage a échoué de notre côté",
     unknown: "le masquage n'a pas pu s'exécuter",
   },
+  maskingTimeout:
+    "Envoi bloqué : le masquage a pris trop de temps. Rien n'a été envoyé. Réessayez. Si le texte est long, envoyez-le en plusieurs parties.",
   modelBlockedByOrg: (model) => `Votre organisation a désactivé le modèle « ${model} ». Choisissez-en un autre.`,
   creditsSold:
     "Crédits épuisés. Passez à un abonnement supérieur, utilisez votre propre clé, ou attendez le renouvellement.",
@@ -27,6 +29,8 @@ export const runtimeSend = {
   genericError: "Une erreur est survenue.",
   fileStillMasking: "Masquage du fichier en cours. Attendez la fin avant d'envoyer.",
   fileStillReading: "Lecture des fichiers en cours. Attendez la fin avant d'envoyer.",
+  contextTooLarge: (model, tokens, limit, hasFiles) =>
+    `Trop long pour ${model} : environ ${tokens} tokens, pour une limite de ${limit}. Rien n'a été envoyé. Choisissez un modèle à plus grande fenêtre de contexte, ou ${hasFiles ? "joignez moins de fichiers" : "raccourcissez le texte"}.`,
   unreadTitle: (n) => (n > 1 ? "Fichiers illisibles" : "Fichier illisible"),
   unreadBody: (n, names) =>
     n > 1
@@ -47,6 +51,7 @@ export const runtimeSend = {
     modelAuth: `Masquage indisponible : clé manquante ou invalide. ${NOT_MASKED} Renseignez la clé dans Réglages → Confidentialité.`,
     modelNetwork: `Masquage indisponible : modèle injoignable. Vérifiez qu'Ollama est démarré et que l'adresse est correcte. ${NOT_MASKED}`,
     modelUnknown: `Masquage indisponible. ${NOT_MASKED}`,
+    timeout: `Le masquage a pris trop de temps. ${NOT_MASKED} Réessayez. Si le document est long, découpez-le.`,
   },
   token: {
     outage: (brand) =>

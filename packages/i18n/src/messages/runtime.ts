@@ -84,6 +84,9 @@ export interface RuntimeMessages {
     /** The masking step could not run: the send is blocked, nothing was sent. */
     maskingBlocked: (cause: string) => string;
     maskingCause: { network: string; auth: string; unknown: string };
+    /** The masking pass ran past its time budget (a long text, a busy machine): the send
+     *  is blocked like any masking failure, and the advice is to retry or split the text. */
+    maskingTimeout: string;
     modelBlockedByOrg: (model: string) => string;
     creditsSold: string;
     creditsUnsold: string;
@@ -94,6 +97,9 @@ export interface RuntimeMessages {
     fileStillMasking: string;
     /** A staged file is still being READ (or queued): the send waits, nothing is cleared. */
     fileStillReading: string;
+    /** The message alone overflows the model's context window (estimated, before masking):
+     *  refused, draft and files kept. Figures come preformatted (« 310K », « 128K »). */
+    contextTooLarge: (model: string, tokens: string, limit: string, hasFiles: boolean) => string;
     /** Files with no readable content: the confirmation NAMES them before a send without them. */
     unreadTitle: (n: number) => string;
     unreadBody: (n: number, names: string) => string;
@@ -111,6 +117,8 @@ export interface RuntimeMessages {
       modelAuth: string;
       modelNetwork: string;
       modelUnknown: string;
+      /** The masking pass ran out of time (any engine). */
+      timeout: string;
     };
     /** The platform send could not get its session token. */
     token: {
