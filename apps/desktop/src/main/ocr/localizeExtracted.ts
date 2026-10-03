@@ -22,6 +22,8 @@ function localizedError(f: ExtractedFile, t: Copy): string | null {
   switch (f.errorCode) {
     case "file_too_large":
       return p.mb != null ? t.refused.fileTooLarge(p.mb) : null;
+    case "pdf_too_many_pages":
+      return p.pages != null && p.max != null ? t.refused.pdfTooManyPages(p.pages, p.max) : null;
     case "executable":
       return t.refused.executable;
     case "type_mismatch":

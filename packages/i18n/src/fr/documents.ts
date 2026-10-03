@@ -5,7 +5,8 @@ import type { Messages } from "../messages";
 
 export const documents = {
   refused: {
-    fileTooLarge: (mb) => `Fichier trop volumineux (${mb} Mo maximum).`,
+    fileTooLarge: (mb) => `Fichier trop volumineux (${mb} Mo maximum). Découpez-le en plusieurs parties.`,
+    pdfTooManyPages: (pages, max) => `PDF trop long (${pages} pages, ${max} maximum). Découpez-le en plusieurs parties.`,
     executable: "Type de fichier non autorisé : le fichier contient du code exécutable.",
     typeMismatch: "Fichier refusé : son contenu ne correspond pas à son extension.",
     imageTooLarge: (width, height) => `Image refusée : dimensions trop grandes (${width}×${height}).`,

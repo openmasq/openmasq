@@ -37,6 +37,7 @@ export const PURE_TESTS = [
 export const NO_ISOLATE_UNSAFE_TESTS = [
   "packages/redact/src/documents.ocr.test.ts",
   "packages/redact/src/documents.pdfbuf.test.ts",
+  "packages/redact/src/documents.limits.test.ts",
   "packages/redact/src/ocr/ocr.test.ts",
 ];
 

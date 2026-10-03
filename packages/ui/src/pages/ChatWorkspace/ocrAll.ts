@@ -1,4 +1,5 @@
 import type { Messages } from "@openmasq/i18n";
+import { CHARS_PER_PAGE, maskPlan } from "@openmasq/redact";
 import type { ExtractedFile, FilesHost, OcrProgress } from "../../host";
 import { extractProgressPatch } from "./attachmentPending";
 import type { Attachment } from "./Composer";
@@ -24,6 +25,14 @@ export interface OcrAllDeps {
 
 export async function ocrAllAttachment(deps: OcrAllDeps, a: Attachment): Promise<void> {
   if (!a.path || !deps.files.extractAll) return;
+  // Estimated BEFORE minutes of OCR: a document whose full text could not be masked in
+  // full is refused now, with the same rule the masking applies (`maskPlan`) once read.
+  const pages = a.ocr?.pagesTotal ?? 0;
+  const plan = maskPlan(pages * CHARS_PER_PAGE);
+  if (plan.kind === "refuse") {
+    deps.patch(a.cid, { error: deps.t.composer.attachments.tooLongToMask(pages) });
+    return;
+  }
   deps.patch(a.cid, { extracting: true, error: undefined, extractProgress: undefined, extractQueued: undefined });
   let file: ExtractedFile;
   try {

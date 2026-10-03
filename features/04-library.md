@@ -21,6 +21,9 @@ original makes it possible to share a document without reworking it.
 - [x] Opens in the shared side panel — **one view only, the redacted one** (+ « Conversations »); the card is the only click target (its footer keeps « Ouvrir dans l'app externe » alone)
 - [x] An empty library points at « **Aller aux conversations** » — files arrive through a conversation, never from here —
       by clicking a file card or row — `packages/ui/src/pages/Library/LibraryFileModal.tsx`
+- [x] The **redacted copy** of a DOCX/XLSX/PPTX masks every value detected in the WHOLE document —
+      names included, past the part sent to the model too — not only what the rules recognise —
+      `apps/desktop/src/main/ipc/documentScrub.ts`, `packages/ui/src/send/docScrubVault.ts`
 - [x] "Which conversations use this file"
 - [x] Re-attach a file to a new conversation (without re-OCR)
 - [ ] Uploading a file straight into Bibliothèque (it goes through a conversation)

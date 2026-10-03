@@ -27,6 +27,13 @@ describe("an extraction failure, worded by its code", () => {
     expect(localizeExtracted(f, en).error).toBe("Image refused: dimensions too large (9000×9000).");
   });
 
+  it("a PDF past the page cap says its size, the cap and what to do, in both languages", () => {
+    const f = file({ error: "x", errorCode: "pdf_too_many_pages", errorParams: { pages: 2400, max: 2000 } });
+    expect(localizeExtracted(f, fr).error).toBe("PDF trop long (2400 pages, 2000 maximum). Découpez-le en plusieurs parties.");
+    expect(localizeExtracted(f, en).error).toBe("PDF too long (2400 pages, 2000 max). Split it into smaller parts.");
+    expect(localizeExtracted({ ...f, errorParams: {} }, en).error).toBe("x");
+  });
+
   it("missing numbers keep the engine's text rather than a sentence with a hole", () => {
     const f = file({ error: "fallback", errorCode: "file_too_large" });
     expect(localizeExtracted(f, en).error).toBe("fallback");

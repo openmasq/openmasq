@@ -1,6 +1,7 @@
 import { bucket, captureEvent } from "../../analytics";
 import { uid } from "../../state/storePersistence";
 import { flagClipped } from "../documentLoad";
+import { docScrubKinds, docScrubVault } from "../docScrubVault";
 import { buildSendAnalyticsEvents } from "../sendAnalytics";
 import type { RedactedTurn } from "./redactionPasses";
 import type { RedactionSetup } from "./redactionSetup";
@@ -99,8 +100,11 @@ function storeAttachments(ctx: TurnContext, r: RedactionSetup): void {
         data: a.data,
         name: a.name,
         mime: a.mime || "application/octet-stream",
-        vault: r.vault,
+        // ⚠️ The send's vault covers the WIRE (first `MAX_FILE_CHARS`); the drop-time map
+        // covers the whole document — both, or a name past the cut stays in clear in the copy.
+        vault: docScrubVault(r.vault, a.replacements),
         disabledKinds: r.disabledKinds,
+        kinds: docScrubKinds(r, a.replacements),
         // The drop-time count, so an image/PDF still shows its redaction badge in the library.
         redactedCount: a.redactPreview,
         // Persist the extraction so RE-ATTACHING skips OCR/parsing; `redactions` is the

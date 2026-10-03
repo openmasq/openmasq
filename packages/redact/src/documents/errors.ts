@@ -16,6 +16,7 @@ export const msg = (e: unknown) => (e instanceof Error ? e.message : String(e));
  */
 export type DocumentErrorCode =
   | "file_too_large"
+  | "pdf_too_many_pages"
   | "executable"
   | "type_mismatch"
   | "image_too_large"
@@ -37,6 +38,9 @@ export interface DocumentErrorParams {
   height?: number;
   entries?: number;
   ext?: string;
+  /** `pdf_too_many_pages`: the document's page count and the cap. */
+  pages?: number;
+  max?: number;
 }
 
 /** A refusal or failure: its code, its fallback text, its numbers. */
@@ -51,6 +55,7 @@ export class DocumentError extends Error {
   constructor(
     readonly code: DocumentErrorCode,
     message: string,
+    readonly params?: DocumentErrorParams,
   ) {
     super(message);
     this.name = "DocumentError";

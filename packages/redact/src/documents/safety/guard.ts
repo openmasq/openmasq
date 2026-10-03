@@ -24,7 +24,7 @@
 
 /** Hard ceiling on any single upload. Bytes past this never reach a parser. */
 import { IMAGE_FAMILIES, sniff, type SniffFamily, type Sniffed, u16le, u32le } from "./sniff";
-import type { DocumentFailure } from "../errors";
+import { DocumentError, type DocumentFailure } from "../errors";
 
 // Re-exported: the guard stays the one door to sniffing (split out for the LOC cap).
 export { sniff, type SniffFamily, type Sniffed };
@@ -44,8 +44,29 @@ export const MAX_ZIP_TOTAL_BYTES = 300 * 1024 * 1024; // 300 MiB
 export const MAX_ZIP_RATIO = 250;
 /** Entry-count cap — a "flat" bomb hides size behind millions of tiny members. */
 export const MAX_ZIP_ENTRIES = 10_000;
-/** Page cap for PDF TEXT extraction (OCR is capped separately, lower). */
-export const MAX_PDF_PAGES = 500;
+/** Page cap for PDF TEXT extraction (OCR is capped separately, lower). A PDF past it is
+ *  REFUSED whole ({@link pdfPagesRefusal}), never read up to the cap: a silently missing
+ *  tail is a document the person believes masked and sent in full. Set well above what
+ *  `MAX_MASK_CHARS` lets through on dense pages, so the character limit decides for a
+ *  real document and this only stops a page-count bomb. */
+export const MAX_PDF_PAGES = 2_000;
+
+/** The refusal a PDF with more than {@link MAX_PDF_PAGES} pages gets — thrown by the
+ *  text-layer reader before it reads any page. */
+export function pdfPagesRefusal(pages: number): DocumentError | null {
+  if (pages <= MAX_PDF_PAGES) return null;
+  return new DocumentError(
+    "pdf_too_many_pages",
+    `PDF trop long (${pages} pages, ${MAX_PDF_PAGES} maximum). Découpez-le en plusieurs parties.`,
+    { pages, max: MAX_PDF_PAGES },
+  );
+}
+
+/** The oversize refusal, ONE wording for the byte gate and the on-disk size check. */
+export function fileTooLargeRefusal(): DocumentFailure {
+  const mb = Math.round(MAX_FILE_BYTES / (1024 * 1024));
+  return { code: "file_too_large", params: { mb }, message: `Fichier trop volumineux (${mb} Mo maximum). Découpez-le en plusieurs parties.` };
+}
 
 /**
  * The scale to rasterise a page at: `desired`, or as much less as it takes for
@@ -171,10 +192,7 @@ export function guardUpload(bytes: Uint8Array, ext: string): string | null {
 
 /** {@link guardUpload} with the refusal's code and numbers: the same decision. */
 export function guardUploadRefusal(bytes: Uint8Array, ext: string): DocumentFailure | null {
-  if (bytes.length > MAX_FILE_BYTES) {
-    const mb = Math.round(MAX_FILE_BYTES / (1024 * 1024));
-    return { code: "file_too_large", params: { mb }, message: `Fichier trop volumineux (max ${mb} Mo).` };
-  }
+  if (bytes.length > MAX_FILE_BYTES) return fileTooLargeRefusal();
 
   const allowed = allowedFamilies(ext);
   if (allowed === null) return null; // text/unknown ext — nothing binary to check

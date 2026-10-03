@@ -3,7 +3,7 @@ import { useT } from "../../../i18n";
 import { AlertIcon, FileIcon, RefreshIcon, ShieldIcon, XIcon } from "../../../components/brand";
 import type { Attachment } from "../Composer";
 import { ocrShortfall } from "../ocrShortfall";
-import { progressLabel } from "../attachmentPending";
+import { longMaskingMinutesLeft, progressLabel } from "../attachmentPending";
 
 /**
  * ONE composer attachment chip (kit ComposerFileThumb). Pure render over the attachment
@@ -64,7 +64,7 @@ export function AttachmentChip({
     : a.redactError
       ? a.redactError
       : a.redacting
-        ? t.composer.attachments.redacting
+        ? maskingTip(a, t)
         : shortfall
           ? t.composer.attachments.partialTip(shortfall.read, shortfall.total)
           : engineChanged
@@ -209,4 +209,10 @@ export function AttachmentChip({
       )}
     </span>
   );
+}
+
+/** A long document's masking says how long it will take; any other says it is masking. */
+function maskingTip(a: Attachment, t: ReturnType<typeof useT>): string {
+  const left = longMaskingMinutesLeft(a);
+  return left === null ? t.composer.attachments.redacting : t.composer.attachments.maskingLong(left);
 }

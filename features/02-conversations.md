@@ -209,7 +209,21 @@ today's.
 - [x] OCR on a scan, with a reconciled text layer — `packages/redact/src/ocr/`
 - [x] **The OCR ceiling is VISIBLE and liftable** — 10 pages by default (several seconds each: a 300-page file is a choice, not an imposed wait); beyond that the chip says « 10/32 pages lues » and offers « Lire tout » (re-extraction with no ceiling, same choreography as the first: progress, re-redaction) — `packages/ui/src/pages/ChatWorkspace/ocrShortfall.ts`
 - [x] In the preview, a **halo** (theme tint, light wash) marks the text that, once redacted, goes to the model; the first page's caption is a **button** that hides/shows the halo (preference remembered) — `packages/ui/src/containers/modals/viewers/pdf/textHalo.ts`
-- [x] Document redaction **on drop**, before any send
+- [x] Document redaction **on drop**, before any send — over the **whole** extracted text, never
+      a first slice: the send reuses that map, and so does the library's masked copy of a
+      DOCX/XLSX — `packages/ui/src/pages/ChatWorkspace/redactAttachment.ts`
+- [x] **A document is masked in full or refused, never in part.** Past ~80,000 characters (≈ 20 s
+      of masking) the chip says « Masquage · 40 % · environ 3 min », its tooltip « Document long :
+      masquage en cours, environ N min »; past 1,000,000 characters (≈ 4 min) it is refused before
+      masking: « Document trop long pour être masqué en entier (≈ N pages). Découpez-le en
+      plusieurs parties. » « Lire les N pages » checks the same limit before the OCR starts. A
+      masking past its deadline (scaled to the size) fails the chip with « Réessayer », never
+      sendable unmasked — `packages/redact/src/documents/safety/maskBudget.ts`
+- [x] **Size limits stated, checked before reading**: a file over 50 MB is refused before it is
+      read (picked: on its size on disk; dropped: before it is loaded) — « Fichier trop volumineux
+      (50 Mo maximum). Découpez-le en plusieurs parties. »; a PDF over 2,000 pages is refused
+      whole (« PDF trop long (N pages, 2000 maximum)… »), never read up to a page cap —
+      `packages/redact/src/documents/safety/guard.ts`
 - [x] Preview before sending: the document — EVERY page, painted as it nears the viewport (`packages/ui/src/containers/modals/viewers/pdf/lazyPages.ts`) — (Pages redacted / Feuille / Image…) · Original · Redacted (« what will leave the machine », cut at the send limit) · the image's text — with the redaction state (running / failed / count) in the header — `packages/ui/src/containers/modals/viewers/AttachmentPreviewModal.tsx`
 - [x] The preview opens while the file is still being read (OCR) or first masked: a loader with the page being read / the masking progress, then the redacted document as soon as it lands — never the document unmasked in the meantime — `packages/ui/src/containers/modals/viewers/AttachmentPendingPreview.tsx`
 - [x] Several documents at once: read ONE at a time, in order; each chip finishes on its own (the first one ready opens while the others wait) and a waiting one says « En attente · N avant » — `apps/desktop/src/main/ocr/extractQueue.ts`, `packages/ui/src/pages/ChatWorkspace/extractPicked.ts`

@@ -5,7 +5,7 @@
 // spreadsheets (SheetJS is isomorphic) are handled here directly; CSV/TSV/XLSX go
 // through `./tabular` HEADER-ANNOTATED serialization (approach A) for detection.
 import { delimitedGrid, gridToAnnotatedText } from "./serialize/tabular";
-import { cleanErr, msg, OCR_FAILED, IMAGE_OCR_FAILED, type DocumentErrorCode, type DocumentErrorParams } from "./errors";
+import { cleanErr, DocumentError, msg, OCR_FAILED, IMAGE_OCR_FAILED, type DocumentErrorCode, type DocumentErrorParams } from "./errors";
 import type { OcrMarkers } from "./ocrMarkers";
 import { guardUploadRefusal } from "./safety/guard";
 import { isUnreadableLayer } from "./layers/readable";
@@ -292,6 +292,8 @@ export async function extractFromBytes(
       error: `Unsupported file type: ${ext || "(none)"}`, errorCode: "unsupported_type", errorParams: { ext },
     };
   } catch (e) {
+    // The page-count refusal keeps its code (the caller words it) and `blocked` keeps the file out.
+    if (e instanceof DocumentError && e.code === "pdf_too_many_pages") return { name, kind: ext.slice(1) || "file", text: "", chars: 0, mime, error: e.message, errorCode: e.code, errorParams: e.params, blocked: true };
     return { name, kind: "file", text: "", chars: 0, mime, error: msg(e) };
   }
 }

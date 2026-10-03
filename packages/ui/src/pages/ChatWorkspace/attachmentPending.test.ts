@@ -91,3 +91,15 @@ describe("isProgressFor — le canal de progression est partagé", () => {
     expect(isProgressFor({ name: "y.pdf" }, { name: "x.pdf" })).toBe(false);
   });
 });
+
+describe("progressLabel — un document LONG dit combien de temps il reste", () => {
+  it("court : le pourcentage seul ; long : le pourcentage et les minutes restantes", () => {
+    const p = { redacting: true, redactProgress: { done: 1, total: 4 } };
+    expect(progressLabel({ ...p, chars: 20_000 }, fr)).toBe(fr.composer.attachments.stateMaskingPct(25));
+    // 400k chars ≈ 100 s estimated; three quarters left ⇒ 2 min (rounded up).
+    expect(progressLabel({ ...p, chars: 400_000 }, fr)).toBe("Masquage · 25 % · environ 2 min");
+    expect(progressLabel({ redacting: true, chars: 400_000 }, fr)).toBe(
+      "Document long : masquage en cours, environ 2 min",
+    );
+  });
+});

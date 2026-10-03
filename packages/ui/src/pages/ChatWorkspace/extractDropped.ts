@@ -1,4 +1,5 @@
 import type { Messages } from "@openmasq/i18n";
+import { MAX_FILE_BYTES } from "@openmasq/redact";
 import type { ExtractedBytes, ExtractedFile, OcrProgress } from "../../host";
 import type { DeferredFile } from "../../state/files/deferredFile";
 
@@ -30,10 +31,11 @@ export interface ExtractDroppedDeps {
   t: Messages;
 }
 
-/** Refuse a file too large to carry through the IPC as base64 before reading it into
- *  memory. The cap is generous for a document and stops a dropped disk image from
- *  hanging the renderer on `arrayBuffer()`. */
-export const MAX_DROP_BYTES = 64 * 1024 * 1024;
+/** Refuse a file before reading it into memory when main would refuse it anyway: the
+ *  SAME cap as the extraction's pre-parse gate (`MAX_FILE_BYTES`, imported — rule 9), so a
+ *  dropped disk image never hangs the renderer on `arrayBuffer()` and both routes agree. */
+const MAX_DROP_BYTES = MAX_FILE_BYTES;
+const MB = Math.round(MAX_FILE_BYTES / (1024 * 1024));
 
 /**
  * A dropped file in the shell's DEFERRED form (`DeferredFile`): the chip appears
@@ -67,7 +69,7 @@ async function extractOne(
 ): Promise<ExtractedFile> {
   const base: ExtractedFile = { name: file.name, kind: file.type || "", text: "", chars: 0 };
   if (file.size > MAX_DROP_BYTES) {
-    return { ...base, error: deps.t.composer.attachments.fileTooLarge };
+    return { ...base, error: deps.t.documents.refused.fileTooLarge(MB), blocked: true };
   }
   let data: string;
   try {

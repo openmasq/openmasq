@@ -223,6 +223,12 @@ export interface ComposerMessages {
     stateReadingPage: (page: number, total: number) => string;
     stateMasking: string;
     stateMaskingPct: (pct: number) => string;
+    /** A LONG document's masking (`maskPlan` « long »): the percentage and the minutes left. */
+    stateMaskingLong: (pct: number, minutes: number) => string;
+    /** The tooltip and the pending preview of a long document's masking. */
+    maskingLong: (minutes: number) => string;
+    /** Refused before masking: past `MAX_MASK_CHARS`, never masked in part. */
+    tooLongToMask: (pages: number) => string;
     stateRedo: string;
     /** « 3 valeurs » — the unit matters on a chip that small (the glyph is drawn). */
     stateReady: (count: number) => string;
@@ -250,7 +256,6 @@ export interface ComposerMessages {
     extractInterrupted: string;
     /** The file was refused before parsing (an archive the gate refuses). */
     fileRefused: string;
-    fileTooLarge: string;
   };
 
   /** The file DROP onto the window. */
