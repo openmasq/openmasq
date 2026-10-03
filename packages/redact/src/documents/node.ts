@@ -4,7 +4,10 @@
 // redactDocument. Heavy libs stay lazy `import()`ed so they never load unless a
 // matching file is actually extracted, and never reach the renderer bundle.
 import { open } from "node:fs/promises";
-import { ocrImage, ocrImageLayout, ocrPdf, pdfThumbnails } from "../ocr";
+import { ocrImage, ocrImageLayout, ocrPdf } from "../ocr";
+// Not through the `../ocr` barrel: the thumbnails are preview-only, and the suites that mock
+// the OCR engines must not have to stub them.
+import { pdfThumbnails } from "../ocr/pdfThumbs";
 import type { RedactOptions } from "../index";
 import {
   baseName,
