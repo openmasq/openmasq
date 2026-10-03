@@ -23,6 +23,9 @@ export interface DeferredFile {
     onOcrProgress?: (p: { done: number; total: number; queued?: number }) => void,
     /** The preview stream of a PDF being read (pages, thumbnails); a source without one ignores it. */
     onStream?: (ev: ExtractStream) => void,
+    /** The file's bytes (base64) as soon as the source holds them — what lets the preview
+     *  draw the document itself while it is read; a source without bytes ignores it. */
+    onBytes?: (data: string) => void,
   ): Promise<ExtractedFile>;
 }
 

@@ -10,7 +10,7 @@ import { extractPicked } from "../extractPicked";
 import { ocrAllAttachment } from "../ocrAll";
 import { logOcrDebug } from "../ocrDebug";
 import { redactAttachment } from "../redactAttachment";
-import { startReadingPreview } from "../readingPreview";
+import { startReadingMask } from "../readingMask";
 import { writeStaged } from "../stagedStore";
 import { redactMatchCount } from "./redactMatchCount";
 import type { AttachmentsApi } from "./useAttachments";
@@ -52,9 +52,9 @@ export function useAttachmentIntake(
     ...(logConvId ? { convId: logConvId } : {}),
   });
 
-  /** The provisional preview of a file being read, written where its chip is staged. */
+  /** The masking of a file started while it is read, written where its chip is staged. */
   const readingFor = (key: string, logConvId?: string) => (cid: string) =>
-    startReadingPreview({ ...depsFor(key, logConvId), cid });
+    startReadingMask({ ...depsFor(key, logConvId), cid });
 
   /** `forConvId` overrides the target: the shell's hand-off names a conversation not on screen yet. */
   function addExtractedFiles(picked: ExtractedFile[], forConvId?: string) {

@@ -2,7 +2,7 @@ import type { Messages } from "@openmasq/i18n";
 import type { ExtractedFile, FilesHost } from "../../host";
 import type { Attachment } from "./Composer";
 import { extractProgressPatch, isProgressFor } from "./attachmentPending";
-import type { ReadingSession } from "./readingPreview";
+import type { ReadingSession } from "./readingMask";
 
 export interface ExtractPickedDeps {
   extract: FilesHost["extract"];
@@ -13,7 +13,7 @@ export interface ExtractPickedDeps {
   /** The copy a failed chip shows. */
   t: Messages;
   warn(message: string): void;
-  /** The provisional preview of a file while it is read (`readingPreview.ts`). */
+  /** The masking of a file started while it is read (`readingMask.ts`). */
   reading?(cid: string): ReadingSession;
 }
 

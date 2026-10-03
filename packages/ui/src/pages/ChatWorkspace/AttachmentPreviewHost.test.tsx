@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import type { ReactNode } from "react";
-import { beforeAll, describe, expect, it } from "vitest";
+import { act } from "react";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import { getMessages } from "@openmasq/i18n";
 import { mount } from "../../testKit";
 import { ChatStoreProvider } from "../../containers/providers/chatStore";
@@ -9,6 +10,31 @@ import { AttachmentPreviewHost } from "./AttachmentPreviewHost";
 import type { Attachment } from "./Composer";
 
 const fr = getMessages("fr");
+const loads = vi.fn();
+
+// pdf.js is not what is under test here: a three-page document whose pages cover their values.
+vi.mock("@openmasq/redact/pdf-redact", async (orig) => {
+  const real = await orig<typeof import("@openmasq/redact/pdf-redact")>();
+  return {
+    ...real,
+    loadRedactedPdf: async () => {
+      loads();
+      return {
+        total: 3,
+        pagesInFile: 3,
+        pageSize: async () => ({ cssW: 100, cssH: 140 }),
+        renderPage: async (_p: number, _r?: unknown, over?: { replacements?: { real: string }[] }) => ({
+          canvas: document.createElement("canvas"),
+          boxes: [], words: [], wireWords: [], imageZones: [], imageOnly: false, cssW: 100, cssH: 140,
+          covered: new Set((over?.replacements ?? []).map((r) => r.real)),
+          applyReveal: () => [],
+        }),
+        destroy: async () => {},
+      };
+    },
+  };
+});
+afterEach(() => loads.mockClear());
 
 beforeAll(() => {
   // jsdom has no ResizeObserver; the text page measures its container width.
@@ -17,6 +43,14 @@ beforeAll(() => {
     unobserve() {}
     disconnect() {}
   };
+  (globalThis as unknown as { IntersectionObserver: unknown }).IntersectionObserver = class {
+    constructor(private cb: (e: { target: Element; isIntersecting: boolean }[]) => void) {}
+    observe(target: Element) {
+      this.cb([{ target, isIntersecting: true }]);
+    }
+    disconnect() {}
+  };
+  Element.prototype.scrollIntoView = () => {};
 });
 
 const scan = (over: Partial<Attachment> = {}): Attachment => ({
@@ -91,47 +125,63 @@ describe("AttachmentPreviewHost — l'aperçu PROGRESSIF pendant le masquage", (
   });
 });
 
-describe("AttachmentPreviewHost — un PDF ouvert pendant sa LECTURE", () => {
+describe("AttachmentPreviewHost — un PDF ouvert pendant sa LECTURE : le vrai visualiseur", () => {
+  const store = { settings: {} } as unknown as ChatStore;
+  const wrap = (children: ReactNode) => <ChatStoreProvider store={store}>{children}</ChatStoreProvider>;
   const thumb = "data:image/png;base64,iVBORw0KGgo=";
-  const reading = (masked?: boolean): Partial<Attachment> => ({
+  const page1 = "Emprunteur : Jean Dupont";
+  const JEAN = { real: "Jean Dupont", fake: "Luc Martin", tone: "violet", kind: "name" };
+  const reading = (): Partial<Attachment> => ({
     text: "",
+    data: "JVBERi0=",
     extracting: true,
     extractProgress: { done: 1, total: 3 },
     reading: {
       total: 3,
       thumbs: [thumb, thumb, undefined],
       read: [true],
-      ...(masked
-        ? {
-            masked: {
-              pages: 1,
-              chunks: [
-                { text: "Emprunteur : " },
-                { text: "Luc Martin", mark: { real: "Jean Dupont", tone: "violet", kind: "name", revealed: false } },
-              ],
-            },
-          }
-        : {}),
+      mask: { covered: page1.length, scanned: page1.length, replacements: [JEAN], pageTexts: [page1] },
     },
   });
+  const settle = async () => {
+    for (let i = 0; i < 20; i++) await act(async () => new Promise((r) => setTimeout(r, 0)));
+  };
 
-  it("les pages floutées, chacune avec son état", async () => {
-    const m = await mount(<AttachmentPreviewHost preview={scan(reading())} onClose={() => {}} />);
-    expect(document.body.querySelectorAll("img.fv-reading-thumb")).toHaveLength(2);
-    expect(document.body.querySelector('[aria-label="' + fr.viewers.reading.pageRead(1) + '"]')).not.toBeNull();
+  it("s'ouvre sur les pages, provisoires, la ligne de lecture en tête — jamais le cadre texte", async () => {
+    const m = await mount(<AttachmentPreviewHost preview={scan(reading())} onClose={() => {}} />, { wrap });
+    await settle();
+    const shown = document.body.textContent ?? "";
+    expect(document.body.querySelector(".pdfv")).not.toBeNull();
+    expect(shown).toContain(fr.viewers.pdf.provisional);
+    expect(shown).toContain(fr.composer.attachments.stateReadingPage(2, 3));
+    expect(shown).not.toContain(fr.viewers.pendingNote);
+    expect(document.body.querySelector('[aria-label="' + fr.viewers.reading.pageMasked(1) + '"]')).not.toBeNull();
     expect(document.body.querySelector('[aria-label="' + fr.viewers.reading.pageCurrent(2) + '"]')).not.toBeNull();
-    expect(document.body.querySelector('[aria-label="' + fr.viewers.reading.pageWaiting(3) + '"]')).not.toBeNull();
-    expect(document.body.textContent).toContain(fr.viewers.reading.note);
+    expect(loads).toHaveBeenCalledTimes(1);
     await m.unmount();
   });
 
-  it("les pages lues s'affichent MASQUÉES, provisoires — jamais la valeur réelle", async () => {
-    const m = await mount(<AttachmentPreviewHost preview={scan(reading(true))} onClose={() => {}} />);
-    const shown = document.body.textContent ?? "";
-    expect(shown).toContain("Luc Martin");
-    expect(shown).toContain(fr.viewers.partialNote);
-    expect(shown).toContain(fr.viewers.reading.maskedPages(1, 3));
-    expect(document.body.innerHTML).not.toContain("Jean Dupont");
+  it("devient définitif dans la MÊME fenêtre, le même visualiseur, sans recharger le document", async () => {
+    const m = await mount(<AttachmentPreviewHost preview={scan(reading())} onClose={() => {}} />, { wrap });
+    await settle();
+    const viewer = document.body.querySelector(".pdfv");
+    const final = scan({ data: "JVBERi0=", text: page1, replacements: [JEAN] });
+    await m.rerender(<AttachmentPreviewHost preview={final} onClose={() => {}} />);
+    await settle();
+    expect(document.body.querySelector(".pdfv")).toBe(viewer);
+    expect(document.body.textContent ?? "").not.toContain(fr.viewers.pdf.provisional);
+    expect(loads).toHaveBeenCalledTimes(1);
+    await m.unmount();
+  });
+
+  it("un PDF choisi encore en file d'attente de lecture n'est pas ouvert par le visualiseur", async () => {
+    const m = await mount(
+      <AttachmentPreviewHost preview={scan({ text: "", path: "/x/releve.pdf", extracting: true, extractQueued: 1 })} onClose={() => {}} />,
+      { wrap },
+    );
+    await settle();
+    expect(document.body.querySelector(".pdfv")).toBeNull();
+    expect(loads).not.toHaveBeenCalled();
     await m.unmount();
   });
 });

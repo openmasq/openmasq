@@ -102,7 +102,13 @@ export interface RedactedPdfDoc {
   modelError?: string;
   /** Natural CSS size of page `p` (1-based) — sizes a placeholder without painting. */
   pageSize: (p: number) => Promise<{ cssW: number; cssH: number }>;
-  /** Paint page `p` with `reveal` (default: the open options'). `null` once aborted. */
-  renderPage: (p: number, reveal?: ReadonlySet<string>) => Promise<RenderedPage | null>;
+  /** Paint page `p` with `reveal` (default: the open options'). `over` repaints with a map /
+   *  OCR geometry that changed since the document was opened (a document masked while it
+   *  is read) — no reload. `null` once aborted. */
+  renderPage: (
+    p: number,
+    reveal?: ReadonlySet<string>,
+    over?: Pick<RenderRedactedPdfOptions, "replacements" | "ocrPages">,
+  ) => Promise<RenderedPage | null>;
   destroy: () => Promise<void>;
 }

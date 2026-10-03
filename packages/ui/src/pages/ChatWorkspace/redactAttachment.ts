@@ -3,6 +3,7 @@ import type { Settings } from "../../types";
 import { raceRedactionWork, type RedactFn } from "../../send/redactionEngine";
 import type { Attachment } from "./Composer";
 import { pdfReplacements } from "../../containers/modals/viewers/pdf/pdfReplacements";
+import type { PartialMask } from "@openmasq/redact/pdf-redact";
 import { redactEngineSig } from "./redactEngineSig";
 import { describeRedactFailure } from "../../send/redaction";
 import { pushDebug } from "../../state/debug/debug";
@@ -11,6 +12,7 @@ import { attachmentVault } from "./attachmentVault";
 import { maskPlan, maskTimeoutMs } from "@openmasq/redact";
 import { redactTimeoutMessage } from "../../send/redactTimeout";
 import { patchStaged, type StagedStore } from "./stagedStore";
+import { dropReadingMask, takeReadingMask } from "./readingMask";
 
 /** Component captures threaded into {@link redactAttachment} (extracted from ChatView). */
 export interface RedactAttachmentDeps {
@@ -63,6 +65,7 @@ export function redactAttachment(a: Attachment, deps: RedactAttachmentDeps): voi
   queue.cancel(a.cid);
   const plan = maskPlan(a.text.length);
   if (plan.kind === "refuse") {
+    dropReadingMask(a.cid);
     const why = deps.t.composer.attachments.tooLongToMask(plan.pages);
     // No map at all: a stale one from a shorter read must not ride a send either.
     patch({ redacting: false, maskQueued: undefined, redactProgress: undefined, maskedSoFar: undefined, reading: undefined, replacements: undefined, redactEngineSig: undefined, redactError: why });
@@ -102,23 +105,32 @@ function runMasking(a: Attachment, deps: RedactAttachmentDeps, queueSignal: Abor
   ctrl.signal.addEventListener("abort", () => clearTimeout(timer), { once: true });
   const startedAt = Date.now();
   const fail = (why: string) => describeRedactFailure(why, t, settings?.redactEngine);
+  // The masking a READ already started (`readingMask.ts`): continued, so the pages masked
+  // during the read are not masked again — same chunks, same vault, same map. Absent or
+  // not continuable (another engine, another text): the whole text from scratch.
+  const early = takeReadingMask(a.cid, docEngine, a.text);
+  const base = early?.done ?? 0;
+  // Multi-chunk (multi-page) doc → a progress bar, a time left measured on THIS run's
+  // pace, and what is masked so far for the progressive preview.
+  const onProgress = (done: number, total: number, partial: PartialMask) => {
+    if (ctrl.signal.aborted) return;
+    const ran = done - base;
+    const etaMs = ran > 0 ? Math.round(((Date.now() - startedAt) * (total - done)) / ran) : undefined;
+    patch({ redactProgress: { done, total, etaMs }, maskedSoFar: done < total ? partial : undefined });
+  };
   // Raced against the signal HERE too: the deadline must not depend on the engine honouring
   // the abort mid-chunk (a wedged detector would otherwise leave the chip masking forever).
-  const work = pdfReplacements(a.text, redactAsync, {
-    signal: ctrl.signal,
-    // Multi-chunk (multi-page) doc → a progress bar, a time left measured on THIS run's
-    // pace, and what is masked so far for the progressive preview.
-    onProgress: (done, total, partial) => {
-      if (ctrl.signal.aborted) return;
-      const etaMs = done > 0 ? Math.round(((Date.now() - startedAt) * (total - done)) / done) : undefined;
-      patch({ redactProgress: { done, total, etaMs }, maskedSoFar: done < total ? partial : undefined });
-    },
-    convCategories,
-    // ⚠️ The CONVERSATION's vault, shared by all its attachments: without it, two
-    // documents from the same folder gave two fakes to the same person (`attachmentVault.ts`).
-    vault: convId ? attachmentVault(convId, convVault) : undefined,
-  });
-  // `reading`: the provisional preview of the read (`readingPreview.ts`) ends with the run.
+  const work = early
+    ? early.advance(a.text, { final: true, signal: ctrl.signal, onProgress }).then(() => early.result())
+    : pdfReplacements(a.text, redactAsync, {
+        signal: ctrl.signal,
+        onProgress,
+        convCategories,
+        // ⚠️ The CONVERSATION's vault, shared by all its attachments: without it, two
+        // documents from the same folder gave two fakes to the same person (`attachmentVault.ts`).
+        vault: convId ? attachmentVault(convId, convVault) : undefined,
+      });
+  // `reading`: what the read showed (`readingMask.ts`) ends with the run.
   const ended = { redacting: false, redactProgress: undefined, maskedSoFar: undefined, reading: undefined } as const;
   return raceRedactionWork(work, { signal: ctrl.signal })
     .then(({ replacements, modelError }) => {

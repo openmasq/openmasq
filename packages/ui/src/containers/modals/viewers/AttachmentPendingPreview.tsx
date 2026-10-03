@@ -5,28 +5,23 @@ import { ModalShell } from "../ModalShell";
 import { FileSkeleton } from "./FileSkeleton";
 import { DocText } from "./doc/DocText";
 import type { DocChunk } from "./doc/docSearch";
-import { ReadingPages } from "./reading/ReadingPages";
-import type { ReadingPageView } from "./reading/pageTiles";
 
 /**
- * The preview opened while its file is still being read (OCR) or masked: the same
- * frame as `AttachmentPreviewModal`, the live progress, the pages of a PDF being read as
- * BLURRED thumbnails with their state (`reading/`), and — once masking has done a part —
- * that part MASKED (`doc/partialPreview.ts`), marked provisional, followed by a placeholder
- * where the rest will be. The rest's text is never drawn. The caller swaps in the real
- * preview the moment the masking lands.
+ * The preview opened while its file is still being read or masked, for a file the real
+ * viewer cannot draw yet (not a PDF, or no bytes in hand): the same frame as
+ * `AttachmentPreviewModal`, the live progress and — once masking has done a part — that part
+ * MASKED (`doc/partialPreview.ts`), marked provisional, followed by a placeholder where the
+ * rest will be. The rest's text is never drawn. A PDF is drawn by the real viewer from the
+ * start instead (`pdf/pendingPages.ts`).
  */
 export function AttachmentPendingPreview({
   name,
   progress,
-  pages,
   partial,
   onClose,
 }: {
   name: string;
   progress: string;
-  /** A PDF being read: its pages (unreadable thumbnails + state). Absent ⇒ none drawn. */
-  pages?: { pages: ReadingPageView[]; more: number };
   /** The part already masked and the line saying how far it goes; absent ⇒ a skeleton only. */
   partial?: { chunks: DocChunk[]; rest: string };
   onClose: () => void;
@@ -34,7 +29,7 @@ export function AttachmentPendingPreview({
   const t = useT();
   const activeRef = useRef<HTMLElement | null>(null);
   const shown = !!partial && partial.chunks.length > 0;
-  const note = shown ? t.viewers.partialNote : pages ? t.viewers.reading.note : t.viewers.pendingNote;
+  const note = shown ? t.viewers.partialNote : t.viewers.pendingNote;
   return (
     <ModalShell onClose={onClose} width="min(1200px, 94vw)" maxHeight="90vh">
       <div className="fv-corner">
@@ -50,7 +45,6 @@ export function AttachmentPendingPreview({
         </p>
       </div>
       <div className="fv-body fv-body-stable">
-        {pages && <ReadingPages pages={pages.pages} more={pages.more} />}
         <div className={`fv-status${shown ? " is-partial" : ""}`}>{note}</div>
         {shown && <DocText chunks={partial.chunks} query="" active={-1} activeRef={activeRef} />}
         {shown && <div className="fv-partial-rest">{partial.rest}</div>}

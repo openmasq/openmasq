@@ -71,4 +71,18 @@ describe("createPageQueue", () => {
     await flush();
     expect(h.log).toEqual([]);
   });
+
+  it("refresh repaints the pages in view in place, and still releases one scrolled away", async () => {
+    const h = harness();
+    h.q.want(1, true);
+    await h.land(1);
+    h.q.want(2, true);
+    await h.land(2);
+    h.log.length = 0;
+    h.q.refresh();
+    expect(h.log).toEqual(["paint 2"]); // nearest the last request first; no release before
+    h.q.want(1, false); // stale and scrolled away: freed, never repainted
+    await h.land(2);
+    expect(h.log).toEqual(["paint 2", "release 1"]);
+  });
 });

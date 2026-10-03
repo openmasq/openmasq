@@ -1,7 +1,6 @@
 import type { ExtractedFile } from "../../../host";
 import type { PdfReplacement } from "../../../containers/modals/viewers/pdf/pdfReplacements";
 import type { PartialMask } from "@openmasq/redact/pdf-redact";
-import type { DocChunk } from "../../../containers/modals/viewers/doc/docSearch";
 import type { UnavailableReason } from "../../../send/modelAvailability";
 import type { Conversation, Skill } from "../../../types";
 import type { RedactLevelApi } from "../ComposerRedactMenu";
@@ -27,8 +26,9 @@ export type Attachment = ExtractedFile & {
   /** What is masked SO FAR, for the progressive preview ONLY (`PartialMask`): never a map
    *  the send or the library may use — that is `replacements`, set when the run ends. */
   maskedSoFar?: PartialMask;
-  /** A PDF still being READ: its pages (unreadable thumbnails, read or not) and the part
-   *  already read, MASKED — PREVIEW ONLY (`readingPreview.ts`), never a map the send uses. */
+  /** A PDF still being READ (or masked after it): its pages (unreadable thumbnails, read or
+   *  not) and what its masking — started during the read (`readingMask.ts`) — has done so far:
+   *  DISPLAY ONLY, never a map the send uses (that is `replacements`, set when the run ends). */
   reading?: ReadingState;
   redactError?: string;
   /** Engine + model that produced `replacements`; a later engine switch offers a re-run. */
@@ -39,7 +39,7 @@ export type Attachment = ExtractedFile & {
   reveal?: string[];
 };
 
-/** The provisional preview of a PDF being read (`readingPreview.ts`). */
+/** A PDF being read, as its preview shows it (`readingMask.ts`). */
 export interface ReadingState {
   /** Pages the document has (0 until the first event). */
   total: number;
@@ -47,9 +47,10 @@ export interface ReadingState {
   thumbs: (string | undefined)[];
   /** Per page: its reading is over. */
   read: (boolean | undefined)[];
-  /** The read prefix, masked and already cut for display (`partialMaskedChunks`), and how
-   *  many pages it spans. Absent: nothing masked yet, or the preview's masking failed. */
-  masked?: { chunks: DocChunk[]; pages: number };
+  /** What the masking has done so far (PROVISIONAL: a value found later may still occur in
+   *  what is covered), and the final text of the pages streamed so far — memory only, like
+   *  `text`. Absent: nothing masked yet, or the early masking stopped (fail closed). */
+  mask?: PartialMask & { pageTexts: string[] };
 }
 
 /** The chip above the input for the intent staged on the next send. */

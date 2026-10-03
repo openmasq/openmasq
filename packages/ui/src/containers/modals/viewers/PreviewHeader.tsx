@@ -23,6 +23,7 @@ export function PreviewHeader({
   showRerun,
   redacting,
   onRerun,
+  progress,
 }: {
   name: string;
   chars: number;
@@ -34,6 +35,8 @@ export function PreviewHeader({
   showRerun: boolean;
   redacting?: boolean;
   onRerun?: () => void;
+  /** The file is still being read or masked: this live line replaces the status. */
+  progress?: string;
 }) {
   const t = useT();
   const [detailOpen, setDetailOpen] = useState(false);
@@ -42,7 +45,11 @@ export function PreviewHeader({
     <div className="rrm-head fv-head">
       <div className="cv-eyebrow rrm-eyebrow">{t.viewers.eyebrow}</div>
       <h2 className="cv-display rrm-title fv-title fv-title-caption">{name}</h2>
-      {status.detail ? (
+      {progress ? (
+        <p className="rrm-sub fv-caption-sub" role="status" aria-live="polite">
+          {progress}
+        </p>
+      ) : status.detail ? (
         <button
           type="button"
           className="rrm-sub fv-caption-sub fv-caption-btn"

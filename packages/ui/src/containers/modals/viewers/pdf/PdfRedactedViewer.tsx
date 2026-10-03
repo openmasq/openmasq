@@ -1,31 +1,24 @@
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
-import workerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
-import {
-  loadRedactedPdf,
-  pdfReplacements,
-  vaultReplacements,
-  type PdfReplacement,
-  type RedactedPdfDoc,
-  type RenderedPage,
-} from "@openmasq/redact/pdf-redact";
+import { useMemo, useState, type CSSProperties } from "react";
+import { vaultReplacements, type PdfReplacement } from "@openmasq/redact/pdf-redact";
 import { useDisplayReplacements } from "../doc/displayReplacements";
-import {
-  useRedaction,
-  describeRedactFailure,
-  useRedactEngine,
-} from "../../../../send/redaction";
 import { FileSkeleton } from "../FileSkeleton";
-import { buildRevealMarks, imageSourceNote } from "./pageLayers";
-import { createPageQueue, observePages } from "./lazyPages";
-import { mountPage, sizeShell } from "./mountPage";
-
+import { imageSourceNote } from "./pageLayers";
+import { PageStrip, type StripPage } from "./PageStrip";
+import type { PendingPdf } from "./pendingPages";
+import { usePageNav } from "./usePageNav";
+import { usePdfPages } from "./usePdfPages";
 import { useT } from "../../../../i18n";
+
 /**
- * PDF preview: thin React shell over the SHARED `renderRedactedPdf`
- * (@openmasq/redact/pdf-redact) — the same pixel-paint core the extension reuses,
- * so the redaction-render logic lives in ONE place. This wrapper just appends
- * each returned canvas + builds the hover-to-reveal layer from the boxes.
+ * PDF preview: thin React shell over the SHARED `loadRedactedPdf`
+ * (@openmasq/redact/pdf-redact) — the same pixel-paint core the extension reuses, so the
+ * redaction-render logic lives in ONE place. The pages, their lazy paint and their repaint
+ * are `usePdfPages`; the page strip and the arrow keys are `PageStrip` + `usePageNav`.
  * VIEWER-ONLY: input bytes are read once, never modified/persisted.
+ *
+ * `pending`: the document is still being read or masked. The SAME viewer then shows each
+ * page only once it is masked (its thumbnail until then), marked provisional, and simply
+ * becomes final when `pending` goes — no reload, no swap.
  */
 export function PdfRedactedViewer({
   bytes,
@@ -38,6 +31,7 @@ export function PdfRedactedViewer({
   revealed,
   onReveal,
   onWordPick,
+  pending,
 }: {
   bytes: Uint8Array;
   /** false → render the ORIGINAL document as-is (no fakes, no highlights). */
@@ -49,248 +43,114 @@ export function PdfRedactedViewer({
    *  boxes (no pdf.js text layer to correlate on) even though OCR succeeded. */
   ocrPages?: import("@openmasq/redact/pdf-redact").RenderRedactedPdfOptions["ocrPages"];
   /** Light halo over the zones where TEXT was read (text layer + OCR words) — which,
-   *  redacted, goes to the model; the rest of the page wasn't read. Enables the
-   *  painter's word collection (one `measureText` per word). */
+   *  redacted, goes to the model; the rest of the page wasn't read. */
   showTextHalo?: boolean;
   /** Conversation vault (fake→original) of an already-sent file. When set (and no
    *  explicit `replacements`), the redacted overlay is rebuilt from it — EXACTLY
-   *  the fakes that were sent, instantly, with no model call (so opening the file
-   *  never re-runs — and can't degrade — the redaction). See `vaultReplacements`. */
+   *  the fakes that were sent, instantly, with no model call. See `vaultReplacements`. */
   vault?: Record<string, string>;
   /** Conversation kinds (original→category) for the vault path's tones. */
   kinds?: Record<string, string>;
-  /** REAL values the user revealed (kept in clear). Painted with clean glyphs;
-   *  re-renders when it changes. Absent ⇒ everything redacted. */
+  /** REAL values the user revealed (kept in clear). Absent ⇒ everything redacted. */
   revealed?: ReadonlySet<string>;
-  /** Click a redacted region → toggle its real value in/out of the reveal set.
-   *  When set, each region is a clickable "reveal / re-redact" button. */
+  /** Click a redacted region → toggle its real value in/out of the reveal set. */
   onReveal?: (real: string) => void;
-  /** Click a WORD of the canvas (outside the redacted marks) → the consumer opens
-   *  its «Masquer “mot”» type picker anchored at the viewport coords. Enables the
-   *  painter's word-geometry collection (text layer + OCR words of a scan). The
-   *  clicked word keeps a LOCKED pre-highlight until the consumer calls `release`
-   *  (menu closed or type picked). */
+  /** Click a WORD of the canvas (outside the redacted marks) → the consumer opens its
+   *  «Masquer “mot”» type picker; the word stays highlighted until `release`. */
   onWordPick?: (value: string, x: number, y: number, release: () => void) => void;
+  /** The masking is not over (`pendingPages.ts`): its map so far replaces `replacements`. */
+  pending?: PendingPdf;
 }) {
   const t = useT();
-  const redact = useRedaction();
-  // Keep `onReveal` in a ref so a fresh function identity each render doesn't
-  // re-trigger the (heavy) full re-render — only a `revealed` change should.
-  const onRevealRef = useRef(onReveal);
-  onRevealRef.current = onReveal;
-  const onWordPickRef = useRef(onWordPick);
-  onWordPickRef.current = onWordPick;
-  // The halo consumes the same word collection as the « Masquer “mot” » picker.
-  const wantWords = !!onWordPick || !!showTextHalo;
-  // Incremental reveal: the heavy render runs ONCE (per document/replacements);
-  // a reveal toggle only calls each page's `applyReveal` + rebuilds its marks —
-  // no pdf.js reload, no skeleton, no scroll reset. `revealed` therefore rides a
-  // ref for the initial paint and is NOT a dependency of the heavy effect.
-  const revealedRef = useRef(revealed);
-  revealedRef.current = revealed;
-  // The pages PAINTED right now (near the viewport), by page number.
-  const pagesRef = useRef(new Map<number, { pg: RenderedPage; pageEl: HTMLElement }>());
   // Prefer explicit replacements; else derive them from the conversation vault
   // (deterministic, matches the wire). Only fall back to a live model call when
   // neither exists (e.g. the Library viewer, with no conversation context).
-  const resolvedReplacements = useMemo<PdfReplacement[] | undefined>(() => {
+  const resolved = useMemo<PdfReplacement[] | undefined>(() => {
+    if (pending) return pending.replacements;
     if (replacements) return replacements;
     if (vault && Object.keys(vault).length) return vaultReplacements(vault, kinds);
     return undefined;
-  }, [replacements, vault, kinds]);
+  }, [pending, replacements, vault, kinds]);
   // Jetons display: the painted boxes show `[PERSON1]` instead of the fake when the
-  // setting is on. Idempotent over an already-substituted caller list (the tokens are
-  // recomputed from real+kind), so every entry path lands on the same rendering.
-  const effectiveReplacements = useDisplayReplacements(resolvedReplacements);
-  const engine = useRedactEngine();
-  const rootRef = useRef<HTMLDivElement>(null);
-  const [state, setState] = useState<"loading" | "ready" | "error">("loading");
-  // Zero pages rendered (all past the cap, or an empty doc that still resolved):
-  // without this flag the ready state shows a BLANK white area, not even a status.
-  const [empty, setEmpty] = useState(false);
-  const [warn, setWarn] = useState<string | null>(null);
-  // What was marked as coming from the IMAGE — drives the legend. Counted from the
-  // pages themselves, so the note never explains a code nothing on screen wears.
-  const [imgSrc, setImgSrc] = useState({ zones: 0, pages: 0 });
+  // setting is on — idempotent, so every entry path lands on the same rendering.
+  const effective = useDisplayReplacements(resolved);
+  const pages = usePdfPages({ bytes, redacted, replacements: effective, ocrPages, pending, showTextHalo, revealed, onReveal, onWordPick, t });
+  const nav = usePageNav(pages.shellsRef, pages.total);
   // Loupe: page width = FIT-to-panel width × zoom (1 = adjusted to the panel).
   // CSS-only (a custom property) so changing it never re-runs the heavy render.
   const [zoom, setZoom] = useState(1);
-
-  /** The marks layer, always through the ref: a fresh `onReveal` identity each render
-   *  must not re-trigger the heavy effect (see `onRevealRef`). */
-  const buildMarks = (
-    pageEl: HTMLElement,
-    boxes: import("@openmasq/redact/pdf-redact").RedactBox[],
-    cssW: number,
-    cssH: number,
-  ) => buildRevealMarks(pageEl, boxes, cssW, cssH, !!onRevealRef.current);
-
-  useEffect(() => {
-    const root = rootRef.current;
-    if (!root) return;
-    const ctrl = new AbortController();
-    root.innerHTML = "";
-    pagesRef.current = new Map();
-    setState("loading");
-    setEmpty(false);
-    setWarn(null);
-    setImgSrc({ zones: 0, pages: 0 });
-    let doc: RedactedPdfDoc | null = null;
-    let unobserve = () => {};
-    const released = new Map<number, () => void>();
-    // Per page, so a page painted again on return is never counted twice.
-    const tally = new Map<number, { zones: number; imageOnly: boolean }>();
-
-    (async () => {
-      try {
-        doc = await loadRedactedPdf({
-          bytes,
-          redacted,
-          replacements: effectiveReplacements,
-          ocrPages,
-          collectWords: wantWords,
-          reveal: revealedRef.current,
-          pdfWorkerSrc: workerUrl,
-          getReplacements: (t) => pdfReplacements(t, redact),
-          signal: ctrl.signal,
-        });
-        if (ctrl.signal.aborted) return void doc.destroy();
-        const open = doc;
-        if (open.modelError) setWarn(describeRedactFailure(open.modelError, t, engine));
-        // EVERY page gets a shell sized to it up-front: the scrollbar is the document's.
-        const shells: HTMLElement[] = [];
-        for (let p = 1; p <= open.total; p++) {
-          const shell = document.createElement("div");
-          shell.className = "pdfv-page pending";
-          shell.dataset.page = String(p);
-          const { cssW, cssH } = await open.pageSize(p);
-          if (ctrl.signal.aborted) return;
-          sizeShell(shell, cssW, cssH);
-          root.appendChild(shell);
-          shells.push(shell);
-        }
-        const queue = createPageQueue({
-          paint: async (p) => {
-            const pg = await open.renderPage(p, revealedRef.current);
-            if (!pg || ctrl.signal.aborted) return false;
-            const shell = shells[p - 1]!;
-            const m = mountPage(shell, pg, p === 1, {
-              showTextHalo,
-              onWordPick: (value, x, y, release) => onWordPickRef.current?.(value, x, y, release),
-              hasReveal: !!onRevealRef.current,
-              t,
-            });
-            released.set(p, m.release);
-            pagesRef.current.set(p, { pg, pageEl: shell });
-            tally.set(p, { zones: m.zones, imageOnly: m.imageOnly });
-            setImgSrc(sumTally(tally));
-            return true;
-          },
-          release: (p) => {
-            released.get(p)?.();
-            released.delete(p);
-            pagesRef.current.delete(p);
-          },
-        });
-        unobserve = observePages(shells, queue);
-        setEmpty(open.total === 0);
-        setState("ready");
-      } catch {
-        if (!ctrl.signal.aborted) setState("error");
-      }
-    })();
-
-    return () => {
-      ctrl.abort();
-      unobserve();
-      for (const release of released.values()) release();
-      void doc?.destroy();
-    };
-  }, [bytes, redact, redacted, effectiveReplacements, ocrPages, wantWords, showTextHalo, engine]);
-
-  // Reveal toggle: INCREMENTAL — restore/repaint just the affected patches on the
-  // already-rendered canvases and rebuild each page's marks. No reload.
-  useEffect(() => {
-    for (const { pg, pageEl } of pagesRef.current.values()) {
-      const boxes = pg.applyReveal(revealed);
-      buildMarks(pageEl, boxes, pg.cssW || pg.canvas.width || 1, pg.cssH || pg.canvas.height || 1);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [revealed]);
+  const strip = useMemo<StripPage[]>(
+    () =>
+      Array.from({ length: pages.total }, (_, i) => {
+        const p = pending?.pages.length === pages.total ? pending.pages[i] : undefined;
+        return { n: i + 1, state: pending ? (p?.state ?? "waiting") : "masked", ...(p?.thumb ? { thumb: p.thumb } : {}) };
+      }),
+    [pages.total, pending],
+  );
+  const ready = pages.state === "ready";
+  const note = ready ? imageSourceNote(pages.imgSrc.zones, pages.imgSrc.pages, t) : null;
 
   return (
     <div className="pdfv">
-      {warn && (
+      {pages.warn && (
         <div className="pdfv-warn">
           {/* No settings shortcut: the engine is always the on-device NER, which the
               user cannot reconfigure, so the failure is stated and nothing is promised. */}
-          <span className="flex-min">{warn}</span>
+          <span className="flex-min">{pages.warn}</span>
         </div>
       )}
-      {state === "ready" && imageSourceNote(imgSrc.zones, imgSrc.pages, t) && (
+      {pending && (
+        <div className="fv-status is-partial" role="status">
+          {t.viewers.pdf.provisional}
+        </div>
+      )}
+      {note && (
         <div className="pdfv-imgnote" role="note">
           <span className="pdfv-imgnote-key" aria-hidden="true" />
-          <span className="flex-min">{imageSourceNote(imgSrc.zones, imgSrc.pages, t)}</span>
+          <span className="flex-min">{note}</span>
         </div>
       )}
-      {state === "loading" && (
+      {pages.state === "loading" && (
         <div className="pdfv-loading">
           {/* The kit's ONE loading visual: the content-shaped shimmer, same as every
-              other stage of the file path (meta resolve, byte load, Texte extraction).
-              No status row / progress bar / Annuler — closing the panel aborts. */}
+              other stage of the file path. Closing the panel aborts. */}
           <FileSkeleton variant="doc" />
         </div>
       )}
-      {state === "error" && (
-        <div className="fv-status">{t.viewers.pdf.unavailable}</div>
-      )}
-      {state === "ready" && empty && (
-        <div className="fv-status">{t.viewers.pdf.noPages}</div>
-      )}
-      {state === "ready" && !empty && (
-        <div className="pdfv-zoom" role="group" aria-label={t.viewers.pdf.zoomGroup}>
-          <button
-            type="button"
-            onClick={() => setZoom((z) => Math.max(0.5, Math.round((z / 1.25) * 100) / 100))}
-            aria-label={t.viewers.pdf.zoomOut}
-            title={t.viewers.pdf.zoomOut}
-          >
-            −
-          </button>
-          <button
-            type="button"
-            className="pdfv-zoom-fit"
-            onClick={() => setZoom(1)}
-            title={t.viewers.pdf.fitWidth}
-          >
-            {Math.round(zoom * 100)} %
-          </button>
-          <button
-            type="button"
-            onClick={() => setZoom((z) => Math.min(3, Math.round(z * 1.25 * 100) / 100))}
-            aria-label={t.viewers.pdf.zoomIn}
-            title={t.viewers.pdf.zoomIn}
-          >
-            +
-          </button>
+      {pages.state === "error" && <div className="fv-status">{t.viewers.pdf.unavailable}</div>}
+      {ready && pages.empty && <div className="fv-status">{t.viewers.pdf.noPages}</div>}
+      {ready && !pages.empty && (
+        <div className="pdfv-bar">
+          {pages.total > 1 ? <PageStrip pages={strip} current={nav.current} final={!pending} onPick={nav.go} /> : <span className="flex-min" />}
+          <div className="pdfv-zoom" role="group" aria-label={t.viewers.pdf.zoomGroup}>
+            <button
+              type="button"
+              onClick={() => setZoom((z) => Math.max(0.5, Math.round((z / 1.25) * 100) / 100))}
+              aria-label={t.viewers.pdf.zoomOut}
+              title={t.viewers.pdf.zoomOut}
+            >
+              −
+            </button>
+            <button type="button" className="pdfv-zoom-fit" onClick={() => setZoom(1)} title={t.viewers.pdf.fitWidth}>
+              {Math.round(zoom * 100)} %
+            </button>
+            <button
+              type="button"
+              onClick={() => setZoom((z) => Math.min(3, Math.round(z * 1.25 * 100) / 100))}
+              aria-label={t.viewers.pdf.zoomIn}
+              title={t.viewers.pdf.zoomIn}
+            >
+              +
+            </button>
+          </div>
         </div>
       )}
       <div
-        ref={rootRef}
+        ref={pages.rootRef}
         className={`pdfv-pages${zoom !== 1 ? " zoomed" : ""}`}
         // Runtime-computed zoom factor — the sanctioned inline-style case.
         style={{ "--pdf-zoom": zoom } as CSSProperties}
       />
     </div>
   );
-}
-
-function sumTally(tally: Map<number, { zones: number; imageOnly: boolean }>) {
-  let zones = 0;
-  let pages = 0;
-  for (const v of tally.values()) {
-    zones += v.zones;
-    pages += v.imageOnly ? 1 : 0;
-  }
-  return { zones, pages };
 }

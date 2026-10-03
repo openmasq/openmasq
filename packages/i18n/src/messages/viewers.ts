@@ -19,17 +19,19 @@ export interface ViewersMessages {
   partialNote: string;
   /** Where the part not yet masked would be — never its text. */
   partialRest: (pct: number) => string;
-  /** A PDF opened while it is READ: its pages blurred (never legible), each with its state,
-   *  and the pages already read shown MASKED below them. */
+  /** A PDF opened while it is read or masked: the page strip, and the tile a page shows
+   *  (its blurred thumbnail, never legible) until it is masked. */
   reading: {
-    note: string;
     pagesLabel: string;
+    pageMasked: (n: number) => string;
     pageRead: (n: number) => string;
     pageCurrent: (n: number) => string;
     pageWaiting: (n: number) => string;
-    morePages: (n: number) => string;
-    /** Under the masked part: how far it goes, while the rest is still read. */
-    maskedPages: (n: number, total: number) => string;
+    tileRead: (n: number) => string;
+    tileCurrent: (n: number) => string;
+    tileWaiting: (n: number) => string;
+    /** Masked, but its values cannot be drawn on the page yet (a scan's boxes come at the end). */
+    tileHeld: (n: number) => string;
   };
   extracted: (chars: string, status: string) => string;
   staleTip: string;
@@ -83,6 +85,9 @@ export interface ViewersMessages {
     zoomOut: string;
     zoomIn: string;
     fitWidth: string;
+    /** Above a document still being masked: what a page shown means, and what may change. */
+    provisional: string;
+    goToPage: (n: number) => string;
     haloOn: string;
     haloOff: string;
     showHalo: string;

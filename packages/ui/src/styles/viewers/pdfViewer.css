@@ -36,19 +36,13 @@
 .pdfv-pages.zoomed .pdfv-page {
   width: calc(min(100%, var(--page-nat, 10000) * 1px) * var(--pdf-zoom, 1));
 }
-/* The zoom cluster: a small pill group stuck to the panel's top-right, above the
-   pages, surviving both scroll axes. */
+/* The zoom cluster: a small pill group at the right of the page bar (`pdfStrip.css`). */
 .pdfv-zoom {
-  position: sticky;
-  top: 2px;
-  right: 8px;
-  z-index: 5;
+  flex: none;
   display: inline-flex;
-  align-self: flex-end;
   align-items: center;
   gap: 2px;
   padding: 3px;
-  margin-bottom: -30px;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-pill);
   background: var(--surface-card);

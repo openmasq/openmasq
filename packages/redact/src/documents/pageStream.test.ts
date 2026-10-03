@@ -72,6 +72,15 @@ describe("streamedPrefix", () => {
   });
 
   it("stops at the first page not streamed yet (a hole is never skipped)", () => {
-    expect(streamedPrefix(["a", undefined, "c"])).toEqual({ text: "a", pages: 1 });
+    expect(streamedPrefix(["a", undefined, "c"])).toEqual({ text: "a", pages: 1, ends: [1] });
+  });
+});
+
+describe("streamedPrefix — page ends", () => {
+  it("says where each page ends in the prefix, leading whitespace trimmed", () => {
+    const { text, ends } = streamedPrefix(["  Un", "Deux", "Trois"]);
+    expect(text.slice(0, ends[0])).toBe("Un");
+    expect(text.slice(0, ends[1]).endsWith("Deux")).toBe(true);
+    expect(ends[2]).toBe(text.length);
   });
 });

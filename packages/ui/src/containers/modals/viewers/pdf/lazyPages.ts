@@ -9,6 +9,9 @@
 export interface PageQueue {
   /** The page entered (true) or left (false) the paint margin. */
   want: (p: number, near: boolean) => void;
+  /** What a page shows changed (a map that grew, a page masked): repaint the pages near the
+   *  viewport, in place — each keeps its current paint until the new one replaces it. */
+  refresh: () => void;
   stop: () => void;
 }
 
@@ -19,6 +22,8 @@ export function createPageQueue(o: {
 }): PageQueue {
   const wanted = new Set<number>();
   const painted = new Set<number>();
+  /** Mounted, but painted before the last `refresh`: repainted when wanted, released when not. */
+  const stale = new Set<number>();
   let running = false;
   let current = 0;
   let stopped = false;
@@ -38,6 +43,7 @@ export function createPageQueue(o: {
         current = next;
         const ok = await o.paint(next).catch(() => false);
         current = 0;
+        if (ok) stale.delete(next);
         if (!ok) painted.delete(next);
         if (!ok || stopped) break;
         // Scrolled away while it painted: free it at once.
@@ -61,11 +67,18 @@ export function createPageQueue(o: {
       } else {
         wanted.delete(p);
         // The page painting right now is released by the pump when it lands.
-        if (painted.has(p) && p !== current) {
+        if ((painted.has(p) || stale.has(p)) && p !== current) {
           painted.delete(p);
+          stale.delete(p);
           o.release(p);
         }
       }
+    },
+    refresh() {
+      if (stopped) return;
+      for (const p of painted) stale.add(p);
+      painted.clear();
+      void pump();
     },
     stop() {
       stopped = true;
@@ -76,7 +89,7 @@ export function createPageQueue(o: {
 /** The element that scrolls `el` — the observer's root. With the implicit (viewport)
  *  root a page is first clipped by the scrolling panel, so the margin would never see
  *  the pages just below it. */
-function scrollParent(el: HTMLElement | null): HTMLElement | null {
+export function scrollParent(el: HTMLElement | null): HTMLElement | null {
   for (let n = el?.parentElement; n; n = n.parentElement) {
     if (/(auto|scroll)/.test(getComputedStyle(n).overflowY)) return n;
   }

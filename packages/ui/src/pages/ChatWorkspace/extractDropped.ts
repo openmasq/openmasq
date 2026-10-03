@@ -50,7 +50,7 @@ export function deferDroppedFile(file: File, deps: ExtractDroppedDeps): Deferred
     name: file.name,
     ...(file.type ? { mime: file.type } : {}),
     // The stream needs no name filter: the preload scopes it to this one call.
-    load: (onOcrProgress, onStream) =>
+    load: (onOcrProgress, onStream, onBytes) =>
       extractOne(
         file,
         deps,
@@ -58,6 +58,7 @@ export function deferDroppedFile(file: File, deps: ExtractDroppedDeps): Deferred
           if (p.name === file.name) onOcrProgress?.({ done: p.page, total: p.pages, queued: p.queued });
         },
         onStream,
+        onBytes,
       ),
   };
 }
@@ -74,6 +75,7 @@ async function extractOne(
   deps: ExtractDroppedDeps,
   onOcrProgress?: (p: OcrProgress) => void,
   onStream?: (ev: ExtractStream) => void,
+  onBytes?: (data: string) => void,
 ): Promise<ExtractedFile> {
   const base: ExtractedFile = { name: file.name, kind: file.type || "", text: "", chars: 0 };
   if (file.size > MAX_DROP_BYTES) {
@@ -91,6 +93,7 @@ async function extractOne(
   // stored, previewed, or sent to a vision model as redacted images. A drop has no usable
   // path by design (see `dropIntake.ts`), so the bytes are the ONLY way it gets those.
   const carried: ExtractedFile = { ...base, data, ...(file.type ? { mime: file.type } : {}) };
+  onBytes?.(data);
   try {
     const r = await deps.extractBytes(data, file.name, file.type || undefined, onOcrProgress, onStream);
     // ⚠️ A REFUSAL travels first, and it travels WITHOUT the bytes. `blocked` is the
