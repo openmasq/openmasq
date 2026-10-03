@@ -1,6 +1,7 @@
-import { extractBytes, extractPaths } from "../files";
+import type { ExtractStreamEvent } from "@openmasq/redact/documents";
+import { extractBytes, extractPaths, type ExtractStreamFn } from "../files";
 import { assertReadAllowed } from "./readGate";
-import { handle, arr, obj } from "./handle";
+import { handle, arr, obj, optional, str } from "./handle";
 import { progressTo } from "./registerFilesIpc";
 
 /**
@@ -10,25 +11,28 @@ import { progressTo } from "./registerFilesIpc";
  * same progress relay — side by side so nothing diverges.
  */
 export function registerExtractIpc(): void {
-  handle("files:extract", [arr], (e, raw) => {
+  // 2nd argument: the caller's stream id (`streamTo`) — absent ⇒ no preview stream.
+  handle("files:extract", [arr, optional(str)], (e, raw, req) => {
     const paths = raw as string[];
     paths.forEach(assertReadAllowed); // gate before the (Node-only) extractor reads them
-    return extractPaths(paths, progressTo(e.sender));
+    return extractPaths(paths, progressTo(e.sender), streamTo(e.sender, req));
   });
   // The BYTES route (base64 — drop, and a file produced by an MCP tool). No
   // read guard: the bytes are already at the renderer, nothing new is granted.
   handle("files:extract-bytes", [obj], async (e, raw) => {
-    const p = raw as { data: string; name?: string; mime?: string };
+    const p = raw as { data: string; name?: string; mime?: string; req?: unknown };
     // Uint8Array COPY, never the Buffer (pdf.js rejects it, and Buffer.slice is a view).
     const bytes = new Uint8Array(Buffer.from(p.data, "base64"));
     const name = p.name ?? "file";
     const progress = progressTo(e.sender);
+    const stream = streamTo(e.sender, p.req);
     const out = await extractBytes(
       bytes,
       name,
       p.mime,
       (d, t) => progress(name, d, t),
       (ahead) => progress(name, 0, 0, { queued: ahead }),
+      stream ? (ev) => stream(ev, { name }) : undefined,
     );
     // A guard REFUSAL (`blocked`: zip bomb, oversized image, unreadable dimensions) is not
     // a parser failure: the renderer must learn it is a refusal so it does NOT keep the
@@ -49,4 +53,25 @@ export function registerExtractIpc(): void {
       ...(ocrPages && { ocrPages }),
     };
   });
+}
+
+/** A stream id the preload minted for ONE invoke: plain, bounded. Anything else ⇒ no stream. */
+const STREAM_REQ = /^[A-Za-z0-9_-]{8,64}$/;
+
+/**
+ * The PREVIEW stream of an extraction (pages, thumbnails — checked in `ocr/extractStream.ts`)
+ * → `files:extract-stream`, sent ONLY to the webContents that asked for this extraction and
+ * tagged with ITS id, so the preload hands each event to that one call (two dropped files of
+ * the same name never see each other's pages). Display only, best-effort. Absent or malformed
+ * id ⇒ `undefined`: the extraction streams nothing.
+ */
+export function streamTo(sender: Electron.WebContents, req: unknown): ExtractStreamFn | undefined {
+  if (typeof req !== "string" || !STREAM_REQ.test(req)) return undefined;
+  return (ev: ExtractStreamEvent, file) => {
+    try {
+      if (!sender.isDestroyed()) sender.send("files:extract-stream", { req, name: file.name, ...(file.path ? { path: file.path } : {}), ...ev });
+    } catch {
+      /* display only */
+    }
+  };
 }

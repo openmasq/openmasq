@@ -4,6 +4,7 @@ import {
   extractText as extractTextInProcess,
   extractBytes as extractBytesInProcess,
   type ExtractedFile,
+  type ExtractStreamEvent,
 } from "@openmasq/redact/documents";
 import { reportMainError } from "../runtime/errorReport";
 import { isAppQuitting } from "../runtime/quitState";
@@ -12,6 +13,7 @@ import { extractTimeoutMs } from "@openmasq/redact";
 import { createExtractQueue } from "./extractQueue";
 import { mainLocale, mainMessages } from "../i18n";
 import { localizeExtracted } from "./localizeExtracted";
+import { checkStreamMessage } from "./extractStream";
 
 /**
  * CLIENT of the extraction worker (`extractWorker.ts`) — the documents counterpart of
@@ -30,6 +32,8 @@ import { localizeExtracted } from "./localizeExtracted";
 
 type Reply =
   | { id: number; progress: { done: number; pages: number } }
+  | { id: number; page: unknown }
+  | { id: number; thumb: unknown }
   | { id: number; ok: true; file: ExtractedFile }
   | { id: number; ok: false; error: string };
 
@@ -37,6 +41,8 @@ interface Pending {
   resolve: (f: ExtractedFile) => void;
   reject: (e: Error) => void;
   onProgress?: (done: number, pages: number) => void;
+  /** The preview stream, already checked (`extractStream.ts`). */
+  onStream?: (ev: ExtractStreamEvent) => void;
   timer: ReturnType<typeof setTimeout>;
   /** The page count the deadline was last scaled to (0 = the floor). */
   scaledFor: number;
@@ -115,6 +121,11 @@ function ensureChild(): UtilityProcess {
       p.onProgress?.(msg.progress.done, msg.progress.pages);
       return;
     }
+    if ("page" in msg || "thumb" in msg) {
+      const ev = checkStreamMessage(msg);
+      if (ev) p.onStream?.(ev);
+      return;
+    }
     clearTimeout(p.timer);
     pending.delete(msg.id);
     if (msg.ok) {
@@ -150,6 +161,7 @@ async function run(
     | { kind: "path"; path: string; locale: string }
     | { kind: "bytes"; data: string; name: string; mime?: string; locale: string },
   onProgress?: (done: number, pages: number) => void,
+  onStream?: (ev: ExtractStreamEvent) => void,
 ): Promise<ExtractedFile> {
   if (idleTimer) {
     clearTimeout(idleTimer);
@@ -170,6 +182,7 @@ async function run(
         resolve,
         reject,
         onProgress,
+        onStream,
         timer: arm(0),
         scaledFor: 0,
         rescale: (pages) => {
@@ -180,7 +193,7 @@ async function run(
       };
       pending.set(id, entry);
       try {
-        c.postMessage({ id, ...req });
+        c.postMessage({ id, ...req, stream: !!onStream });
       } catch (err) {
         clearTimeout(entry.timer);
         pending.delete(id);
@@ -233,6 +246,9 @@ export function extractTextInWorker(
   onOcrProgress?: (done: number, pages: number) => void,
   /** While queued: how many files are ahead (re-told as the line moves). */
   onWaiting?: (ahead: number) => void,
+  /** The preview stream (pages, thumbnails) — worker path only: the in-process fallback
+   *  streams nothing, and the preview then keeps its plain loader. */
+  onStream?: (ev: ExtractStreamEvent) => void,
 ): Promise<ExtractedFile> {
   // The markers OCR writes into the text speak the user's language: the worker gets the
   // locale (it rebuilds them from the catalogue), the in-process path the markers.
@@ -241,7 +257,7 @@ export function extractTextInWorker(
   return queue.run(
     () =>
       withFallback(
-        () => run({ kind: "path", path: filePath, locale }, onOcrProgress),
+        () => run({ kind: "path", path: filePath, locale }, onOcrProgress, onStream),
         () => extractTextInProcess(filePath, onOcrProgress, markers),
       ),
     onWaiting,
@@ -255,13 +271,14 @@ export function extractBytesInWorker(
   mime?: string,
   onOcrProgress?: (done: number, pages: number) => void,
   onWaiting?: (ahead: number) => void,
+  onStream?: (ev: ExtractStreamEvent) => void,
 ): Promise<ExtractedFile> {
   const locale = mainLocale();
   const markers = mainMessages().documents.markers;
   return queue.run(() => {
     const data = Buffer.from(bytes).toString("base64");
     return withFallback(
-      () => run({ kind: "bytes", data, name, mime, locale }, onOcrProgress),
+      () => run({ kind: "bytes", data, name, mime, locale }, onOcrProgress, onStream),
       () => extractBytesInProcess(bytes, name, mime, onOcrProgress, markers),
     );
   }, onWaiting);

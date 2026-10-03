@@ -1,4 +1,4 @@
-import type { ExtractedFile } from "../../host";
+import type { ExtractedFile, ExtractStream } from "../../host";
 
 /**
  * A file staged BEFORE being extracted.
@@ -19,7 +19,11 @@ export interface DeferredFile {
   /** Reads and extracts. Rejects ⇒ the chip carries the failure. The callback (optional) receives
    *  OCR progress `{done, total}` — a source with no measurable pages ignores it,
    *  the chip then keeps its indeterminate bar — or `queued` (files ahead) while it waits. */
-  load(onOcrProgress?: (p: { done: number; total: number; queued?: number }) => void): Promise<ExtractedFile>;
+  load(
+    onOcrProgress?: (p: { done: number; total: number; queued?: number }) => void,
+    /** The preview stream of a PDF being read (pages, thumbnails); a source without one ignores it. */
+    onStream?: (ev: ExtractStream) => void,
+  ): Promise<ExtractedFile>;
 }
 
 /** Distinguishes the two shapes the shell can stage. */

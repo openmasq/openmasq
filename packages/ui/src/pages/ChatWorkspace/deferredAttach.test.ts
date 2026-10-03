@@ -105,3 +105,38 @@ describe("placeholderFor", () => {
     expect("mime" in placeholderFor({ name: "a", load: async () => FILE }, "c")).toBe(false);
   });
 });
+
+describe("stageDeferredFile — l'aperçu de lecture (`readingPreview.ts`)", () => {
+  const session = () => ({ push: vi.fn(), end: vi.fn() });
+
+  it("le flux de la lecture va à la session du chip, qui finit OK sur un texte entier", async () => {
+    const s = session();
+    const d = deps({ reading: () => s });
+    await stageDeferredFile(
+      {
+        name: "scan.pdf",
+        load: async (_p, onStream) => {
+          onStream?.({ name: "scan.pdf", page: { n: 1, total: 1, read: true, text: "Paul Morvanz" } });
+          return FILE;
+        },
+      },
+      "conv1",
+      d,
+    );
+    expect(s.push).toHaveBeenCalledOnce();
+    expect(s.end).toHaveBeenCalledWith(true);
+  });
+
+  it("une lecture en échec (ou sans texte) jette ce qu'elle a diffusé", async () => {
+    const failed = session();
+    await stageDeferredFile({ name: "a.pdf", load: () => Promise.reject(new Error("x")) }, "c", deps({ reading: () => failed }));
+    expect(failed.end).toHaveBeenCalledWith(false);
+    const partial = session();
+    await stageDeferredFile(
+      { name: "b.pdf", load: async () => ({ ...FILE, text: "", error: "page 3 illisible" }) },
+      "c",
+      deps({ reading: () => partial }),
+    );
+    expect(partial.end).toHaveBeenCalledWith(false);
+  });
+});

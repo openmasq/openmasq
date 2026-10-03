@@ -46,4 +46,17 @@ describe("ocrPdf in a utilityProcess", () => {
     expect(res.text).toBe("lu");
     expect(res.meta.pages).toBe(1);
   }, 30_000);
+
+  it("reports each page it reads, in order, with the text the result joins", async () => {
+    const { ocrPdf } = await import("./pdf");
+    const doc = await PDFDocument.load(await pdfWithImagePage());
+    const [copy] = await doc.copyPages(doc, [0]);
+    doc.addPage(copy);
+    const pages: [number, number, string][] = [];
+    const res = await ocrPdf(await doc.save(), undefined, undefined, undefined, undefined, (n, total, text) =>
+      pages.push([n, total, text]),
+    );
+    expect(pages).toEqual([[1, 2, "lu"], [2, 2, "lu"]]);
+    expect(res.text).toBe(pages.map((p) => p[2]).join("\n\f\n"));
+  }, 30_000);
 });

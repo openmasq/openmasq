@@ -10,6 +10,7 @@ import type { OcrMarkers } from "./ocrMarkers";
 import { guardUploadRefusal } from "./safety/guard";
 import { extractPdf } from "./pdfExtract";
 import type { OcrWord } from "../ocr/layout";
+import type { ExtractStream, ThumbEvent } from "./pageStream";
 import type { TextLayerPage, OcrLayerPage } from "./layers/geometry";
 import {
   TEXT_EXT, SHEET_EXT, IMAGE_EXT, MIME_EXT,
@@ -26,6 +27,7 @@ export { delimitedGrid, annotatedCutRow } from "./serialize/tabular";
 export type { TextLayerPage, OcrLayerPage } from "./layers/geometry";
 export type { DocumentErrorCode, DocumentErrorParams } from "./errors";
 export { DEFAULT_OCR_MARKERS, type OcrMarkers } from "./ocrMarkers";
+export * from "./pageStream";
 
 export interface ExtractedFile {
   name: string;
@@ -99,12 +101,7 @@ export const PDF_TEXT_MIN = 16;
 // in the image. A digital page has HUNDREDS of chars.
 export const PDF_MIN_CHARS_PER_PAGE = 120;
 
-// Marker inserted between the pages of a multi-page document (PDF text / OCR) so page
-// boundaries survive into `text` and the viewer can render each page as its OWN sheet.
-// `\f` is pure whitespace to the model, to search and to the (value-based) engine, so it
-// changes nothing downstream except that the UI can now split on it; wrapped in newlines
-// so the flat text still reads with a page separation.
-export const PAGE_BREAK = "\n\f\n";
+export { PAGE_BREAK } from "./pageBreak";
 
 /** The parsers each platform must supply (the ones that diverge Node↔browser). */
 export interface ExtractDeps {
@@ -136,7 +133,13 @@ export interface ExtractDeps {
     pages?: readonly number[],
     /** The skipped-page markers' wording; absent ⇒ `DEFAULT_OCR_MARKERS`. */
     markers?: OcrMarkers,
+    /** Each page OCR read, with its text, once read (display only) — passed only when a
+     *  stream asked for it. */
+    onPage?: (n: number, total: number, text: string) => void,
   ): Promise<string | { text: string; meta?: OcrMeta; layout?: OcrLayerPage[] }>;
+  /** Thumbnails of every page, unreadable by construction (`pageStream.ts` `thumbScale`),
+   *  until `signal` aborts. Optional: a binding without it streams no thumbnail. */
+  pdfThumbnails?(bytes: Uint8Array, onThumb: (ev: ThumbEvent) => void, signal: AbortSignal): Promise<void>;
   /** OCR an image KEEPING the positioned words, so the caller can paint the
    *  redaction on the image. Optional — when absent, `ocrImage` (text only) is used.
    *  `meta` (the engine + timing) is optional so a binding without the router can omit it. */
@@ -166,6 +169,8 @@ export async function extractFromBytes(
     onOcrProgress?: (done: number, pages: number) => void;
     /** Wording of the markers OCR writes into the text (the caller's language). */
     ocrMarkers?: OcrMarkers;
+    /** A PDF's pages and thumbnails as they are read — PREVIEW ONLY (`pageStream.ts`). */
+    stream?: ExtractStream;
   },
   deps: ExtractDeps,
 ): Promise<ExtractedFile> {
@@ -182,7 +187,7 @@ export async function extractFromBytes(
     return { name, kind: ext.slice(1) || "file", text: "", chars: 0, mime, error, errorCode, errorParams, blocked: true };
   }
   try {
-    if (ext === ".pdf") return await extractPdf(bytes, { name, mime, onOcrProgress: opts.onOcrProgress, ocrMarkers: opts.ocrMarkers }, deps);
+    if (ext === ".pdf") return await extractPdf(bytes, { name, mime, onOcrProgress: opts.onOcrProgress, ocrMarkers: opts.ocrMarkers, stream: opts.stream }, deps);
     if (IMAGE_EXT.has(ext)) {
       try {
         // An image = ONE OCR pass: the 0/1 → 1/1 frame gives a determined state.

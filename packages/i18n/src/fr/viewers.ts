@@ -12,6 +12,16 @@ export const viewers = {
   partialNote:
     "Aperçu provisoire : chaque passage s'affiche une fois masqué. Une valeur repérée plus loin peut encore être masquée dans ce qui est déjà affiché.",
   partialRest: (pct) => `Masquage en cours… ${pct} %`,
+  reading: {
+    note: "Les pages restent floutées pendant la lecture. Chaque page lue apparaît plus bas, déjà masquée.",
+    pagesLabel: "Pages du document",
+    pageRead: (n) => `Page ${n} : lue`,
+    pageCurrent: (n) => `Page ${n} : lecture en cours`,
+    pageWaiting: (n) => `Page ${n} : en attente`,
+    morePages: (n) => `+ ${n} page${n > 1 ? "s" : ""}`,
+    maskedPages: (n, total) =>
+      `${n} page${n > 1 ? "s" : ""} sur ${total} masquée${n > 1 ? "s" : ""} · la suite s'affiche au fil de la lecture`,
+  },
   extracted: (chars, status) => `${chars} caractères extraits · ${status}`,
   staleTip: "Masqué avec vos anciens réglages",
   staleChip: "Anciens réglages",

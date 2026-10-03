@@ -1,6 +1,6 @@
 import type { Messages } from "@openmasq/i18n";
 import { MAX_FILE_BYTES } from "@openmasq/redact";
-import type { ExtractedBytes, ExtractedFile, OcrProgress } from "../../host";
+import type { ExtractedBytes, ExtractedFile, ExtractStream, OcrProgress } from "../../host";
 import type { DeferredFile } from "../../state/files/deferredFile";
 
 /**
@@ -25,6 +25,7 @@ export interface ExtractDroppedDeps {
     name: string,
     mime?: string,
     onOcrProgress?: (p: OcrProgress) => void,
+    onStream?: (ev: ExtractStream) => void,
   ): Promise<ExtractedBytes>;
   toBase64(bytes: Uint8Array): string;
   /** The copy a failed or refused file shows. */
@@ -48,10 +49,16 @@ export function deferDroppedFile(file: File, deps: ExtractDroppedDeps): Deferred
   return {
     name: file.name,
     ...(file.type ? { mime: file.type } : {}),
-    load: (onOcrProgress) =>
-      extractOne(file, deps, (p) => {
-        if (p.name === file.name) onOcrProgress?.({ done: p.page, total: p.pages, queued: p.queued });
-      }),
+    // The stream needs no name filter: the preload scopes it to this one call.
+    load: (onOcrProgress, onStream) =>
+      extractOne(
+        file,
+        deps,
+        (p) => {
+          if (p.name === file.name) onOcrProgress?.({ done: p.page, total: p.pages, queued: p.queued });
+        },
+        onStream,
+      ),
   };
 }
 
@@ -66,6 +73,7 @@ async function extractOne(
   file: File,
   deps: ExtractDroppedDeps,
   onOcrProgress?: (p: OcrProgress) => void,
+  onStream?: (ev: ExtractStream) => void,
 ): Promise<ExtractedFile> {
   const base: ExtractedFile = { name: file.name, kind: file.type || "", text: "", chars: 0 };
   if (file.size > MAX_DROP_BYTES) {
@@ -84,7 +92,7 @@ async function extractOne(
   // path by design (see `dropIntake.ts`), so the bytes are the ONLY way it gets those.
   const carried: ExtractedFile = { ...base, data, ...(file.type ? { mime: file.type } : {}) };
   try {
-    const r = await deps.extractBytes(data, file.name, file.type || undefined, onOcrProgress);
+    const r = await deps.extractBytes(data, file.name, file.type || undefined, onOcrProgress, onStream);
     // ⚠️ A REFUSAL travels first, and it travels WITHOUT the bytes. `blocked` is the
     // pre-parse safety gate's verdict (`@openmasq/redact` `guardUpload`: oversize, a
     // magic-byte/extension contradiction, a decompression bomb) — not "extraction

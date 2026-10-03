@@ -1,2 +1,2 @@
 export { Composer } from "./Composer";
-export type { Attachment } from "./types";
+export type { Attachment, ReadingState } from "./types";

@@ -19,6 +19,18 @@ export interface ViewersMessages {
   partialNote: string;
   /** Where the part not yet masked would be — never its text. */
   partialRest: (pct: number) => string;
+  /** A PDF opened while it is READ: its pages blurred (never legible), each with its state,
+   *  and the pages already read shown MASKED below them. */
+  reading: {
+    note: string;
+    pagesLabel: string;
+    pageRead: (n: number) => string;
+    pageCurrent: (n: number) => string;
+    pageWaiting: (n: number) => string;
+    morePages: (n: number) => string;
+    /** Under the masked part: how far it goes, while the rest is still read. */
+    maskedPages: (n: number, total: number) => string;
+  };
   extracted: (chars: string, status: string) => string;
   staleTip: string;
   staleChip: string;

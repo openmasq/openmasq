@@ -10,6 +10,7 @@ import { extractPicked } from "../extractPicked";
 import { ocrAllAttachment } from "../ocrAll";
 import { logOcrDebug } from "../ocrDebug";
 import { redactAttachment } from "../redactAttachment";
+import { startReadingPreview } from "../readingPreview";
 import { writeStaged } from "../stagedStore";
 import { redactMatchCount } from "./redactMatchCount";
 import type { AttachmentsApi } from "./useAttachments";
@@ -51,6 +52,10 @@ export function useAttachmentIntake(
     ...(logConvId ? { convId: logConvId } : {}),
   });
 
+  /** The provisional preview of a file being read, written where its chip is staged. */
+  const readingFor = (key: string, logConvId?: string) => (cid: string) =>
+    startReadingPreview({ ...depsFor(key, logConvId), cid });
+
   /** `forConvId` overrides the target: the shell's hand-off names a conversation not on screen yet. */
   function addExtractedFiles(picked: ExtractedFile[], forConvId?: string) {
     const added: Attachment[] = picked.map((f) => ({
@@ -74,6 +79,7 @@ export function useAttachmentIntake(
     patch: patchStaged,
     countMatches: (t: string) => countMatches(t),
     t: redactDeps.t,
+    reading: readingFor(key, convId),
     onExtracted: (f: ExtractedFile, a: Attachment) => {
       logOcrDebug(f, logConv(convId));
       if (f.text.trim()) redactAttachment(a, depsFor(key, convId));
@@ -146,6 +152,7 @@ export function useAttachmentIntake(
           },
           warn: setAttachWarning,
           t: redactDeps.t,
+          reading: readingFor(key),
         });
         return;
       }

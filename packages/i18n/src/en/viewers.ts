@@ -12,6 +12,15 @@ export const viewers = {
   partialNote:
     "Provisional preview: each passage appears once it is masked. A value found further on may still be masked in what is already shown.",
   partialRest: (pct) => `Masking… ${pct}%`,
+  reading: {
+    note: "Pages stay blurred while they are read. Each page read appears below, already masked.",
+    pagesLabel: "Document pages",
+    pageRead: (n) => `Page ${n}: read`,
+    pageCurrent: (n) => `Page ${n}: reading`,
+    pageWaiting: (n) => `Page ${n}: waiting`,
+    morePages: (n) => `+ ${n} page${n > 1 ? "s" : ""}`,
+    maskedPages: (n, total) => `${n} of ${total} page${total > 1 ? "s" : ""} masked · the rest appears as it is read`,
+  },
   extracted: (chars, status) => `${chars} characters extracted · ${status}`,
   staleTip: "Masked with your previous settings",
   staleChip: "Previous settings",

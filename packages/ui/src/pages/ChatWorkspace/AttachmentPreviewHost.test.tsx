@@ -87,3 +87,48 @@ describe("AttachmentPreviewHost — l'aperçu PROGRESSIF pendant le masquage", (
     await m.unmount();
   });
 });
+
+describe("AttachmentPreviewHost — un PDF ouvert pendant sa LECTURE", () => {
+  const thumb = "data:image/png;base64,iVBORw0KGgo=";
+  const reading = (masked?: boolean): Partial<Attachment> => ({
+    text: "",
+    extracting: true,
+    extractProgress: { done: 1, total: 3 },
+    reading: {
+      total: 3,
+      thumbs: [thumb, thumb, undefined],
+      read: [true],
+      ...(masked
+        ? {
+            masked: {
+              pages: 1,
+              chunks: [
+                { text: "Emprunteur : " },
+                { text: "Luc Martin", mark: { real: "Jean Dupont", tone: "violet", kind: "name", revealed: false } },
+              ],
+            },
+          }
+        : {}),
+    },
+  });
+
+  it("les pages floutées, chacune avec son état", async () => {
+    const m = await mount(<AttachmentPreviewHost preview={scan(reading())} onClose={() => {}} />);
+    expect(document.body.querySelectorAll("img.fv-reading-thumb")).toHaveLength(2);
+    expect(document.body.querySelector('[aria-label="' + fr.viewers.reading.pageRead(1) + '"]')).not.toBeNull();
+    expect(document.body.querySelector('[aria-label="' + fr.viewers.reading.pageCurrent(2) + '"]')).not.toBeNull();
+    expect(document.body.querySelector('[aria-label="' + fr.viewers.reading.pageWaiting(3) + '"]')).not.toBeNull();
+    expect(document.body.textContent).toContain(fr.viewers.reading.note);
+    await m.unmount();
+  });
+
+  it("les pages lues s'affichent MASQUÉES, provisoires — jamais la valeur réelle", async () => {
+    const m = await mount(<AttachmentPreviewHost preview={scan(reading(true))} onClose={() => {}} />);
+    const shown = document.body.textContent ?? "";
+    expect(shown).toContain("Luc Martin");
+    expect(shown).toContain(fr.viewers.partialNote);
+    expect(shown).toContain(fr.viewers.reading.maskedPages(1, 3));
+    expect(document.body.innerHTML).not.toContain("Jean Dupont");
+    await m.unmount();
+  });
+});
