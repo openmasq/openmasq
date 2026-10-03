@@ -50,6 +50,22 @@ kept in the French they were sent in, for the reason given above.
 
 ---
 
+## 0.14.0 — 2026-10-03
+> Every document is masked from the first page to the last, and you can watch it happen.
+
+### What's new
+- **Whole documents** — a document is masked and sent in full; one too large to mask is refused with its size.
+- **Live PDF preview** — the real pages appear as they are read and masked, with a page strip and arrow keys.
+- **Fast long pastes** — pasting a long document no longer freezes the app.
+
+### Improvements & fixes
+- Scanned PDFs are read in full, every page.
+- A file still being read, or one that can't be read, is never left out of a message without a word.
+- A message too long for the selected model is refused before anything is sent.
+- Conversations keep their attached documents after the app restarts.
+- Files are masked one at a time and keep going when you switch conversations.
+- Long messages fold, and a notice says when documents fill the model's context.
+
 ## 0.13.0 — 2026-10-02
 > Masked file paths keep their meaning, and an expired Claude Code or Codex session reconnects in one click.
 
