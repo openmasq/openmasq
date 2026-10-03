@@ -73,7 +73,11 @@ export function useAttachments(p: ChatViewProps) {
   };
 
   // A write elsewhere (a run finishing, a read landing) to the conversation on screen.
-  useEffect(() => subscribeStaged((key) => key === convIdRef.current && reread()), [reread]);
+  useEffect(() => {
+    return subscribeStaged((key) => {
+      if (key === convIdRef.current) reread();
+    });
+  }, [reread]);
 
   // Restore the conversation's staged files when opening it (a READ of what the store
   // holds). A run already queued or running is LEFT ALONE — re-queuing it is what restarted
