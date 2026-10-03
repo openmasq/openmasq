@@ -59,11 +59,11 @@ kept in the French they were sent in, for the reason given above.
 - **Fast long pastes** — pasting a long document no longer freezes the app.
 
 ### Improvements & fixes
-- Scanned PDFs are read in full, every page.
+- Scanned PDFs are read in full, and PDFs with a logo or stamp are read faster.
 - A file still being read, or one that can't be read, is never left out of a message without a word.
 - A message too long for the selected model is refused before anything is sent.
 - Conversations keep their attached documents after the app restarts.
-- Files are masked one at a time and keep going when you switch conversations.
+- Files are masked one at a time, keep going across conversations and stop when removed.
 - Long messages fold, and a notice says when documents fill the model's context.
 
 ## 0.13.0 — 2026-10-02
