@@ -1,3 +1,4 @@
+import { getMessages } from "@openmasq/i18n";
 import { describe, it, expect, vi } from "vitest";
 import { MAX_DROP_BYTES, extractDroppedFiles, deferDroppedFile } from "./extractDropped";
 import type { OcrProgress } from "../../host";
@@ -5,6 +6,7 @@ import type { OcrProgress } from "../../host";
 const deps = (over: Partial<Parameters<typeof extractDroppedFiles>[1]> = {}) => ({
   extractBytes: vi.fn(async (_d: string, name: string) => ({ text: `texte de ${name}` })),
   toBase64: () => "BASE64",
+  t: getMessages("fr"),
   ...over,
 });
 
@@ -74,7 +76,7 @@ describe("extractDroppedFiles — bytes, never a path", () => {
   it("refuses an oversized file BEFORE reading it into memory", async () => {
     const d = deps();
     const out = await extractDroppedFiles([f("image.dmg", "", MAX_DROP_BYTES + 1)], d);
-    expect(out[0]!.error).toBe("fichier trop volumineux");
+    expect(out[0]!.error).toBe("Fichier trop volumineux");
     expect(d.extractBytes).not.toHaveBeenCalled();
   });
 

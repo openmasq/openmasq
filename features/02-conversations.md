@@ -51,6 +51,12 @@ message, necessarily the most sensitive one, stays in memory.
 - [x] Drafts kept per conversation, **in memory only**
 - [x] Full-screen editor for a long draft, with a Preview tab — opened by clicking the
       collapsed draft card in the composer — `packages/ui/src/pages/ChatWorkspace/ComposerTextModal.tsx`
+- [x] A paste that folds the draft into that card keeps the keyboard there: the card takes
+      the focus and ⌘Z / Ctrl+Z right after restores the draft as it was, textarea and caret
+      included — `packages/ui/src/pages/ChatWorkspace/Composer/useLongPasteUndo.ts`
+- [x] A long sent message (over ~1,500 characters or 16 lines) is **folded** in the thread,
+      « Afficher tout » / « Réduire »; its marks, selection menu and copy are unchanged, and an
+      opened message stays open while scrolling — `packages/ui/src/components/message/bubbleFold.ts`
 - [x] Delete a conversation; open several in tabs
 - [x] Rename or delete a conversation from its row in the list (⋯ on hover):
       **in-place** rename, confirmed deletion — `packages/ui/src/containers/shell/ConvRow.tsx`
@@ -208,6 +214,10 @@ today's.
 - [x] The preview opens while the file is still being read (OCR) or first masked: a loader with the page being read / the masking progress, then the redacted document as soon as it lands — never the document unmasked in the meantime — `packages/ui/src/containers/modals/viewers/AttachmentPendingPreview.tsx`
 - [x] Several documents at once: read ONE at a time, in order; each chip finishes on its own (the first one ready opens while the others wait) and a waiting one says « En attente · N avant » — `apps/desktop/src/main/ocr/extractQueue.ts`, `packages/ui/src/pages/ChatWorkspace/extractPicked.ts`
 - [x] Redact a word by hand in the preview (selection or click on a word)
+- [x] **Many files** (8 or more): one summary line « 32 fichiers · 3 en lecture · 1 illisible »,
+      the chips in a bounded scrolling area, and « Tout retirer » (asks once, on the button) —
+      each file removed through the same path as its own ×, masking in flight cancelled —
+      `packages/ui/src/pages/ChatWorkspace/AttachmentChips/`
 - [ ] Sending a document as **redacted images** to a multimodal model — not offered: a
       document leaves as its extracted, masked text (the « texte ou fichier » choice was removed)
 - [x] A card that has aged (rules changed) is flagged + can be re-redacted

@@ -28,6 +28,9 @@ export const viewers = {
   documentTab: "Document",
   redactedToggle: "Masked",
   storedLocally: "stored locally",
+  askIdle: "Ask",
+  askPending: "Preparing…",
+  askFailed: "Failed, try again",
   maskedNote: (labels) => `Masked data: ${labels}`,
   maskedNoteNoLabels: "What the model receives",
   originalNote: "Original: your real data, never sent as is",
@@ -60,6 +63,10 @@ export const viewers = {
     imageZones: (pages) =>
       `Boxed areas (logo, stamp, seal) are part of the image. They are not in the text sent to the model, so they are not highlighted.${pages}`,
     imagePages: (n) => ` ${n} page${n > 1 ? "s are" : " is"} read entirely from the image.`,
+    imageOnlyNote: (n) =>
+      n > 1
+        ? `${n} pages are read from the image: their text comes from reading the pixels, not from a text layer.`
+        : "This page is read from the image: its text comes from reading the pixels, not from a text layer.",
   },
   summary: {
     redacting: "masking…",

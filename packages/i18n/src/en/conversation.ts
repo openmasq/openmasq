@@ -131,6 +131,12 @@ export const conversation = {
     feedback: "Give feedback on this reply",
   },
 
+  replyNotice: {
+    failed: "Sending failed. Open the conversation to try again.",
+    ready: (model) => `Reply ready · ${model}`,
+    readyPlain: "Reply ready.",
+  },
+
   bubble: {
     openAttachment: (name) => `Open ${name}`,
     plotTip: "Generating a chart (run_python)",
@@ -145,6 +151,8 @@ export const conversation = {
     reasoning: "Reasoning",
     imageWithheld: "Image withheld: it may contain a masked value",
     imageWithheldLoad: "Load",
+    showAll: "Show all",
+    showLess: "Show less",
   },
 
   trace: {
@@ -194,6 +202,7 @@ export const conversation = {
   },
 
   struggle: {
+    thisModel: "This model",
     failedTip: (tool) => (tool ? `A tool call did not go through: ${tool}` : "A tool call did not go through"),
     unknownTool: (connector, action) =>
       `${connector} has no “${action}” action.`,

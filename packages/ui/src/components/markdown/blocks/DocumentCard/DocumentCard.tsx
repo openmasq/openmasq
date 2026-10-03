@@ -210,7 +210,7 @@ export function DocumentCard({ title, text }: { title: string; text: string }) {
             ref={bodyRef}
             data-clip={clipped ? "1" : undefined}
             data-editable={onDocumentEdit ? "1" : undefined}
-            title={onDocumentEdit ? "Cliquer pour modifier" : undefined}
+            title={onDocumentEdit ? t.leaves.document.clickToEdit : undefined}
             onClick={bodyClickToEdit}
           >
             <Markdown content={text} vault={vault} kinds={kinds} revealed={revealed} linkPreviews={false} />

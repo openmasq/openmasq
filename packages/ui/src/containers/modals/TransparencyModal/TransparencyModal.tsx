@@ -1,10 +1,12 @@
+import { useMemo, useState } from "react";
 import { toSegments, wireSegments, type RedactionSegment } from "@openmasq/redact";
-import { ModalShell } from "./ModalShell";
-import { EyeIcon, IconButton, ShieldIcon, XIcon } from "../../components/brand";
-import { transparencyPairs, type TransparencyPair } from "../../privacy/transparency";
-import { conversationProtectedCount } from "../../state/redaction/protectedCount";
-import { useT } from "../../i18n";
-import type { Conversation } from "../../types";
+import { ModalShell } from "../ModalShell";
+import { EyeIcon, IconButton, ShieldIcon, XIcon } from "../../../components/brand";
+import { transparencyPairs, type TransparencyPair } from "../../../privacy/transparency";
+import { conversationProtectedCount } from "../../../state/redaction/protectedCount";
+import { useT } from "../../../i18n";
+import type { Conversation } from "../../../types";
+import { FIRST_CHARS, STEP_CHARS, windowSegments } from "./sliceSegments";
 
 /**
  * « Voyez ce que le modèle a vu » — your message and its counterpart, side by side.
@@ -28,9 +30,12 @@ export function TransparencyModal({
   modelName?: string;
   onClose: () => void;
 }) {
-  const pairs = transparencyPairs(conversation);
+  // Recomputed per CONVERSATION, never per render: on a long paste it is the whole
+  // substitution, re-run.
+  const pairs = useMemo(() => transparencyPairs(conversation), [conversation]);
   const kinds = conversation.redactionKinds;
-  const vault = conversation.redactionVault ?? {};
+  const vault = useMemo(() => conversation.redactionVault ?? {}, [conversation.redactionVault]);
+  const maxLen = useMemo(() => longest(vault), [vault]);
   // The single definition (`state/protectedCount.ts`): a protected VALUE, not a vault
   // entry — the vault carries the aliases of the same value, and this panel is precisely
   // the one where the announced figure gets counted on screen.
@@ -60,7 +65,7 @@ export function TransparencyModal({
         ) : (
           <div className="tsp-list">
             {pairs.map((p) => (
-              <PairRow key={p.id} pair={p} vault={vault} kinds={kinds} />
+              <PairRow key={p.id} pair={p} vault={vault} kinds={kinds} maxLen={maxLen} />
             ))}
           </div>
         )}
@@ -69,14 +74,27 @@ export function TransparencyModal({
   );
 }
 
+/** The longest vault value (what the left column matches) and key (the right one). */
+function longest(vault: Record<string, string>): { values: number; keys: number } {
+  let values = 0;
+  let keys = 0;
+  for (const [k, v] of Object.entries(vault)) {
+    values = Math.max(values, v.length);
+    keys = Math.max(keys, k.length);
+  }
+  return { values, keys };
+}
+
 function PairRow({
   pair,
   vault,
   kinds,
+  maxLen,
 }: {
   pair: TransparencyPair;
   vault: Record<string, string>;
   kinds?: Record<string, string>;
+  maxLen: { values: number; keys: number };
 }) {
   const t = useT();
   // ⚠️ The headers FOLLOW the role. On a reply, "what you wrote" would be
@@ -86,6 +104,18 @@ function PairRow({
   const isUser = pair.role === "user";
   const leftHead = isUser ? t.modals.transparency.youWrote : t.modals.transparency.youRead;
   const rightHead = isUser ? t.modals.transparency.modelReceived : t.modals.transparency.modelWrote;
+  // Only the shown PREFIX is segmented and mounted, with the same limit on both sides so
+  // the columns stay side by side (`windowSegments`).
+  const [limit, setLimit] = useState(FIRST_CHARS);
+  const left = useMemo(
+    () => windowSegments(pair.real, limit, maxLen.values, (s) => toSegments(s, vault, kinds)),
+    [pair.real, limit, maxLen.values, vault, kinds],
+  );
+  const right = useMemo(
+    () => windowSegments(pair.wire, limit, maxLen.keys, (s) => wireSegments(s, vault, kinds)),
+    [pair.wire, limit, maxLen.keys, vault, kinds],
+  );
+  const rest = Math.max(left.rest, right.rest);
 
   return (
     <div className="tsp-pair">
@@ -103,7 +133,7 @@ function PairRow({
           </div>
           <p className="tsp-text">
             {/* The REAL values, highlighted in their category color. */}
-            <Segments segments={toSegments(pair.real, vault, kinds)} />
+            <Segments segments={left.shown} />
           </p>
         </div>
         <div className="tsp-col tsp-col-wire">
@@ -113,10 +143,15 @@ function PairRow({
           </div>
           <p className="tsp-text">
             {/* `wireSegments` highlights the PSEUDONYMS: that's the form that left. */}
-            <Segments segments={wireSegments(pair.wire, vault, kinds)} />
+            <Segments segments={right.shown} />
           </p>
         </div>
       </div>
+      {rest > 0 && (
+        <button type="button" className="link-btn tsp-more" onClick={() => setLimit((l) => l + STEP_CHARS)}>
+          {t.modals.transparency.showMore(rest)}
+        </button>
+      )}
     </div>
   );
 }

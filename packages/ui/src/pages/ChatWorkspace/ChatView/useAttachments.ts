@@ -65,7 +65,7 @@ export function useAttachments(p: ChatViewProps) {
     for (const a of staged) {
       if (a.redacting && !a.replacements?.length && !a.redactError) redactAttachment(a, redactDeps);
       if (a.extracting && !a.text?.trim() && !a.error) {
-        updateAttachment(a.cid, { extracting: false, error: "extraction interrompue — redéposez le fichier" });
+        updateAttachment(a.cid, { extracting: false, error: t.composer.attachments.extractInterrupted });
       }
     }
   }, [conversation?.id]);

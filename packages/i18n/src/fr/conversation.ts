@@ -138,6 +138,12 @@ export const conversation = {
     feedback: "Donner un avis sur cette réponse",
   },
 
+  replyNotice: {
+    failed: "L'envoi a échoué. Ouvrez la conversation pour réessayer.",
+    ready: (model) => `Réponse prête · ${model}`,
+    readyPlain: "Réponse prête.",
+  },
+
   bubble: {
     openAttachment: (name) => `Consulter ${name}`,
     plotTip: "Génération d'un graphique (run_python)",
@@ -153,6 +159,8 @@ export const conversation = {
     reasoning: "Réflexion",
     imageWithheld: "Image retenue : elle peut contenir une valeur masquée",
     imageWithheldLoad: "Charger",
+    showAll: "Afficher tout",
+    showLess: "Réduire",
   },
 
   trace: {
@@ -202,6 +210,7 @@ export const conversation = {
   },
 
   struggle: {
+    thisModel: "Ce modèle",
     failedTip: (tool) => (tool ? `Un appel d'outil n'a pas abouti : ${tool}` : "Un appel d'outil n'a pas abouti"),
     unknownTool: (connector, action) =>
       `${connector} n'a pas d'action « ${action} ».`,

@@ -1,3 +1,4 @@
+import type { Messages } from "@openmasq/i18n";
 import type { ExtractedBytes, ExtractedFile, OcrProgress } from "../../host";
 import type { DeferredFile } from "../../state/files/deferredFile";
 
@@ -25,6 +26,8 @@ export interface ExtractDroppedDeps {
     onOcrProgress?: (p: OcrProgress) => void,
   ): Promise<ExtractedBytes>;
   toBase64(bytes: Uint8Array): string;
+  /** The copy a failed or refused file shows. */
+  t: Messages;
 }
 
 /** Refuse a file too large to carry through the IPC as base64 before reading it into
@@ -64,13 +67,13 @@ async function extractOne(
 ): Promise<ExtractedFile> {
   const base: ExtractedFile = { name: file.name, kind: file.type || "", text: "", chars: 0 };
   if (file.size > MAX_DROP_BYTES) {
-    return { ...base, error: "fichier trop volumineux" };
+    return { ...base, error: deps.t.composer.attachments.fileTooLarge };
   }
   let data: string;
   try {
     data = deps.toBase64(new Uint8Array(await file.arrayBuffer()));
   } catch (e) {
-    return { ...base, error: e instanceof Error ? e.message : "lecture impossible" };
+    return { ...base, error: e instanceof Error ? e.message : deps.t.composer.attachments.extractFailed };
   }
   // ⚠️ `data` rides ALONG with the text, and that is not incidental: `redactAndSave` uses
   // the in-memory bytes INSTEAD of `path` when present (`host/files.ts`), which is the
@@ -89,7 +92,7 @@ async function extractOne(
     // is right when a parser merely could not read them (below); it is exactly wrong
     // when the answer was "do not parse this".
     if (r.blocked) {
-      return { ...base, error: r.error ?? "fichier refusé", blocked: true };
+      return { ...base, error: r.error ?? deps.t.composer.attachments.fileRefused, blocked: true };
     }
     // EVERYTHING else the bytes route returns travels with the file: `words` is what
     // lets the aperçu paint the REDACTED image (boxes) instead of the original.
@@ -108,6 +111,6 @@ async function extractOne(
   } catch (e) {
     // Extraction failed, but the BYTES are still good — keep them so the file can be
     // stored and previewed even when no text could be pulled out of it.
-    return { ...carried, error: e instanceof Error ? e.message : "extraction échouée" };
+    return { ...carried, error: e instanceof Error ? e.message : deps.t.composer.attachments.extractFailed };
   }
 }

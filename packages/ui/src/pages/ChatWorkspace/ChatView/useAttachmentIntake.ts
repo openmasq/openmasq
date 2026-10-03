@@ -65,6 +65,7 @@ export function useAttachmentIntake(
     stage: stageAttachments,
     patch: patchStaged,
     countMatches: (t: string) => countMatches(t),
+    t: redactDeps.t,
     onExtracted: (f: ExtractedFile, a: Attachment) => {
       logOcrDebug(f, logConv(convId));
       if (f.text.trim()) redactAttachment(a, convId ? { ...redactDeps, convId } : redactDeps);
@@ -83,6 +84,7 @@ export function useAttachmentIntake(
         files: { extractAll: host.files.extractAll.bind(host.files) },
         patch: (c, patch) => patchStaged(c, patch),
         countMatches: (t) => countMatches(t),
+        t: redactDeps.t,
         onExtracted: (f, merged) => {
           logOcrDebug(f, logConv(conversation?.id));
           if (f.text.trim()) redactAttachment(merged, redactDeps);
@@ -131,6 +133,7 @@ export function useAttachmentIntake(
             else if (f.text.trim()) redactAttachment(merged, redactDeps);
           },
           warn: setAttachWarning,
+          t: redactDeps.t,
         });
         return;
       }

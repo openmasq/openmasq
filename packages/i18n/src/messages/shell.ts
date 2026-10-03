@@ -51,6 +51,11 @@ export interface ShellMessages {
     local: string;
     manageFolders: string;
     noFolders: string;
+    /** Where a local file opened from the sidebar lives. */
+    storedIn: (folder: string) => string;
+    storedOnDisk: string;
+    sourceConnectedTip: (name: string) => string;
+    sourceDisconnectedTip: (name: string) => string;
     addFolder: string;
     connectedStorage: string;
     cloud: string;

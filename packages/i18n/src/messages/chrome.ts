@@ -177,12 +177,25 @@ export interface ComposerMessages {
     collapse: string;
   };
 
+  /** The intent chip above the input: its label and its hover peek's footer. */
+  intent: {
+    skill: (name: string) => string;
+    routine: (name: string) => string;
+    sentWith: string;
+    clickToEdit: string;
+  };
+
+  /** Why an answer may be off when masked values carry its meaning (a hint, never a block). */
+  utilityRisk: { age: string; world: string; geo: string };
+
   /** The LONG draft, folded into a card: it is edited in a modal. */
   longText: {
     openTip: string;
     /** Numbers go through `Intl` INSIDE the catalogue — each language knows its own. */
     summary: (chars: number, lines: number) => string;
     edit: string;
+    /** Right after a paste folded the draft, Cmd/Ctrl+Z restores the previous draft. */
+    undoTip: string;
   };
 
   /** The long-text editing modal. */
@@ -222,6 +235,22 @@ export interface ComposerMessages {
     reRedact: string;
     reRedactTip: string;
     remove: string;
+    /** Many staged files: one summary line above a bounded list. */
+    summaryFiles: (count: number) => string;
+    summaryReading: (count: number) => string;
+    summaryMasking: (count: number) => string;
+    summaryUnreadable: (count: number) => string;
+    removeAll: string;
+    removeAllConfirm: (count: number) => string;
+    /** The extraction failed: the chip's tooltip says it. */
+    extractFailed: string;
+    /** A re-read of every page failed; the text read before is kept. */
+    rereadFailed: string;
+    /** The extraction was cut off (the app closed mid-read): the bytes are gone. */
+    extractInterrupted: string;
+    /** The file was refused before parsing (an archive the gate refuses). */
+    fileRefused: string;
+    fileTooLarge: string;
   };
 
   /** The file DROP onto the window. */

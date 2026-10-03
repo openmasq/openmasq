@@ -1,3 +1,4 @@
+import { getMessages } from "@openmasq/i18n";
 import { describe, it, expect, vi } from "vitest";
 import { stageDeferredFile, placeholderFor, type DeferredAttachDeps } from "./deferredAttach";
 import type { Attachment } from "./Composer";
@@ -19,6 +20,7 @@ function deps(over: Partial<DeferredAttachDeps> = {}): DeferredAttachDeps & {
     countMatches: () => 3,
     onExtracted: vi.fn(),
     newCid: () => "cid1",
+    t: getMessages("fr"),
     ...over,
   };
 }
@@ -79,7 +81,7 @@ describe("stageDeferredFile — le chip paraît AVANT le contenu", () => {
     );
     expect(d.staged).toHaveLength(1);
     expect(d.patches).toHaveLength(1);
-    expect(d.patches[0][1]).toMatchObject({ extracting: false, error: "extraction échouée" });
+    expect(d.patches[0][1]).toMatchObject({ extracting: false, error: "Lecture impossible" });
     expect(d.onExtracted).not.toHaveBeenCalled();
   });
 

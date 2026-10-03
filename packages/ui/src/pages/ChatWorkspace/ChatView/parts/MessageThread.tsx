@@ -1,5 +1,6 @@
 import { PROVIDERS } from "@openmasq/llm";
 import { MessageBubble } from "../../../../components/message/MessageBubble";
+import { estimateCharsOf } from "../../../../components/message/bubbleFold";
 import { VirtualMessageList } from "../../../../components/VirtualMessageList";
 import { findModelAny } from "../../../../prompt/models";
 import type { ChatViewModel } from "../model";
@@ -18,6 +19,8 @@ export function MessageThread({ m }: { m: ChatViewModel }) {
         apiRef={scroll.listApi}
         // A bubble's mount cost tracks its text length, so a few pasted documents must window too.
         sizeOf={(msg) => msg.content.length}
+        // …but a long user bubble is FOLDED, so it is short on screen.
+        estimateCharsOf={estimateCharsOf}
         initialAnchor="bottom"
       >
         {(msg) => {

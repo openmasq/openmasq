@@ -170,6 +170,18 @@
   word-break: break-word;
 }
 
+/* A LONG user message folds (`bubbleFold.ts`): its start, fading out. The mask is alpha
+   only (no ink), so it reads the same in both themes. */
+.msg-bubble.is-folded {
+  max-height: 22rem;
+  overflow: hidden;
+  mask-image: linear-gradient(to bottom, black 70%, transparent);
+}
+.msg.user .msg-fold {
+  align-self: flex-end;
+  margin-top: 6px;
+}
+
 /* Attached files on a sent message — shown as chips (the redacted file is stored
    locally), never as the file's raw text dumped into the bubble. */
 .msg-attachments {

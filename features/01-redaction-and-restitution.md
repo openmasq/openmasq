@@ -115,6 +115,9 @@ opens in one click from any reply.
 
 - [x] Message-by-message comparison, your text ⇄ the text that left — `packages/ui/src/privacy/transparency.ts`
 - [x] Recomputed on demand from the vault (no separate copy that could lie)
+- [x] A long text (a 200k-character paste) opens at once: each pair shows its first 8,000
+      characters, « Afficher la suite » adds 40,000 more, never the whole text in one go; the
+      shown part is the exact start of the comparison — `packages/ui/src/containers/modals/TransparencyModal/sliceSegments.ts`
 - [x] Under each sent message, ONE short, stable mention — « **N protégés · voir** » — opens
       that same comparison; the per-category detail lives there, never in the caption —
       `packages/ui/src/components/message/MessageBubble.tsx`

@@ -1,13 +1,13 @@
 {
   "packages/ui/src/containers/modals/viewers/AttachmentPreviewModal.tsx": 702,
   "apps/desktop/src/main/mcp/browser/agentMain.ts": 572,
-  "packages/ui/src/components/message/MessageBubble.tsx": 496,
   "apps/desktop/src/main/mcp/browser/process.ts": 470,
   "apps/desktop/src/main/python/sandbox.ts": 450,
+  "packages/ui/src/components/message/MessageBubble.tsx": 437,
   "apps/desktop/src/renderer/src/auth.ts": 437,
   "packages/ui/src/agent/toolCatalog.ts": 428,
-  "apps/desktop/src/renderer/src/main.tsx": 386,
   "packages/ui/src/pages/Settings/mcp/useMcpConnectors.ts": 383,
+  "apps/desktop/src/renderer/src/main.tsx": 386,
   "packages/llm/src/tools/openai.ts": 357,
   "apps/desktop/src/main/mcp/persist.ts": 307
 }

@@ -1,3 +1,4 @@
+import { getMessages } from "@openmasq/i18n";
 import { BRAND } from "@openmasq/branding";
 import { describe, expect, it } from "vitest";
 import { noticeText, pendingReplyIds, repliesToAnnounce, type NoticeConv } from "./replyNotice";
@@ -94,13 +95,13 @@ describe("noticeText", () => {
   // A conversation's title is derived from the first message: it is REAL data,
   // and a system banner displays over everything, sometimes on a locked screen.
   it("ne porte ni contenu ni titre de conversation", () => {
-    const t = noticeText({ id: "c-secret", failed: false }, "GPT-5.5");
+    const t = noticeText({ id: "c-secret", failed: false }, getMessages("fr"), "GPT-5.5");
     expect(t.title).toBe(BRAND.name);
     expect(t.body).toBe("Réponse prête · GPT-5.5");
     expect(`${t.title} ${t.body}`).not.toContain("c-secret");
   });
 
   it("dit l'échec, et ce qu'il reste à faire", () => {
-    expect(noticeText({ id: "a", failed: true }).body).toContain("échoué");
+    expect(noticeText({ id: "a", failed: true }, getMessages("fr")).body).toContain("échoué");
   });
 });

@@ -21,6 +21,10 @@ export interface Props<T> {
    *  but very heavy thread window instead of mounting whole; it also sharpens the
    *  height estimate for a not-yet-measured row. Omit → count-only gating. */
   sizeOf?: (item: T) => number;
+  /** Characters the pre-measurement HEIGHT guess should assume, when it differs from the
+   *  render cost (a folded bubble mounts its whole text but shows a few lines). Defaults
+   *  to `sizeOf`. */
+  estimateCharsOf?: (item: T) => number;
   /** Total `sizeOf` above which the list windows whatever the item count. Default 20k. */
   charBudget?: number;
   /** Assumed px for a not-yet-measured row. Default 220 (a chat bubble); pass a

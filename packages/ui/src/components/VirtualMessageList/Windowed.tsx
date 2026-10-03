@@ -14,6 +14,7 @@ export function Windowed<T>({
   estimate,
   initialAnchor,
   sizeOf,
+  estimateCharsOf,
   charBudget,
 }: Props<T>) {
   const count = items.length;
@@ -34,8 +35,8 @@ export function Windowed<T>({
   getKeyRef.current = getKey;
   // Also a ref: callers pass an inline arrow, and a new identity in `rowHeight`'s
   // deps would resubscribe the scroll listener on every render.
-  const sizeOfRef = useRef(sizeOf);
-  sizeOfRef.current = sizeOf;
+  const sizeOfRef = useRef(estimateCharsOf ?? sizeOf);
+  sizeOfRef.current = estimateCharsOf ?? sizeOf;
 
   const heights = useRef<Map<string, number>>(new Map());
   const rows = useRef<Map<string, HTMLDivElement>>(new Map());
@@ -163,6 +164,52 @@ export function Windowed<T>({
     if (changed) recompute();
   });
 
+  // A row can change height WITHOUT this list re-rendering (a bubble folds or unfolds,
+  // an image loads): watch every mounted row, so the spacers and the window follow.
+  const rowObserver = useRef<ResizeObserver | null>(null);
+  useLayoutEffect(() => {
+    if (typeof ResizeObserver === "undefined") return;
+    const ro = new ResizeObserver(() => {
+      let changed = false;
+      for (const [key, node] of rows.current) {
+        const h = node.offsetHeight;
+        if (h && heights.current.get(key) !== h) {
+          heights.current.set(key, h);
+          changed = true;
+        }
+      }
+      if (changed) recompute();
+    });
+    rowObserver.current = ro;
+    for (const node of rows.current.values()) ro.observe(node);
+    return () => {
+      ro.disconnect();
+      rowObserver.current = null;
+    };
+  }, [recompute]);
+
+  // ONE stable ref callback per key: an inline arrow would detach and re-attach every
+  // row on every render (and re-observe it).
+  const rowRefs = useRef<Map<string, (n: HTMLDivElement | null) => void>>(new Map());
+  const rowRef = (key: string) => {
+    let cb = rowRefs.current.get(key);
+    if (!cb) {
+      cb = (n) => {
+        const prev = rows.current.get(key);
+        if (prev) rowObserver.current?.unobserve(prev);
+        if (n) {
+          rows.current.set(key, n);
+          rowObserver.current?.observe(n);
+        } else {
+          rows.current.delete(key);
+          rowRefs.current.delete(key);
+        }
+      };
+      rowRefs.current.set(key, cb);
+    }
+    return cb;
+  };
+
   // Recompute on scroll (rAF-coalesced), on container resize, and when the
   // message count changes (a new turn).
   useLayoutEffect(() => {
@@ -202,10 +249,7 @@ export function Windowed<T>({
     window.push(
       <div
         key={key}
-        ref={(n) => {
-          if (n) rows.current.set(key, n);
-          else rows.current.delete(key);
-        }}
+        ref={rowRef(key)}
       >
         {children(item, i)}
       </div>,

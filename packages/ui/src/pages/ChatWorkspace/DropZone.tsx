@@ -104,6 +104,7 @@ export function DropZone({
           deferDroppedFile(file, {
             extractBytes: host.files!.extractBytes!,
             toBase64: bytesToBase64,
+            t,
           }),
         ),
       );

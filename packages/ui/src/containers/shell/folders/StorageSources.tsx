@@ -124,8 +124,8 @@ export function StorageSources({
                fills the panel with explanations and hides what you came there to find. */
             title={
               on
-                ? `${c.name} — connecté, accessible au modèle. Ouvrir ses réglages.`
-                : `${c.name} — non connecté. Se connecter.`
+                ? t.shell.folders.sourceConnectedTip(c.name)
+                : t.shell.folders.sourceDisconnectedTip(c.name)
             }
             onClick={() => onOpenConnector?.(c.id)}
           >
