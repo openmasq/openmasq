@@ -223,6 +223,15 @@ export type TrackEvent =
   | { name: "update_check"; channel: string; result: "available" | "up_to_date"; found_version?: string }
   | { name: "update_downloaded"; channel: string; version: string }
   | { name: "update_install"; channel: string; version: string }
+  // A staged build the AUTOMATIC install is holding back, and why — once per version and
+  // reason per session: `in_use` (a window has focus), `busy_main` (a turn in flight),
+  // `busy_renderer` (a send or a draft), `no_answer` (the renderer did not reply).
+  | {
+      name: "update_install_deferred";
+      channel: string;
+      version: string;
+      reason: "in_use" | "busy_main" | "busy_renderer" | "no_answer";
+    }
   | { name: "update_installed"; channel: string; from: string; to: string };
 
 export type EventName = TrackEvent["name"];

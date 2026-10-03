@@ -6,10 +6,12 @@ vi.mock("electron", () => ({ BrowserWindow: {}, ipcMain: { once: () => {}, remov
 vi.mock("electron-updater", () => ({ default: { autoUpdater: { on: () => {} } } }));
 vi.mock("./install", () => ({ quitAndInstallSafely: async () => {} }));
 vi.mock("./log", () => ({ logUpdate: () => {} }));
+vi.mock("./track", () => ({ trackInstallDeferred: () => {} }));
 
 import {
   AUTO_BLURRED_MS,
   AUTO_IDLE_AWAY_S,
+  deferReason,
   shouldAutoInstall,
   type AutoInstallSignals,
 } from "./autoInstall";
@@ -50,5 +52,23 @@ describe("shouldAutoInstall — le redémarrage automatique refuse au moindre do
     // "probably free".
     expect(shouldAutoInstall(quiet({ rendererBusy: true }))).toBe(false);
     expect(shouldAutoInstall(quiet({ rendererBusy: null }))).toBe(false);
+  });
+});
+
+describe("deferReason — the funnel says WHY a downloaded build waits", () => {
+  it("a focused window, a turn in flight, a busy or silent renderer each name their reason", () => {
+    expect(deferReason(quiet({ focused: true }))).toBe("in_use");
+    expect(deferReason(quiet({ mainBusy: true }))).toBe("busy_main");
+    expect(deferReason(quiet({ rendererBusy: true }))).toBe("busy_renderer");
+    expect(deferReason(quiet({ rendererBusy: null }))).toBe("no_answer");
+  });
+
+  it("ordinary waiting (not idle or blurred long enough yet) is not a deferral", () => {
+    expect(deferReason(quiet({ idleS: 0, blurredMs: 5 * 60_000 }))).toBeNull();
+    expect(deferReason(quiet({ idleS: 0, blurredMs: 0, rendererBusy: null }))).toBeNull();
+  });
+
+  it("nothing staged ⇒ nothing to defer", () => {
+    expect(deferReason(quiet({ staged: false, focused: true }))).toBeNull();
   });
 });

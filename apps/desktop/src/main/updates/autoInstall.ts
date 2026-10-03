@@ -2,6 +2,7 @@ import { BrowserWindow, ipcMain, powerMonitor } from "electron";
 import electronUpdater from "electron-updater";
 
 import { quitAndInstallSafely } from "./install";
+import { trackInstallDeferred, type InstallDeferReason } from "./track";
 import { logUpdate } from "./log";
 
 const { autoUpdater } = electronUpdater;
@@ -43,6 +44,17 @@ export function shouldAutoInstall(s: AutoInstallSignals): boolean {
   if (!s.staged || s.focused || s.mainBusy) return false;
   if (s.rendererBusy !== false) return false;
   return s.idleS >= AUTO_IDLE_AWAY_S || s.blurredMs >= AUTO_BLURRED_MS;
+}
+
+/** Why a staged build is held back, or `null` when nothing BLOCKS it (the app is simply not
+ *  idle long enough yet — ordinary waiting, not worth a report). Pure, tested. */
+export function deferReason(s: AutoInstallSignals): InstallDeferReason | null {
+  if (!s.staged) return null;
+  if (s.focused) return "in_use";
+  if (s.mainBusy) return "busy_main";
+  if (s.rendererBusy === true) return "busy_renderer";
+  if (s.rendererBusy === null && (s.idleS >= AUTO_IDLE_AWAY_S || s.blurredMs >= AUTO_BLURRED_MS)) return "no_answer";
+  return null;
 }
 
 /** Asks the renderer whether it's quiescent (no send in flight, no draft).
@@ -93,6 +105,7 @@ export function startAutoInstall(
     const focused = BrowserWindow.getFocusedWindow() != null;
     if (focused) {
       blurredSince = null;
+      trackInstallDeferred("in_use");
       return;
     }
     if (blurredSince == null) blurredSince = Date.now();
@@ -105,9 +118,17 @@ export function startAutoInstall(
       // Asked LAST, once everything else is met.
       rendererBusy: null,
     };
-    if (!shouldAutoInstall({ ...signals, rendererBusy: false })) return;
+    if (!shouldAutoInstall({ ...signals, rendererBusy: false })) {
+      const why = deferReason({ ...signals, rendererBusy: false });
+      if (why) trackInstallDeferred(why);
+      return;
+    }
     signals.rendererBusy = await askRendererBusy(win);
-    if (!shouldAutoInstall(signals)) return;
+    if (!shouldAutoInstall(signals)) {
+      const why = deferReason(signals);
+      if (why) trackInstallDeferred(why);
+      return;
+    }
     installing = true;
     logUpdate(
       `auto-install: app inactive (idle ${signals.idleS}s, floutée ${Math.round(signals.blurredMs / 60000)}min) — redémarrage pour installer`,
