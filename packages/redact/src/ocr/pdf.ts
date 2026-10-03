@@ -60,17 +60,20 @@ function ensureWithResolvers(): void {
 }
 
 /**
- * OCR a scanned PDF: rasterize the first `maxPages` pages to PNG (via pdfjs +
- * @napi-rs/canvas) and OCR each. Returns the joined text. Throws on failure.
- * `onProgress(done, pages)` fires once the page count is known (0/N) and after each
- * page — the per-page loop is the ONLY measurable phase of an extraction, and it's
- * also the long one (seconds per page on a scan). A progress callback that throws
- * must never break the OCR: it is advisory display, swallowed on error.
+ * OCR a PDF: rasterize each page to read (via pdfjs + @napi-rs/canvas) and OCR it. Returns
+ * the joined text. Throws on failure — never a text missing a page it had to read.
+ * `only` (1-based) narrows the pages to those whose text layer could not prove complete
+ * (`../documents/layers/ocrSkip.ts`); absent, EVERY page is read. There is no page cap: the
+ * size limits are decided before this runs (`../documents/pdfExtract.ts`).
+ * `onProgress(done, pages)` fires once the count of pages to read is known (0/N) and after
+ * each — the per-page loop is the ONLY measurable phase of an extraction, and it's also the
+ * long one (seconds per page on a scan). A progress callback that throws must never break
+ * the OCR: it is advisory display, swallowed on error.
  */
 export async function ocrPdf(
   buf: Uint8Array,
   lang: string = DEFAULT_LANG,
-  maxPages = 10,
+  only?: readonly number[],
   onProgress?: (done: number, pages: number) => void,
   /** The skipped-page markers' wording (the caller's language). */
   markers: OcrMarkers = DEFAULT_OCR_MARKERS,
@@ -96,7 +99,11 @@ export async function ocrPdf(
     isEvalSupported: false,
   }).promise;
 
-  const pages = Math.min(doc.numPages, maxPages);
+  const total: number = doc.numPages;
+  // Out-of-range or repeated entries are ignored; an EMPTY list reads nothing (the caller
+  // had nothing to read), an absent one reads everything.
+  const toRead = only ? new Set(only.filter((n) => Number.isInteger(n) && n >= 1 && n <= total)) : null;
+  const pages = toRead ? toRead.size : total;
   const tick = (done: number) => {
     try {
       onProgress?.(done, pages);
@@ -111,7 +118,15 @@ export async function ocrPdf(
   // (`../documents/geometry`). Boxes are relative to THIS raster, whose scale is 2 unless
   // the pixel ceiling clamped it (below) — hence the `width`/`height` carried per page.
   const layout: OcrLayerPage[] = [];
-  for (let i = 1; i <= pages; i++) {
+  let done = 0;
+  for (let i = 1; i <= total; i++) {
+    if (toRead && !toRead.has(i)) {
+      // Not rasterised: its text layer holds it all. A placeholder keeps `layout` indexed
+      // BY PAGE (`../documents/geometry.ts`) and the joined text page-aligned.
+      out.push("");
+      layout.push({ text: "", words: [], width: 0, height: 0 });
+      continue;
+    }
     const page = await doc.getPage(i);
     // ⚠️ The canvas is sized from the page's OWN geometry, which the file chooses: at a
     // fixed scale 2 a 28 800×28 800 pt page (the format's maximum) asks for 3.3 GP —
@@ -126,7 +141,7 @@ export async function ocrPdf(
       // A placeholder entry, not a skipped one: `layout` is read BY PAGE INDEX
       // (`../documents/geometry.ts`), so dropping it would shift every later page.
       layout.push({ text: marker, words: [], width: 0, height: 0 });
-      tick(i);
+      tick(++done);
       page.cleanup?.();
       continue;
     }
@@ -140,21 +155,16 @@ export async function ocrPdf(
     engines.add(meta.engine);
     out.push(text);
     layout.push({ text, words, width: canvas.width, height: canvas.height });
-    tick(i);
+    tick(++done);
     page.cleanup?.();
   }
   await doc.destroy?.();
-  if (doc.numPages > maxPages) {
-    out.push(markers.morePages(doc.numPages - maxPages));
-  }
   // Engine label: the single engine, or "docTR+Tesseract" when pages routed differently.
   const engine = engines.size === 1 ? [...engines][0] : [...engines].sort().join("+");
-  // `pagesTotal`: the document's true page count, so DOWNSTREAM can SAY that
-  // a read was partial (the « N/M pages read » chip) instead of burying it
-  // in a text marker nobody re-reads.
+  // `pages`: how many were rasterised; `pagesTotal`: the document's page count.
   return {
     text: out.join(PAGE_BREAK).trim(),
-    meta: { engine, ms: Date.now() - t0, pages, pagesTotal: doc.numPages },
+    meta: { engine, ms: Date.now() - t0, pages, pagesTotal: total },
     layout,
   };
 }

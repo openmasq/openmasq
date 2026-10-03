@@ -46,6 +46,18 @@ describe("an extraction failure, worded by its code", () => {
     expect(out).not.toMatch(/tesseract|\.js/);
   });
 
+  it("a PDF too long to mask in full is refused in both languages, still blocked", () => {
+    const f = file({ kind: "pdf", error: "x", errorCode: "too_long_to_mask", errorParams: { pages: 400 }, blocked: true });
+    expect(localizeExtracted(f, fr).error).toBe("Document trop long pour être masqué en entier (≈ 400 pages). Découpez-le en plusieurs parties.");
+    expect(localizeExtracted(f, en)).toMatchObject({ error: en.refused.tooLongToMask(400), blocked: true });
+  });
+
+  it("a digital PDF whose image pages failed OCR says it is not attached, not « no text layer »", () => {
+    const f = file({ kind: "pdf", error: "x", errorCode: "ocr_failed", errorParams: { unread: 3 } });
+    expect(localizeExtracted(f, en).error).toBe(en.pdfPagesUnread(3, en.ocr.failed));
+    expect(localizeExtracted(f, fr).error).toMatch(/^Ce PDF n'est pas joint : ses 3 pages en image/);
+  });
+
   it("an image whose OCR failed for an unknown cause", () => {
     const f = file({ kind: "image", error: "x", errorCode: "ocr_failed", rawCause: "stack" });
     const out = localizeExtracted(f, fr);
@@ -62,15 +74,11 @@ describe("an extraction failure, worded by its code", () => {
 });
 
 describe("the OCR markers, per language", () => {
-  it("French keeps its wording, with a real plural", () => {
+  it("French keeps its wording", () => {
     expect(fr.markers.pageTooLarge(4)).toBe("[… page 4 non océrisée : dimensions excessives]");
-    expect(fr.markers.morePages(1)).toBe("[… 1 page supplémentaire non océrisée]");
-    expect(fr.markers.morePages(3)).toBe("[… 3 pages supplémentaires non océrisées]");
   });
 
   it("English", () => {
     expect(en.markers.pageTooLarge(4)).toBe("[… page 4 not OCR'd: dimensions too large]");
-    expect(en.markers.morePages(1)).toBe("[… 1 more page not OCR'd]");
-    expect(en.markers.morePages(3)).toBe("[… 3 more pages not OCR'd]");
   });
 });

@@ -97,6 +97,8 @@ export interface RuntimeMessages {
     fileStillMasking: string;
     /** A staged file is still being READ (or queued): the send waits, nothing is cleared. */
     fileStillReading: string;
+    /** A staged file read only in part (a record from the former OCR cap): never sent so. */
+    fileReadInPart: (name: string, read: number, total: number) => string;
     /** The message alone overflows the model's context window (estimated, before masking):
      *  refused, draft and files kept. Figures come preformatted (« 310K », « 128K »). */
     contextTooLarge: (model: string, tokens: string, limit: string, hasFiles: boolean) => string;
@@ -135,7 +137,6 @@ export interface RuntimeMessages {
     notMaskedMore: (more: number) => string;
     docMaskFailed: string;
     retryMasking: string;
-    cutHere: (rest: string, max: string) => string;
     maskSelection: (value: string) => string;
     imageOnlyZone: string;
     sheetHasMasked: (name: string) => string;

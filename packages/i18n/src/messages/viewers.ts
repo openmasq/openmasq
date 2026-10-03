@@ -15,6 +15,10 @@ export interface ViewersMessages {
   loadingFile: string;
   /** Opened while the file is still being read / masked: what the wait is for. */
   pendingNote: string;
+  /** The progressive preview while masking: what is shown is masked, and may gain masks. */
+  partialNote: string;
+  /** Where the part not yet masked would be — never its text. */
+  partialRest: (pct: number) => string;
   extracted: (chars: string, status: string) => string;
   staleTip: string;
   staleChip: string;
@@ -86,6 +90,4 @@ export interface ViewersMessages {
     protected: (count: number) => string;
     byKind: (count: number, kind: string) => string;
   };
-  /** The spreadsheet: what the send truncates. */
-  sheetCut: string;
 }

@@ -10,6 +10,7 @@ import { extractPicked } from "../extractPicked";
 import { ocrAllAttachment } from "../ocrAll";
 import { logOcrDebug } from "../ocrDebug";
 import { redactAttachment } from "../redactAttachment";
+import { writeStaged } from "../stagedStore";
 import { redactMatchCount } from "./redactMatchCount";
 import type { AttachmentsApi } from "./useAttachments";
 import type { RedactPolicy } from "./useRedactPolicy";
@@ -29,8 +30,8 @@ export function useAttachmentIntake(
   redactPolicy: RedactPolicy,
   stageTarget: (target: AskTarget) => void,
 ) {
-  const { conversation, pendingAttachment, onPendingConsumed, getStagedFiles, onStagedFilesChange } = p;
-  const { setAttachments, updateAttachment, setAttachWarning, redactDeps, convIdRef } = att;
+  const { conversation, pendingAttachment, onPendingConsumed } = p;
+  const { setAttachments, patchFor, setAttachWarning, redactDeps, convIdRef } = att;
   const host = useHost();
   const countMatches = (text: string | undefined) => redactMatchCount(text, redactPolicy.disabledKinds);
   // The journal target of a drop job: the id NAMED by « Demander » (its conversation isn't
@@ -40,8 +41,14 @@ export function useAttachmentIntake(
   const { stage: stageAttachments, patch: patchStaged } = makeStaging({
     currentConvId: () => convIdRef.current,
     setLocal: setAttachments,
-    getParked: getStagedFiles,
-    setParked: onStagedFilesChange,
+    getParked: (id) => redactDeps.store.get(id),
+    setParked: (id, files) => writeStaged(redactDeps.store, id, files),
+  });
+  /** Masking deps for a file staged under `key` — its run writes THERE, wherever the user goes. */
+  const depsFor = (key: string, logConvId?: string) => ({
+    ...redactDeps,
+    stagedKey: key,
+    ...(logConvId ? { convId: logConvId } : {}),
   });
 
   /** `forConvId` overrides the target: the shell's hand-off names a conversation not on screen yet. */
@@ -56,38 +63,42 @@ export function useAttachmentIntake(
     const failed = picked.filter((f) => f.error);
     if (failed.length) setAttachWarning(failed.map((f) => `${f.name}: ${f.error}`).join(" · "));
     for (const f of picked) logOcrDebug(f, logConv(forConvId));
-    const deps = forConvId ? { ...redactDeps, convId: forConvId } : redactDeps;
+    const deps = depsFor(forConvId ?? convIdRef.current, forConvId);
     for (const a of added) redactAttachment(a, deps);
   }
 
-  // Chip first, content after — shared by the shell's hand-off and drag-and-drop.
-  const deferredDeps = (convId?: string) => ({
+  // Chip first, content after — shared by the shell's hand-off and drag-and-drop. `key`
+  // is where the chip is staged: the read and the run land there even after a switch.
+  const deferredDeps = (key: string, convId?: string) => ({
     stage: stageAttachments,
     patch: patchStaged,
     countMatches: (t: string) => countMatches(t),
     t: redactDeps.t,
     onExtracted: (f: ExtractedFile, a: Attachment) => {
       logOcrDebug(f, logConv(convId));
-      if (f.text.trim()) redactAttachment(a, convId ? { ...redactDeps, convId } : redactDeps);
+      if (f.text.trim()) redactAttachment(a, depsFor(key, convId));
     },
   });
   function addDroppedFiles(files: DeferredFile[]) {
-    for (const d of files) void stageDeferredFile(d, undefined, deferredDeps());
+    const key = convIdRef.current;
+    for (const d of files) void stageDeferredFile(d, key, deferredDeps(key));
   }
 
   const canOcrAll = !!host.files?.extractAll;
   function handleOcrAll(cid: string) {
     const a = att.attachments.find((x) => x.cid === cid);
     if (!a || !host.files?.extractAll) return;
+    const key = convIdRef.current;
     void ocrAllAttachment(
       {
-        files: { extractAll: host.files.extractAll.bind(host.files) },
-        patch: (c, patch) => patchStaged(c, patch),
+        // The re-read IS the full extraction (every page): `extract`, never a capped path.
+        files: { extractAll: host.files.extract.bind(host.files) },
+        patch: (c, patch) => patchStaged(c, patch, key),
         countMatches: (t) => countMatches(t),
         t: redactDeps.t,
         onExtracted: (f, merged) => {
           logOcrDebug(f, logConv(conversation?.id));
-          if (f.text.trim()) redactAttachment(merged, redactDeps);
+          if (f.text.trim()) redactAttachment(merged, depsFor(key));
         },
       },
       a,
@@ -112,6 +123,7 @@ export function useAttachmentIntake(
       if (host.files.pickPaths) {
         const picked = await host.files.pickPaths();
         if (!picked.length) return;
+        const key = convIdRef.current;
         const placeholders: Attachment[] = picked.map((f) => ({
           name: f.name,
           path: f.path,
@@ -125,12 +137,12 @@ export function useAttachmentIntake(
         setAttachments((prev) => [...prev, ...placeholders]);
         extractPicked(placeholders, {
           extract: host.files.extract.bind(host.files),
-          update: updateAttachment,
+          update: patchFor(key),
           countMatches,
           onRead: (f, merged) => {
             logOcrDebug(f, logConv());
             if (f.error) setAttachWarning(`${f.name}: ${f.error}`);
-            else if (f.text.trim()) redactAttachment(merged, redactDeps);
+            else if (f.text.trim()) redactAttachment(merged, depsFor(key));
           },
           warn: setAttachWarning,
           t: redactDeps.t,
@@ -149,7 +161,7 @@ export function useAttachmentIntake(
   useEffect(() => {
     if (!pendingAttachment) return;
     const { file, convId } = pendingAttachment;
-    if (isDeferredFile(file)) void stageDeferredFile(file, convId, deferredDeps(convId));
+    if (isDeferredFile(file)) void stageDeferredFile(file, convId, deferredDeps(convId ?? convIdRef.current, convId));
     else addExtractedFiles([file], convId);
     onPendingConsumed?.();
   }, [pendingAttachment]);

@@ -2,41 +2,60 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useT } from "../../../i18n";
 import { useRedaction } from "../../../send/redaction";
 import { DRAFT_CONV } from "../../../state/debug/debug";
+import { maskQueue } from "../../../state/files/maskQueue";
+import { subscribeStaged } from "../../../state/files/stagedActivity";
+import { createStagedFiles } from "../../../state/files/stagedFiles";
 import type { Attachment } from "../Composer";
 import { redactAttachment, type RedactAttachmentDeps } from "../redactAttachment";
+import { patchStaged, writeStaged, type StagedStore } from "../stagedStore";
 import type { ChatViewProps } from "./types";
 
 /**
- * The files staged on the composer. They are the CONVERSATION's, not the screen's: this
- * hook keeps a local mirror for rendering and writes every change through to the store,
+ * The files staged on the composer. They are the CONVERSATION's, not the screen's: the
+ * STORE holds them (keyed by conversation) and this hook keeps a mirror for rendering,
  * which is what makes them survive a trip to Bibliothèque (the screen unmounts) and stops
  * them following the user into the NEXT conversation (the screen does NOT remount).
+ *
+ * Work that outlives a visit — a read, a masking run — writes to the conversation it was
+ * started for (`patchFor`, `stagedStore.ts`); the mirror re-reads on the store's signal,
+ * so coming back shows the run where it is, never restarted.
  */
 export function useAttachments(p: ChatViewProps) {
   const { conversation, settings, orgProfile, getStagedFiles, onStagedFilesChange } = p;
   const redactAsync = useRedaction();
-  const [attachments, setAttachmentsState] = useState<Attachment[]>(
-    () => [...(getStagedFiles?.(conversation?.id ?? "") ?? [])],
-  );
-  // The mirror's latest value, so the updater form resolves OUTSIDE `setState`: a prop
-  // called from inside a state updater fires twice under StrictMode.
-  const attachmentsRef = useRef<Attachment[]>(attachments);
+  // Without the store's hooks (a test, a preview), a local staging plays its part.
+  const fallback = useRef<StagedStore | null>(null);
+  const storeRef = useRef<StagedStore>(null!);
+  storeRef.current =
+    getStagedFiles && onStagedFilesChange
+      ? { get: getStagedFiles, set: onStagedFilesChange }
+      : (fallback.current ??= createStagedFiles() as unknown as StagedStore);
+  const store: StagedStore = { get: (k) => storeRef.current.get(k), set: (k, v) => storeRef.current.set(k, v) };
   const convIdRef = useRef(conversation?.id ?? "");
   convIdRef.current = conversation?.id ?? "";
-  const setAttachments = useCallback(
-    (next: Attachment[] | ((prev: Attachment[]) => Attachment[])) => {
-      const value = typeof next === "function" ? next(attachmentsRef.current) : next;
-      attachmentsRef.current = value;
-      setAttachmentsState(value);
-      onStagedFilesChange?.(convIdRef.current, value);
-    },
-    [onStagedFilesChange],
-  );
-  const updateAttachment = (cid: string, patch: Partial<Attachment>) =>
-    setAttachments((prev) => prev.map((a) => (a.cid === cid ? { ...a, ...patch } : a)));
+  const [attachments, setAttachmentsState] = useState<Attachment[]>(() => [...store.get(convIdRef.current)]);
+  // The mirror's latest value (the updater form resolves OUTSIDE `setState`: a prop
+  // called from inside a state updater fires twice under StrictMode).
+  const attachmentsRef = useRef<Attachment[]>(attachments);
+  const reread = useCallback(() => {
+    const staged = [...storeRef.current.get(convIdRef.current)];
+    attachmentsRef.current = staged;
+    setAttachmentsState(staged);
+  }, []);
+  const setAttachments = useCallback((next: Attachment[] | ((prev: Attachment[]) => Attachment[])) => {
+    const key = convIdRef.current;
+    const value = typeof next === "function" ? next([...storeRef.current.get(key)]) : next;
+    writeStaged(storeRef.current, key, value);
+    attachmentsRef.current = value;
+    setAttachmentsState(value);
+  }, []);
+  /** Patch a chip of THE CONVERSATION `key` — bound at the start of a read or a run. */
+  const patchFor =
+    (key: string) =>
+    (cid: string, patch: Partial<Attachment>): void =>
+      void patchStaged(storeRef.current, key, cid, patch);
+  const updateAttachment = (cid: string, patch: Partial<Attachment>) => patchFor(convIdRef.current)(cid, patch);
   const [attachWarning, setAttachWarning] = useState<string | null>(null);
-  // Per-attachment controllers, so a LONG document redaction can be CANCELLED by removing the chip.
-  const attachRedactCtrls = useRef<Map<string, AbortController>>(new Map());
   const t = useT();
 
   // Fresh per render so it always sees the current settings/engine. `convId` is never
@@ -46,37 +65,32 @@ export function useAttachments(p: ChatViewProps) {
     settings,
     orgForcedCategories: orgProfile?.forcedCategories,
     redactAsync,
-    ctrls: attachRedactCtrls.current,
-    updateAttachment,
+    store,
+    stagedKey: conversation?.id ?? "",
     convId: conversation?.id ?? DRAFT_CONV,
     convCategories: conversation?.redactCategories,
     convVault: conversation?.redactionVault,
   };
 
-  // Restore the conversation's staged files when opening it (bypasses the write-through:
-  // this is a READ of what the store holds). Resume a redaction that never finished on this
-  // screen — otherwise the chip stays « en cours » for ever and the send refuses it. An
-  // EXTRACTION left mid-flight cannot resume (the bytes only exist at drop time): declare
-  // it failed rather than pulse for ever while being silently excluded from the send.
+  // A write elsewhere (a run finishing, a read landing) to the conversation on screen.
+  useEffect(() => subscribeStaged((key) => key === convIdRef.current && reread()), [reread]);
+
+  // Restore the conversation's staged files when opening it (a READ of what the store
+  // holds). A run already queued or running is LEFT ALONE — re-queuing it is what restarted
+  // the masking at every visit. Only a chip marked masking with no run behind it is queued.
   useEffect(() => {
-    const staged = [...(getStagedFiles?.(conversation?.id ?? "") ?? [])];
-    attachmentsRef.current = staged;
-    setAttachmentsState(staged);
-    for (const a of staged) {
-      if (a.redacting && !a.replacements?.length && !a.redactError) redactAttachment(a, redactDeps);
-      if (a.extracting && !a.text?.trim() && !a.error) {
-        updateAttachment(a.cid, { extracting: false, error: t.composer.attachments.extractInterrupted });
+    reread();
+    for (const a of attachmentsRef.current) {
+      if (a.redacting && !a.replacements?.length && !a.redactError && !maskQueue.has(a.cid)) {
+        redactAttachment(a, redactDeps);
       }
     }
   }, [conversation?.id]);
 
   const removeAttachment = (i: number) => {
     const a = attachments[i];
-    if (a) {
-      attachRedactCtrls.current.get(a.cid)?.abort();
-      attachRedactCtrls.current.delete(a.cid);
-    }
-    setAttachments((prev) => prev.filter((_, j) => j !== i));
+    if (a) maskQueue.cancel(a.cid);
+    setAttachments((prev) => prev.filter((x) => x.cid !== a?.cid));
   };
   const retryAttachment = (cid: string) => {
     const a = attachments.find((x) => x.cid === cid);
@@ -89,6 +103,7 @@ export function useAttachments(p: ChatViewProps) {
     attachments,
     setAttachments,
     updateAttachment,
+    patchFor,
     convIdRef,
     attachWarning,
     setAttachWarning,

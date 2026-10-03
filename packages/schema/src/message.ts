@@ -69,10 +69,13 @@ export interface Message {
   redactedSpans?: { value: string; kind: string }[];
   /** Files attached to this user message — shown as chips. The redacted file lives in the
    *  `files` table; its text is folded into the model payload only, never into `content`.
-   *  `clipped`: the wire carried only the document's first `MAX_FILE_CHARS` characters. */
+   *  `clipped`: the wire carried only the document's first 50,000 characters — set on turns
+   *  sent under that FORMER cut only; a document is sent whole now, so it is never set again. */
   attachments?: { name: string; kind: string; mime?: string; clipped?: boolean }[];
   /** The text actually sent to the model for this user turn: `content` plus the attached
-   *  files' text. Lets later turns re-include the document; absent when nothing was attached. */
+   *  files' text. Lets later turns re-include the document; absent when nothing was attached.
+   *  REAL values: its at-rest home is the encrypted host DB (desktop `messages.model_content`),
+   *  never the plaintext localStorage mirror (`stripVaultForLocal`). */
   modelContent?: string;
   /**
    * The WORKING SCRIPT of a turn whose `run_python` succeeded, in WIRE form (vault fakes

@@ -29,8 +29,10 @@ export const runtimeSend = {
   genericError: "Une erreur est survenue.",
   fileStillMasking: "Masquage du fichier en cours. Attendez la fin avant d'envoyer.",
   fileStillReading: "Lecture des fichiers en cours. Attendez la fin avant d'envoyer.",
+  fileReadInPart: (name, read, total) =>
+    `« ${name} » n'a été lu que sur ${read} pages sur ${total}. Relisez-le en entier (« Lire les ${total} pages » sur sa pièce jointe) avant d'envoyer : un document n'est jamais envoyé en partie.`,
   contextTooLarge: (model, tokens, limit, hasFiles) =>
-    `Trop long pour ${model} : environ ${tokens} tokens, pour une limite de ${limit}. Rien n'a été envoyé. Choisissez un modèle à plus grande fenêtre de contexte, ou ${hasFiles ? "joignez moins de fichiers" : "raccourcissez le texte"}.`,
+    `Trop long pour ${model} : environ ${tokens} tokens, pour une fenêtre de ${limit} qui doit aussi contenir la réponse. Rien n'a été envoyé. Choisissez un modèle à plus grande fenêtre de contexte, ou ${hasFiles ? "joignez moins de fichiers" : "raccourcissez le texte"}.`,
   unreadTitle: (n) => (n > 1 ? "Fichiers illisibles" : "Fichier illisible"),
   unreadBody: (n, names) =>
     n > 1
@@ -72,8 +74,6 @@ export const runtimeFiles = {
   docMaskFailed:
     "Le masquage de ce document a échoué. Rien n'est masqué dans ces vues, et l'envoi reste bloqué tant qu'il n'a pas réussi.",
   retryMasking: "Relancer le masquage",
-  cutHere: (rest, max) =>
-    `Coupé ici. La suite (${rest} caractères) n'est pas envoyée : chaque document est coupé à ${max} caractères.`,
   maskSelection: (value) => `Masquer « ${value} »`,
   imageOnlyZone:
     "Zone d'image (logo, scan) absente du texte envoyé. La masquer ne sert que si le document est envoyé en images.",

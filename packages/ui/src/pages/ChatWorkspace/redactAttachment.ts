@@ -6,9 +6,11 @@ import { pdfReplacements } from "../../containers/modals/viewers/pdf/pdfReplacem
 import { redactEngineSig } from "./redactEngineSig";
 import { describeRedactFailure } from "../../send/redaction";
 import { pushDebug } from "../../state/debug/debug";
+import { maskQueue, type JobQueue } from "../../state/files/maskQueue";
 import { attachmentVault } from "./attachmentVault";
 import { maskPlan, maskTimeoutMs } from "@openmasq/redact";
 import { redactTimeoutMessage } from "../../send/redactTimeout";
+import { patchStaged, type StagedStore } from "./stagedStore";
 
 /** Component captures threaded into {@link redactAttachment} (extracted from ChatView). */
 export interface RedactAttachmentDeps {
@@ -17,9 +19,12 @@ export interface RedactAttachmentDeps {
    *  under a looser org policy goes stale instead of being reused by the send. */
   orgForcedCategories?: string[];
   redactAsync: RedactFn;
-  /** The per-attachment in-flight AbortController map (a retry aborts the previous one). */
-  ctrls: Map<string, AbortController>;
-  updateAttachment: (cid: string, patch: Partial<Attachment>) => void;
+  /** The staging the chip lives in, and the key it was staged under (the conversation's
+   *  id, `""` for the draft). Every patch goes THERE, wherever the user is meanwhile. */
+  store: StagedStore;
+  stagedKey: string;
+  /** The masking queue — the app's one by default; a test passes its own. */
+  queue?: JobQueue;
   /** Conversation being composed — scopes the drop-time redaction Debug-Log entries. */
   convId?: string;
   /** That conversation's category override — same precedence as the send. Absent
@@ -34,7 +39,7 @@ export interface RedactAttachmentDeps {
 }
 
 /**
- * Run (or RE-run) redaction for ONE attachment, in place — the drop-time file redaction,
+ * Queue (or RE-queue) redaction for ONE attachment, in place — the drop-time file redaction,
  * cancellable + chunked + progress-reported, stamping the engine signature on success and a
  * user-safe warning on failure, and logging the substitution to the Debug Log.
  *
@@ -44,28 +49,48 @@ export interface RedactAttachmentDeps {
  * cut must be in it. A text too long to mask in
  * full (`maskPlan`, `@openmasq/redact`) is REFUSED with `redactError` — which `submitGuard`
  * refuses to send — and a run past its deadline (`maskTimeoutMs`) fails the same way.
+ *
+ * Runs go through ONE queue (`state/files/maskQueue.ts`): one file masked at a time, the
+ * others « en attente », and a run that outlives the screen. Its deadline starts when it
+ * RUNS, not while it waits. A chip no longer staged stops its run (fail closed: nothing
+ * written anywhere).
  */
 export function redactAttachment(a: Attachment, deps: RedactAttachmentDeps): void {
-  const { settings, orgForcedCategories, redactAsync, ctrls, updateAttachment, convId, convCategories, convVault } =
-    deps;
   if (!a.text.trim()) return;
-  // Which engine redacted the file (same as the send) — org-mandated categories included.
-  const docEngine = redactEngineSig(settings, orgForcedCategories, convCategories);
-  // Abort a previous in-flight redaction for this file (a retry) + make THIS one
-  // cancellable — removing the chip aborts its signal (see onRemoveAttachment).
-  ctrls.get(a.cid)?.abort();
-  ctrls.delete(a.cid);
+  const queue = deps.queue ?? maskQueue;
+  const patch = (p: Partial<Attachment>) => patchStaged(deps.store, deps.stagedKey, a.cid, p);
+  // A retry replaces the previous run (or waiting turn) of this file.
+  queue.cancel(a.cid);
   const plan = maskPlan(a.text.length);
   if (plan.kind === "refuse") {
     const why = deps.t.composer.attachments.tooLongToMask(plan.pages);
     // No map at all: a stale one from a shorter read must not ride a send either.
-    updateAttachment(a.cid, { redacting: false, redactProgress: undefined, replacements: undefined, redactEngineSig: undefined, redactError: why });
-    pushDebug({ type: "error", scope: "document-redaction", message: `${a.name}: ${a.text.length} chars — ${why}` }, convId);
+    patch({ redacting: false, maskQueued: undefined, redactProgress: undefined, maskedSoFar: undefined, replacements: undefined, redactEngineSig: undefined, redactError: why });
+    pushDebug({ type: "error", scope: "document-redaction", message: `${a.name}: ${a.text.length} chars — ${why}` }, deps.convId);
     return;
   }
+  patch({ redacting: true, redactError: undefined, redactProgress: undefined, maskedSoFar: undefined });
+  queue.enqueue({
+    key: a.cid,
+    group: deps.stagedKey,
+    onQueued: (ahead) => void patch({ maskQueued: ahead }),
+    run: (signal) => runMasking(a, deps, signal),
+  });
+}
+
+/** One masking run, once the file's turn came. Settles on abort (the race below). */
+function runMasking(a: Attachment, deps: RedactAttachmentDeps, queueSignal: AbortSignal): Promise<void> {
+  const { settings, redactAsync, convId, convCategories, convVault, t } = deps;
   const ctrl = new AbortController();
-  ctrls.set(a.cid, ctrl);
-  updateAttachment(a.cid, { redacting: true, redactError: undefined, redactProgress: undefined });
+  queueSignal.addEventListener("abort", () => ctrl.abort(), { once: true });
+  // The chip left (removed, sent, conversation deleted): stop, write nothing.
+  const patch = (p: Partial<Attachment>) => {
+    if (!patchStaged(deps.store, deps.stagedKey, a.cid, p)) ctrl.abort();
+  };
+  patch({ maskQueued: undefined });
+  if (ctrl.signal.aborted) return Promise.resolve();
+  // Which engine redacted the file (same as the send) — org-mandated categories included.
+  const docEngine = redactEngineSig(settings, deps.orgForcedCategories, convCategories);
   // Deadline scaled to the text (same constants as the estimate): past it the run is
   // abandoned and the chip FAILS (redactError → « Réessayer »), never sendable unmasked.
   const deadline = maskTimeoutMs(a.text.length);
@@ -75,29 +100,32 @@ export function redactAttachment(a: Attachment, deps: RedactAttachmentDeps): voi
     ctrl.abort();
   }, deadline);
   ctrl.signal.addEventListener("abort", () => clearTimeout(timer), { once: true });
-  const timeoutError = () => describeRedactFailure(redactTimeoutMessage(deadline), deps.t, settings?.redactEngine);
+  const startedAt = Date.now();
+  const fail = (why: string) => describeRedactFailure(why, t, settings?.redactEngine);
   // Raced against the signal HERE too: the deadline must not depend on the engine honouring
   // the abort mid-chunk (a wedged detector would otherwise leave the chip masking forever).
   const work = pdfReplacements(a.text, redactAsync, {
     signal: ctrl.signal,
-    // Multi-chunk (multi-page) doc → advance a progress bar on the chip.
-    onProgress: (done, total) => {
-      if (!ctrl.signal.aborted) updateAttachment(a.cid, { redactProgress: { done, total } });
+    // Multi-chunk (multi-page) doc → a progress bar, a time left measured on THIS run's
+    // pace, and what is masked so far for the progressive preview.
+    onProgress: (done, total, partial) => {
+      if (ctrl.signal.aborted) return;
+      const etaMs = done > 0 ? Math.round(((Date.now() - startedAt) * (total - done)) / done) : undefined;
+      patch({ redactProgress: { done, total, etaMs }, maskedSoFar: done < total ? partial : undefined });
     },
     convCategories,
     // ⚠️ The CONVERSATION's vault, shared by all its attachments: without it, two
     // documents from the same folder gave two fakes to the same person (`attachmentVault.ts`).
     vault: convId ? attachmentVault(convId, convVault) : undefined,
   });
-  raceRedactionWork(work, { signal: ctrl.signal })
+  const ended = { redacting: false, redactProgress: undefined, maskedSoFar: undefined } as const;
+  return raceRedactionWork(work, { signal: ctrl.signal })
     .then(({ replacements, modelError }) => {
       clearTimeout(timer);
       if (timedOut) throw new Error(redactTimeoutMessage(deadline)); // too late: a failure, below
       if (ctrl.signal.aborted) return; // cancelled — drop the stale result
-      ctrls.delete(a.cid);
-      updateAttachment(a.cid, {
-        redacting: false,
-        redactProgress: undefined,
+      patch({
+        ...ended,
         replacements,
         // The chip's 🛡 count was seeded from the SYNCHRONOUS regex pass at drop —
         // re-stamp it from the full map, or an AI engine that found more (a name, an
@@ -105,7 +133,7 @@ export function redactAttachment(a: Attachment, deps: RedactAttachmentDeps): voi
         redactPreview: replacements.length,
         // Stamp the engine used (only on success) so a later engine change is detectable.
         redactEngineSig: modelError ? undefined : docEngine,
-        redactError: modelError ? describeRedactFailure(modelError, deps.t, settings?.redactEngine) : undefined,
+        redactError: modelError ? fail(modelError) : undefined,
       });
       // Monitor the drop-time file redaction in the Debug Log (Outils tab): count + the
       // engine, PLUS the redacted→original mapping (2-by-2) so the substitution is debuggable.
@@ -119,7 +147,7 @@ export function redactAttachment(a: Attachment, deps: RedactAttachmentDeps): voi
             ? `${replacements.length} élément${replacements.length === 1 ? "" : "s"} redacted${replacements.length === 1 ? "" : "s"}`
             : "aucun élément détecté",
           pairs: replacements.slice(0, 100).map((r) => ({ token: r.fake, original: r.real, tone: r.tone })),
-          error: modelError ? describeRedactFailure(modelError, deps.t, settings?.redactEngine) : undefined,
+          error: modelError ? fail(modelError) : undefined,
         },
         convId,
       );
@@ -127,21 +155,8 @@ export function redactAttachment(a: Attachment, deps: RedactAttachmentDeps): voi
     .catch((e) => {
       clearTimeout(timer);
       if (ctrl.signal.aborted && !timedOut) return; // user-cancelled — no error, no stale update
-      if (ctrls.get(a.cid) === ctrl) ctrls.delete(a.cid);
-      updateAttachment(a.cid, {
-        redacting: false,
-        redactProgress: undefined,
-        redactError: timedOut
-          ? timeoutError()
-          : describeRedactFailure(e instanceof Error ? e.message : String(e), deps.t, settings?.redactEngine),
-      });
-      pushDebug(
-        {
-          type: "error",
-          scope: "document-redaction",
-          message: `${a.name}: ${timedOut ? redactTimeoutMessage(deadline) : e instanceof Error ? e.message : String(e)}`,
-        },
-        convId,
-      );
+      const message = timedOut ? redactTimeoutMessage(deadline) : e instanceof Error ? e.message : String(e);
+      patch({ ...ended, redactError: fail(message) });
+      pushDebug({ type: "error", scope: "document-redaction", message: `${a.name}: ${message}` }, convId);
     });
 }

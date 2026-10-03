@@ -1,7 +1,7 @@
 // How much text one document may hold and still be masked IN FULL — the single home of
 // the size limits on what a person attaches (rule 9). A document is masked whole or
 // refused: never a first slice. The measure is CHARACTERS (what the detector reads);
-// pages are only how the copy speaks to a person.
+// pages are how the copy speaks to a person, and how a scan is sized before its OCR.
 
 /** Cost of masking 1,000 characters end to end with the default engine: offline NER
  *  (200–235 ms, `chunkSize` 1000) plus the pseudonymisation pass (~13 ms). Measured on an
@@ -17,7 +17,8 @@ export const LONG_MASK_CHARS = 80_000;
  *  machine). Masking it partially is not an option the product offers. */
 export const MAX_MASK_CHARS = 1_000_000;
 
-/** A dense page of text, for display only (« ≈ N pages »). */
+/** A dense page of text: the copy's « ≈ N pages », and the pre-OCR estimate of a scan
+ *  (`../pdfExtract.ts`), whose text is unknown until its pages are read. */
 export const CHARS_PER_PAGE = 3_000;
 
 /** Floor of the drop-time masking timeout: a short document on a cold worker (model load). */
@@ -52,4 +53,19 @@ export function maskPlan(chars: number): MaskPlan {
  *  run is abandoned and the file is NOT sendable (the caller marks it failed). */
 export function maskTimeoutMs(chars: number): number {
   return Math.max(MASK_TIMEOUT_FLOOR_MS, MASK_TIMEOUT_FACTOR * estimateMaskMs(chars));
+}
+
+/** Backstop of one whole extraction before its page count is known (text layer, a short
+ *  scan, a cold OCR engine): a worker stuck past it is abandoned and the file fails. */
+const EXTRACT_BASE_MS = 6 * 60_000;
+/** …plus this per page OCR must read. A scan page takes seconds on a recent machine and
+ *  tens of seconds on a low-power one (Intel, WASM Tesseract): a generous ceiling, never
+ *  the nominal pace. With `MAX_MASK_CHARS / CHARS_PER_PAGE` pages at most, the backstop
+ *  stays bounded. */
+const EXTRACT_MS_PER_OCR_PAGE = 60_000;
+
+/** Deadline of an extraction that OCRs `ocrPages` pages (0 while the count is unknown).
+ *  Past it the extraction is abandoned: the file is in error, never sent in part. */
+export function extractTimeoutMs(ocrPages: number): number {
+  return EXTRACT_BASE_MS + Math.max(0, ocrPages) * EXTRACT_MS_PER_OCR_PAGE;
 }

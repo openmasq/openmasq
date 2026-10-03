@@ -8,6 +8,7 @@ import {
 import { reportMainError } from "../runtime/errorReport";
 import { isAppQuitting } from "../runtime/quitState";
 import { BRAND } from "@openmasq/branding";
+import { extractTimeoutMs } from "@openmasq/redact";
 import { createExtractQueue } from "./extractQueue";
 import { mainLocale, mainMessages } from "../i18n";
 import { localizeExtracted } from "./localizeExtracted";
@@ -37,11 +38,16 @@ interface Pending {
   reject: (e: Error) => void;
   onProgress?: (done: number, pages: number) => void;
   timer: ReturnType<typeof setTimeout>;
+  /** The page count the deadline was last scaled to (0 = the floor). */
+  scaledFor: number;
+  /** Re-arm the deadline for `pages` pages, counted from the job's START. */
+  rescale: (pages: number) => void;
 }
 
-// Backstop only (a worker stuck without dying): OCR on a big scan on a
-// low-power machine (Intel/WASM) is counted in minutes — generous, never the nominal bound.
-const EXTRACT_TIMEOUT_MS = 6 * 60 * 1000;
+// Backstop only (a worker stuck without dying): `extractTimeoutMs` (`@openmasq/redact`, the
+// single home of the document limits) — a floor until the count of pages OCR reads is known,
+// then rescaled to it on the first progress tick. A whole document is read, so the deadline
+// follows its length; past it the file is in ERROR, never returned in part.
 // Tesseract WASM + docTR sessions are heavy: we give back the RAM after this idle period.
 const IDLE_MS = 5 * 60 * 1000;
 const STDERR_RING_MAX = 2000;
@@ -105,6 +111,7 @@ function ensureChild(): UtilityProcess {
     const p = pending.get(msg.id);
     if (!p) return;
     if ("progress" in msg) {
+      if (msg.progress.pages > p.scaledFor) p.rescale(msg.progress.pages);
       p.onProgress?.(msg.progress.done, msg.progress.pages);
       return;
     }
@@ -140,8 +147,8 @@ function armIdleEviction(): void {
 
 async function run(
   req:
-    | { kind: "path"; path: string; ocrAllPages?: boolean; locale: string }
-    | { kind: "bytes"; data: string; name: string; mime?: string; ocrAllPages?: boolean; locale: string },
+    | { kind: "path"; path: string; locale: string }
+    | { kind: "bytes"; data: string; name: string; mime?: string; locale: string },
   onProgress?: (done: number, pages: number) => void,
 ): Promise<ExtractedFile> {
   if (idleTimer) {
@@ -153,15 +160,29 @@ async function run(
     const c = ensureChild();
     const id = ++seq;
     return await new Promise<ExtractedFile>((resolve, reject) => {
-      const timer = setTimeout(() => {
-        pending.delete(id);
-        reject(new Error("extraction : délai dépassé"));
-      }, EXTRACT_TIMEOUT_MS);
-      pending.set(id, { resolve, reject, onProgress, timer });
+      const startedAt = Date.now();
+      const arm = (pages: number) =>
+        setTimeout(() => {
+          pending.delete(id);
+          reject(new Error("extraction : délai dépassé"));
+        }, Math.max(0, startedAt + extractTimeoutMs(pages) - Date.now()));
+      const entry: Pending = {
+        resolve,
+        reject,
+        onProgress,
+        timer: arm(0),
+        scaledFor: 0,
+        rescale: (pages) => {
+          clearTimeout(entry.timer);
+          entry.scaledFor = pages;
+          entry.timer = arm(pages);
+        },
+      };
+      pending.set(id, entry);
       try {
         c.postMessage({ id, ...req });
       } catch (err) {
-        clearTimeout(timer);
+        clearTimeout(entry.timer);
         pending.delete(id);
         reject(err instanceof Error ? err : new Error(String(err)));
       }
@@ -210,8 +231,6 @@ const queue = createExtractQueue(1);
 export function extractTextInWorker(
   filePath: string,
   onOcrProgress?: (done: number, pages: number) => void,
-  /** "Read all": lift the OCR cap — threaded as-is through to the engine. */
-  ocrAllPages?: boolean,
   /** While queued: how many files are ahead (re-told as the line moves). */
   onWaiting?: (ahead: number) => void,
 ): Promise<ExtractedFile> {
@@ -222,8 +241,8 @@ export function extractTextInWorker(
   return queue.run(
     () =>
       withFallback(
-        () => run({ kind: "path", path: filePath, ocrAllPages, locale }, onOcrProgress),
-        () => extractTextInProcess(filePath, onOcrProgress, ocrAllPages, markers),
+        () => run({ kind: "path", path: filePath, locale }, onOcrProgress),
+        () => extractTextInProcess(filePath, onOcrProgress, markers),
       ),
     onWaiting,
   );
@@ -235,7 +254,6 @@ export function extractBytesInWorker(
   name: string,
   mime?: string,
   onOcrProgress?: (done: number, pages: number) => void,
-  ocrAllPages?: boolean,
   onWaiting?: (ahead: number) => void,
 ): Promise<ExtractedFile> {
   const locale = mainLocale();
@@ -243,8 +261,8 @@ export function extractBytesInWorker(
   return queue.run(() => {
     const data = Buffer.from(bytes).toString("base64");
     return withFallback(
-      () => run({ kind: "bytes", data, name, mime, ocrAllPages, locale }, onOcrProgress),
-      () => extractBytesInProcess(bytes, name, mime, onOcrProgress, ocrAllPages, markers),
+      () => run({ kind: "bytes", data, name, mime, locale }, onOcrProgress),
+      () => extractBytesInProcess(bytes, name, mime, onOcrProgress, markers),
     );
   }, onWaiting);
 }

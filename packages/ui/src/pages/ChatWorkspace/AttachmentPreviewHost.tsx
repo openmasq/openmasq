@@ -1,5 +1,7 @@
 import { AnimatePresence } from "framer-motion";
+import { useMemo } from "react";
 import { AttachmentPendingPreview, AttachmentPreviewModal } from "../../containers/modals";
+import { partialMaskedChunks } from "../../containers/modals/viewers/doc/partialPreview";
 import { useT } from "../../i18n";
 import { isPreviewPending, progressLabel } from "./attachmentPending";
 import type { Attachment } from "./Composer";
@@ -15,7 +17,8 @@ import type { Attachment } from "./Composer";
  *
  * Opened while the file is still being read or first masked, it shows the pending frame
  * (loader + progress); `preview` is looked up live by cid, so the real preview replaces
- * it under the same key the moment the redaction lands.
+ * it under the same key the moment the redaction lands. Meanwhile the part already
+ * masked shows, masked (`maskedSoFar` → `partialMaskedChunks`) — the rest never does.
  */
 export function AttachmentPreviewHost({
   preview,
@@ -41,6 +44,16 @@ export function AttachmentPreviewHost({
   onClose: () => void;
 }) {
   const t = useT();
+  const text = preview?.text;
+  const soFar = preview?.maskedSoFar;
+  const p = preview?.redactProgress;
+  const partial = useMemo(
+    () =>
+      text && soFar && p && p.total > 0
+        ? { chunks: partialMaskedChunks(text, soFar), pct: Math.round((p.done / p.total) * 100) }
+        : undefined,
+    [text, soFar, p],
+  );
   return (
     <AnimatePresence>
       {preview && isPreviewPending(preview) ? (
@@ -48,6 +61,7 @@ export function AttachmentPreviewHost({
           key={preview.cid}
           name={preview.name}
           progress={progressLabel(preview, t) ?? t.viewers.loadingFile}
+          partial={partial}
           onClose={onClose}
         />
       ) : preview ? (

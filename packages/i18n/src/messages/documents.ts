@@ -12,6 +12,8 @@ export interface DocumentsMessages {
     fileTooLarge: (mb: number) => string;
     /** A PDF past the page cap, refused whole rather than read in part. */
     pdfTooManyPages: (pages: number, max: number) => string;
+    /** Refused before OCR: its estimated text is past what can be masked in full. */
+    tooLongToMask: (pages: number) => string;
     executable: string;
     typeMismatch: string;
     imageTooLarge: (width: number, height: number) => string;
@@ -29,6 +31,8 @@ export interface DocumentsMessages {
   };
   /** A scanned PDF whose OCR failed: the context, then the cause sentence. */
   scanPdf: (cause: string) => string;
+  /** A PDF WITH a text layer whose image pages OCR could not read: refused whole. */
+  pdfPagesUnread: (pages: number, cause: string) => string;
   /** An image whose OCR failed for an unknown cause. */
   imageOcrFailed: string;
   /** `ext` with its dot (« .xyz »), or "" when the file has none. */
@@ -36,6 +40,5 @@ export interface DocumentsMessages {
   /** Written INTO the extracted text, where OCR skipped pages. */
   markers: {
     pageTooLarge: (page: number) => string;
-    morePages: (count: number) => string;
   };
 }

@@ -1,17 +1,26 @@
 import { describe, expect, it } from "vitest";
 import { MODEL_CONTEXT } from "@openmasq/llm";
-import { CONTEXT_REFUSE_MARGIN, contextOverflow, formatTokenCount } from "./contextFit";
+import { CONTEXT_REPLY_RESERVE, contextOverflow, formatTokenCount } from "./contextFit";
 
 describe("contextOverflow", () => {
-  it("refuses only past the margin, counting the text and every file", () => {
+  it("refuses past the window minus the reply's room, counting the text and every file", () => {
     const limit = 128_000;
-    const atLimit = "a".repeat(limit * CONTEXT_REFUSE_MARGIN * 4);
-    expect(contextOverflow({ modelId: "gpt-4o", text: atLimit, files: [] })).toBeNull();
-    expect(contextOverflow({ modelId: "gpt-4o", text: atLimit, files: [{ text: "abcd" }] })).toEqual({
+    const budget = limit - CONTEXT_REPLY_RESERVE;
+    const atBudget = "a".repeat(budget * 4);
+    expect(contextOverflow({ modelId: "gpt-4o", text: atBudget, files: [] })).toBeNull();
+    expect(contextOverflow({ modelId: "gpt-4o", text: atBudget, files: [{ text: "abcd" }] })).toEqual({
       modelId: "gpt-4o",
-      tokens: limit * CONTEXT_REFUSE_MARGIN + 1,
+      tokens: budget + 1,
       limit,
     });
+  });
+
+  // Documents ride WHOLE now: a payload between the window and 1.25× of it — which the
+  // former margin let through to a provider refusal — is refused before masking.
+  it("a whole document just over the window is refused, wherever its weight sits", () => {
+    const limit = 128_000;
+    const doc = "d".repeat(Math.ceil(limit * 1.1) * 4);
+    expect(contextOverflow({ modelId: "gpt-4o", text: "Résume.", files: [{ text: doc }] })?.limit).toBe(limit);
   });
 });
 

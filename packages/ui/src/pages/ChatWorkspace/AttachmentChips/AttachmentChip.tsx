@@ -38,9 +38,9 @@ export function AttachmentChip({
   const engineChanged =
     !!a.redactEngineSig && !!currentRedactSig && a.redactEngineSig !== currentRedactSig;
   const showRerun = !a.redacting && !!onRetry && (!!a.redactError || engineChanged);
-  // OCR stopped at the cap: the chip ALWAYS says so; the « Lire tout »
-  // gesture only appears if the host knows how to re-read (extractAll) and the
-  // file has a path (a dropped one with no path keeps the marker in its text).
+  // Only a record read under the FORMER OCR cap (a library re-attach) lands here — new
+  // reads are whole. The chip ALWAYS says so and the send refuses it (`submitGuard`); the
+  // « Lire tout » re-read (the full extraction) needs a host that re-reads and a path.
   const shortfall = !a.redacting && ocrShortfall(a);
   const showOcrAll = !!shortfall && !!onOcrAll && !!a.path;
   // The four states, in the order the file goes through them. « À refaire »
@@ -97,7 +97,11 @@ export function AttachmentChip({
             : t.composer.attachments.processing
       }`}
       aria-disabled={!openable || undefined}
-      className={`attach-chip ${a.error || a.redactError ? "err" : engineChanged ? "stale" : ""}`}
+      // `working`: the soft moving rainbow border while the file is read, waits its turn
+      // to be masked, or is masked (`styles/composer/attachGlow.css`); gone when done or failed.
+      className={`attach-chip ${a.error || a.redactError ? "err" : engineChanged ? "stale" : ""}${
+        state === "reading" || state === "masking" ? " working" : ""
+      }`}
       title={tip}
       onClick={open}
       onKeyDown={(e) => {

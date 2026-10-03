@@ -9,6 +9,9 @@ export const viewers = {
   closeTip: "Close (Esc)",
   loadingFile: "Loading the file",
   pendingNote: "The masked preview appears here once reading and masking are done.",
+  partialNote:
+    "Provisional preview: each passage appears once it is masked. A value found further on may still be masked in what is already shown.",
+  partialRest: (pct) => `Masking… ${pct}%`,
   extracted: (chars, status) => `${chars} characters extracted · ${status}`,
   staleTip: "Masked with your previous settings",
   staleChip: "Previous settings",
@@ -77,6 +80,4 @@ export const viewers = {
     protected: (n) => `${n} protected value${n > 1 ? "s" : ""}`,
     byKind: (n, kind) => `${n} × ${kind}`,
   },
-  sheetCut:
-    "Large workbook: only part of it is sent to the model, because each document is truncated when sent. The rest stays on your computer.",
 } satisfies Messages["viewers"];

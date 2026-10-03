@@ -24,6 +24,8 @@ function localizedError(f: ExtractedFile, t: Copy): string | null {
       return p.mb != null ? t.refused.fileTooLarge(p.mb) : null;
     case "pdf_too_many_pages":
       return p.pages != null && p.max != null ? t.refused.pdfTooManyPages(p.pages, p.max) : null;
+    case "too_long_to_mask":
+      return p.pages != null ? t.refused.tooLongToMask(p.pages) : null;
     case "executable":
       return t.refused.executable;
     case "type_mismatch":
@@ -47,7 +49,9 @@ function localizedError(f: ExtractedFile, t: Copy): string | null {
     case "pdf_renderer_incompatible": {
       if (f.kind === "image" && f.errorCode === "ocr_failed") return t.imageOcrFailed;
       const cause = ocrCause(f.errorCode, t);
-      return f.kind === "pdf" ? t.scanPdf(cause) : cause;
+      if (f.kind !== "pdf") return cause;
+      // A PDF WITH a text layer whose image pages failed carries their count; a scan does not.
+      return p.unread != null ? t.pdfPagesUnread(p.unread, cause) : t.scanPdf(cause);
     }
     default:
       return null;

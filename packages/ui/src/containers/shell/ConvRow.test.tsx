@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { act } from "react";
 import { mount } from "../../testKit";
 import { ConvRow } from "./ConvRow";
+import { publishStaged } from "../../state/files/stagedActivity";
 import type { Conversation } from "../../types";
 
 /**
@@ -62,6 +63,20 @@ describe("ConvRow keyboard access", () => {
     const m = await mount(<ConvRow conv={conv()} active={false} onSelect={onSelect} />);
     await m.click('[role="option"]');
     expect(onSelect).toHaveBeenCalledTimes(1);
+    await m.unmount();
+  });
+});
+
+describe("ConvRow — files still being prepared show from any other conversation", () => {
+  it("wears the mark while its staged files are read or masked, and drops it after", async () => {
+    const m = await mount(<ConvRow conv={conv({ id: "prep-1" })} active={false} onSelect={() => {}} />);
+    expect(m.maybe(".conv-prep")).toBeNull();
+    await act(async () => publishStaged("prep-1", true));
+    expect(m.find(".conv-prep").getAttribute("aria-label")).toBe("Fichiers en cours de lecture ou de masquage");
+    await act(async () => publishStaged("other", true)); // another conversation: no effect here
+    await act(async () => publishStaged("prep-1", false));
+    expect(m.maybe(".conv-prep")).toBeNull();
+    publishStaged("other", false);
     await m.unmount();
   });
 });

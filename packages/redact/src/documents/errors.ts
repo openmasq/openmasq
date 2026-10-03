@@ -17,6 +17,7 @@ export const msg = (e: unknown) => (e instanceof Error ? e.message : String(e));
 export type DocumentErrorCode =
   | "file_too_large"
   | "pdf_too_many_pages"
+  | "too_long_to_mask"
   | "executable"
   | "type_mismatch"
   | "image_too_large"
@@ -38,8 +39,12 @@ export interface DocumentErrorParams {
   height?: number;
   entries?: number;
   ext?: string;
-  /** `pdf_too_many_pages`: the document's page count and the cap. */
+  /** `pdf_too_many_pages`: the document's page count and the cap. `too_long_to_mask`: the
+   *  document's estimated size in pages. */
   pages?: number;
+  /** An OCR failure on a PDF WITH a text layer: how many pages OCR had to read. Absent on a
+   *  scan (no layer), whose copy says so instead. */
+  unread?: number;
   max?: number;
 }
 

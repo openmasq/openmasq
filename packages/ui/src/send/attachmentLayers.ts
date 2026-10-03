@@ -9,11 +9,6 @@
 // replay of the message pass. The block itself is NEVER sent to a model.
 import { hybridLayerText, spatialFieldLines } from "@openmasq/redact/documents.browser";
 import type { ExtractedFile } from "../host/files";
-import { clipFileText } from "./foldPayload";
-
-/** Mirror of the fold's per-document clip — an enormous OCR layer must not blow the
- *  engine call; the primary text is clipped at the same bound by `buildFoldedPayload`. */
-const MAX_LAYER_CHARS = 50_000;
 
 type LayeredAttachment = Pick<
   ExtractedFile,
@@ -44,12 +39,11 @@ export function attachmentExtraLayers(a: LayeredAttachment): string[] {
 export function attachmentDetectBlock(attachments: LayeredAttachment[] | undefined): string {
   const parts: string[] = [];
   (attachments ?? []).forEach((a, i) => {
+    // WHOLE, like the primary text the fold now sends whole: a layer value past any cut
+    // would be the one the wire carries undetected. The document's size is bounded upstream
+    // (`@openmasq/redact` `maskPlan`, refused before masking).
     for (const layer of attachmentExtraLayers(a)) {
-      // Line-boundary clip (`clipFileText`): a mid-value slice would vault a FRAGMENT,
-      // whose forward substitution then chews the full value's occurrences elsewhere.
-      const clipped =
-        layer.length > MAX_LAYER_CHARS ? clipFileText(layer, MAX_LAYER_CHARS) + "\n…(truncated)" : layer;
-      parts.push(`=== Document ${i + 1} — autre couche de lecture ===\n${clipped}`);
+      parts.push(`=== Document ${i + 1} — autre couche de lecture ===\n${layer}`);
     }
   });
   return parts.join("\n\n");

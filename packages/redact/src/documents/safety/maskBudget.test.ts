@@ -5,6 +5,7 @@ import {
   MAX_MASK_CHARS,
   approxPages,
   estimateMaskMs,
+  extractTimeoutMs,
   maskPlan,
   maskTimeoutMs,
 } from "./maskBudget";
@@ -41,5 +42,16 @@ describe("maskTimeoutMs — generous, scaled to the text", () => {
       expect(maskTimeoutMs(n)).toBeGreaterThanOrEqual(2 * estimateMaskMs(n));
     }
     expect(maskTimeoutMs(MAX_MASK_CHARS)).toBeGreaterThan(maskTimeoutMs(LONG_MASK_CHARS));
+  });
+});
+
+describe("extractTimeoutMs — the extraction backstop grows with the pages OCR reads", () => {
+  it("keeps its floor before the count is known, and scales per page after", () => {
+    expect(extractTimeoutMs(0)).toBe(6 * 60_000);
+    expect(extractTimeoutMs(-3)).toBe(extractTimeoutMs(0));
+    expect(extractTimeoutMs(100) - extractTimeoutMs(99)).toBe(60_000);
+    // The largest scan the pre-OCR estimate admits still has a bounded backstop (≈ 6 h).
+    const most = Math.floor(MAX_MASK_CHARS / CHARS_PER_PAGE);
+    expect(extractTimeoutMs(most)).toBeLessThan(7 * 3_600_000);
   });
 });

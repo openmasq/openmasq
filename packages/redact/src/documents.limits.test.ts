@@ -22,7 +22,7 @@ vi.mock("pdfjs-dist/legacy/build/pdf.mjs", () => ({
       destroy() {},
     }),
   }),
-  OPS: {},
+  OPS: { paintImageXObject: 85, paintJpegXObject: 82, paintImageMaskXObject: 83, paintInlineImageXObject: 86 },
 }));
 
 const ocr = vi.hoisted(() => ({ ocrPdf: vi.fn(async () => "texte océrisé") }));
@@ -71,6 +71,32 @@ describe("PDF past the page cap", () => {
     const f = await extractBytes(new Uint8Array(64).fill(37), "court.pdf", "application/pdf");
     expect(f.errorCode).toBeUndefined();
     expect(pdf.getPage).toHaveBeenCalledTimes(3);
+  });
+});
+
+describe("a digital PDF: OCR reads exactly the pages its layer cannot prove complete", () => {
+  const dense = (i: number) =>
+    `Page ${i} : le locataire s'engage à régler le loyer convenu à chaque échéance mensuelle. `.repeat(3);
+  it("skips a clean page with only links; reads an image page and a page whose facts are unknown", async () => {
+    pdf.numPages = 3;
+    pdf.getPage.mockReset();
+    pdf.getPage.mockImplementation(async (i: number) => ({
+      getTextContent: async () => ({ items: [{ str: dense(i), hasEOL: true, transform: [1, 0, 0, 1, 0, 700] }] }),
+      getViewport: () => ({ width: 600, height: 800 }),
+      // Page 2 paints an image (a stamp); pages 1 and 3 only draw text.
+      getOperatorList: async () => ({ fnArray: i === 2 ? [1, 85] : [1, 2] }),
+      // Page 3's annotations cannot be read: unknown ⇒ OCR'd (fail closed).
+      getAnnotations: async () => {
+        if (i === 3) throw new Error("annotations illisibles");
+        return [{ subtype: "Link" }];
+      },
+      cleanup() {},
+    }));
+    ocr.ocrPdf.mockClear();
+    const f = await extractBytes(new Uint8Array(64).fill(37), "bail.pdf", "application/pdf");
+    expect(f.error).toBeUndefined();
+    expect(ocr.ocrPdf).toHaveBeenCalledOnce();
+    expect((ocr.ocrPdf.mock.calls[0] as unknown[])[2]).toEqual([2, 3]);
   });
 });
 

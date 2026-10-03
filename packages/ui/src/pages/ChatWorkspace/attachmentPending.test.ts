@@ -1,6 +1,6 @@
 import { getMessages } from "@openmasq/i18n";
 import { describe, expect, it } from "vitest";
-import { extractProgressPatch, isPreviewPending, isProgressFor, progressLabel } from "./attachmentPending";
+import { extractProgressPatch, isPreviewPending, isProgressFor, longMaskingMinutesLeft, progressLabel } from "./attachmentPending";
 
 const fr = getMessages("fr");
 
@@ -101,5 +101,26 @@ describe("progressLabel — un document LONG dit combien de temps il reste", () 
     expect(progressLabel({ redacting: true, chars: 400_000 }, fr)).toBe(
       "Document long : masquage en cours, environ 2 min",
     );
+  });
+});
+
+describe("la file de MASQUAGE — un fichier à la fois, l'attente est dite, l'estimation est mesurée", () => {
+  it("en attente de masquage : ni pourcentage ni minutes, le rang", () => {
+    expect(progressLabel({ redacting: true, maskQueued: 1, chars: 400_000 }, fr)).toBe(
+      fr.composer.attachments.stateMaskQueued(1),
+    );
+  });
+
+  it("son tour venu (rang effacé), la ligne reprend le masquage", () => {
+    expect(progressLabel({ redacting: true, chars: 20_000 }, fr)).toBe(fr.composer.attachments.stateMasking);
+  });
+
+  it("une fois un morceau fait, les minutes viennent du rythme MESURÉ de ce run", () => {
+    const p = { redacting: true, chars: 400_000 };
+    // The size estimate says 2 min; this machine measured 5 min left.
+    expect(progressLabel({ ...p, redactProgress: { done: 1, total: 4, etaMs: 5 * 60_000 } }, fr)).toBe(
+      "Masquage · 25 % · environ 5 min",
+    );
+    expect(longMaskingMinutesLeft({ ...p, redactProgress: { done: 3, total: 4, etaMs: 10_000 } })).toBe(1);
   });
 });

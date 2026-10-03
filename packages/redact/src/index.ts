@@ -151,7 +151,8 @@ export {
   type Sniffed,
   type SniffFamily,
 } from "./documents/safety/guard";
-// How long a document may be and still be masked IN FULL (the drop-time chip, « Lire tout »).
+// How long a document may be and still be masked IN FULL (the drop-time chip, the
+// pre-OCR refusal), and how long its extraction may run.
 export {
   MAX_MASK_CHARS,
   LONG_MASK_CHARS,
@@ -160,5 +161,6 @@ export {
   approxPages,
   maskPlan,
   maskTimeoutMs,
+  extractTimeoutMs,
   type MaskPlan,
 } from "./documents/safety/maskBudget";

@@ -1,0 +1,45 @@
+/* ── The composer chip at work: a soft rainbow moving around its border ─────────────
+   Worn while the file is read, waits its turn to be masked, or is masked (`.working`,
+   `AttachmentChip.tsx`); dropped when it is done or failed. Gradient-border technique: the
+   chip's own fill on the padding box, the conic gradient on the border box under a
+   transparent border — no pseudo-element (the chip clips its overflow).
+   Rule 12: the hues are the `--hl-*` palette, declared ONCE with the same values in both
+   themes (`theme/lightKit.css`); they tint a border, never an ink, so nothing has to
+   invert. The fill is the chip's own token, re-pointed by the dark theme. */
+@property --attach-glow-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+.attach-chip.working:not(.err) {
+  --attach-glow-fill: var(--surface-sunken, var(--warm-50));
+  border-color: transparent;
+  background:
+    linear-gradient(var(--attach-glow-fill), var(--attach-glow-fill)) padding-box,
+    conic-gradient(
+        from var(--attach-glow-angle),
+        color-mix(in srgb, var(--hl-violet) 75%, transparent),
+        color-mix(in srgb, var(--hl-sky) 75%, transparent),
+        color-mix(in srgb, var(--hl-mint) 75%, transparent),
+        color-mix(in srgb, var(--hl-gold) 75%, transparent),
+        color-mix(in srgb, var(--hl-pink) 75%, transparent),
+        color-mix(in srgb, var(--hl-violet) 75%, transparent)
+      )
+      border-box;
+  animation: attach-glow-turn 3.2s linear infinite;
+}
+.attach-chip.working:not(.err):hover {
+  --attach-glow-fill: var(--surface-hover);
+  border-color: transparent;
+}
+@keyframes attach-glow-turn {
+  to {
+    --attach-glow-angle: 360deg;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  /* The same gradient, still: the state stays visible without the motion. */
+  .attach-chip.working:not(.err) {
+    animation: none;
+  }
+}

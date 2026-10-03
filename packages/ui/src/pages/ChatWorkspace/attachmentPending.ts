@@ -4,7 +4,7 @@ import type { Attachment } from "./Composer";
 
 type PendingFields = Pick<
   Attachment,
-  "extracting" | "extractProgress" | "extractQueued" | "redacting" | "redactProgress" | "replacements"
+  "extracting" | "extractProgress" | "extractQueued" | "redacting" | "redactProgress" | "replacements" | "maskQueued"
 >;
 
 /** The preview has nothing redacted to show yet: the file is still being READ, or its
@@ -27,6 +27,9 @@ export function progressLabel(a: PendingFields & { chars?: number }, t: Messages
     return p && p.total > 1 ? at.stateReadingPage(Math.min(p.done + 1, p.total), p.total) : at.stateReading;
   }
   if (a.redacting) {
+    // Waiting for another file's masking to end (one run at a time): no percentage, no
+    // estimate — its clock has not started.
+    if (a.maskQueued !== undefined && a.maskQueued > 0) return at.stateMaskQueued(a.maskQueued);
     const p = a.redactProgress;
     const left = longMaskingMinutesLeft(a);
     if (left !== null) {
@@ -37,12 +40,14 @@ export function progressLabel(a: PendingFields & { chars?: number }, t: Messages
   return null;
 }
 
-/** Minutes left (at least 1) of a LONG document's masking, from its size and progress;
- *  `null` when the document is not long. An estimate (`estimateMaskMs`), for the copy only. */
+/** Minutes left (at least 1) of a LONG document's masking; `null` when the document is
+ *  not long. Once a chunk is done, the time MEASURED on this run's pace (`etaMs`) — the
+ *  machine's real speed; before, the size estimate (`estimateMaskMs`). For the copy only. */
 export function longMaskingMinutesLeft(a: Pick<Attachment, "redactProgress"> & { chars?: number }): number | null {
   const chars = a.chars ?? 0;
   if (maskPlan(chars).kind !== "long") return null;
   const p = a.redactProgress;
+  if (p?.etaMs !== undefined) return Math.max(1, Math.ceil(p.etaMs / 60_000));
   const leftShare = p && p.total > 0 ? 1 - p.done / p.total : 1;
   return Math.max(1, Math.ceil((estimateMaskMs(chars) * leftShare) / 60_000));
 }

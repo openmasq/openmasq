@@ -112,13 +112,6 @@ export const files = {
   ): Promise<
     { name: string; kind: string; text: string; chars: number; error?: string }[]
   > => withOcrProgress(() => ipcRenderer.invoke("files:extract", paths), onProgress),
-  // "Read all": the same extraction, OCR cap lifted — see registerFilesIpc.
-  extractAll: (
-    paths: string[],
-    onProgress?: (p: OcrProgress) => void,
-  ): Promise<
-    { name: string; kind: string; text: string; chars: number; error?: string }[]
-  > => withOcrProgress(() => ipcRenderer.invoke("files:extract-all", paths), onProgress),
   read: (path: string): Promise<Uint8Array> => ipcRenderer.invoke("files:read", path),
   extractBytes: (
     data: string,

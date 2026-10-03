@@ -194,10 +194,9 @@ export type OcrProgress = {
 export interface FilesHost {
   pick(): Promise<ExtractedFile[]>;
   extract(paths: string[], onOcrProgress?: (p: OcrProgress) => void): Promise<ExtractedFile[]>;
-  /** « Lire tout »: re-extract while lifting the OCR cap (10 pages by default). A
-   *  300-page scan at a few seconds per page is a CHOICE the user makes, not a
-   *  default — hence a dedicated action rather than a higher cap. Optional: absent
-   *  (browser preview), the chip doesn't offer the action. */
+  /** « Lire tout »: re-extract a record read under the FORMER 10-page OCR cap. Extraction
+   *  reads every page now, so this is the same whole-document read as `extract`; it stays
+   *  a separate slot only so a host without re-reading (browser preview) can omit it. */
   extractAll?(paths: string[], onOcrProgress?: (p: OcrProgress) => void): Promise<ExtractedFile[]>;
   /** Native picker WITHOUT extraction — returns chosen paths + basenames instantly, so
    *  the composer can show a chip while `extract()` runs async (a big/scanned file's

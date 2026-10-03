@@ -141,3 +141,14 @@
   max-width: 100%;
   overflow-x: auto;
 }
+/* The progressive preview (`AttachmentPendingPreview`): the masked part, a provisional note
+   above it, and a placeholder where the part not yet masked will be — never its text. */
+.fv-status.is-partial {
+  padding: 12px 0;
+}
+.fv-partial-rest {
+  padding: 16px 0 8px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}

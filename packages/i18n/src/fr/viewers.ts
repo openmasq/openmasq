@@ -9,6 +9,9 @@ export const viewers = {
   closeTip: "Fermer (Échap)",
   loadingFile: "Chargement du fichier",
   pendingNote: "L'aperçu masqué s'affiche ici une fois la lecture et le masquage terminés.",
+  partialNote:
+    "Aperçu provisoire : chaque passage s'affiche une fois masqué. Une valeur repérée plus loin peut encore être masquée dans ce qui est déjà affiché.",
+  partialRest: (pct) => `Masquage en cours… ${pct} %`,
   extracted: (chars, status) => `${chars} caractères extraits · ${status}`,
   staleTip: "Masqué avec vos anciens réglages",
   staleChip: "Anciens réglages",
@@ -77,6 +80,4 @@ export const viewers = {
     protected: (n) => `${n} valeur${n > 1 ? "s" : ""} protégée${n > 1 ? "s" : ""}`,
     byKind: (n, kind) => `${n} × ${kind}`,
   },
-  sheetCut:
-    "Classeur volumineux : seule une partie est envoyée au modèle, car chaque document est tronqué à l'envoi. Le reste ne quitte pas votre ordinateur.",
 } satisfies Messages["viewers"];

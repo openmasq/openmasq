@@ -53,6 +53,7 @@ export const chat = {
   rename: "Rename",
   renameConversation: "Rename conversation",
   generating: "Generating",
+  preparingFiles: "Files being read or masked",
   closeTab: "Close tab",
   hiddenTabsTip: (n) => `${n} tab${n > 1 ? "s" : ""} out of view (scroll)`,
   hiddenTabs: (n) => `${n} tab${n > 1 ? "s" : ""} out of view`,
@@ -161,6 +162,7 @@ export const composer = {
     redacting: "Masking…",
     stateReading: "Reading…",
     stateQueued: (ahead) => `Queued · ${ahead} ahead`,
+    stateMaskQueued: (ahead) => `Waiting to mask · ${ahead} ahead`,
     stateReadingPage: (page, total) => `Reading · page ${page}/${total}`,
     stateMasking: "Masking…",
     stateMaskingPct: (pct) => `Masking · ${pct}%`,
@@ -186,7 +188,6 @@ export const composer = {
     removeAllConfirm: (n) => `Remove all ${n} files from this message?`,
     extractFailed: "Couldn't read the file",
     rereadFailed: "Couldn't read it again. The text read earlier is kept.",
-    extractInterrupted: "Reading was interrupted. Drop the file again.",
     fileRefused: "File refused",
   },
 

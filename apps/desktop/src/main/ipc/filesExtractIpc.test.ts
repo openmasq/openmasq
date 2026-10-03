@@ -45,11 +45,10 @@ describe("files:extract-bytes — refusal vs failure", () => {
     await expect(call({ text: "  ", error: "illisible" })).rejects.toThrow(/illisible/);
   });
 
-  it("a PARTIAL extraction returns its text AND the cause", async () => {
-    await expect(call({ text: "page 1", error: "page 2 illisible" })).resolves.toEqual({
-      text: "page 1",
-      error: "page 2 illisible",
-    });
+  // A document is attached WHOLE or not at all: a result that carries text AND a cause
+  // (part of its pages) is a failure, never content handed on.
+  it("an extraction carrying an error is rejected even WITH text", async () => {
+    await expect(call({ text: "page 1", error: "page 2 illisible" })).rejects.toThrow(/page 2 illisible/);
   });
 
   it("a clean extraction carries no error and no blocked flag", async () => {
