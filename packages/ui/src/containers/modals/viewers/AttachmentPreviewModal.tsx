@@ -27,8 +27,6 @@ import { useT } from "../../../i18n";
 import { SelectionMenu } from "../../../components/SelectionMenu";
 import { DocViewMenu, type DocView } from "./DocViewMenu";
 import { previewShape, initialView, previewViews, redactedGridReady } from "./previewViews";
-import { MAX_FILE_CHARS, clipFileText } from "../../../send/foldPayload";
-import { sheetSendCutRow } from "./doc/sheetCut";
 import { redactedFromReplacements } from "./doc/redactedPreview";
 import { realFromRedactedSelection } from "./doc/docForce";
 import { useDisplayReplacements } from "./doc/displayReplacements";
@@ -228,18 +226,11 @@ export function AttachmentPreviewModal({
 
   // The REDACTED grid of a spreadsheet, when possible — `previewViews.ts` says why.
   const redactedGrid = redactedGridReady(isSheet && !!bytes && bytes !== "error", !!displayReplacements);
-  // The send CUT, mapped onto the grid's ROWS — the why (and the
-  // generic XLSX note, for lack of a safe mapping): `doc/sheetCut.ts`.
-  const sheetCutRow = useMemo(
-    () => sheetSendCutRow(file.name, file.text.length, bytes, isCsv),
-    [file.name, file.text.length, bytes, isCsv],
-  );
   const sheet = (redacted: boolean) => (
     <AttachmentSheetView
       bytes={bytes as Uint8Array} csv={isCsv} redacted={redacted}
       replacements={displayReplacements} revealed={revealed}
       onReveal={onRevealChange ? toggleReveal : undefined}
-      cutRow={redacted ? sheetCutRow : null} wireCut={redacted && !isCsv && file.text.length > MAX_FILE_CHARS}
     />
   );
 
@@ -332,11 +323,9 @@ export function AttachmentPreviewModal({
     };
   }, [view, bytes, file.mime, file.words, displayReplacements, revealed, imageWords, onForceRedact]);
 
-  // The send CUT, made concrete: « Masqué » stops WHERE the send truncates — the SAME
-  // cut (`clipFileText`, line boundary, rule 9), so the last line shown
-  // is WHOLE, never a sliced value. Original / Texte de l'image stay whole.
-  const wireText = clipFileText(file.text, MAX_FILE_CHARS);
-  const wireCutChars = file.text.length - wireText.length;
+  // « Masqué » is the WHOLE text, as the send carries it: a document leaves whole (no
+  // per-document cut), so the preview shows every line that will leave the machine.
+  const wireText = file.text;
 
   // The redacted text WITHOUT re-running the model — the rule (longest first, word
   // boundaries, null = async fallback) lives in `doc/redactedPreview.ts`.
@@ -353,7 +342,7 @@ export function AttachmentPreviewModal({
     if (redactedPreview !== null) return; // deterministic path — no re-run
     if (view !== "redacted" || redacted !== null || redactedErr !== null || !file.text) return;
     // Drop pass in progress → no 2nd concurrent detection: its `replacements` arrive and
-    // take precedence. Bounded to the send cut (`wireText`), never the whole text.
+    // take precedence.
     if (redacting) return;
     let alive = true;
     redact(wireText, undefined, undefined, convCategories)
@@ -563,21 +552,13 @@ export function AttachmentPreviewModal({
         ) : file.text ? (
           // "Redacted" — the redacted document text with in-document search
           // highlights, plus the clickable per-value reveal marks on the redacted view.
-          <>
-            <DocText
-              chunks={chunks}
-              query={search.query}
-              active={search.active}
-              activeRef={search.activeRef}
-              onToggleReveal={onRevealChange ? toggleReveal : undefined}
-            />
-            {wireCutChars > 0 && (
-              <div className="fv-truncnote" role="note">
-                <ShieldIcon size={12} />
-                {t.runtime.files.cutHere(wireCutChars.toLocaleString(t.common.intlTag), MAX_FILE_CHARS.toLocaleString(t.common.intlTag))}
-              </div>
-            )}
-          </>
+          <DocText
+            chunks={chunks}
+            query={search.query}
+            active={search.active}
+            activeRef={search.activeRef}
+            onToggleReveal={onRevealChange ? toggleReveal : undefined}
+          />
         ) : (
           <div className="fv-status">
             {t.viewers.noTextExtracted}

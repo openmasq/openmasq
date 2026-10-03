@@ -143,14 +143,22 @@ describe("un fichier REFUSÉ par la garde ne s'attache pas avec ses octets", () 
     expect(out[0]!.data).toBe("BASE64");
   });
 
-  it("une extraction PARTIELLE garde son texte ET sa raison", async () => {
-    // `error` était jeté avec `blocked` : la puce ne disait rien alors qu'une couche
-    // manquait.
+  it("une extraction en ERREUR ne garde AUCUN texte : jamais un document envoyé en partie", async () => {
+    // Fail closed: a partial read (text + a reason) is in error, not sendable — its text
+    // and every text-bearing layer are dropped; the reason and the bytes stay.
     const d = deps({
-      extractBytes: vi.fn(async () => ({ text: "page 1", error: "OCR indisponible" })),
+      extractBytes: vi.fn(async () => ({
+        text: "page 1",
+        error: "OCR indisponible",
+        ocrText: "page 1",
+        words: [{ text: "page", x0: 0, y0: 0, x1: 1, y1: 1 }],
+      })),
     });
     const out = await extractDroppedFiles([f("scan.pdf")], d);
-    expect(out[0]!.text).toBe("page 1");
+    expect(out[0]!.text).toBe("");
+    expect(out[0]!.chars).toBe(0);
+    expect(out[0]!.ocrText).toBeUndefined();
+    expect(out[0]!.words).toBeUndefined();
     expect(out[0]!.error).toBe("OCR indisponible");
     expect(out[0]!.data).toBe("BASE64");
   });

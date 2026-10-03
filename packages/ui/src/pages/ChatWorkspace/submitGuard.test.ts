@@ -91,8 +91,10 @@ describe("checkSubmit — a message too big for the model is refused BEFORE mask
     expect(r.kind === "refuse" && r.warning).toContain("raccourcissez le texte");
   });
 
-  it("never refuses near the limit: the estimate is rough, the provider stays the backstop", () => {
-    expect(checkSubmit({ text: big(150_000), attachments: [], t, modelId: "gpt-4o" })).toEqual({ kind: "send" });
+  it("the bound is the window minus the reply's room: up to it sends, one token past it refuses", () => {
+    // gpt-4o: 128K window, minus DEFAULT_MAX_TOKENS (4096) for the answer.
+    expect(checkSubmit({ text: big(128_000 - 4096), attachments: [], t, modelId: "gpt-4o" })).toEqual({ kind: "send" });
+    expect(checkSubmit({ text: big(128_000 - 4096 + 1), attachments: [], t, modelId: "gpt-4o" }).kind).toBe("refuse");
   });
 
   it("never refuses for Auto, an unknown window, or a model with room", () => {
@@ -106,5 +108,19 @@ describe("checkSubmit — a message too big for the model is refused BEFORE mask
   it("a file without text (unread) adds nothing to the estimate", () => {
     const empty = file({ name: "scan.pdf", text: "" });
     expect(checkSubmit({ text: "go", attachments: [empty], t, modelId: "gpt-4o", accepted: ["scan.pdf"] })).toEqual({ kind: "send" });
+  });
+});
+
+describe("checkSubmit — a document read only IN PART is never sent", () => {
+  it("a record from the former OCR cap refuses the send, naming the re-read", () => {
+    const partial = file({ name: "scan.pdf", text: "10 pages lues", ocr: { pages: 10, pagesTotal: 32 } as Attachment["ocr"] });
+    const r = checkSubmit({ text: "résume", attachments: [partial], t });
+    expect(r).toEqual({ kind: "refuse", warning: t.runtime.send.fileReadInPart("scan.pdf", 10, 32) });
+    expect(r.kind === "refuse" && r.warning).toContain("Lire les 32 pages");
+  });
+
+  it("read whole, it sends", () => {
+    const whole = file({ name: "scan.pdf", text: "32 pages", ocr: { pages: 32, pagesTotal: 32 } as Attachment["ocr"] });
+    expect(checkSubmit({ text: "résume", attachments: [whole], t })).toEqual({ kind: "send" });
   });
 });

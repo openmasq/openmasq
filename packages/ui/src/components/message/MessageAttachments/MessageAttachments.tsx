@@ -34,6 +34,7 @@ export function MessageAttachments({
   const many = files.length > FILES_SUMMARY_AFTER;
   const { folded, toggle } = useBubbleFold(filesFoldKey(owner, files), many);
   if (!files.length) return null;
+  // Only a turn sent under the FORMER per-document cut carries `clipped`: the note stays true there.
   const clipped = files.filter((f) => f.clipped).map((f) => f.name);
   return (
     <div className="msg-attachments">

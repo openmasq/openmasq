@@ -25,8 +25,10 @@ export const runtimeSend = {
   genericError: "Something went wrong.",
   fileStillMasking: "The file is still being masked. Wait for it to finish before sending.",
   fileStillReading: "Files are still being read. Wait until they're done before sending.",
+  fileReadInPart: (name, read, total) =>
+    `"${name}" was only read up to page ${read} of ${total}. Read it in full ("Read all ${total} pages" on its attachment) before sending: a document is never sent in part.`,
   contextTooLarge: (model, tokens, limit, hasFiles) =>
-    `Too long for ${model}: about ${tokens} tokens, over its ${limit} limit. Nothing was sent. Choose a model with a larger context window, or ${hasFiles ? "attach fewer files" : "shorten the text"}.`,
+    `Too long for ${model}: about ${tokens} tokens, for a ${limit} window that must also hold the reply. Nothing was sent. Choose a model with a larger context window, or ${hasFiles ? "attach fewer files" : "shorten the text"}.`,
   unreadTitle: (n) => (n > 1 ? "Unreadable files" : "Unreadable file"),
   unreadBody: (n, names) =>
     n > 1
@@ -65,8 +67,6 @@ export const runtimeFiles = {
   docMaskFailed:
     "Masking failed for this document. Nothing is masked in these views, and sending stays blocked until it succeeds.",
   retryMasking: "Retry masking",
-  cutHere: (rest, max) =>
-    `Cut here. The remaining ${rest} characters are not sent: each document is cut at ${max} characters.`,
   maskSelection: (value) => `Mask "${value}"`,
   imageOnlyZone:
     "Image area (logo, scan), not part of the sent text. Masking it only matters if the document is sent as images.",

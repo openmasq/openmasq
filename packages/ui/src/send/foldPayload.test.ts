@@ -136,11 +136,12 @@ describe("buildFoldedPayload", () => {
     expect(r.fullModelText).toContain("document-3.png"); // image
   });
 
-  it("clips a document to maxFileChars with a truncation marker", () => {
-    const big = "x".repeat(120);
-    const r = buildFoldedPayload("t", [{ name: "big.txt", text: big }], {}, "", 50);
-    expect(r.modelText).toContain("x".repeat(50) + "\n…(truncated)");
-    expect(r.modelText).not.toContain("x".repeat(51));
+  it("folds every document WHOLE — no per-document cut, no truncation marker", () => {
+    const big = "x".repeat(200_000);
+    const r = buildFoldedPayload("t", [{ name: "big.txt", text: big }], {}, "");
+    expect(r.modelText).toContain(big);
+    expect(r.fullModelText).toContain(big);
+    expect(r.modelText).not.toContain("(truncated)");
   });
 
   it("skips whitespace-only attachments (no text to fold)", () => {
@@ -272,14 +273,5 @@ describe("clipFileText — la coupe ne tranche JAMAIS une ligne (donc jamais une
   it("texte sous la borne : inchangé ; une seule ligne géante : coupe dure (rien de mieux)", () => {
     expect(clipFileText("court", 100)).toBe("court");
     expect(clipFileText("x".repeat(120), 50)).toBe("x".repeat(50));
-  });
-
-  it("le pli d'envoi utilise la MÊME coupe : le document plié se termine sur une ligne entière", () => {
-    const doc = Array.from({ length: 20 }, (_, i) => `client ${i}: valeur-${i}`).join("\n");
-    const r = buildFoldedPayload("t", [{ name: "list.txt", text: doc }], {}, "", 100);
-    const folded = r.modelText.slice(r.modelText.indexOf("client 0"));
-    const kept = folded.slice(0, folded.indexOf("\n…(truncated)"));
-    // Every line present is WHOLE (it ends with its own value).
-    for (const line of kept.split("\n")) expect(line).toMatch(/^client \d+: valeur-\d+$/);
   });
 });

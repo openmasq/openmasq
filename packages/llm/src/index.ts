@@ -12,6 +12,8 @@ export { completeWithTools, streamWithTools, supportsStreamingTools } from "./to
 // What a 429 actually is (a burst vs a spent quota) — shared with the app, which words
 // the failure for the user from the SAME parse the retry policy uses.
 export { rateLimitInfo, providerCreditsExhausted, type RateLimitInfo } from "./apiError.js";
+// The output cap a turn asks for by default — the reply room a fit check must keep.
+export { DEFAULT_MAX_TOKENS } from "./reasoning.js";
 
 /**
  * Stream a chat completion from any supported provider as an async generator of

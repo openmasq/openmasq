@@ -150,10 +150,9 @@ const host: Host = {
     pick: () => window.openmasq.files.pick(),
     pickPaths: () => window.openmasq.files.pickPaths(),
     extract: (paths, onProgress) => window.openmasq.files.extract(paths, onProgress),
-    // Absent ⇒ no "Read all".
-    extractAll: window.openmasq.files.extractAll
-      ? (paths, onProgress) => window.openmasq.files.extractAll(paths, onProgress)
-      : undefined,
+    // The re-read of a record read under the former 10-page OCR cap: the SAME whole-document
+    // extraction (there is no cap left to lift), so no channel of its own.
+    extractAll: (paths, onProgress) => window.openmasq.files.extract(paths, onProgress),
     read: (path) => window.openmasq.files.read(path),
     extractBytes: (data, name, mime, onProgress) =>
       window.openmasq.files.extractBytes(data, name, mime, onProgress),

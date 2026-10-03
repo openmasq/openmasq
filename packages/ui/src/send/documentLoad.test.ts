@@ -1,8 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Message } from "../types";
 import { AUTO_MODEL_ID } from "./autoRoute";
-import { DOC_WEIGHT_NOTICE_SHARE, documentWeight, droppedDocumentNames, flagClipped } from "./documentLoad";
-import { buildFoldedPayload, MAX_FILE_CHARS } from "./foldPayload";
+import { DOC_WEIGHT_NOTICE_SHARE, documentWeight, droppedDocumentNames } from "./documentLoad";
 import { fitHistoryToContext } from "./historyWindow";
 
 const user = (id: string, content: string, docs: string[] = [], docChars = 0): Message =>
@@ -67,33 +66,5 @@ describe("droppedDocumentNames — the documents the history window stopped send
   it("nothing dropped, or a dropped turn that re-sent no document, names nothing", () => {
     expect(droppedDocumentNames([user("u1", "q", ["a.pdf"], 10)], 0)).toEqual([]);
     expect(droppedDocumentNames([user("u1", "q", ["a.pdf"]), reply("a1")], 2)).toEqual([]);
-  });
-});
-
-describe("flagClipped — the sent card says when the wire cut a document", () => {
-  const long = "ligne\n".repeat(MAX_FILE_CHARS / 3);
-  const entries = [
-    { name: "long.txt", kind: "txt" },
-    { name: "court.txt", kind: "txt" },
-    { name: "scan.pdf", kind: "pdf" },
-  ];
-  const files = [
-    { name: "long.txt", text: long },
-    { name: "court.txt", text: "bref" },
-    { name: "scan.pdf", text: long },
-  ];
-
-  it("flags exactly the documents the fold clipped, never one sent as page images", () => {
-    const out = flagClipped(entries, files, ["scan.pdf"]);
-    expect(out?.map((a) => !!(a as { clipped?: boolean }).clipped)).toEqual([true, false, false]);
-    // Same verdict as the wire itself: the fold marks the cut it made.
-    expect(buildFoldedPayload("q", [files[0]], {}, "").modelText).toContain("…(truncated)");
-    expect(buildFoldedPayload("q", [files[1]], {}, "").modelText).not.toContain("…(truncated)");
-  });
-
-  it("returns the entries untouched when nothing was cut", () => {
-    const small = [entries[1]];
-    expect(flagClipped(small, [files[1]], undefined)).toBe(small);
-    expect(flagClipped(undefined, files, undefined)).toBeUndefined();
   });
 });

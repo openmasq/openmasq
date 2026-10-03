@@ -2,6 +2,7 @@ import type { Messages } from "@openmasq/i18n";
 import type { Attachment } from "./Composer";
 import { findModelAny } from "../../prompt/models";
 import { contextOverflow, formatTokenCount } from "../../send/contextFit";
+import { ocrShortfall } from "./ocrShortfall";
 
 /** What a composer submit may do with the staged files, decided BEFORE anything is cleared. */
 export type SubmitCheck =
@@ -18,6 +19,8 @@ export type SubmitCheck =
  * (`submitGuard.test.ts`). `planSubmit` keeps only files with extracted text and the composer
  * then clears every chip: whatever this lets through without text is GONE, so:
  * - a file still being read (or queued) or masked refuses the send, like a failed masking;
+ * - a file read only IN PART (a record from the former OCR cap, `ocrShortfall`) refuses it:
+ *   a document is never sent in part — the user re-reads it whole first;
  * - a file with no usable text (failed read, blocked, empty) is NAMED and confirmed, unless
  *   the user already confirmed exactly that file (`accepted`);
  * - nothing but such files refuses instead of sending an empty message.
@@ -39,6 +42,10 @@ export function checkSubmit(p: {
   const send = t.runtime.send;
   if (attachments.some((a) => a.extracting)) return { kind: "refuse", warning: send.fileStillReading };
   if (attachments.some((a) => a.redacting)) return { kind: "refuse", warning: send.fileStillMasking };
+  for (const a of attachments) {
+    const part = ocrShortfall(a);
+    if (part) return { kind: "refuse", warning: send.fileReadInPart(a.name, part.read, part.total) };
+  }
   const failed = attachments.find((a) => a.redactError);
   if (failed) return { kind: "refuse", warning: failed.redactError! };
   const images = new Set(p.imageNames ?? []);

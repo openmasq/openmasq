@@ -201,6 +201,26 @@ const MIGRATIONS: { name: string; statements: string[] }[] = [
     name: "0021_message_dropped_docs",
     statements: [`ALTER TABLE messages ADD COLUMN dropped_docs TEXT`],
   },
+  {
+    // The model payload of a user turn (typed text + its folded documents, REAL values): what
+    // a later turn and a retry re-send. This DB is its ONLY at-rest home, encrypted with the
+    // rest of the file; the localStorage mirror strips it, so without it a restart silently
+    // dropped every earlier document from the model's view.
+    name: "0022_message_model_content",
+    statements: [`ALTER TABLE messages ADD COLUMN model_content TEXT`],
+  },
+  {
+    // Conversation state the localStorage mirror strips because it holds wire text or real
+    // values, and that must survive a restart (JSON each): the compaction recap of the oldest
+    // turns, the in-flight agentic turn's checkpoint (what lets a crashed turn RESUME), and
+    // the attached files' redaction spans (the log tells a file from a message).
+    name: "0023_conversation_resume_state",
+    statements: [
+      `ALTER TABLE conversations ADD COLUMN context_summary TEXT`,
+      `ALTER TABLE conversations ADD COLUMN turn_checkpoint TEXT`,
+      `ALTER TABLE conversations ADD COLUMN file_redactions TEXT`,
+    ],
+  },
 ];
 
 export async function migrate(c: Client): Promise<void> {

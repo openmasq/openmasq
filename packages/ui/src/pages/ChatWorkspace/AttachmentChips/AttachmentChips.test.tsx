@@ -126,3 +126,29 @@ describe("AttachmentChips — many files: summary, bounded area, « Tout retirer
     expect(s).toEqual({ total: 2, reading: 0, masking: 0, unreadable: 0 });
   });
 });
+
+describe("AttachmentChips — the moving border says « at work », and only then", () => {
+  const cls = async (over: Partial<Attachment>) => {
+    const m = await mount(<AttachmentChips attachments={[piece(over)]} onRemove={() => {}} onOpen={() => {}} />);
+    const c = m.find(".attach-chip").className;
+    await m.unmount();
+    return c;
+  };
+
+  it("reading, waiting to be masked, masking: `working`", async () => {
+    expect(await cls({ extracting: true })).toContain("working");
+    expect(await cls({ redacting: true, maskQueued: 1 })).toContain("working");
+    expect(await cls({ redacting: true, redactProgress: { done: 1, total: 3 } })).toContain("working");
+  });
+
+  it("done or failed: no `working`", async () => {
+    expect(await cls({ replacements: [] })).not.toContain("working");
+    expect(await cls({ redactError: "échec" })).not.toContain("working");
+  });
+
+  it("waiting its turn, the chip says how many files are masked before it", async () => {
+    const m = await mount(<AttachmentChips attachments={[piece({ redacting: true, maskQueued: 2 })]} onRemove={() => {}} onOpen={() => {}} />);
+    expect(m.find(".attach-chip").getAttribute("aria-label")).toContain("Masquage en attente · 2 avant");
+    await m.unmount();
+  });
+});

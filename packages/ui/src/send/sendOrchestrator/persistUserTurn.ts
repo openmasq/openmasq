@@ -1,6 +1,5 @@
 import { bucket, captureEvent } from "../../analytics";
 import { uid } from "../../state/storePersistence";
-import { flagClipped } from "../documentLoad";
 import { docScrubKinds, docScrubVault } from "../docScrubVault";
 import { buildSendAnalyticsEvents } from "../sendAnalytics";
 import type { RedactedTurn } from "./redactionPasses";
@@ -13,7 +12,7 @@ import type { TurnContext } from "./turnSetup";
  * needs on a retry, and persist the now-mutated vault so history stays reversible.
  */
 export function persistUserTurn(ctx: TurnContext, r: RedactionSetup, red: RedactedTurn): void {
-  const { d, opts, text, convId, userMsg, model, forcePython, compPrompt, atPrompt, attachments } = ctx;
+  const { d, opts, text, convId, userMsg, model, forcePython, compPrompt, atPrompt } = ctx;
   const { userWire, redactedSpans, redactionFailed, memSel, memoryWire } = red;
   for (const e of buildSendAnalyticsEvents({
     provider: model.provider,
@@ -37,8 +36,6 @@ export function persistUserTurn(ctx: TurnContext, r: RedactionSetup, red: Redact
             redactions: userWire.matches.length,
             redactedSpans: redactedSpans.length ? redactedSpans : undefined,
             redactionFailed,
-            // Display only: the card says when the wire carried just the document's start.
-            attachments: flagClipped(m.attachments, attachments, opts.imageNames),
             // Only when the injection SUCCEEDED: a fail-closed skip must not claim it happened.
             memoryUsed: memoryWire
               ? [...(memSel.profile ? ["profile"] : []), ...memSel.cards.map((mc) => mc.id)]
@@ -100,8 +97,8 @@ function storeAttachments(ctx: TurnContext, r: RedactionSetup): void {
         data: a.data,
         name: a.name,
         mime: a.mime || "application/octet-stream",
-        // ⚠️ The send's vault covers the WIRE (first `MAX_FILE_CHARS`); the drop-time map
-        // covers the whole document — both, or a name past the cut stays in clear in the copy.
+        // ⚠️ The send's vault holds what THIS send detected; a REUSED document was not
+        // re-detected at all, its values are in its drop-time map — both, or one stays in clear.
         vault: docScrubVault(r.vault, a.replacements),
         disabledKinds: r.disabledKinds,
         kinds: docScrubKinds(r, a.replacements),

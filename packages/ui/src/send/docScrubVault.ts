@@ -5,10 +5,10 @@ import type { RedactionSetup } from "./sendOrchestrator/redactionSetup";
  * The vault the library's masked copy of ONE attached document is scrubbed with
  * (`files:redact-and-save`): the send's vault PLUS the document's own drop-time pairs.
  *
- * Why both: the send's vault holds what THIS send detected, and the send re-detects only
- * what rides the wire — the first `MAX_FILE_CHARS` of a document. The drop-time map covers
- * the WHOLE text (`pages/ChatWorkspace/redactAttachment.ts`): with both, a name seen only past
- * the wire cut is in the vault, so the scrubbed DOCX/XLSX masks it.
+ * Why both: the send's vault holds what THIS send detected, and a document whose drop-time
+ * map is REUSED is not re-detected by the send at all (`reusableDocReplacements`). The
+ * drop-time map covers the WHOLE text (`pages/ChatWorkspace/redactAttachment.ts`): with both,
+ * every name of the document is in the vault, so the scrubbed DOCX/XLSX masks it.
  *
  * Additive only (fail closed): a pair is added unless its real value already has a fake.
  * A fake already owned by ANOTHER real gets a unique variant instead of being dropped —

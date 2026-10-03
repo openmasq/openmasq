@@ -50,8 +50,10 @@ export function makeStaging(d: StagingDeps): {
 } {
   // Setting a file meant for an OTHER conversation onto local state would show it on
   // the one the user is leaving — hence the routing, rather than a plain `setLocal`.
+  // `""` (the draft) is a key like any other: a drop on the welcome screen read after the
+  // user opened a conversation still lands on the draft.
   const parked = (forConvId?: string): string | undefined =>
-    forConvId && forConvId !== d.currentConvId() ? forConvId : undefined;
+    forConvId !== undefined && forConvId !== d.currentConvId() ? forConvId : undefined;
 
   return {
     stage(added, forConvId) {
@@ -65,7 +67,7 @@ export function makeStaging(d: StagingDeps): {
         });
       };
       const id = parked(forConvId);
-      if (id) {
+      if (id !== undefined) {
         const deja = d.getParked?.(id) ?? [];
         const ajout = neufs(deja);
         if (ajout.length) d.setParked?.(id, [...deja, ...ajout]);
@@ -77,7 +79,7 @@ export function makeStaging(d: StagingDeps): {
       const apply = (list: readonly Attachment[]): Attachment[] =>
         list.map((a) => (a.cid === cid ? { ...a, ...patch } : a));
       const id = parked(forConvId);
-      if (id) d.setParked?.(id, apply(d.getParked?.(id) ?? []));
+      if (id !== undefined) d.setParked?.(id, apply(d.getParked?.(id) ?? []));
       else d.setLocal(apply);
     },
   };

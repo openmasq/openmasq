@@ -6,8 +6,8 @@ import type { Attachment } from "./Composer";
 
 
 /**
- * « Lire tout » — re-extract an attachment whose OCR stopped at the cap,
- * this time WITHOUT a cap. Same choreography as the initial extraction
+ * « Lire tout » — re-extract an attachment read under the former OCR cap (`ocrShortfall`),
+ * through the ordinary whole-document extraction. Same choreography as the initial extraction
  * (`deferredAttach`): `extracting` + progress during, then the result replaces and
  * redaction resumes — a path that diverged would make the second pass less
  * honest than the first. Extracted from `ChatView` (LOC cap); the dependencies
@@ -42,7 +42,7 @@ export async function ocrAllAttachment(deps: OcrAllDeps, a: Attachment): Promise
     if (!out[0]) throw new Error("extraction vide");
     file = out[0];
   } catch {
-    // Failure LEAVES the old text (10 pages read beats zero) and says so.
+    // Failure LEAVES the old record as it was and says so.
     deps.patch(a.cid, { extracting: false, extractProgress: undefined, extractQueued: undefined, error: deps.t.composer.attachments.rereadFailed });
     return;
   }

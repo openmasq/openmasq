@@ -21,6 +21,7 @@ import { fileTooLargeRefusal, MAX_FILE_BYTES, pdfPagesRefusal } from "./safety/g
 import { DocumentError } from "./errors";
 import { reconstructPageText } from "./serialize/pdfLayout";
 import { buildTextLayerPage, type TextLayerPage } from "./layers/geometry";
+import { pageNeedsOcr } from "./layers/ocrSkip";
 
 export { SUPPORTED_EXTENSIONS, OCR_LANGS, OCR_TRAINEDDATA_SHA256, hybridLayerText, spatialFieldLines, DEFAULT_OCR_MARKERS } from "./core";
 export type { ExtractedFile, RedactedDocument, TextLayerPage, OcrLayerPage, LayerGeometry, OcrMarkers } from "./core";
@@ -52,7 +53,7 @@ async function pdfPages(
   bytes: Uint8Array,
   render: (items: unknown[]) => string,
   withLayout = false,
-): Promise<{ text: string; pages: number; imagePages: number; layout?: TextLayerPage[] }> {
+): Promise<{ text: string; pages: number; imagePages: number; layout?: TextLayerPage[]; needsOcr: number[] }> {
   ensureWithResolvers();
   // pdf.js touches a few DOM globals in Node — borrow them from @napi-rs/canvas
   // (already a dep for OCR). Optional: text extraction may work without them.
@@ -86,6 +87,9 @@ async function pdfPages(
     throw tooMany;
   }
   let imagePages = 0;
+  // The pages OCR must read: every page whose text layer cannot PROVE it holds all the page
+  // shows (`layers/ocrSkip.ts`, an allow-list; any unknown fact counts as « read it »).
+  const needsOcr: number[] = [];
   // Per-page text-layer geometry (glyph boxes + char-run map + scale-1 page size), the
   // text-layer half of the cross-layer alignment. Built by `buildTextLayerPage`, whose
   // text IS the positional render — one reconstruction, reused as the page text.
@@ -104,17 +108,26 @@ async function pdfPages(
         pageText = render(tc.items);
       }
       out.push(pageText);
-      // Only a page whose text is SPARSE is a scan suspect — check it for a paint-image op
-      // (a text-dense page is clearly digital, so skip the extra work). `getOperatorList`
-      // is bounded to those rare pages so a normal digital PDF pays nothing.
-      if (IMG_OPS.size && pageText.replace(/\s/g, "").length < PDF_MIN_CHARS_PER_PAGE) {
+      // Every page's operator list is read: an image anywhere on a page (a stamp, a scanned
+      // insert) is content the text layer does not carry. `null` = could not tell.
+      let paintsImage: boolean | null = null;
+      if (IMG_OPS.size) {
         try {
           const opl = await page.getOperatorList();
-          if ((opl.fnArray as number[]).some((fn) => IMG_OPS.has(fn))) imagePages++;
+          paintsImage = (opl.fnArray as number[]).some((fn) => IMG_OPS.has(fn));
         } catch {
-          /* operator list unavailable — leave the page un-flagged */
+          /* operator list unavailable — unknown, so the page is OCR'd */
         }
       }
+      // A SPARSE page that paints an image is a scan suspect (`core.ts` `sparseScan`).
+      if (paintsImage && pageText.replace(/\s/g, "").length < PDF_MIN_CHARS_PER_PAGE) imagePages++;
+      let annotations: string[] | null = null;
+      try {
+        annotations = ((await page.getAnnotations()) as { subtype?: unknown }[]).map((a) => String(a.subtype));
+      } catch {
+        /* annotations unavailable — unknown, so the page is OCR'd */
+      }
+      if (pageNeedsOcr({ text: pageText, paintsImage, annotations })) needsOcr.push(i);
       page.cleanup?.();
     }
   } finally {
@@ -122,7 +135,7 @@ async function pdfPages(
   }
   // Return the RENDERED page count (denominator for the density check) + how many sparse
   // pages carry an image (a scan → route to OCR; a short digital page has none → keep text).
-  return { text: out.join(PAGE_BREAK), pages: total, imagePages, layout };
+  return { text: out.join(PAGE_BREAK), pages: total, imagePages, layout, needsOcr };
 }
 
 /**
@@ -142,7 +155,7 @@ const pdfjsText = (bytes: Uint8Array): ReturnType<typeof pdfPages> =>
  * when the positional reconstruction (`reconstructPageText`) throws on an odd item stream. If
  * pdf.js itself can't parse the file, this throws too → the caller routes to OCR.
  */
-const pdfFlatText = (bytes: Uint8Array): Promise<{ text: string; pages: number; imagePages: number }> =>
+const pdfFlatText = (bytes: Uint8Array): ReturnType<typeof pdfPages> =>
   pdfPages(bytes, (items) =>
     (items as { str?: string; hasEOL?: boolean }[])
       .map((it) => (it.str ?? "") + (it.hasEOL ? "\n" : " "))
@@ -179,17 +192,15 @@ const nodeDeps: ExtractDeps = {
   },
   ocrImage: (bytes) => ocrImage(bytes),
   ocrImageLayout: (bytes) => ocrImageLayout(bytes),
-  // `undefined` for lang/maxPages: `ocrPdf`'s defaults apply; the progress callback and
-  // the markers' wording are threaded.
-  ocrPdf: (bytes, onProgress, maxPages, markers) => ocrPdf(bytes, undefined, maxPages, onProgress, markers),
+  // `undefined` for lang: `ocrPdf`'s default applies; the pages to read, the progress
+  // callback and the markers' wording are threaded.
+  ocrPdf: (bytes, onProgress, pages, markers) => ocrPdf(bytes, undefined, pages, onProgress, markers),
 };
 
 /** Extract plain text from a file on disk. Best-effort (never throws). */
 export async function extractText(
   filePath: string,
   onOcrProgress?: (done: number, pages: number) => void,
-  /** "Read all": lift the OCR cap (10 pages by default) — a user gesture. */
-  ocrAllPages?: boolean,
   /** Wording of the skipped-page markers OCR writes into the text (the user's language). */
   ocrMarkers?: OcrMarkers,
 ): Promise<ExtractedFile> {
@@ -209,7 +220,7 @@ export async function extractText(
     } finally {
       await fh.close();
     }
-    return await extractFromBytes(bytes, { name, onOcrProgress, ocrAllPages, ocrMarkers }, nodeDeps);
+    return await extractFromBytes(bytes, { name, onOcrProgress, ocrMarkers }, nodeDeps);
   } catch (e) {
     return { name, kind: "file", text: "", chars: 0, error: e instanceof Error ? e.message : String(e) };
   }
@@ -235,12 +246,11 @@ export async function extractBytes(
   name: string,
   mime?: string,
   onOcrProgress?: (done: number, pages: number) => void,
-  ocrAllPages?: boolean,
   ocrMarkers?: OcrMarkers,
 ): Promise<ExtractedFile> {
   return extractFromBytes(
     asUint8(bytes),
-    { name: baseName(name) || "file", mime, onOcrProgress, ocrAllPages, ocrMarkers },
+    { name: baseName(name) || "file", mime, onOcrProgress, ocrMarkers },
     nodeDeps,
   );
 }

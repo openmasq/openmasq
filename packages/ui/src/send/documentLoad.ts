@@ -2,7 +2,6 @@ import { contextWindow } from "@openmasq/llm";
 import { CHARS_PER_TOKEN } from "@openmasq/llm/wire";
 import type { Message } from "../types";
 import { isAutoModelId } from "./autoRoute";
-import { clipsOnWire } from "./foldPayload";
 
 /**
  * What the documents of a conversation weigh on the model's context — DISPLAY ONLY.
@@ -11,8 +10,9 @@ import { clipsOnWire } from "./foldPayload";
  * (`historyWindow.ts`) drops the oldest turns. These helpers only say so to the user.
  *
  * A document is counted from what will actually ride again: a user turn's `modelContent`
- * beyond its typed `content`. A turn without `modelContent` (none folded, or not restored
- * after a reload) re-sends nothing and weighs nothing.
+ * beyond its typed `content` — the WHOLE document, and across a restart too (the desktop DB
+ * restores it, `messages.model_content`). A turn without `modelContent` (none folded, or a
+ * turn saved before that column existed) re-sends nothing and weighs nothing.
  */
 
 /** From this share of the window on, the composer says what the documents cost. */
@@ -50,19 +50,4 @@ export function droppedDocumentNames(prior: readonly Message[], dropped: number)
   const kept = new Set(prior.slice(dropped).flatMap((m) => carried(m).map((a) => a.name)));
   const names = prior.slice(0, dropped).flatMap((m) => carried(m).map((a) => a.name));
   return [...new Set(names)].filter((n) => !kept.has(n));
-}
-
-/** The sent turn's attachment entries, each flagged when the wire cut its text. A document
- *  sent as page IMAGES is not flagged: the model got the pages, not the clipped text. */
-export function flagClipped<A extends { name: string }>(
-  entries: A[] | undefined,
-  files: readonly { name: string; text?: string }[] | undefined,
-  imageNames: readonly string[] | undefined,
-): A[] | undefined {
-  if (!entries?.length) return entries;
-  const images = new Set(imageNames ?? []);
-  const cut = new Set(
-    (files ?? []).filter((f) => !images.has(f.name) && f.text?.trim() && clipsOnWire(f.text)).map((f) => f.name),
-  );
-  return cut.size ? entries.map((a) => (cut.has(a.name) ? { ...a, clipped: true } : a)) : entries;
 }

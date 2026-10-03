@@ -13,6 +13,14 @@ import type { PdfReplacement } from "./pdfMatch";
  *  Undefined when no category is known (the chip is then omitted). */
 const chipKind = (raw?: string): string | undefined => (raw ? redactionCategory(raw) : undefined);
 
+/** What a chunked run has masked so far — see `pdfReplacements`' `onProgress`. */
+export interface PartialMask {
+  /** Offsets into the masked text: `covered` ≤ `scanned`. */
+  covered: number;
+  scanned: number;
+  replacements: PdfReplacement[];
+}
+
 /** Settings-bound pseudonymise (model + regex) — see the desktop `useRedaction`.
  *  Accepts an optional AbortSignal so a long document redaction is cancellable, AND
  *  an optional SHARED `vault` (fake→real) so multi-chunk redaction stays consistent:
@@ -41,7 +49,12 @@ export async function pdfReplacements(
   redact: RedactFn,
   opts?: {
     signal?: AbortSignal;
-    onProgress?: (done: number, total: number) => void;
+    /** After each chunk. `partial` = what is masked SO FAR, for a progressive preview:
+     *  every value found in `text.slice(0, scanned)` (fakes FINAL — first fake wins), and
+     *  `covered`, the prefix no later chunk can still find a value STARTING in (the next
+     *  chunk's overlap begins there). A value found later may still occur in that prefix:
+     *  a preview of it is PROVISIONAL until `done === total`. */
+    onProgress?: (done: number, total: number, partial: PartialMask) => void;
     /** The conversation's category override, forwarded to every `redact` call —
      *  absent when there is no conversation (e.g. the Library viewer). */
     convCategories?: Record<string, boolean>;
@@ -62,8 +75,8 @@ export async function pdfReplacements(
   // the paint applies each real everywhere, so a name split across pages resolves to
   // one fake. Split on line boundaries under a char budget (never mid-name); a small
   // doc is a single pass (total 1).
-  const chunks = chunkText(text);
-  const total = chunks.length;
+  const pieces = chunkText(text);
+  const total = pieces.length;
   const seen = new Set<string>();
   const out: PdfReplacement[] = [];
   let modelError: string | undefined;
@@ -92,7 +105,7 @@ export async function pdfReplacements(
   };
   for (let i = 0; i < total; i++) {
     if (signal?.aborted) throw new DOMException("aborted", "AbortError");
-    const res = await redact(chunks[i], signal, vault, opts?.convCategories);
+    const res = await redact(pieces[i].text, signal, vault, opts?.convCategories);
     if (res.modelError) modelError = res.modelError;
     for (const m of res.matches) {
       if (!m.value || seen.has(m.value)) continue;
@@ -100,7 +113,11 @@ export async function pdfReplacements(
       const raw = m.category ?? m.type;
       out.push({ real: m.value, fake: uniqueFake(m.value, m.placeholder), tone: toneForKind(raw ?? ""), kind: chipKind(raw) });
     }
-    opts?.onProgress?.(i + 1, total);
+    opts?.onProgress?.(i + 1, total, {
+      covered: i + 1 < total ? pieces[i + 1].start : text.length,
+      scanned: pieces[i].start + pieces[i].text.length,
+      replacements: [...out],
+    });
   }
   out.sort((a, b) => b.real.length - a.real.length);
   return { replacements: out, modelError };
@@ -116,10 +133,10 @@ const CHUNK_OVERLAP = 256;
  *  backed up to the last whitespace in the window, and consecutive chunks OVERLAP by
  *  {@link CHUNK_OVERLAP} chars — so a value spanning a boundary is fully present in one
  *  chunk (the duplicate detection is deduped by real value in `pdfReplacements`). */
-function chunkText(text: string): string[] {
+function chunkText(text: string): { text: string; start: number }[] {
   const budget = Math.max(6000, Math.ceil(text.length / 25));
-  if (text.length <= budget) return [text];
-  const chunks: string[] = [];
+  if (text.length <= budget) return [{ text, start: 0 }];
+  const chunks: { text: string; start: number }[] = [];
   let i = 0;
   while (i < text.length) {
     let end = Math.min(i + budget, text.length);
@@ -131,7 +148,7 @@ function chunkText(text: string): string[] {
       const ws = Math.max(win.lastIndexOf("\n"), win.lastIndexOf(" "));
       if (ws > budget * 0.5) end = i + ws + 1;
     }
-    chunks.push(text.slice(i, end));
+    chunks.push({ text: text.slice(i, end), start: i });
     if (end >= text.length) break;
     // Next chunk starts BEFORE the cut so a value crossing `end` is whole in it.
     i = Math.max(end - CHUNK_OVERLAP, i + 1);

@@ -19,21 +19,6 @@
   color: var(--ink-on-hl);
 }
 
-/* The send cut, materialized down to the character under the last page. */
-.fv-truncnote {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin: 10px auto 4px;
-  padding: 7px 11px;
-  border-radius: var(--radius-md);
-  background: var(--surface-sunken);
-  border: 1px dashed var(--border-default);
-  font-size: var(--text-xs);
-  color: var(--text-muted);
-  width: fit-content;
-}
-
 /* The subtitle-button (per-category detail on click) keeps the subtitle's typography. */
 .fv-caption-btn {
   background: none;

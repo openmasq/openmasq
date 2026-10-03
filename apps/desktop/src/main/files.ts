@@ -52,16 +52,11 @@ export type OcrProgressFn = (
 
 /** Extract + tag each result with its source `path` and `mime`, so the renderer
  *  can later store the original file (hidden-mode redaction). */
-async function extractTagged(
-  path: string,
-  onProgress?: OcrProgressFn,
-  ocrAllPages?: boolean,
-): Promise<ExtractedFile> {
+async function extractTagged(path: string, onProgress?: OcrProgressFn): Promise<ExtractedFile> {
   const name = path.split(/[\\/]/).pop() || path;
   const extracted = await extractText(
     path,
     (done, pages) => onProgress?.(name, done, pages, { path }),
-    ocrAllPages,
     (ahead) => onProgress?.(name, 0, 0, { queued: ahead, path }),
   );
   return { ...extracted, path, mime: mimeFor(path) };
@@ -93,10 +88,8 @@ export async function pickAndExtract(onProgress?: OcrProgressFn): Promise<Extrac
 export async function extractPaths(
   paths: string[],
   onProgress?: OcrProgressFn,
-  /** « Read all » (chip on a truncated attachment): OCR with no page cap. */
-  ocrAllPages?: boolean,
 ): Promise<ExtractedFile[]> {
-  return Promise.all(paths.map((p) => extractTagged(p, onProgress, ocrAllPages)));
+  return Promise.all(paths.map((p) => extractTagged(p, onProgress)));
 }
 
 /** Just the native picker — returns the chosen paths (+ basenames) WITHOUT extracting.

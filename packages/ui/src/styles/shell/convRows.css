@@ -147,3 +147,20 @@
   font-size: 11px;
   color: var(--text-muted);
 }
+/* Files staged in this conversation are still being read or masked (`ConvRow`): a small
+   quiet spinner on the brand accent, fixed size so the row never moves. */
+.conv-prep {
+  flex-shrink: 0;
+  width: 10px;
+  height: 10px;
+  box-sizing: border-box;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-subtle);
+  border-top-color: var(--brand);
+  animation: om-spin-kf 0.9s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .conv-prep {
+    animation-duration: 2s;
+  }
+}

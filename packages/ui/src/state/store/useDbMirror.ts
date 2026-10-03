@@ -45,7 +45,12 @@ export function useDbMirror({
   useEffect(() => {
     if (!host.db || !db.dbActive.current) return;
     for (const c of conversations) {
-      const sig = [c.redactionVault, c.redactionSalt, c.redactionKinds, c.turnCheckpoint, c.writeLedger];
+      // + the DB-only state a patch can change WITHOUT bumping `updatedAt` (the compaction
+      // recap, the files' spans): the debounced pass below would never see it change.
+      const sig = [
+        c.redactionVault, c.redactionSalt, c.redactionKinds, c.turnCheckpoint, c.writeLedger,
+        c.contextSummary, c.fileRedactions,
+      ];
       const prev = db.revSnaps.current.get(c.id);
       db.revSnaps.current.set(c.id, sig);
       // First sight (boot hydration, creation) seeds the snapshot; the debounced pass saves.

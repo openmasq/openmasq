@@ -138,6 +138,7 @@
 @import "./styles/markdown/artifact.css";
 @import "./styles/markdown/syntax.css";
 @import "./styles/composer/attachments.css";
+@import "./styles/composer/attachGlow.css";
 @import "./styles/theme/lightKit.css";
 @import "./styles/theme/spadeOverrides.css";
 @import "./styles/theme/spadeDark.css";

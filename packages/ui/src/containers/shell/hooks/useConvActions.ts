@@ -3,6 +3,7 @@ import { closeTab, openTab, showWelcomePane, track, useAppDispatch, type Section
 import { findModelAny } from "../../../prompt/models";
 import { useT } from "../../../i18n";
 import { displayTitle } from "../../../state/conversation/displayTitle";
+import { isStagedBusy, useStagedBusyVersion } from "../../../state/files/stagedActivity";
 import { isChatRef, tabRefId } from "../../../workspace/layout";
 import type { ConvTab } from "../../../pages/ChatWorkspace";
 
@@ -38,6 +39,8 @@ export function useConvActions({
 }): ConvActions {
   const dispatch = useAppDispatch();
   const t = useT();
+  // Re-render the strips when a conversation's staged files start or stop being prepared.
+  useStagedBusyVersion();
 
   // « Nouvelle conversation » no longer CREATES anything: it shows the focused pane's
   // welcome screen, and the conversation is born on the FIRST SEND (`ChatPane.onSend`, the same
@@ -87,6 +90,7 @@ export function useConvActions({
       provider: m?.provider,
       modelId: c.modelId,
       busy: c.messages.some((msg) => msg.pending),
+      preparing: isStagedBusy(c.id),
     };
   };
 

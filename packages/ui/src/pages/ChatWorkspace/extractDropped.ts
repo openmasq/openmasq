@@ -96,15 +96,16 @@ async function extractOne(
     if (r.blocked) {
       return { ...base, error: r.error ?? deps.t.composer.attachments.fileRefused, blocked: true };
     }
+    // FAIL CLOSED: a result carrying an error keeps NO text (nor any text-bearing layer).
+    // A partial read is a document read in part, and a document is never sent in part:
+    // the chip is in error, nothing of it is sendable. The bytes stay (preview, re-attach).
+    if (r.error) return { ...carried, error: r.error };
     // EVERYTHING else the bytes route returns travels with the file: `words` is what
     // lets the aperçu paint the REDACTED image (boxes) instead of the original.
     return {
       ...carried,
       text: r.text,
       chars: r.text.length,
-      // A PARTIAL failure (some text, plus a reason) kept its text and lost its reason,
-      // so the chip said nothing was wrong. It rides along now.
-      ...(r.error ? { error: r.error } : {}),
       ...(r.words ? { words: r.words } : {}),
       ...(r.ocrText ? { ocrText: r.ocrText } : {}),
       ...(r.ocr ? { ocr: r.ocr } : {}),

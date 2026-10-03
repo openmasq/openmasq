@@ -1,5 +1,6 @@
 import type { ExtractedFile } from "../../../host";
 import type { PdfReplacement } from "../../../containers/modals/viewers/pdf/pdfReplacements";
+import type { PartialMask } from "@openmasq/redact/pdf-redact";
 import type { UnavailableReason } from "../../../send/modelAvailability";
 import type { Conversation, Skill } from "../../../types";
 import type { RedactLevelApi } from "../ComposerRedactMenu";
@@ -14,10 +15,17 @@ export type Attachment = ExtractedFile & {
   extractProgress?: { done: number; total: number };
   /** Waiting its turn in the extraction queue (files run one at a time): files ahead. */
   extractQueued?: number;
-  /** Redaction is running for this file. */
+  /** Redaction is running for this file — or waiting its turn (`maskQueued`). */
   redacting?: boolean;
-  /** Chunk progress of a large document's redaction. */
-  redactProgress?: { done: number; total: number };
+  /** Waiting its turn in the masking queue (one run at a time, `state/files/maskQueue.ts`):
+   *  runs ahead of it. Absent once its own run started. */
+  maskQueued?: number;
+  /** Chunk progress of a large document's redaction; `etaMs` = time left, MEASURED on this
+   *  run's own pace once a chunk is done (absent before: the size estimate stands in). */
+  redactProgress?: { done: number; total: number; etaMs?: number };
+  /** What is masked SO FAR, for the progressive preview ONLY (`PartialMask`): never a map
+   *  the send or the library may use — that is `replacements`, set when the run ends. */
+  maskedSoFar?: PartialMask;
   redactError?: string;
   /** Engine + model that produced `replacements`; a later engine switch offers a re-run. */
   redactEngineSig?: string;

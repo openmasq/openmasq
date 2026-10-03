@@ -84,6 +84,8 @@ export interface ChatMessages {
   renameConversation: string;
   /** The spinning pill of a tab whose reply is arriving. */
   generating: string;
+  /** The mark of a conversation whose staged files are still being read or masked. */
+  preparingFiles: string;
   closeTab: string;
   /** Tabs scrolled out of view: the tooltip explains, the read label counts. */
   hiddenTabsTip: (count: number) => string;
@@ -220,6 +222,8 @@ export interface ComposerMessages {
     stateReading: string;
     /** Waiting its turn in the extraction queue, `ahead` files before it. */
     stateQueued: (ahead: number) => string;
+    /** Read, and waiting its turn to be masked (one file at a time), `ahead` before it. */
+    stateMaskQueued: (ahead: number) => string;
     stateReadingPage: (page: number, total: number) => string;
     stateMasking: string;
     stateMaskingPct: (pct: number) => string;
@@ -252,8 +256,6 @@ export interface ComposerMessages {
     extractFailed: string;
     /** A re-read of every page failed; the text read before is kept. */
     rereadFailed: string;
-    /** The extraction was cut off (the app closed mid-read): the bytes are gone. */
-    extractInterrupted: string;
     /** The file was refused before parsing (an archive the gate refuses). */
     fileRefused: string;
   };

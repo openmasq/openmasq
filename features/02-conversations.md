@@ -207,7 +207,9 @@ today's.
 - [x] Dropping a **folder** offers to add it to the granted folders; the confirmation
       happens in the system's own window, never in the app — `packages/ui/src/pages/ChatWorkspace/grantDroppedFolder.ts`
 - [x] OCR on a scan, with a reconciled text layer — `packages/redact/src/ocr/`
-- [x] **The OCR ceiling is VISIBLE and liftable** — 10 pages by default (several seconds each: a 300-page file is a choice, not an imposed wait); beyond that the chip says « 10/32 pages lues » and offers « Lire tout » (re-extraction with no ceiling, same choreography as the first: progress, re-redaction) — `packages/ui/src/pages/ChatWorkspace/ocrShortfall.ts`
+- [x] **A PDF is read WHOLE**: OCR reads every page that may hold what the text layer lacks (a scan, an image, a filled form field, a stamp), with « OCR… page x/y » progress; a page of a digital PDF whose text layer proves complete is not rasterised, so a digital document attaches without the OCR wait. A scan whose estimate (≈ 3,000 characters a page) passes the masking limit is refused BEFORE the first page; an OCR failure puts the file in error (« Ce PDF n'est pas joint : ses N pages en image n'ont pas pu être lues… »), never attached with part of its pages — `packages/redact/src/documents/pdfExtract.ts`, `packages/redact/src/documents/layers/ocrSkip.ts`
+- [x] A file read under the FORMER 10-page ceiling (a library re-attach) still says « 10/32 pages lues » and offers « Lire tout », the whole-document re-read; until re-read whole it is NOT sendable (« Relisez-le en entier… ») — `packages/ui/src/pages/ChatWorkspace/ocrShortfall.ts`, `packages/ui/src/pages/ChatWorkspace/submitGuard.ts`
+- [x] A dropped file whose extraction returns an error keeps NO text: it is in error, never sent in part — `packages/ui/src/pages/ChatWorkspace/extractDropped.ts`
 - [x] In the preview, a **halo** (theme tint, light wash) marks the text that, once redacted, goes to the model; the first page's caption is a **button** that hides/shows the halo (preference remembered) — `packages/ui/src/containers/modals/viewers/pdf/textHalo.ts`
 - [x] Document redaction **on drop**, before any send — over the **whole** extracted text, never
       a first slice: the send reuses that map, and so does the library's masked copy of a
@@ -216,7 +218,7 @@ today's.
       of masking) the chip says « Masquage · 40 % · environ 3 min », its tooltip « Document long :
       masquage en cours, environ N min »; past 1,000,000 characters (≈ 4 min) it is refused before
       masking: « Document trop long pour être masqué en entier (≈ N pages). Découpez-le en
-      plusieurs parties. » « Lire les N pages » checks the same limit before the OCR starts. A
+      plusieurs parties. » A scanned PDF is checked against the same limit before its OCR starts. A
       masking past its deadline (scaled to the size) fails the chip with « Réessayer », never
       sendable unmasked — `packages/redact/src/documents/safety/maskBudget.ts`
 - [x] **Size limits stated, checked before reading**: a file over 50 MB is refused before it is
@@ -224,8 +226,12 @@ today's.
       (50 Mo maximum). Découpez-le en plusieurs parties. »; a PDF over 2,000 pages is refused
       whole (« PDF trop long (N pages, 2000 maximum)… »), never read up to a page cap —
       `packages/redact/src/documents/safety/guard.ts`
-- [x] Preview before sending: the document — EVERY page, painted as it nears the viewport (`packages/ui/src/containers/modals/viewers/pdf/lazyPages.ts`) — (Pages redacted / Feuille / Image…) · Original · Redacted (« what will leave the machine », cut at the send limit) · the image's text — with the redaction state (running / failed / count) in the header — `packages/ui/src/containers/modals/viewers/AttachmentPreviewModal.tsx`
+- [x] Preview before sending: the document — EVERY page, painted as it nears the viewport (`packages/ui/src/containers/modals/viewers/pdf/lazyPages.ts`) — (Pages redacted / Feuille / Image…) · Original · Redacted (« what will leave the machine », the WHOLE text: a document is sent whole) · the image's text — with the redaction state (running / failed / count) in the header — `packages/ui/src/containers/modals/viewers/AttachmentPreviewModal.tsx`
 - [x] The preview opens while the file is still being read (OCR) or first masked: a loader with the page being read / the masking progress, then the redacted document as soon as it lands — never the document unmasked in the meantime — `packages/ui/src/containers/modals/viewers/AttachmentPendingPreview.tsx`
+- [x] **Progressive preview while masking**: the passages already masked show, masked (fakes and their marks), under « Aperçu provisoire : chaque passage s'affiche une fois masqué… » — every value found so far is masked across the whole shown part (re-applied on each step), only a value not yet reached may still show; the rest is a « Masquage en cours… N % » placeholder, never its text — `packages/ui/src/containers/modals/viewers/doc/partialPreview.ts`
+- [x] **Several documents are masked ONE at a time**, in order: a waiting one says « Masquage en attente · N avant », the running one its percentage, and a long one's minutes left are measured on its own pace once a part is done — `packages/ui/src/state/files/maskQueue.ts`
+- [x] **Masking survives navigation**: switching conversation (or going to Bibliothèque) and coming back shows the run where it is, never restarted; removing the chip or deleting the conversation cancels it — `packages/ui/src/pages/ChatWorkspace/stagedStore.ts`
+- [x] A conversation whose files are still being read or masked wears a small spinner on its sidebar row and its tab (« Fichiers en cours de lecture ou de masquage »); the chip itself wears a soft moving rainbow border while it is read, waiting or masked (still under reduced motion) — `packages/ui/src/state/files/stagedActivity.ts`, `packages/ui/src/styles/composer/attachGlow.css`
 - [x] Several documents at once: read ONE at a time, in order; each chip finishes on its own (the first one ready opens while the others wait) and a waiting one says « En attente · N avant » — `apps/desktop/src/main/ocr/extractQueue.ts`, `packages/ui/src/pages/ChatWorkspace/extractPicked.ts`
 - [x] Redact a word by hand in the preview (selection or click on a word)
 - [x] **Many files** (8 or more): one summary line « 32 fichiers · 3 en lecture · 1 illisible »,
@@ -236,16 +242,18 @@ today's.
       document leaves as its extracted, masked text (the « texte ou fichier » choice was removed)
 - [x] A card that has aged (rules changed) is flagged + can be re-redacted
 - [x] A document still being read (or queued), still masked, or whose masking failed blocks the send — the button says « Lecture » / « Masquage » and the draft stays; one that could not be read is NAMED in a confirmation (« Envoyer sans eux » / « Annuler ») before a send without it, never dropped silently — `packages/ui/src/pages/ChatWorkspace/submitGuard.ts`
-- [x] A message that clearly **exceeds the chosen model's context window** (typed text + attached documents, estimated) is refused BEFORE masking, naming its approximate size and the model's limit, and suggesting a larger-context model or fewer files; the draft and the files stay — `packages/ui/src/send/contextFit.ts`
+- [x] A message that **does not fit the chosen model's context window** (typed text + the WHOLE text of every attached document, estimated, against the window minus the reply's room) is refused BEFORE masking, naming its approximate size and the model's window, and suggesting a larger-context model or fewer files; the draft and the files stay — `packages/ui/src/send/contextFit.ts`
 - [x] **Sent files stay compact**: small cards two to a row under the message; past 4 files, one
       « 8 fichiers » row that opens the cards and folds them back (open state kept while
       scrolling); click a card to open the file — `packages/ui/src/components/message/MessageAttachments/`
-- [x] A document cut at the per-document send limit (50,000 characters) says so after the send:
-      « tronqué » on its card and « Seuls les 50 000 premiers caractères de X ont été envoyés au
-      modèle » under the files — `packages/ui/src/send/documentLoad.ts` (`flagClipped`)
+- [x] **A document is sent WHOLE**, masked whole: no per-document cut; what does not fit the model
+      is refused before masking (above). A turn sent under the FORMER 50,000-character cut still
+      says « tronqué » on its card and « Seuls les 50 000 premiers caractères de X ont été envoyés
+      au modèle » — `packages/ui/src/send/foldPayload.ts`, `packages/ui/src/components/message/MessageAttachments/`
 - [x] **What the documents weigh**: when the conversation's documents take half or more of the
       chosen model's window, a warning above the composer gives the share (« environ 80 % de la
-      fenêtre de GPT-4o »), says each question re-sends them, and suggests a larger-window model
+      fenêtre de GPT-4o »), says each question re-sends them (true across a restart: each turn's
+      model payload is kept in the encrypted local database), and suggests a larger-window model
       or a new conversation; silent in Auto mode or for an unknown window. Nothing about the send
       changes — `packages/ui/src/pages/ChatWorkspace/DocumentWeightNotice.tsx`
 - [x] When a long conversation stops sending its oldest turns, the reply NAMES the documents

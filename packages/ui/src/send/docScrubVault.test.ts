@@ -1,17 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { pseudonymize, type Detection } from "@openmasq/redact";
 import { pdfReplacements } from "@openmasq/redact/pdf-redact";
-import { clipFileText, MAX_FILE_CHARS } from "./foldPayload";
 import { docScrubKinds, docScrubVault } from "./docScrubVault";
 
 const NAME = "Ninon Verdolini";
 const EARLY = "Jules Ambert";
 const LINE = "Clause sans donnée personnelle, reprise pour le volume du document.";
 
-/** A name present early, and one that FIRST appears past the wire cut. */
+/** A name present early, and one that FIRST appears deep in the document. */
+const FAR = 60_000;
 const text = [
   `Entre ${EARLY} et la société.`,
-  ...Array.from({ length: Math.ceil((MAX_FILE_CHARS + 10_000) / LINE.length) }, () => LINE),
+  ...Array.from({ length: Math.ceil(FAR / LINE.length) }, () => LINE),
   `Signé par ${NAME}.`,
 ].join("\n");
 
@@ -21,11 +21,12 @@ const ner = (t: string): Promise<Detection[]> =>
 // Main's half (a vault holding the name ⇒ the scrubbed DOCX masks it) is pinned beside
 // the scrub: `apps/desktop/src/main/ipc/documentScrub.fullText.test.ts`.
 describe("the vault the library's masked copy gets covers the WHOLE document", () => {
-  it("a name past the wire cut is in it — the send's vault alone did not have it", async () => {
-    expect(text.indexOf(NAME)).toBeGreaterThan(MAX_FILE_CHARS);
-    // The send re-detects only what rides the wire: the first MAX_FILE_CHARS.
+  it("a name the send did not detect is in it — the send's vault alone did not have it", async () => {
+    expect(text.indexOf(NAME)).toBeGreaterThan(FAR);
+    // A REUSED document is not re-detected by the send: its vault only holds what the send
+    // saw elsewhere (here, the typed text naming the early party).
     const sendVault: Record<string, string> = {};
-    await pseudonymize(clipFileText(text, MAX_FILE_CHARS), { vault: sendVault, detectLocal: ner, numbers: false });
+    await pseudonymize(`Résume le contrat avec ${EARLY}.`, { vault: sendVault, detectLocal: ner, numbers: false });
     expect(Object.values(sendVault)).toContain(EARLY);
     expect(Object.values(sendVault)).not.toContain(NAME); // the hole, reproduced
     // The drop-time map runs over the whole text (`redactAttachment.ts`).

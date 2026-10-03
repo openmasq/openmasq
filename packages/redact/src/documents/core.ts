@@ -5,10 +5,10 @@
 // spreadsheets (SheetJS is isomorphic) are handled here directly; CSV/TSV/XLSX go
 // through `./tabular` HEADER-ANNOTATED serialization (approach A) for detection.
 import { delimitedGrid, gridToAnnotatedText } from "./serialize/tabular";
-import { cleanErr, DocumentError, msg, OCR_FAILED, IMAGE_OCR_FAILED, type DocumentErrorCode, type DocumentErrorParams } from "./errors";
+import { cleanErr, DocumentError, msg, IMAGE_OCR_FAILED, type DocumentErrorCode, type DocumentErrorParams } from "./errors";
 import type { OcrMarkers } from "./ocrMarkers";
 import { guardUploadRefusal } from "./safety/guard";
-import { isUnreadableLayer } from "./layers/readable";
+import { extractPdf } from "./pdfExtract";
 import type { OcrWord } from "../ocr/layout";
 import type { TextLayerPage, OcrLayerPage } from "./layers/geometry";
 import {
@@ -52,8 +52,9 @@ export interface ExtractedFile {
    *  boxes, so the renderer can paint the redaction on the image (see
    *  `imageRedact.renderRedactedImage`). Absent when OCR gave no geometry. */
   words?: OcrWord[];
-  /** THE SECOND LAYER. A PDF is ALWAYS OCR'd: content baked into page IMAGES (a stamp, a
-   *  scanned insert) is INVISIBLE to the text layer. `text` is the primary layer, `ocrText`
+  /** THE SECOND LAYER. A PDF is OCR'd on every page its text layer cannot prove complete
+   *  (`layers/ocrSkip.ts`): content baked into page IMAGES (a stamp, a scanned insert) is
+   *  INVISIBLE to the text layer. `text` is the primary layer, `ocrText`
    *  what the PIXELS say; when they differ the union drives detection (`redactExtracted`)
    *  and the UI shows both. Absent when OCR adds nothing over `text`. */
   ocrText?: string;
@@ -81,8 +82,9 @@ export interface OcrMeta {
   ms: number;
   /** Pages OCR'd (scanned PDF); absent for a single image. */
   pages?: number;
-  /** The TOTAL number of pages in the document — when it exceeds `pages`, the read was
-   *  partial (default cap) and the UI must say so, not only the text. */
+  /** The TOTAL number of pages in the document. A PDF is read whole now (a page OCR skips
+   *  is one its text layer proved complete), so it exceeds `pages` only on a record read under
+   *  the former 10-page cap — which the UI still says (`ocrShortfall`). */
   pagesTotal?: number;
   /** docTR only: mean CTC confidence 0–1 of the recognised text (the routing signal). */
   confidence?: number;
@@ -110,9 +112,12 @@ export interface ExtractDeps {
    *  density denominator and `imagePages` counts SPARSE pages carrying a paint-image op (a
    *  SCAN → route to OCR; a short DIGITAL page has none → keep the text). The browser binding
    *  may return a bare string (⇒ pages=1, imagePages=0, so only an EMPTY layer routes to OCR).
-   *  `layout` (optional): the per-page text-layer geometry, absent on the flat fallback. */
+   *  `layout` (optional): the per-page text-layer geometry, absent on the flat fallback.
+   *  `needsOcr` (optional): the 1-based pages whose content may be missing from the text layer
+   *  (`layers/ocrSkip.ts`); absent ⇒ the binding cannot tell, and OCR reads every page. */
   pdfText(bytes: Uint8Array): Promise<
-    string | { text: string; pages?: number; imagePages?: number; layout?: TextLayerPage[] }
+    | string
+    | { text: string; pages?: number; imagePages?: number; layout?: TextLayerPage[]; needsOcr?: number[] }
   >;
   /** DOCX raw paragraph text. */
   docxText(bytes: Uint8Array): Promise<string>;
@@ -125,9 +130,10 @@ export interface ExtractDeps {
   ocrPdf(
     bytes: Uint8Array,
     onProgress?: (done: number, pages: number) => void,
-    /** Page cap (`Infinity` = "Read all"; absent ⇒ binding default, 10).
-     *  ⚠️ 3rd position — the 2nd is the callback (function in `Math.min` = NaN). */
-    maxPages?: number,
+    /** The 1-based pages to read; absent ⇒ EVERY page. Never a cap: a page left out is one
+     *  the text layer proved complete (`layers/ocrSkip.ts`).
+     *  ⚠️ 3rd position — the 2nd is the callback. */
+    pages?: readonly number[],
     /** The skipped-page markers' wording; absent ⇒ `DEFAULT_OCR_MARKERS`. */
     markers?: OcrMarkers,
   ): Promise<string | { text: string; meta?: OcrMeta; layout?: OcrLayerPage[] }>;
@@ -158,8 +164,6 @@ export async function extractFromBytes(
     /** OCR progress (display only): loops per page of a scanned PDF;
      *  0/1 → 1/1 around an image's OCR; nothing for a format without OCR. */
     onOcrProgress?: (done: number, pages: number) => void;
-    /** "Read all": lift the OCR cap (default 10) — opt-in by user GESTURE. */
-    ocrAllPages?: boolean;
     /** Wording of the markers OCR writes into the text (the caller's language). */
     ocrMarkers?: OcrMarkers;
   },
@@ -178,67 +182,7 @@ export async function extractFromBytes(
     return { name, kind: ext.slice(1) || "file", text: "", chars: 0, mime, error, errorCode, errorParams, blocked: true };
   }
   try {
-    if (ext === ".pdf") {
-      const tText = Date.now();
-      const raw = await deps.pdfText(bytes);
-      let text = (typeof raw === "string" ? raw : raw.text).trim();
-      const pages = Math.max(1, typeof raw === "string" ? 1 : (raw.pages ?? 1));
-      const imagePages = typeof raw === "string" ? 0 : (raw.imagePages ?? 0);
-      // Text-layer geometry: kept only while the text layer IS the primary `text` (an
-      // OCR promotion below invalidates the page↔text mapping, so it is dropped then).
-      let textPages = typeof raw === "string" ? undefined : raw.layout;
-      let ocrPages: OcrLayerPage[] | undefined;
-      const layerMs = Date.now() - tText;
-      // ⚠️ Unreadable == ABSENT, otherwise OCR is never attempted where it should be (`readable.ts`).
-      const noLayer = text.length < PDF_TEXT_MIN || isUnreadableLayer(text);
-      // A true SCAN whose thin text layer must be REPLACED by OCR (a header/footer over an
-      // image-based form/RIB): empty layer, OR too SPARSE per page while those pages carry a
-      // paint-image op. The image check separates a scan from a short-but-correct digital page.
-      const sparseScan = text.length < pages * PDF_MIN_CHARS_PER_PAGE && imagePages > 0;
-
-      // ALWAYS OCR (blocking): a privacy product never trusts the text layer to be COMPLETE.
-      // OCR PROMOTES to the primary `text` for a scan, else it is the additive `ocrText` layer.
-      let ocrText: string | undefined;
-      let ocr: OcrMeta | undefined = { engine: "pdf-text", ms: layerMs };
-      try {
-        const res = await deps.ocrPdf(bytes, opts.onOcrProgress, opts.ocrAllPages ? Infinity : undefined, opts.ocrMarkers);
-        const ocrRaw = (typeof res === "string" ? res : res.text).trim();
-        const ocrMeta = typeof res === "string" ? undefined : res.meta;
-        ocrPages = typeof res === "string" ? undefined : res.layout;
-        if (ocrRaw) {
-          // Promote OCR to the PRIMARY text only for a scan (no/thin layer, or a sparse-scan
-          // where OCR recovered more) — never DOWNGRADE a genuine, richer digital layer.
-          if (noLayer || (sparseScan && ocrRaw.length > text.length)) {
-            text = ocrRaw;
-            textPages = undefined; // the text layer no longer describes `text`
-            ocr = ocrMeta ?? { engine: "ocr", ms: Date.now() - tText };
-          } else {
-            // Digital PDF: OCR is the SECOND layer, additive. Surface it when it says
-            // something the text layer doesn't (else it's redundant noise).
-            if (ocrRaw !== text) ocrText = ocrRaw;
-            ocr = {
-              engine: `pdf-text+${ocrMeta?.engine ?? "ocr"}`,
-              ms: layerMs + (ocrMeta?.ms ?? 0),
-              pages: ocrMeta?.pages,
-              confidence: ocrMeta?.confidence,
-              fellBack: ocrMeta?.fellBack,
-            };
-          }
-        }
-      } catch (e) {
-        // Fail-closed on a SCAN (no usable layer + OCR failed) → surface the error. On a
-        // digital PDF the OCR layer is additive, so its failure must NOT break extraction
-        // (we still have the exact text layer); we just get no second layer.
-        if (noLayer) {
-          const c = cleanErr(e, OCR_FAILED); // the fallback STATES the fact, it does not diagnose — `errors.ts`
-          return {
-            name, kind: "pdf", text, chars: text.length, mime,
-            error: `PDF sans couche texte — ${c.message}`, errorCode: c.code, rawCause: c.raw,
-          };
-        }
-      }
-      return { name, kind: "pdf", text, chars: text.length, mime, ocrText, ocr, textPages, ocrPages };
-    }
+    if (ext === ".pdf") return await extractPdf(bytes, { name, mime, onOcrProgress: opts.onOcrProgress, ocrMarkers: opts.ocrMarkers }, deps);
     if (IMAGE_EXT.has(ext)) {
       try {
         // An image = ONE OCR pass: the 0/1 → 1/1 frame gives a determined state.

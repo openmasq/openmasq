@@ -72,12 +72,11 @@ describe("OCR failures carry a code", () => {
 describe("OCR markers are the caller's wording", () => {
   it("the default keeps the historical French", () => {
     expect(DEFAULT_OCR_MARKERS.pageTooLarge(3)).toBe("[… page 3 non océrisée : dimensions excessives]");
-    expect(DEFAULT_OCR_MARKERS.morePages(2)).toBe("[… 2 page(s) supplémentaire(s) non océrisée(s)]");
   });
 
   it("extractFromBytes threads the caller's markers to the OCR binding (4th argument)", async () => {
     const ocrPdf = vi.fn(async () => "");
-    const markers = { pageTooLarge: (n: number) => `skip ${n}`, morePages: (n: number) => `+${n}` };
+    const markers = { pageTooLarge: (n: number) => `skip ${n}` };
     await extractFromBytes(enc("%PDF"), { name: "s.pdf", ocrMarkers: markers }, deps({ ocrPdf }));
     expect(ocrPdf).toHaveBeenCalledWith(expect.any(Uint8Array), undefined, undefined, markers);
   });

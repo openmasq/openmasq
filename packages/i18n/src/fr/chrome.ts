@@ -53,6 +53,7 @@ export const chat = {
   rename: "Renommer",
   renameConversation: "Renommer la conversation",
   generating: "Génération en cours",
+  preparingFiles: "Fichiers en cours de lecture ou de masquage",
   closeTab: "Fermer l'onglet",
   hiddenTabsTip: (n) => `${n} onglet${n > 1 ? "s" : ""} hors de vue (faire défiler)`,
   hiddenTabs: (n) => `${n} onglet${n > 1 ? "s" : ""} hors de vue`,
@@ -164,6 +165,7 @@ export const composer = {
     redacting: "Masquage en cours…",
     stateReading: "Lecture…",
     stateQueued: (ahead) => `En attente · ${ahead} avant`,
+    stateMaskQueued: (ahead) => `Masquage en attente · ${ahead} avant`,
     stateReadingPage: (page, total) => `Lecture · page ${page}/${total}`,
     stateMasking: "Masquage…",
     stateMaskingPct: (pct) => `Masquage · ${pct} %`,
@@ -190,7 +192,6 @@ export const composer = {
     removeAllConfirm: (n) => `Retirer les ${n} fichiers de ce message ?`,
     extractFailed: "Lecture impossible",
     rereadFailed: "Relecture impossible. Le texte lu avant est conservé.",
-    extractInterrupted: "Lecture interrompue. Déposez le fichier à nouveau.",
     fileRefused: "Fichier refusé",
   },
 

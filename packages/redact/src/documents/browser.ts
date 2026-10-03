@@ -80,22 +80,23 @@ async function ocrImage(bytes: Uint8Array): Promise<string> {
   return (await cfg.ocr(bytes)).trim();
 }
 
-/** Rasterise each page to PNG (pdf.js + OffscreenCanvas) then OCR it via `cfg.ocr`.
- *  ⚠️ The 2nd parameter is the progress callback of the `ExtractDeps.ocrPdf` contract —
- *  a positional `maxPages` here would receive the FUNCTION (Math.min(n, fn) = NaN, loop
- *  skipped, OCR silently empty). */
-const OCR_PDF_MAX_PAGES = 10;
+/** Rasterise each page to read to PNG (pdf.js + OffscreenCanvas) then OCR it via `cfg.ocr`.
+ *  Every page unless `only` names them (1-based) — never a cap: this binding reports no
+ *  `needsOcr`, so the core always passes `undefined` here and the whole document is read.
+ *  ⚠️ The 2nd parameter is the progress callback of the `ExtractDeps.ocrPdf` contract. */
 async function ocrPdf(
   bytes: Uint8Array,
   onProgress?: (done: number, pages: number) => void,
-  maxPages: number = OCR_PDF_MAX_PAGES,
+  only?: readonly number[],
   markers: OcrMarkers = cfg.ocrMarkers ?? DEFAULT_OCR_MARKERS,
 ): Promise<{ text: string; meta: { engine: string; ms: number; pages: number; pagesTotal: number } }> {
   const t0 = Date.now();
   if (!cfg.ocr) throw new Error("OCR non configuré (tesseract non chargé)");
   const lib = await pdfjs();
   const doc = await lib.getDocument({ data: bytes, isEvalSupported: false }).promise;
-  const pages = Math.min(doc.numPages, maxPages);
+  const total: number = doc.numPages;
+  const toRead = only ? new Set(only) : null;
+  const pages = toRead ? [...toRead].filter((n) => n >= 1 && n <= total).length : total;
   const tick = (done: number) => {
     try {
       onProgress?.(done, pages);
@@ -105,7 +106,12 @@ async function ocrPdf(
   };
   tick(0);
   const out: string[] = [];
-  for (let i = 1; i <= pages; i++) {
+  let done = 0;
+  for (let i = 1; i <= total; i++) {
+    if (toRead && !toRead.has(i)) {
+      out.push("");
+      continue;
+    }
     const page = await doc.getPage(i);
     // Same ceiling as the Node rasteriser (`../ocr/pdf.ts`, which states it in full): the
     // canvas is sized from geometry the FILE chooses, so a scale fixed at 2 lets an
@@ -114,7 +120,7 @@ async function ocrPdf(
     const scale = rasterScale(base.width, base.height, 2);
     if (scale === null) {
       out.push(markers.pageTooLarge(i));
-      tick(i);
+      tick(++done);
       page.cleanup?.();
       continue;
     }
@@ -128,18 +134,14 @@ async function ocrPdf(
     const blob = await canvas.convertToBlob();
     const png = new Uint8Array(await blob.arrayBuffer());
     out.push((await cfg.ocr(png)).trim());
-    tick(i);
+    tick(++done);
     page.cleanup?.();
   }
   await doc.destroy?.();
-  if (doc.numPages > pages) {
-    out.push(markers.morePages(doc.numPages - pages));
-  }
-  // Minimal meta (the browser doesn't have the docTR router): just enough for the
-  // chip to say « N/M pages read » here too.
+  // Minimal meta (the browser doesn't have the docTR router).
   return {
     text: out.join(PAGE_BREAK).trim(),
-    meta: { engine: "tesseract", ms: Date.now() - t0, pages, pagesTotal: doc.numPages },
+    meta: { engine: "tesseract", ms: Date.now() - t0, pages, pagesTotal: total },
   };
 }
 

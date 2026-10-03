@@ -14,10 +14,10 @@ import type { Conversation } from "../types";
  *    is the crown jewel; the desktop DB persists it ENCRYPTED at rest and the load
  *    merge is "DB wins", so a plaintext localStorage mirror would bypass that
  *    encryption (Chromium's LevelDB is not encrypted).
- *  - each `Message.modelContent` (M3): the FULL ORIGINAL text of a message + folded
- *    documents (up to ~50k chars of REAL PII), kept only to rebuild the wire on a
- *    follow-up/retry — never for display. Leaving it in localStorage defeats the DB
- *    encryption exactly like the vault; the DB restores it on reload.
+ *  - each `Message.modelContent` (M3): the FULL ORIGINAL text of a message + its folded
+ *    documents, WHOLE (REAL PII), kept only to rebuild the wire on a follow-up/retry —
+ *    never for display. Leaving it in localStorage defeats the DB encryption exactly like
+ *    the vault; the DB restores it on reload (desktop `messages.model_content`).
  *  - each `Message.redactedSpans` + the conversation-level `forcedRedactions` and
  *    `fileRedactions` (audit F1 second pass): these each carry `{value: <REAL>}` — the
  *    detected span values, the manual/Coffre forced redactions, and every attached
@@ -25,7 +25,10 @@ import type { Conversation } from "../types";
  *    closes: an attacker reading Chromium's unencrypted LevelDB recovers the real PII
  *    from `redactedSpans` even though the vault is gone. The DB owns them; `redactedSpans`
  *    re-derives from the vault/kinds for display, and `forcedRedactions`/`fileRedactions`
- *    are re-hydrated on the "DB wins" load merge.
+ *    are re-hydrated on the "DB wins" load merge (`redaction_config`, `file_redactions`).
+ * Every field stripped here that is still WRITTEN has a DB column restoring it — a strip with
+ * no restore is a silent loss on restart (`apps/desktop/src/main/db/resumeState.test.ts`). The
+ * one exception is the retired `workflow.prompt`, no longer written (legacy turns only).
  *  - each `Message.competence.prompt` AND `Message.workflow.prompt`: the instruction as
  *    it was actually sent — user-authored free text that routinely carries the real
  *    example pasted in while drafting it. The tag's `id`/`name` (+ the workflow's
