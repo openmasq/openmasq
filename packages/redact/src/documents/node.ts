@@ -3,7 +3,7 @@
 // SAME public API the desktop already uses: extractText / extractBytes /
 // redactDocument. Heavy libs stay lazy `import()`ed so they never load unless a
 // matching file is actually extracted, and never reach the renderer bundle.
-import { readFile, stat } from "node:fs/promises";
+import { open } from "node:fs/promises";
 import { ocrImage, ocrImageLayout, ocrPdf } from "../ocr";
 import type { RedactOptions } from "../index";
 import {
@@ -195,13 +195,20 @@ export async function extractText(
 ): Promise<ExtractedFile> {
   const name = baseName(filePath);
   try {
-    // The size gate runs on the file's STAT, before a byte is read: the byte gate inside
-    // `extractFromBytes` would only refuse a file already loaded whole into memory.
-    if ((await stat(filePath)).size > MAX_FILE_BYTES) {
-      const { message: error, code: errorCode, params: errorParams } = fileTooLargeRefusal();
-      return { name, kind: "file", text: "", chars: 0, error, errorCode, errorParams, blocked: true };
+    // The size gate runs on the open handle's STAT, before a byte is read: the byte gate
+    // inside `extractFromBytes` would only refuse a file already loaded whole into memory.
+    // Stat and read go through ONE handle, so the file checked is the file read.
+    const fh = await open(filePath, "r");
+    let bytes: Uint8Array;
+    try {
+      if ((await fh.stat()).size > MAX_FILE_BYTES) {
+        const { message: error, code: errorCode, params: errorParams } = fileTooLargeRefusal();
+        return { name, kind: "file", text: "", chars: 0, error, errorCode, errorParams, blocked: true };
+      }
+      bytes = new Uint8Array(await fh.readFile());
+    } finally {
+      await fh.close();
     }
-    const bytes = new Uint8Array(await readFile(filePath));
     return await extractFromBytes(bytes, { name, onOcrProgress, ocrAllPages, ocrMarkers }, nodeDeps);
   } catch (e) {
     return { name, kind: "file", text: "", chars: 0, error: e instanceof Error ? e.message : String(e) };

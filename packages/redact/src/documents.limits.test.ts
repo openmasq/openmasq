@@ -28,11 +28,16 @@ vi.mock("pdfjs-dist/legacy/build/pdf.mjs", () => ({
 const ocr = vi.hoisted(() => ({ ocrPdf: vi.fn(async () => "texte océrisé") }));
 vi.mock("./ocr", () => ({ ocrImage: vi.fn(async () => ""), ocrImageLayout: undefined, ocrPdf: ocr.ocrPdf }));
 
+// Every read of a picked file goes through the handle `open` returns: spy on its readFile.
 const fsSpy = vi.hoisted(() => ({ readFile: vi.fn() }));
 vi.mock("node:fs/promises", async (orig) => {
   const real = (await orig()) as typeof import("node:fs/promises");
-  fsSpy.readFile.mockImplementation(real.readFile as never);
-  return { ...real, readFile: fsSpy.readFile };
+  const open = async (...args: Parameters<typeof real.open>) => {
+    const fh = await real.open(...args);
+    fsSpy.readFile.mockImplementation(fh.readFile.bind(fh) as never);
+    return Object.assign(fh, { readFile: fsSpy.readFile });
+  };
+  return { ...real, open };
 });
 
 import { extractBytes, extractText } from "./documents/documents";
