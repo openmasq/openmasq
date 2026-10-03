@@ -49,7 +49,7 @@ export function pageNeedsOcr(p: PageFacts): boolean {
 }
 
 /** Above this share of the page, the regions are read as ONE page: same pixels, one pass. */
-export const REGIONS_MAX_AREA = 0.6;
+const REGIONS_MAX_AREA = 0.6;
 
 /**
  * The rectangles OCR may limit itself to on a page that `pageNeedsOcr`, or `null` = read the

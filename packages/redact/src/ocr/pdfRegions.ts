@@ -8,7 +8,7 @@ import { ocrImageLayout } from "./ocr";
 
 /** Margin around each image, in raster pixels: a word straddling the image's edge (a caption
  *  over a stamp, an anti-aliased border) is read whole, not cut. */
-export const REGION_PAD_PX = 12;
+const REGION_PAD_PX = 12;
 
 export interface PixelBox {
   x: number;

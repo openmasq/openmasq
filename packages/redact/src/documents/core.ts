@@ -26,7 +26,6 @@ export { spatialFieldLines } from "./layers/spatialFields";
 // Send-cut → grid-row mapping (tabular.ts) — re-exported so the UI can't grow a drifting copy.
 export { delimitedGrid, annotatedCutRow } from "./serialize/tabular";
 export type { TextLayerPage, OcrLayerPage } from "./layers/geometry";
-export type { PageFractionRect } from "./layers/imageRegions";
 export type { DocumentErrorCode, DocumentErrorParams } from "./errors";
 export { DEFAULT_OCR_MARKERS, type OcrMarkers } from "./ocrMarkers";
 export * from "./pageStream";
