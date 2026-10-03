@@ -1,31 +1,50 @@
+/** How a retry re-sends a failed user turn — never with only PART of its documents. */
+export type RetryResend<F> =
+  /** Every attached document came back from the library with its text → fold them as normal. */
+  | { kind: "files"; files: F[] }
+  /** The turn's persisted `modelContent` (typed text + EVERY folded document), re-sent verbatim. */
+  | { kind: "wire"; resendWire: string }
+  /** No document on this turn → the typed text alone. */
+  | { kind: "text" }
+  /** Some documents could not be reloaded and no full payload survives: send NOTHING. */
+  | { kind: "blocked"; missing: string[] };
+
 /**
- * Retry (regenerate) helper — decide how to re-send a failed user turn so an
- * attached DOCUMENT is never silently dropped.
+ * Retry (regenerate) helper — decide how to re-send a failed user turn so an attached
+ * DOCUMENT is never silently dropped.
  *
- * On the first send, a document's extracted text is folded into the MODEL payload
- * and persisted on the user message as `modelContent` (typed text + document). The
- * retry path deletes the failed turn and re-sends it; it first tries to rebuild the
- * document by round-tripping through the local file library. That round-trip FAILS
- * to recover the text when the file was never stored (redaction off), there's no
- * Host DB, extraction fails, or the stored name doesn't match — and then the
- * document dropped out of the retry entirely (the model answered "I have no data").
+ * On the first send, a document's extracted text is folded into the MODEL payload and
+ * persisted on the user message as `modelContent` (typed text + every document). The retry
+ * first rebuilds the documents through the local file library, BY NAME (a message keeps
+ * only its attachments' metadata). That round-trip can miss ANY of them: never stored
+ * (redaction off), no Host DB, extraction failed, a name stored under another conversation.
  *
- * `retryResendWire` picks the reliable fallback: when the rebuilt files carry no
- * usable text, re-send the persisted `modelContent` verbatim as the wire (same
- * source a normal follow-up turn re-includes). Returns the string to pass as
- * `sendMessage`'s `opts.resendWire`, or `undefined` to keep the file-based resend.
+ * The rule (`retryResend.test.ts`): the file route is taken only when EVERY attached
+ * document came back with text — one per attached name, so a library duplicate of the same
+ * name cannot ride twice. Otherwise the persisted `modelContent` is the complete set and is
+ * re-sent; without it the retry is BLOCKED and names what is missing, rather than leaving
+ * with a partial set. Either route goes through the same redaction as a first send: the
+ * wire is the engine INPUT (`buildFoldedPayload`), never a pre-masked or raw bypass.
  */
-export function retryResendWire(
+export function planRetryResend<F extends { name: string; text: string }>(
   text: string,
   modelContent: string | undefined,
-  rebuiltFiles: { text: string }[] | undefined,
-): string | undefined {
-  // The library round-trip recovered the document text → fold it as normal.
-  if (rebuiltFiles?.some((f) => f.text.trim())) return undefined;
-  // No persisted payload (a plain text turn with no document) → nothing to resend.
-  if (!modelContent) return undefined;
-  // `modelContent` equals the clean text (no document was ever folded) → nothing extra.
-  return modelContent.trim() !== text.trim() ? modelContent : undefined;
+  attachedNames: string[],
+  rebuiltFiles: F[] | undefined,
+): RetryResend<F> {
+  // `modelContent` equal to the clean text means no document was ever folded into it.
+  const wire = modelContent && modelContent.trim() !== text.trim() ? modelContent : undefined;
+  if (!attachedNames.length) return wire ? { kind: "wire", resendWire: wire } : { kind: "text" };
+  const pool = (rebuiltFiles ?? []).filter((f) => f.text.trim());
+  const files: F[] = [];
+  const missing: string[] = [];
+  for (const name of attachedNames) {
+    const i = pool.findIndex((f) => f.name === name);
+    if (i < 0) missing.push(name);
+    else files.push(...pool.splice(i, 1));
+  }
+  if (!missing.length) return { kind: "files", files };
+  return wire ? { kind: "wire", resendWire: wire } : { kind: "blocked", missing };
 }
 
 /**

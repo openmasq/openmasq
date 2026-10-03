@@ -1,6 +1,7 @@
 import { AnimatePresence } from "framer-motion";
 import { PROVIDERS } from "@openmasq/llm";
-import { MemoryIcon } from "../../../../components/brand";
+import { AlertIcon, MemoryIcon } from "../../../../components/brand";
+import { ConfirmDialog } from "../../../../components/feedback/ConfirmDialog";
 import { Banner } from "../../../../components/feedback/Banner";
 import { Toast } from "../../../../components/feedback/Toast";
 import { SelectionMenu } from "../../../../components/SelectionMenu";
@@ -12,7 +13,8 @@ import type { ChatViewModel } from "../model";
 
 /** Modals, the selection menu, toasts and banners — everything layered over the thread. */
 export function ChatOverlays({ m }: { m: ChatViewModel }) {
-  const { p, t, view, sel, forced, intents, att } = m;
+  const { p, t, view, sel, forced, intents, att, send } = m;
+  const unread = send.unreadConfirm;
   const { conversation, orgProfile } = p;
   return (
     <>
@@ -62,6 +64,20 @@ export function ChatOverlays({ m }: { m: ChatViewModel }) {
       {orgProfile?.status === "suspended" && (
         <Banner tone="warning" title={t.conversation.suspendedTitle} message={t.conversation.suspendedBody} />
       )}
+      {/* Files with nothing to send are NAMED before a send without them; « Annuler » keeps all. */}
+      <AnimatePresence>
+        {unread && (
+          <ConfirmDialog
+            title={t.runtime.send.unreadTitle(unread.length)}
+            message={t.runtime.send.unreadBody(unread.length, unread.join(", "))}
+            confirmLabel={t.runtime.send.unreadSendWithout(unread.length)}
+            danger={false}
+            icon={<AlertIcon size={19} />}
+            onConfirm={send.confirmUnread}
+            onCancel={send.cancelUnread}
+          />
+        )}
+      </AnimatePresence>
       <ChatBanners attachWarning={att.attachWarning} onDismissAttachWarning={() => att.setAttachWarning(null)} />
     </>
   );

@@ -44,7 +44,9 @@ message, necessarily the most sensitive one, stays in memory.
 - [x] Several conversations in parallel, each with its own turn
 - [x] **One status slot** under a reply — failed, interrupted, empty, or a failed tool step:
       the same card, a variant per reason, and a single « Réessayer » that regenerates in
-      place; the credits card is its amber variant — `packages/ui/src/components/message/TurnStatus/`
+      place; the credits card is its amber variant — `packages/ui/src/components/message/TurnStatus/`.
+      A retry resends EVERY document of the turn or nothing: a file the library cannot give
+      back is named on the card — `packages/ui/src/send/retryResend.ts`
 - [x] Conversation tabs + a splittable workspace — `packages/ui/src/workspace/`
 - [x] Drafts kept per conversation, **in memory only**
 - [x] Full-screen editor for a long draft, with a Preview tab — opened by clicking the
@@ -209,7 +211,7 @@ today's.
 - [ ] Sending a document as **redacted images** to a multimodal model — not offered: a
       document leaves as its extracted, masked text (the « texte ou fichier » choice was removed)
 - [x] A card that has aged (rules changed) is flagged + can be re-redacted
-- [x] An unfinished or failed document blocks the send
+- [x] A document still being read (or queued), still masked, or whose masking failed blocks the send — the button says « Lecture » / « Masquage » and the draft stays; one that could not be read is NAMED in a confirmation (« Envoyer sans eux » / « Annuler ») before a send without it, never dropped silently — `packages/ui/src/pages/ChatWorkspace/submitGuard.ts`
 
 ### Gestures on text
 **Access**: a selection in the composer or in a message → context menu.

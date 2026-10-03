@@ -13,7 +13,7 @@ interface Deps {
 }
 
 /**
- * The send button IS the redaction indicator: a spinner while detecting or redacting, a
+ * The send button IS the redaction indicator: a spinner while reading, detecting or redacting, a
  * brief ✓ once something was actually protected, then the send icon. The live count comes
  * from the MERGED detection (the same source as the chips and the highlight), minus the
  * values kept in clear, plus the staged compétence's prompt — it goes out too.
@@ -21,7 +21,10 @@ interface Deps {
 export function useSendState(d: Deps) {
   const { input, attachments, live, skillCats, t } = d;
   const redacting = attachments.some((a) => a.redacting);
-  const busy = redacting || live.detecting;
+  // A file still being READ (or queued) has no text yet: sending now would drop it, so the
+  // button waits for it exactly as for a masking — and says which (`submitGuard.ts` refuses too).
+  const reading = attachments.some((a) => a.extracting);
+  const busy = redacting || reading || live.detecting;
   const sendDisabled = busy || (!input.trim() && !attachments.some((a) => a.text.trim()));
   const liveCount =
     live.detection.items.filter((i) => !live.keepSet.has(i.value)).length +
@@ -42,6 +45,6 @@ export function useSendState(d: Deps) {
     return () => window.clearTimeout(timer);
   }, [busy]);
 
-  return { redacting, busy, sendDisabled, liveCount, scanState, showDone };
+  return { redacting, reading: reading && !redacting && !live.detecting, busy, sendDisabled, liveCount, scanState, showDone };
 }
 

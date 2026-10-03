@@ -5,6 +5,8 @@ import { CheckIcon, SendIcon, StopIcon } from "../../../../components/brand";
 interface Props {
   isStreaming: boolean;
   busy: boolean;
+  /** Busy only because a file is still being READ: the label says so instead of « Masquage ». */
+  reading?: boolean;
   showDone: boolean;
   disabled: boolean;
   onStop: () => void;
@@ -15,7 +17,7 @@ interface Props {
 const FADE = { duration: 0.16 };
 
 /** MORPHS between states — send → « Masquage » (spinner) → « Masqué » ✓ → send; framer animates the width. */
-export function SendButton({ isStreaming, busy, showDone, disabled, onStop, onSubmit, t }: Props) {
+export function SendButton({ isStreaming, busy, reading, showDone, disabled, onStop, onSubmit, t }: Props) {
   if (isStreaming) {
     return (
       <button className="send-btn stop" onClick={onStop} aria-label={t.composer.stop}>
@@ -29,7 +31,7 @@ export function SendButton({ isStreaming, busy, showDone, disabled, onStop, onSu
       className={`send-btn${busy ? " is-busy has-text" : ""}${showDone ? " is-done has-text" : ""}`}
       onClick={onSubmit}
       disabled={disabled}
-      aria-label={busy ? t.composer.redactingAria : showDone ? t.composer.redacted : t.composer.send}
+      aria-label={busy ? (reading ? t.composer.readingAria : t.composer.redactingAria) : showDone ? t.composer.redacted : t.composer.send}
       aria-busy={busy}
       whileTap={disabled ? undefined : { scale: 0.94 }}
       transition={{ type: "spring", stiffness: 520, damping: 34 }}
@@ -46,7 +48,7 @@ export function SendButton({ isStreaming, busy, showDone, disabled, onStop, onSu
             transition={FADE}
           >
             <span className="pill-spin" aria-hidden="true" />
-            {t.composer.redacting}
+            {reading ? t.composer.reading : t.composer.redacting}
           </motion.span>
         ) : showDone ? (
           <motion.span

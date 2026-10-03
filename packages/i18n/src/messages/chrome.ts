@@ -156,6 +156,9 @@ export interface ComposerMessages {
   redacting: string;
   redactingAria: string;
   redacted: string;
+  /** The same busy morph while a staged file is still being READ: the send waits for it. */
+  reading: string;
+  readingAria: string;
 
   /** The DETECTION chips under the input — each toggles « masqué ⇄ en clair ». The
    *  toggle's VERBS come from `conversation.mark` (the one lexicon), scoped « cet envoi ». */
