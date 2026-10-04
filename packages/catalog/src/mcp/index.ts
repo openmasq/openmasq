@@ -65,3 +65,5 @@ export {
 // and so does the proxy's console, which takes no React and cannot import one.
 export { MCP_LOGOS, type BrandLogo } from "./logos";
 export { MCP_LOGO_IMAGES } from "./logoImages";
+// Search engines by exact host: the browser's exfil scan and main's search rewrite.
+export { SEARCH_ENGINE_HOSTS, isSearchEngineHost, isGoogleSearchHost } from "./searchEngines";

@@ -13,8 +13,9 @@ import {
  * strip / settings render it, and `resolveTarget` (BrowserPanel) turns a free-text
  * query into a URL on the CHOSEN engine.
  *
- * Every host here is already recognised by `browserPolicy.SEARCH_ENGINE_HOSTS`, so
- * a legitimately-long `?q=` search phrase stays exempt from the exfil heuristic.
+ * Every host here is in `SEARCH_ENGINE_HOSTS` (`@openmasq/catalog/mcp`, pinned by
+ * `searchEngineHosts.test.ts`), so a legitimately-long `?q=` search phrase stays exempt
+ * from the exfil heuristic.
  * Brand glyphs come from the open-source `simple-icons` set (accurate official
  * marks; trademarks belong to their owners — shown only to identify the engine),
  * same source as `mcpLogos.ts`, so they're asset-free + CSP-safe.

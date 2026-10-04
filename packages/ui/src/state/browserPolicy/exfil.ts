@@ -12,6 +12,8 @@
 // Kept beside `tools.ts` (classification + the domain allow-list) so a reviewer sees the
 // whole agent-browser trust boundary as one family (root rule 10).
 
+import { isSearchEngineHost } from "@openmasq/catalog/mcp";
+
 export interface NavExfilFlag {
   param: string;
   value: string;
@@ -30,10 +32,6 @@ const B64ISH = /^[A-Za-z0-9+/=_-]{24,}$/;
  *  blobs and values embedding conversation data are still flagged regardless. */
 const SEARCH_PARAMS = new Set(["q", "query", "search", "s", "p", "wd", "text", "kw", "k"]);
 
-/** Known search-engine hosts. The `SEARCH_PARAMS` length-exemption applies ONLY here
- *  (audit H-6): exfil to `attacker.example/?q=<secret>` is otherwise indistinguishable
- *  from a search box, so a long/opaque value going to a non-search host is NOT exempt. */
-const SEARCH_ENGINE_HOSTS = /(^|\.)(google|duckduckgo|bing|yahoo|ecosia|brave|startpage|qwant|baidu|yandex)\.[a-z.]+$/i;
 
 /** Bare length past which a NON-search value is opaque enough to mention. Kept high
  *  on purpose — a plain long value is the WEAKEST signal (a search phrase, a title,
@@ -127,7 +125,10 @@ export function analyzeNavExfil(
   } catch {
     return { host: "", suspicious: false, flags: [] };
   }
-  const isSearchEngine = SEARCH_ENGINE_HOSTS.test(u.hostname);
+  // Search engines by EXACT host (`@openmasq/catalog/mcp`): the `SEARCH_PARAMS` exemption
+  // applies ONLY there — exfil to `attacker.example/?q=<secret>` is otherwise
+  // indistinguishable from a search box.
+  const isSearchEngine = isSearchEngineHost(u.hostname);
   const placeSet = new Set(placeValues.map((v) => v.trim().toLowerCase()));
   const exactPlace = (v: string): boolean => placeSet.has(v.trim().toLowerCase());
   const flags: NavExfilFlag[] = [];
@@ -162,6 +163,22 @@ export function analyzeNavExfil(
       flags.push({ param: key, value: val, reason: "valeur très longue" });
     }
   };
+  // The URL's CREDENTIALS (`https://<value>@evil.io/`) carry data like any param — and no
+  // search box ever lives there. Main refuses such a navigation outright
+  // (`isAllowedBrowserUrl`); the scan still names what was in it.
+  for (const [key, raw] of [
+    ["username", u.username],
+    ["password", u.password],
+  ] as const) {
+    if (!raw) continue;
+    let val = raw;
+    try {
+      val = decodeURIComponent(raw);
+    } catch {
+      /* keep it encoded: `looksEncoded` reads that too */
+    }
+    scan(key, val);
+  }
   let qTotal = 0;
   let qCount = 0;
   u.searchParams.forEach((val, key) => {
