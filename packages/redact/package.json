@@ -68,6 +68,7 @@
   },
   "files": [
     "dist",
+    "!dist/**/*.map",
     "README.md",
     "LICENSE",
     "NOTICE"
@@ -81,8 +82,8 @@
     "typecheck": "tsc --noEmit && tsc -p tsconfig.bench.json --noEmit",
     "lint": "echo \"(no lint configured)\"",
     "clean": "rm -rf dist .turbo",
-    "prepack": "cp ../../LICENSE ../../NOTICE .",
-    "postpack": "rm -f LICENSE NOTICE"
+    "prepack": "REDACT_PUBLISH=1 tsup && cp ../../LICENSE ../../NOTICE .",
+    "postpack": "rm -f LICENSE NOTICE && tsup"
   },
   "dependencies": {
     "fflate": "^0.8.3",

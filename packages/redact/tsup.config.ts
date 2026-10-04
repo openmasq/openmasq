@@ -14,7 +14,11 @@ export default defineConfig({
   format: ["esm", "cjs"],
   dts: true,
   clean: true,
-  sourcemap: true,
+  // The monorepo build keeps its maps (the app's bundle and its Sentry traces read `dist/`);
+  // the npm tarball ships none — they were two thirds of it. `prepack` rebuilds with
+  // REDACT_PUBLISH=1, `postpack` rebuilds the maps: no `sourceMappingURL` points at a file
+  // the tarball lacks.
+  sourcemap: !process.env.REDACT_PUBLISH,
   target: "node18",
   // The NER inference deps (transformers.js + onnxruntime) are optional — they are
   // lazy-`import()`ed at runtime and must never be bundled here (the consumer

@@ -40,6 +40,14 @@ try {
   for (const f of ["package/LICENSE", "package/NOTICE", "package/README.md", "package/dist/index.js"]) {
     if (!files.split("\n").includes(f)) fail(`${f} is missing from the tarball`);
   }
+  // No sourcemap ships, and no shipped file points at one (a dangling `sourceMappingURL` is a
+  // warning in every consumer's bundler).
+  const maps = files.split("\n").filter((f) => f.endsWith(".map"));
+  if (maps.length) fail(`${maps.length} sourcemap(s) in the tarball, e.g. ${maps[0]}`);
+  const code = files.split("\n").filter((f) => /\.(c|m)?js$/.test(f));
+  for (const f of code) {
+    if (run("tar", ["-xzOf", tarball, f], work).includes("sourceMappingURL=")) fail(`${f} references a sourcemap`);
+  }
 
   // A clean install with NO optional peer, then the core API in both module systems.
   const app = join(work, "consumer");
