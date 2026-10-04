@@ -57,13 +57,7 @@ export async function loadNer(dir: string): Promise<DetectLocal> {
     allowLocalModels: true,
   });
   return (text) =>
-    detectLocalNer(text, predict, {
-      chunkSize: 1000,
-      chunkOverlap: 100,
-      // Re-throw: `detectLocalNer` otherwise swallows a post-load inference failure to `[]`,
-      // which would forward the text with names in clear — the exact fail-open rule 7 forbids.
-      onError: (err) => {
-        throw err instanceof Error ? err : new Error(String(err));
-      },
-    });
+    // A post-load inference failure REJECTS (never a quiet `[]`): the masking pass reports it
+    // as `modelError` and the proxy refuses to forward the text (rule 7, fail closed).
+    detectLocalNer(text, predict, { chunkSize: 1000, chunkOverlap: 100 });
 }

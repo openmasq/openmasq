@@ -96,8 +96,7 @@ import { pseudonymize, requiresModel, detectLocalNer } from "@openmasq/redact";
 import { createNerPredict } from "@openmasq/redact/ner"; // + @huggingface/transformers, onnxruntime-node
 
 const predict = await createNerPredict();                 // à charger une fois, puis réutiliser
-const detectLocal = (t: string) =>
-  detectLocalNer(t, predict, { onError: (err) => { throw err; } }); // faire remonter l'échec
+const detectLocal = (t: string) => detectLocalNer(t, predict); // rejette si l'inférence échoue
 
 const res = await pseudonymize(text, { vault, disabledKinds, detectLocal });
 // Un détecteur en échec NE fait PAS échouer la passe : elle continue sur les règles et le dit.
