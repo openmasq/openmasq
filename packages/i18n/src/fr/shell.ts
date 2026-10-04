@@ -7,13 +7,15 @@ import type { Messages } from "../messages";
 export const shell = {
   rightRail: {
     ariaLabel: "Navigateur, dossiers et aide",
-    title: "Panneau droit",
+    footAriaLabel: "Aide, avis et mises à jour",
+    title: "Navigateur et fichiers",
     collapse: "Replier la barre",
     expand: "Déplier la barre",
     newBrowserTab: "Nouvel onglet navigateur",
-    browser: "Navigateur",
+    openBrowser: "Navigateur de l'assistant : ouvrir un onglet",
+    browser: "Navigateur de l'assistant",
     web: "Web",
-    noTabs: "Aucun onglet ouvert.",
+    noTabs: "Aucun onglet. L'assistant ouvre ici les pages qu'il consulte pour vous.",
     foldersTip: "Ouvrir les dossiers et le stockage connecté",
     folders: "Dossiers et stockage connecté",
     collapseItem: (label) => `Replier — ${label}`,

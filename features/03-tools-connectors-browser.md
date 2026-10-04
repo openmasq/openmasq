@@ -83,7 +83,8 @@ granting one's home directory. A removal takes effect immediately, not at the ne
 - [x] Sub-folders included, symbolic links resolved and refused if they lead out
 - [x] Secret stores stay forbidden even inside a granted folder
 - [x] Browse them **without leaving the conversation**: right rail → « Dossiers », an
-      expandable tree; a file opens in the shared side panel —
+      expandable tree; a file opens in the shared side panel; « Demander » on a folder,
+      the granted one included; a folder that can't be read says why under its row —
       `packages/ui/src/containers/shell/folders/FolderTreePanel.tsx`
 - [x] **Add a folder** from that same rail, or from the composer's « + » → « Dossier »
       (native picker; the grants already in place are kept — one gesture, two doors) —
