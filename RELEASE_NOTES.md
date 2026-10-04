@@ -51,20 +51,20 @@ kept in the French they were sent in, for the reason given above.
 ---
 
 ## 0.15.0 — 2026-10-04
-> The right sidebar and your folders are easier to find, read and use.
+> Find your way through a PDF at a glance, with every page, scans included, read and masked.
 
 ### What's new
+- **Page previews for PDFs** — a column beside the pages shows each one, masked, so you jump straight to it.
+- **Scanned pages are sent too** — scans inside a mostly digital PDF are read, masked and sent with the rest.
 - **A friendlier right sidebar** — it remembers its width, works from the keyboard, and Help is on every screen.
-- **Folders you can read** — each allowed folder shows its name and where it lives, not a raw path.
-- **Ask about any folder** — the folder you allowed now offers Ask too, not only the ones inside it.
 
 ### Improvements & fixes
-- Scanned pages inside a mostly digital PDF are read, masked and sent with the rest.
-- While a PDF is being masked, every page shows, each labelled until it is masked.
+- While a PDF is being masked, every page shows, labelled until it is masked.
+- PDFs with blank or scanned pages are read faster.
+- Allowed folders show their name and where they live, and the folder itself offers Ask.
 - Earlier messages are masked the same way on every new message, after a restart too.
 - Imported conversations are checked on your device before they are used.
 - Long lists of people each get a replacement name of their own.
-- Opening files and web searches follow stricter rules.
 
 ## 0.14.0 — 2026-10-03
 > Every document is masked from the first page to the last, and you can watch it happen.
