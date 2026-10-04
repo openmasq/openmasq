@@ -5,7 +5,7 @@ type Copy = Messages["documents"];
 
 /**
  * The extraction failure, worded in the user's language. `@openmasq/redact` stays pure: it
- * returns a stable `errorCode` (+ numbers) beside its French `error`; this is where the
+ * returns a stable `errorCode` (+ numbers) beside its English `error`; this is where the
  * code becomes a sentence. An absent or unknown code keeps the engine's text unchanged,
  * and so does a code whose numbers are missing: never a sentence with a hole in it.
  *

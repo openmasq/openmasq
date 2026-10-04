@@ -68,7 +68,7 @@ describe("extractFromBytes — format dispatch", () => {
     const f = await extractFromBytes(zipAsPdf, { name: "invoice.pdf" }, d);
     expect(f.blocked).toBe(true);
     expect(f.text).toBe("");
-    expect(f.error).toMatch(/ne correspond pas/i);
+    expect(f.error).toMatch(/does not match/i);
     expect(d.pdfText).not.toHaveBeenCalled(); // guard runs BEFORE any parser
   });
 
@@ -94,12 +94,12 @@ describe("extractFromBytes — format dispatch", () => {
     // The fallback ACKNOWLEDGES the failure without diagnosing it: an unknown cause (here a
     // missing module, elsewhere a binding crash) must not present itself as a verdict
     // on the device ("OCR unavailable on this device" when the models are actually there).
-    expect(f.error).toMatch(/reconnaissance de texte a échoué/i);
+    expect(f.error).toMatch(/text recognition failed/i);
     expect(f.error).not.toMatch(/indisponible sur cet appareil/i);
   });
 
-  it("image OCR failure → a deliberate FR message passes through untouched", async () => {
-    const clean = "moteur OCR indisponible (tesseract.js n'a pas pu être chargé — module manquant) — réinstallez l'application";
+  it("image OCR failure → a deliberate curated message passes through untouched", async () => {
+    const clean = "OCR engine unavailable (tesseract.js could not be loaded — module missing)";
     const d = { ...deps(), ocrImage: vi.fn(async () => { throw new Error(clean); }) };
     const f = await extractFromBytes(enc("\x89PNG"), { name: "card.png" }, d);
     expect(f.error).toBe(clean);

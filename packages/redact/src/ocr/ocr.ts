@@ -98,12 +98,12 @@ async function loadTesseract(): Promise<any> {
   } catch {
     throw new DocumentError(
       "ocr_engine_missing",
-      "moteur OCR indisponible (tesseract2.js n'a pas pu être chargé — module manquant) — réinstallez l'application",
+      "OCR engine unavailable (tesseract2.js could not be loaded — module missing)",
     );
   }
   const createWorker = mod?.createWorker ?? mod?.default?.createWorker;
   if (typeof createWorker !== "function") {
-    throw new DocumentError("ocr_engine_incompatible", "moteur OCR incompatible (tesseract2.js) — réinstallez l'application");
+    throw new DocumentError("ocr_engine_incompatible", "OCR engine incompatible (tesseract2.js)");
   }
   return createWorker;
 }
@@ -192,7 +192,7 @@ export async function ocrImageLayout(
       // Low confidence / non-latin script → fall through to Tesseract (broad coverage).
     } catch (e) {
       // A docTR failure must never break OCR — degrade to Tesseract (fail-safe).
-      console.warn("[ocr] docTR échec, repli sur Tesseract:", (e as Error)?.message);
+      console.warn("[ocr] docTR failed, falling back to Tesseract:", (e as Error)?.message);
     }
   }
   const r = await tesseractLayout(buf, lang);

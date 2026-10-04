@@ -97,11 +97,11 @@ describe("zip — l'ouverture se défend elle-même contre une bombe", () => {
   it("REFUSE une archive qui déclare des gigaoctets décompressés", async () => {
     // Throwing is this module's documented contract: `parseDocx`/`parsePptx` surface
     // « document illisible » plutôt qu'une page vide.
-    await expect(openOoxml(zipDeclaring(400 * 1024 * 1024))).rejects.toThrow(/anti-bombe/i);
+    await expect(openOoxml(zipDeclaring(400 * 1024 * 1024))).rejects.toThrow(/zip-bomb/i);
   });
 
   it("REFUSE un ratio de compression aberrant", async () => {
-    await expect(openOoxml(zipDeclaring(50 * 1024 * 1024, 1000))).rejects.toThrow(/anti-bombe/i);
+    await expect(openOoxml(zipDeclaring(50 * 1024 * 1024, 1000))).rejects.toThrow(/zip-bomb/i);
   });
 
   it("ouvre normalement un paquet OOXML ordinaire", async () => {

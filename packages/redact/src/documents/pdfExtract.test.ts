@@ -109,6 +109,6 @@ describe("an OCR failure fails the FILE — never a text missing pages", () => {
     const thin = async () => ({ text: "Relevé p.1", pages: 1, imagePages: 1 });
     const f = await extractFromBytes(PDF, { name: "scan.pdf" }, deps(thin, ocrPdf));
     expect(f.text).toBe("");
-    expect(f.error).toMatch(/PDF sans couche texte/);
+    expect(f.error).toMatch(/PDF without a text layer/);
   });
 });
