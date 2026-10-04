@@ -1,6 +1,6 @@
 # @openmasq/redact — masquage réversible des données personnelles pour les prompts LLM
 
-**[Guide développeur](https://help.openmasq.com/fr/redact)** · [Site](https://openmasq.com/fr/redact) · [Banc d'essai](https://github.com/openmasq/openmasq/tree/main/packages/redact/bench/spans) · [English](https://github.com/openmasq/openmasq/blob/main/packages/redact/README.md)
+**[Guide développeur](https://help.openmasq.com/fr/redact)** · [Site](https://openmasq.com/fr/redact) · [Banc d'essai](https://github.com/openmasq/openmasq/tree/dev/packages/redact/bench/spans) · [English](https://github.com/openmasq/openmasq/blob/dev/packages/redact/README.md)
 
 Détecte les données sensibles d'un prompt, les remplace par des **faux crédibles** avant
 qu'elles n'atteignent le modèle, et **restaure les vraies valeurs** dans la réponse. Hors
@@ -193,7 +193,7 @@ aussi). → [Guide : options et catégories](https://help.openmasq.com/fr/redact
 
 F1 au caractère sur les catégories ci-dessus, un seul correcteur pour tous les moteurs,
 rejouable hors ligne.
-[Méthode, la mesure plus stricte « chaque mention » et les manques par catégorie →](https://github.com/openmasq/openmasq/tree/main/packages/redact/bench/spans)
+[Méthode, la mesure plus stricte « chaque mention » et les manques par catégorie →](https://github.com/openmasq/openmasq/tree/dev/packages/redact/bench/spans)
 
 | corpus | cas | règles seules | règles + NER locale | Presidio + spaCy |
 |---|---:|---:|---:|---:|

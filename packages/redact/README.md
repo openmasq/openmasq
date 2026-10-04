@@ -1,10 +1,10 @@
 # @openmasq/redact — reversible PII redaction for LLM prompts
 
 [![npm](https://img.shields.io/npm/v/@openmasq/redact)](https://www.npmjs.com/package/@openmasq/redact)
-[![license](https://img.shields.io/npm/l/@openmasq/redact)](https://github.com/openmasq/openmasq/blob/main/LICENSE)
+[![license](https://img.shields.io/npm/l/@openmasq/redact)](https://github.com/openmasq/openmasq/blob/dev/LICENSE)
 [![types](https://img.shields.io/npm/types/@openmasq/redact)](https://www.npmjs.com/package/@openmasq/redact)
 
-**[Developer guide](https://help.openmasq.com/en/redact)** · [Website](https://openmasq.com/redact) · [Benchmark](https://github.com/openmasq/openmasq/tree/main/packages/redact/bench/spans) · [Français](https://github.com/openmasq/openmasq/blob/main/packages/redact/README.fr.md)
+**[Developer guide](https://help.openmasq.com/en/redact)** · [Website](https://openmasq.com/redact) · [Benchmark](https://github.com/openmasq/openmasq/tree/dev/packages/redact/bench/spans) · [Français](https://github.com/openmasq/openmasq/blob/dev/packages/redact/README.fr.md)
 
 Detect sensitive data in a prompt, replace it with **realistic fakes** before it reaches the
 model, and **restore the real values** in the reply. Offline, TypeScript, no network in the
@@ -192,7 +192,7 @@ public figures and brands stay readable (`peopleNotoriety: false` masks them too
 ## Benchmark
 
 Character-level F1 on the categories above, one scorer for every engine, replayable offline.
-[Method, the stricter "every mention" measure and per-category misses →](https://github.com/openmasq/openmasq/tree/main/packages/redact/bench/spans)
+[Method, the stricter "every mention" measure and per-category misses →](https://github.com/openmasq/openmasq/tree/dev/packages/redact/bench/spans)
 
 | corpus | cases | rules only | rules + on-device NER | Presidio + spaCy |
 |---|---:|---:|---:|---:|
