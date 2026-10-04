@@ -47,3 +47,12 @@ description = "The redaction engine's Bedrock rule, written as a regex"
 targetRules = ["aws-amazon-bedrock-api-key-short-lived"]
 regexTarget = "line"
 regexes = ['''bedrock-api-key-YmVkcm9jay5hbWF6b25hd3MuY29t\[''']
+
+[[allowlists]]
+# The package README documents the `secrets` option with ONE invented key and the fake the
+# engine turns it into. Allowed as those two EXACT strings and nothing else: any other
+# key-shaped value, in a README or anywhere, is still a finding. (Scoping this by path as
+# well with `condition = "AND"` silenced EVERY finding in the README on gitleaks 8.30.1.)
+description = "@openmasq/redact README: the documented example key and its fake"
+regexTarget = "match"
+regexes = ['''sk-live-(?:4f9a8b7c6d5e4f3a2b1c|3a3g7g1q5i9u5i5e7s9s)\b''']
