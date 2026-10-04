@@ -1,28 +1,33 @@
 # @openmasq/redact — masquage réversible des données personnelles pour les prompts LLM
 
-<sub>[English](https://github.com/openmasq/openmasq/blob/main/packages/redact/README.md) · **Français** · [openmasq.com/redact](https://openmasq.com/redact)</sub>
+**[Guide développeur](https://help.openmasq.com/fr/redact)** · [Site](https://openmasq.com/fr/redact) · [Banc d'essai](https://github.com/openmasq/openmasq/tree/main/packages/redact/bench/spans) · [English](https://github.com/openmasq/openmasq/blob/main/packages/redact/README.md)
 
 Détecte les données sensibles d'un prompt, les remplace par des **faux crédibles** avant
 qu'elles n'atteignent le modèle, et **restaure les vraies valeurs** dans la réponse. Hors
-ligne, TypeScript, aucun réseau dans le cœur. C'est le moteur d'[OpenMasq](https://openmasq.com),
+ligne, TypeScript, aucun réseau dans le cœur. C'est le moteur d'[OpenMasq](https://openmasq.com/fr),
 l'application de bureau LLM qui protège vos données.
 
 ```bash
 npm install @openmasq/redact
 ```
 
-```ts
-import { pseudonymize, unredact } from "@openmasq/redact";
+## Démarrage
 
-const vault = {};                                         // le vôtre : gardez-le, ne l'envoyez jamais
-const { text } = await pseudonymize(prompt, { vault });  // ce que voit le modèle
-const reply = await callYourLLM(text);
-const restored = unredact(reply, vault);                  // ce que voit l'utilisateur
+```ts
+import { pseudonymize, unredactReply } from "@openmasq/redact";
+
+const vault = {};                                         // un par conversation — gardez-le, ne l'envoyez jamais
+const { text } = await pseudonymize(
+  "Write to Claire Martin (claire.martin@acme.fr) about invoice FR76 3000 6000 0112 3456 7890 189.",
+  { vault },
+);
+// text → "Write to Eulalie Fressineau (eulalie.fressineau@courlys.fr) about invoice FR76 1050 8147 1788 2958 0420 560."
+
+const reply = await callYourLLM(text);                    // "Dear Eulalie Fressineau, …"
+const shown = unredactReply(reply, vault);                // "Dear Claire Martin, …"
 ```
 
 ## Ce que voit le modèle
-
-Une entrée, trois modes (sortie réelle de la `0.1.0`) :
 
 ```text
 entrée       Hi, I'm Jean Dupont. Mail jean.dupont@example.org, phone +33 6 12 34 56 78,
@@ -37,23 +42,138 @@ redact       Hi, I'm Jean Dupont. Mail [REDACTED_EMAIL_1], phone [REDACTED_PHONE
              IBAN [REDACTED_IBAN_1], server [REDACTED_IP_1]
 ```
 
-- **Les faux gardent la forme** : un faux IBAN passe la clé de contrôle, un faux numéro de
-  téléphone est valide, un faux prénom garde son genre. Le modèle raisonne sur des données
-  plausibles, sa réponse reste utile.
-- **Les jetons** (`mode: "token"`) laissent le moins fuiter — un faux code postal désigne encore
-  une région — au prix d'un peu de qualité de réponse.
-- **`redact`** est la passe synchrone, règles seules. `pseudonymize` y ajoute la détection des
-  noms et du contexte, et la NER locale optionnelle.
+- **Les faux gardent la forme** : un faux IBAN passe le mod-97, une fausse carte passe Luhn, un
+  faux numéro est valide, un faux email correspond au faux nom. Le modèle raisonne sur des
+  données plausibles.
+- **Les jetons** (`mode: "token"`) laissent le moins fuiter, au prix d'un peu de qualité.
+- **`redact`** est synchrone et ne fait que les règles — pas de détection des noms, comme le
+  montre la sortie.
 
-## Le coffre
+## Exemples
 
-Un `Vault` est un simple objet JSON : substitut → vraie valeur. Passez le même à chaque tour
-d'une conversation : une valeur garde **un seul** substitut du début à la fin, le modèle peut y
-faire référence, et `unredact` la restaure partout — dans le texte, dans les arguments JSON
-d'un appel d'outil (`unredactArgs`), dans une date reformatée.
+Chaque exemple est raccourci d'un script exécuté sur cette version ; les sorties sont réelles.
 
-**Le coffre est la donnée sensible.** Le moteur ne le stocke ni ne l'envoie jamais : gardez-le
-en mémoire, chiffrez-le au repos, ne le mettez jamais dans un prompt ni dans un log.
+### Une conversation : un coffre, un sel
+
+Une valeur garde **un seul** substitut pendant toute la conversation : le modèle peut y revenir.
+
+```ts
+import { pseudonymize, unredactReply, type Vault } from "@openmasq/redact";
+import { randomInt } from "node:crypto";
+
+const conv = { vault: {} as Vault, salt: randomInt(1, 2 ** 31) }; // à stocker avec la conversation
+
+await pseudonymize("Book a table for Lucas Bernard.", { vault: conv.vault, salt: conv.salt });
+// → "Book a table for Aymeric Bouchereau."
+await pseudonymize("Also invite Lucas Bernard's sister.", { vault: conv.vault, salt: conv.salt });
+// → "Also invite Aymeric Bouchereau's sister."            même faux, tour suivant
+
+const saved = JSON.stringify(conv);  // à persister CHIFFRÉ : le coffre contient les vraies valeurs
+```
+
+Le `salt` rend la correspondance valeur → faux propre à cette conversation ; sans lui, c'est un
+hachage déterministe et public.
+
+### Appels d'outils : les vraies valeurs sortent, les résultats reviennent masqués
+
+```ts
+import { pseudonymize, unredactArgs } from "@openmasq/redact";
+
+// Le modèle appelle un outil avec le faux qu'il a vu. Restaurez les VRAIES valeurs avant d'exécuter :
+const args = JSON.parse(unredactArgs(toolCall.arguments, vault));   // { from: "paul.durand@example.com" }
+const result = await searchMail(args);
+
+// Masquez la réponse de l'outil avec le MÊME coffre avant que le modèle ne la lise :
+const { text } = await pseudonymize(result, { vault });
+// "3 emails from firmin.guilbaud@orbisel.nl, last one signed by Firmin Guilbaud, +33 6 50 11 00 45"
+```
+
+`unredactReply` sert à **afficher** une réponse (il répare aussi les faux légèrement modifiés
+par le modèle) ; `unredactArgs` sert aux **arguments envoyés à un vrai outil** (exact, formes
+encodées en URL comprises, jamais de supposition).
+
+### Choisir ce qu'on masque
+
+```ts
+const r = await pseudonymize(
+  "Ticket from Camille Laurent at Acme Corp, see https://help.acme.io. Key: sk-live-4f9a8b7c6d5e4f3a2b1c",
+  {
+    vault,
+    disabledKinds: ["url"],                    // catégories laissées EN CLAIR — tout le reste est masqué
+    keep: ["Acme"],                            // valeurs jamais masquées, telles que détectées (voir r.matches)
+    secrets: ["sk-live-4f9a8b7c6d5e4f3a2b1c"], // chaînes exactes toujours masquées
+  },
+);
+// "Ticket from Sidonie Mabille at Acme Corp, see https://help.acme.io. Key: sk-live-3a3g7g1q5i9u5i5e7s9s"
+// r.matches → NAME: Camille Laurent → Sidonie Mabille · API_KEY: sk-live-4f9a… → sk-live-3a3g…
+```
+
+- Une catégorie ajoutée dans une version future est masquée par défaut.
+- **Les dates ordinaires** sont la seule exception : elles ne sont masquées que si
+  `disabledKinds` est fourni et ne contient pas `"date"`. Un appel nu ne masque jamais une date.
+- `keep` compare la valeur **telle que détectée** : ici le moteur détecte « Acme », donc
+  « Acme Corp » ne correspondrait pas. Regardez `r.matches`.
+
+### Nettoyer les logs et les rapports d'erreur
+
+```ts
+import { redactText } from "@openmasq/redact";
+
+redactText("POST /login user=marc@example.org token=eyJhbGciOi… from 192.168.1.24");
+// "POST /login user=[REDACTED_EMAIL_1] token=[REDACTED_JWT_1] from [REDACTED_IP_1]"
+```
+
+### Montrer à l'utilisateur ce qui a été masqué
+
+```ts
+import { pseudonymize, toSegments, redactionCategory } from "@openmasq/redact";
+
+const { matches } = await pseudonymize(original, { vault });
+const kinds = Object.fromEntries(matches.map((m) => [m.value, redactionCategory(m.category ?? m.type)]));
+for (const s of toSegments(original, vault, kinds)) render(s); // { kind: "text" | "redaction", value, label }
+// Send the contract to [Inès Moreau · name], [ines.moreau@example.fr · email]
+```
+
+## Les noms exigent un modèle — échouer fermé
+
+Noms, entreprises, adresses, lieux et dates de naissance (`MODEL_CATEGORIES`) n'ont pas de
+forme qu'une règle reconnaisse. Sans modèle, seules leurs formes ancrées sont attrapées :
+« Camille Laurent » l'est, « Julie Petit » non, et dans « Mme Julie Petit » seul « Julie »
+l'est. Faites tourner la NER locale, et refusez d'envoyer quand elle échoue :
+
+```ts
+import { pseudonymize, requiresModel, detectLocalNer } from "@openmasq/redact";
+import { createNerPredict } from "@openmasq/redact/ner"; // + @huggingface/transformers, onnxruntime-node
+
+const predict = await createNerPredict();                 // à charger une fois, puis réutiliser
+const res = await pseudonymize(text, { vault, disabledKinds, detectLocal: (t) => detectLocalNer(t, predict) });
+
+// Un modèle en échec ne fait pas échouer la passe : elle continue sur les règles et le signale.
+if (res.modelError) throw new Error(`non envoyé : ${res.modelError}`);
+```
+
+Sans aucun détecteur, refusez si `requiresModel(disabledKinds)` est vrai.
+`createNerPredict()` télécharge `openmasq/ner-multilingual` depuis Hugging Face, épinglé à un
+commit relu. En production, téléchargez-le une fois, vérifiez chaque fichier contre
+`NER_WEIGHTS_SHA256`, et chargez-le hors ligne (`modelName` + `allowLocalModels`).
+→ [Guide : les noms et la NER](https://help.openmasq.com/fr/redact-ner)
+
+## Documents
+
+```ts
+import { extractBytes } from "@openmasq/redact/documents"; // + pdfjs-dist, @napi-rs/canvas ; mammoth pour le DOCX
+import { pseudonymize } from "@openmasq/redact";
+
+const file = await extractBytes(bytes, "payslip.pdf", "application/pdf");
+if (file.errorCode) throw new Error(file.errorCode);      // l'extraction ne lève jamais : testez-le
+const { text } = await pseudonymize(file.text, { vault });
+```
+
+**Les scans ne sont pas encore pris en charge.** Une page de PDF courte (moins de 120
+caractères), qui contient une image ou des champs de formulaire part à l'OCR, qui n'est pas
+publié : le document renvoie alors `errorCode: "ocr_engine_missing"` et aucun texte. `error` est un
+message en anglais ; `errorCode` est la valeur stable à tester.
+→ [Guide : les documents](https://help.openmasq.com/fr/redact-documents)
 
 ## Ce qui est détecté
 
@@ -62,59 +182,18 @@ en mémoire, chiffrez-le au repos, ne le mettez jamais dans un prompt ni dans un
 | `secret`, `apikey` | clés d'API (OpenAI, Anthropic, AWS, GitHub, Slack…), JWT, clés privées, chaînes de connexion, cookies | règles |
 | `email`, `phone`, `ip`, `url`, `path`, `username` | adresses, numéros validés par libphonenumber, IPv4/6, chemins de fichiers, `@pseudos` | règles |
 | `card`, `iban`, `national_id`, `company_id` | validés par clé de contrôle (Luhn, IBAN mod-97…), SSN / NIR, SIREN / TVA | règles |
-| `dob`, `date` | dates de naissance (étiquetées), autres dates — **sur demande** (voir plus bas) | règles + modèle |
+| `dob`, `date` | dates de naissance (étiquetées), autres dates — sur demande | règles + modèle |
 | `name`, `company`, `address`, `location` | personnes, organisations, adresses postales, villes et lieux | **modèle** + règles pour les formes ancrées |
 
-Les listes sont d'abord réglées pour le français et l'anglais ; les adresses couvrent
-FR/EN/DE/ES/IT/PT/NL et le CJK. Les personnalités et marques connues restent lisibles
-(désactivable avec `peopleNotoriety: false`).
-
-## Choisir ce qu'on masque
-
-`disabledKinds` liste les catégories à **laisser en clair** ; tout le reste est masqué, donc une
-catégorie ajoutée dans une version future est masquée par défaut.
-
-```ts
-await pseudonymize(text, { vault, disabledKinds: ["url", "path"] });
-```
-
-Les dates ordinaires sont la seule exception : elles ne sont masquées que si `disabledKinds` est
-fourni et ne contient pas `"date"` — un appel nu ne masque jamais une date simple. Autres
-options : `keep` (valeurs exactes jamais masquées), `forced` (une valeur masquée dans une
-catégorie), `secrets` (chaînes exactes toujours masquées), `numbers` (remplace aussi les
-nombres isolés).
-
-## Échouer fermé : les noms exigent un modèle
-
-Noms, entreprises, adresses, lieux et dates de naissance (`MODEL_CATEGORIES`) n'ont pas de forme
-qu'une règle reconnaisse de façon fiable ; les règles n'en attrapent que les formes ancrées.
-Quand l'une d'elles est active, faites tourner un détecteur à modèle — ou refusez la passe
-plutôt que d'envoyer un texte à moitié masqué :
-
-```ts
-import { pseudonymize, requiresModel, detectLocalNer } from "@openmasq/redact";
-import { createNerPredict } from "@openmasq/redact/ner"; // + @huggingface/transformers, onnxruntime-node
-
-const predict = await createNerPredict();                 // à charger une fois, puis réutiliser
-const detectLocal = (t: string) => detectLocalNer(t, predict); // rejette si l'inférence échoue
-
-const res = await pseudonymize(text, { vault, disabledKinds, detectLocal });
-// Un détecteur en échec NE fait PAS échouer la passe : elle continue sur les règles et le dit.
-if (res.modelError && requiresModel(disabledKinds)) throw new Error(`non envoyé : ${res.modelError}`);
-```
-
-Sans aucun détecteur, testez `requiresModel(disabledKinds)` avant la passe et refusez s'il
-renvoie vrai.
-
-`createNerPredict()` charge `openmasq/ner-multilingual` depuis Hugging Face, épinglé à un commit
-relu (`NER_REVISIONS`). En production, téléchargez-le une fois, vérifiez chaque fichier contre
-`NER_WEIGHTS_SHA256`, et chargez-le hors ligne (`modelName` + `allowLocalModels`).
+Réglé d'abord pour le français et l'anglais ; les adresses couvrent FR/EN/DE/ES/IT/PT/NL et le
+CJK. Les personnalités et marques connues restent lisibles (`peopleNotoriety: false` les masque
+aussi). → [Guide : options et catégories](https://help.openmasq.com/fr/redact-options)
 
 ## Banc d'essai
 
 F1 au caractère sur les catégories ci-dessus, un seul correcteur pour tous les moteurs,
 rejouable hors ligne.
-[Méthode complète, la mesure plus stricte « chaque mention » et les manques par catégorie →](https://github.com/openmasq/openmasq/tree/main/packages/redact/bench/spans)
+[Méthode, la mesure plus stricte « chaque mention » et les manques par catégorie →](https://github.com/openmasq/openmasq/tree/main/packages/redact/bench/spans)
 
 | corpus | cas | règles seules | règles + NER locale | Presidio + spaCy |
 |---|---:|---:|---:|---:|
@@ -124,38 +203,39 @@ rejouable hors ligne.
 | ai4privacy | 2000 | 0,756 | 0,827 | 0,579 |
 | Nemotron | 2000 | 0,627 | **0,928** | 0,768 |
 
-À lire honnêtement : **les bons scores exigent la NER** ; les règles seules sont sous Presidio
-sur TAB et Nemotron. Un autre détecteur, PII-Tracer, fait mieux sur ai4privacy (0,952). Le F1
-donne des points partiels — quand chaque mention d'une valeur doit être trouvée, TAB tombe à 49 %.
+**Les bons scores exigent la NER** ; les règles seules sont sous Presidio sur TAB et Nemotron.
+Un autre détecteur, PII-Tracer, fait mieux sur ai4privacy (0,952). Le F1 donne des points
+partiels — quand chaque mention d'une valeur doit être trouvée, TAB tombe à 49 %.
 
 ## Entrées et dépendances optionnelles
 
-L'entrée principale ne dépend que de `libphonenumber-js` et `fflate`. Les autres demandent des
-dépendances optionnelles à installer vous-même :
-
 | Entrée | Pour | À installer |
 |---|---|---|
-| `@openmasq/redact` | texte : détecter, masquer, restaurer | — |
+| `@openmasq/redact` | texte : détecter, masquer, restaurer | — (`libphonenumber-js`, `fflate`) |
 | `/ner` | NER locale | `@huggingface/transformers`, `onnxruntime-node` |
-| `/documents`, `/documents.browser` | texte de PDF, DOCX, XLSX | `pdfjs-dist`, `mammoth`, `@napi-rs/canvas` (Node), `xlsx` ≥ 0.20.3 depuis le [CDN officiel SheetJS](https://cdn.sheetjs.com) |
+| `/documents`, `/documents.browser` | texte de PDF, DOCX, XLSX | `pdfjs-dist`, `@napi-rs/canvas` (Node), `mammoth`, `xlsx` ≥ 0.20.3 depuis le [CDN officiel SheetJS](https://cdn.sheetjs.com) |
 | `/inplace` | masquer un DOCX/XLSX en gardant son format | `xlsx` (idem) |
-| `/pdf-redact`, `/image-redact` | peindre les masques sur un PDF ou un scan | `pdfjs-dist`, `@napi-rs/canvas` (Node) |
+| `/pdf-redact`, `/image-redact` | peindre les masques sur un PDF ou une image | `pdfjs-dist`, `@napi-rs/canvas` (Node) |
 
-L'OCR des scans n'est pas encore publié : un document qui en a besoin échoue avec une
-`DocumentError` de code `ocr_engine_missing` ; les couches texte s'extraient normalement.
+## FAQ
 
-## Versions
+**Est-ce que quelque chose quitte la machine ?** Non : le cœur ne fait aucun appel réseau.
+Seuls l'entrée `/remote`, sur demande, et le premier téléchargement du modèle NER touchent le
+réseau.
 
-`0.x` : une version mineure peut changer l'API. La détection s'améliore d'une version à
-l'autre — la même entrée peut être masquée différemment après une mise à jour. Épinglez une
-version exacte si vous avez besoin d'une sortie stable.
+**Où stocker le coffre ?** Avec la conversation, chiffré au repos. Il associe chaque faux à la
+vraie valeur : traitez-le comme la donnée d'origine.
+
+**La sortie change-t-elle d'une version à l'autre ?** Oui — la détection s'améliore. En `0.x`,
+une version mineure peut aussi changer l'API. Épinglez une version exacte pour une sortie stable.
+
+Plus de recettes et de détails : **[le guide développeur](https://help.openmasq.com/fr/redact)**.
 
 ## Contribuer
 
-Le moteur vit dans le [monorepo OpenMasq](https://github.com/openmasq/openmasq) — l'application
-consomme ce paquet depuis les sources. `src/engine/` contient les règles, les faux et le coffre ;
-`src/model/` le pipeline de candidats et les vocabulaires ; `src/__cases__/` le corpus de
-non-régression ; `bench/` les bancs publics. `pnpm test:redact` est la voie rapide : la suite
-est la spécification, et une règle sans cas n'est pas finie.
+Le moteur vit dans le [monorepo OpenMasq](https://github.com/openmasq/openmasq), où
+l'application le consomme depuis les sources. `src/engine/` contient les règles, les faux et le
+coffre ; `src/model/` le pipeline de candidats ; `src/__cases__/` le corpus de non-régression ;
+`bench/` les bancs publics. `pnpm test:redact` est la voie rapide : la suite est la spécification.
 
 Apache-2.0 © OpenMasq
