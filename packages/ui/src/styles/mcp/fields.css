@@ -77,11 +77,86 @@
   font-size: 11px;
   color: var(--text-muted);
 }
-.mcp-param {
+
+/* ── A local connector's folders (`McpDirList`) ──────────────────────────────
+   A COLUMN: label, the list, then « Ajouter » on its own line. The old row-wrap put
+   all three on one line and let them break wherever the width ran out. */
+.mcp-granted-dirs {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+/* `flex-start`: « Ajouter » keeps its own width; the list asks for 100% itself. */
+.mcp-dirs {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+}
+.mcp-dirs-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-strong);
+}
+.mcp-dir-list {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--border-default);
+  border-radius: var(--radius-md);
+  background: var(--surface-card);
+  overflow: hidden;
+}
+.mcp-dir {
   display: flex;
   align-items: center;
-  gap: 8px;
-  flex-wrap: wrap;
+  gap: 10px;
+  padding: 8px 8px 8px 12px;
+}
+.mcp-dir + .mcp-dir {
+  border-top: 1px solid var(--border-subtle);
+}
+.mcp-dir-ico {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+.mcp-dir-text {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+/* The name and its location each stay on ONE line: a path cut with an ellipsis reads,
+   a path broken mid-word does not. The whole path is the row's tooltip. */
+.mcp-dir-name,
+.mcp-dir-path {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.mcp-dir-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-strong);
+}
+.mcp-dir-path {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.mcp-dir-x {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+}
+.mcp-dir-x:hover:not(:disabled) {
+  background: var(--surface-hover);
+  color: var(--text-strong);
+}
+.mcp-dir-x:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
 }
 
 /* ── Action button ───────────────────────────────────────────────────────── */

@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import type { LocalFsEntry } from "../../host";
 import {
+  displayParent,
   isWithin,
   rootOf,
   sortEntries,
@@ -68,5 +69,21 @@ describe("affichage du listing", () => {
     expect(visibleEntries(entries, { query: "env", showHidden: true }).map((e) => e.name)).toEqual([
       ".env",
     ]);
+  });
+});
+
+describe("displayParent — où vit un dossier, lisible", () => {
+  it("le dossier personnel se lit `~`, sur les trois systèmes", () => {
+    expect(displayParent("/Users/ana/Documents/Clients")).toBe("~/Documents");
+    expect(displayParent("/home/ana/projets/devis")).toBe("~/projets");
+    expect(displayParent("C:\\Users\\ana\\Documents\\Clients")).toBe("~\\Documents");
+    expect(displayParent("/Users/ana/Desktop")).toBe("~");
+  });
+
+  it("ailleurs, le parent tel quel — un séparateur final ne compte pas", () => {
+    expect(displayParent("/Volumes/Disque/Dossiers/")).toBe("/Volumes/Disque");
+    expect(displayParent("/srv")).toBe("/");
+    // The home is whichever account's folder the path starts in — the renderer doesn't know the user's name.
+    expect(displayParent("/Users/anabelle/x/y")).toBe("~/x");
   });
 });
