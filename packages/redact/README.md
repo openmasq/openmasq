@@ -172,8 +172,8 @@ const { text } = await pseudonymize(file.text, { vault });
 
 **Scans are not supported yet.** A PDF page that is short (under 120 characters), paints an
 image or carries form fields is sent to OCR, which is not published: such a document returns
-`errorCode: "ocr_engine_missing"` and no text at all. Error messages are in French for now;
-rely on `errorCode`. → [Guide: documents](https://help.openmasq.com/en/redact-documents)
+`errorCode: "ocr_engine_missing"` and no text at all. `error` is an English
+message; `errorCode` is the stable value to branch on. → [Guide: documents](https://help.openmasq.com/en/redact-documents)
 
 ## What it detects
 
