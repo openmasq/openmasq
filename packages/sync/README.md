@@ -1,32 +1,40 @@
-# @openmasq/sync — cross-device sync
+[Français](README.fr.md)
 
-<sub>**English** · [Français](#openmasqsync--la-synchronisation-entre-appareils) · [openmasq.com](https://openmasq.com)</sub>
+# @openmasq/sync
 
-End-to-end encrypted synchronisation of a user's records (conversations oplog, vaults,
-vault terms, skills) and the **organisation scopes** (shares approved by an admin or a
-recipient), plus the audit trail. Pure TypeScript shared by every client.
+**End-to-end encrypted sync between devices, and the organization channels.**
 
-**Boundary.** Depends on `@openmasq/schema` for shapes. The record kinds, scopes and
-payload discriminators in `src/recordTypes.ts` / `src/orgScope/` are **wire literals**:
-they are read back from other devices and must never change value, whatever the
-identifier is called.
+The client side of OpenMasq sync, in plain TypeScript with WebCrypto and `fetch`. The
+server only ever stores ciphertext. In this repository the consumer is the desktop
+renderer (`apps/desktop/src/renderer/src/sync/`). It is a private workspace package, not
+published on npm.
 
-**Start here.** `src/records.ts` (the oplog merge), `src/vaultTerms.ts`, `src/userdata.ts`,
-`src/orgScope/`.
+## What's inside
 
----
+- **Record sync**: conversations, the integrations directory, skills, workflows, memory and
+  vault terms, as an append-only log of encrypted records. Merging is a union, with
+  last-write-wins per entity on Lamport clocks (`src/records.ts`).
+- **Vault sync**: the redaction vault of a conversation, encrypted on the device and stored
+  as one opaque blob (`src/vaultClient.ts`).
+- **Organization shares**: vault terms and skills shared with the whole organization, a
+  team or one person, readable only once approved (`src/orgScope/`).
+- **Organization audit**: counts of redacted values per category, never a value
+  (`src/events.ts`).
+- **Transports**: `httpTransport` and `orgHttpTransport` (`src/transport/`).
 
-# @openmasq/sync — la synchronisation entre appareils
+## Develop
 
-La synchronisation chiffrée de bout en bout des enregistrements d'un utilisateur (oplog des
-conversations, coffres, termes de coffre, compétences) et des **portées d'organisation**
-(partages approuvés par un administrateur ou un destinataire), plus la piste d'audit. Du
-TypeScript pur, partagé par tous les clients.
+```bash
+pnpm --filter @openmasq/sync build       # tsup, into dist/
+pnpm --filter @openmasq/sync typecheck
+pnpm test packages/sync                  # from the root
+```
 
-**Frontière.** Dépend de `@openmasq/schema` pour les formes. Les types d'enregistrement, les
-portées et les discriminants de charge utile dans `src/recordTypes.ts` / `src/orgScope/` sont
-des **littéraux de protocole** : ils sont relus depuis d'autres appareils et ne doivent jamais
-changer de valeur, quel que soit le nom de l'identifiant.
+> [!NOTE]
+> Sync needs a backend that is not part of this repository. A build from these sources
+> runs without it.
 
-**Commencez ici.** `src/records.ts` (la fusion de l'oplog), `src/vaultTerms.ts`,
-`src/userdata.ts`, `src/orgScope/`.
+> [!IMPORTANT]
+> Record kinds and scope names are read back by other devices, so their string values must
+> never change, even when the identifier is renamed. `VAULT_TERMS_SCOPE`, for example, is
+> `"@coffre"` (`src/recordTypes.ts`, `src/orgScope/orgTypes.ts`).

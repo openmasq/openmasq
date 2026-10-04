@@ -1,21 +1,37 @@
-# @openmasq/schema — the persisted chat schema
+[Français](README.fr.md)
 
-<sub>**English** · [Français](#openmasqschema--le-schéma-de-chat-persisté) · [openmasq.com](https://openmasq.com)</sub>
+# @openmasq/schema
 
-`Role`, `Message`, `Conversation`, `RedactCategoryKey`: the shapes written to disk and
-synced between devices. **Types only, zero runtime**, so the desktop and any other client
-cannot drift from each other.
+**The persisted chat schema: the shapes OpenMasq writes to disk and syncs.**
 
-**Boundary.** A field here is a persisted key: add optional fields, never rename or
-remove one without a migration on every reader.
+`Message`, `Conversation` and their companions are declared once here. `@openmasq/ui`
+re-exports them for the desktop app, and `@openmasq/sync` reads them to apply synced
+conversations. The package holds types only, with no runtime code, and depends only on
+`@openmasq/redact` for the redaction category names.
 
----
+## What's inside
 
-# @openmasq/schema — le schéma de chat persisté
+- **`Role`**: `"system" | "user" | "assistant"`.
+- **`Message`**: one chat message as stored (`src/message.ts`).
+- **`Conversation`**: a conversation and its settings (`src/conversation.ts`).
+- **`AskTarget`**: the folder or file a question is about, local or in connected cloud storage,
+  stored on the user message (`src/askTarget.ts`).
+- **`RedactCategoryKey`**: the user-toggleable redaction categories, an alias of the
+  engine's `RedactionCategory`.
 
-`Role`, `Message`, `Conversation`, `RedactCategoryKey` : les formes écrites sur le disque et
-synchronisées entre appareils. **Des types seulement, zéro runtime**, pour que le bureau et
-tout autre client ne puissent pas diverger.
+```ts
+import type { Conversation, Message } from "@openmasq/schema";
+```
 
-**Frontière.** Un champ ici est une clé persistée : ajoutez des champs optionnels, n'en
-renommez et n'en retirez jamais un sans une migration chez tous les lecteurs.
+## Develop
+
+```bash
+pnpm --filter @openmasq/schema build       # tsup → dist/, rebuild before a consumer build
+pnpm --filter @openmasq/schema typecheck
+```
+
+There are no tests here. A schema change is exercised by the consumers' builds and tests.
+
+> [!IMPORTANT]
+> Every field is a persisted key. Add optional fields only. Renaming or repurposing a field
+> needs a storage migration on every reader.

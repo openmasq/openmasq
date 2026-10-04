@@ -1,32 +1,49 @@
-# @openmasq/llm — providers and models
+[Français](README.fr.md)
 
-<sub>**English** · [Français](#openmasqllm--fournisseurs-et-modèles) · [openmasq.com](https://openmasq.com)</sub>
+# @openmasq/llm
 
-One `streamChat(options)` over `fetch` + SSE for every provider (OpenAI, Anthropic,
-Google, DeepSeek, OpenRouter, OpenAI-compatible endpoints, the Claude Code / Codex CLIs),
-plus `completeWithTools` / `streamWithTools` for tool calling, and the model registry
-(context windows, pricing, capabilities).
+**Provider clients and the model registry, over plain `fetch`.**
 
-**Boundary.** No Electron, no React, no vault: what this package sends is what it is
-given — redaction happens before, in `@openmasq/ui/send`. `./wire` exposes the provider
-byte formats other workspaces must import rather than re-type; `./pricing` the tariffs.
+One streaming function for every HTTP provider, tool calling, and the list of models with
+their context windows, prices and capabilities. No Electron, no React and no vault: the
+package sends what it is given, and redaction happens before, in `packages/ui/src/send/`.
+It is used by `@openmasq/ui`, `@openmasq/catalog`, `@openmasq/credits` and the desktop main
+process. It is a private workspace package, not published on npm.
 
-**Start here.** `src/index.ts`, then `src/models/` (the registry) and one provider client
-under `src/providers/` to see the streaming contract.
+## What's inside
 
----
+- **`streamChat(options)`**: streams a reply as text deltas from OpenAI, Anthropic, Google,
+  Mistral, DeepSeek, OpenRouter, Scaleway or any OpenAI-compatible endpoint.
+- **Tool calling**: `completeWithTools` and `streamWithTools` (`src/tools/`).
+- **Model registry**: `MODELS`, `PROVIDERS`, `findModel`, context windows and prices
+  (`src/models/`).
+- **`@openmasq/llm/pricing`**: the price and context tables alone, without the provider
+  clients.
+- **`@openmasq/llm/wire`**: the SSE reader and the per-provider usage and text parsers, for
+  code that must read provider bytes the same way without retyping them.
 
-# @openmasq/llm — fournisseurs et modèles
+```ts
+import { streamChat } from "@openmasq/llm";
 
-Un seul `streamChat(options)` sur `fetch` + SSE pour tous les fournisseurs (OpenAI,
-Anthropic, Google, DeepSeek, OpenRouter, les points d'accès compatibles OpenAI, les CLI
-Claude Code / Codex), plus `completeWithTools` / `streamWithTools` pour l'appel d'outils, et
-le registre des modèles (fenêtres de contexte, tarifs, capacités).
+for await (const delta of streamChat({
+  provider: "openai",
+  model: "gpt-5.4-mini",
+  apiKey,
+  messages: [{ role: "user", content: "Hello" }],
+})) {
+  process.stdout.write(delta);
+}
+```
 
-**Frontière.** Pas d'Electron, pas de React, pas de coffre : ce que ce paquet envoie est ce
-qu'on lui a donné — le masquage a lieu avant, dans `@openmasq/ui/send`. `./wire` expose les
-formats d'octets des fournisseurs que les autres workspaces doivent importer plutôt que
-retaper ; `./pricing`, les tarifs.
+## Develop
 
-**Commencez ici.** `src/index.ts`, puis `src/models/` (le registre) et un client de
-fournisseur sous `src/providers/` pour voir le contrat de streaming.
+```bash
+pnpm --filter @openmasq/llm build       # tsup, into dist/
+pnpm --filter @openmasq/llm typecheck
+pnpm test packages/llm                  # from the root
+```
+
+> [!NOTE]
+> The CLI subscriptions (Claude Code, Codex, Antigravity) are listed as providers here, but
+> `streamChat` does not serve them. The desktop runs them in
+> `apps/desktop/src/main/subscription/`.

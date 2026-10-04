@@ -1,22 +1,42 @@
-# @openmasq/i18n — the typed message catalogue
+[Français](README.fr.md)
 
-<sub>**English** · [Français](#openmasqi18n--le-catalogue-de-messages-typé) · [openmasq.com](https://openmasq.com)</sub>
+# @openmasq/i18n
 
-**French is the source, English ships beside it in the same commit.** Structure (ids,
-order, flags) stays in code; copy comes here, typed, so a missing key fails typecheck.
-No React, no library: the renderer, the main process and servers import it alike.
+**The typed message catalogue for OpenMasq, in French and English.**
 
-**Start here.** `src/fr/` (source), `src/en/` (its mirror), `src/index.ts`. The
-`check:i18n` gate refuses hardcoded copy in either language.
+Every string a person reads in the app comes from here. French is the source language and
+English ships beside it. The package has no React and no runtime library, so the renderer,
+the desktop main process and the local proxy (`apps/proxy`) import it alike. The React layer
+(`I18nProvider`, `useT()`) lives in `@openmasq/ui`.
 
----
+## What's inside
 
-# @openmasq/i18n — le catalogue de messages typé
+- **The contract**: `src/messages.ts` declares the `Messages` interface, one slice per
+  screen in `src/messages/`. A key missing from either language is a `tsc` error.
+- **The two catalogues**: `src/fr/` (source) and `src/en/` (its mirror), assembled by
+  `src/fr.ts` and `src/en.ts`.
+- **Locale helpers**: `Locale`, `LOCALES`, `DEFAULT_LOCALE` (`"fr"`), `isLocale`,
+  `resolveLocale` and `getMessages`, in `src/locale.ts`.
 
-**Le français est la source, l'anglais part à côté dans le même commit.** La structure (ids,
-ordre, drapeaux) reste dans le code ; la copie vient ici, typée, pour qu'une clé manquante
-fasse échouer le typecheck. Pas de React, pas de bibliothèque : le renderer, le processus
-principal et les serveurs l'importent pareil.
+```ts
+import { getMessages, resolveLocale, DEFAULT_LOCALE } from "@openmasq/i18n";
 
-**Commencez ici.** `src/fr/` (la source), `src/en/` (son miroir), `src/index.ts`. La porte
-`check:i18n` refuse la copie codée en dur dans l'une ou l'autre langue.
+const t = getMessages(resolveLocale(navigator.language) ?? DEFAULT_LOCALE);
+```
+
+Entries that take a variable are typed functions. Numbers, dates and currencies go through
+`Intl`.
+
+## Develop
+
+```bash
+pnpm --filter @openmasq/i18n build       # tsup → dist/
+pnpm --filter @openmasq/i18n typecheck
+pnpm test packages/i18n                  # from the repository root
+pnpm check:i18n                          # hard-coded copy in the UI can only go down
+```
+
+> [!NOTE]
+> A new key goes into French and English in the same change. `check:i18n` is a ratchet over
+> `packages/ui/src`, `packages/catalog/src` and `packages/llm/src`: a file may not gain
+> hard-coded copy in either language. The conventions are in [`CLAUDE.md`](CLAUDE.md).

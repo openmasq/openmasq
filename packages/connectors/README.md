@@ -1,20 +1,45 @@
-# @openmasq/connectors — on-device MCP connector tools
+[Français](README.fr.md)
 
-<sub>**English** · [Français](#openmasqconnectors--les-outils-de-connecteurs-mcp-sur-lappareil) · [openmasq.com](https://openmasq.com)</sub>
+# @openmasq/connectors
 
-Tool definitions for the connectors the desktop runs **in-process** with on-device OAuth
-(no broker hop): transport-agnostic, pure TypeScript, `fetch` only. The desktop's MCP
-layer decides which are exposed and gates every call.
+**The connector tools the OpenMasq desktop app runs in its own process.**
 
-**Start here.** `src/index.ts`, `src/types.ts`.
+Each connector is a set of tools that call a provider's REST API with a token obtained by
+on-device OAuth. No broker or server sits in between. The code is plain TypeScript and uses
+only `fetch`. The desktop main process runs these tools
+(`apps/desktop/src/main/mcp/connectors/`), and their results go through the same redaction
+as any other tool result. `@openmasq/catalog` keeps the user-facing list and checks its
+scopes against this package.
 
----
+## What's inside
 
-# @openmasq/connectors — les outils de connecteurs MCP sur l'appareil
+- **Connectors**: GitHub, Gmail, Google Calendar, Drive, Docs, Sheets, Tasks and Analytics,
+  Slack, Outlook, OneDrive, SharePoint and Teams. `CONNECTORS` lists them and
+  `getConnector(id)` finds one.
+- **Types**: `Connector`, `ConnectorTool`, `ConnectorToolCtx`, `ConnectorAuth` (`device`,
+  `pkce`, `slack`, `microsoft`) and `ConnectorScopes`, in `src/types.ts`.
+- **Folder listing**: `RemoteEntry` (`src/files.ts`) with `driveChildrenUrl`,
+  `onedriveChildrenUrl` and their parsers. The `list_folder` tool and the app's folder panel
+  share them, so both see the same listing.
+- **Attachments**: `AttachmentData` and `readAttachments`, for the files the desktop injects
+  into a Gmail, Outlook, Drive or OneDrive call. The model names the files and never sees
+  their bytes (`src/files.ts`).
 
-Les définitions d'outils des connecteurs que l'application de bureau exécute **dans son
-processus** avec un OAuth sur l'appareil (sans passer par le broker) : indépendants du
-transport, TypeScript pur, `fetch` seulement. La couche MCP du bureau décide lesquels sont
-exposés et contrôle chaque appel.
+```ts
+import { getConnector } from "@openmasq/connectors";
 
-**Commencez ici.** `src/index.ts`, `src/types.ts`.
+const gmail = getConnector("gmail");
+```
+
+## Develop
+
+```bash
+pnpm --filter @openmasq/connectors build       # tsup → dist/, rebuild before the desktop build
+pnpm --filter @openmasq/connectors typecheck
+pnpm test packages/connectors                  # from the repository root
+```
+
+> [!NOTE]
+> The access token is passed to each call and is never stored or logged here. A tool's
+> leading verb tells the agent whether it reads or writes, and `src/toolNames.test.ts`
+> enforces it. The invariants are in [`CLAUDE.md`](CLAUDE.md).

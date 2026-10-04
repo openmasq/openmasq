@@ -1,20 +1,40 @@
-# @openmasq/analytics — privacy-safe analytics core
+[Français](README.fr.md)
 
-<sub>**English** · [Français](#openmasqanalytics--le-cœur-danalytique-respectueux-de-la-vie-privée) · [openmasq.com](https://openmasq.com)</sub>
+# @openmasq/analytics
 
-Manual events only, allow-listed and sanitised (a walk that drops anything not in the
-schema), behind a **double consent gate**, wrapped in the relay envelope. Zero
-dependencies; the desktop supplies the transport.
+**The privacy-safe usage analytics core of OpenMasq.**
 
-**Start here.** `src/index.ts` — the event names and the sanitiser are the contract.
+It decides what an analytics event may contain and when it may leave. `@openmasq/ui` builds
+the desktop app's analytics on it (`packages/ui/src/analytics/`), and the desktop's Sentry
+filter reuses its `isOperationalError`. Events are manual only, with no autocapture. The
+package has no dependencies and uses browser globals only.
 
----
+## What's inside
 
-# @openmasq/analytics — le cœur d'analytique respectueux de la vie privée
+- **Sanitiser**: `makeSanitize` drops every key the event vocabulary does not declare and
+  turns flagged numbers into coarse ranges (`src/sanitize.ts`).
+- **Transport**: `createSink` sends to the relay, or straight to PostHog as a fallback. It
+  sends nothing unless a transport is configured, the user has consented, and Do Not Track
+  or GPC is off. Events wait in a short queue until consent is known (`src/sink.ts`).
+- **Error channel**: `captureError` sends a `$exception` event; `scrubMessage` strips
+  e-mails, credentials, long tokens, digit runs and paths from its message
+  (`src/errorTracking.ts`).
+- **Feature flags**: `fetchFlags` reads the relay's flags. It is configuration, not
+  measurement, so it does not wait for consent (`src/flags.ts`).
+- **Vocabulary**: `DESKTOP_EVENTS`, `VOCABULARY` and `admit()`, the rule the relay applies.
+  The list the app sanitises against and the list the relay admits are the same object
+  (`src/vocabulary/`).
+- **Sites**: `createWebAnalytics`, the shared plumbing for the websites (`src/web.ts`).
 
-Des événements manuels seulement, sur liste d'autorisation et assainis (un parcours qui
-écarte tout ce qui n'est pas au schéma), derrière une **double porte de consentement**,
-enveloppés dans l'enveloppe du relais. Zéro dépendance ; l'application de bureau fournit le
-transport.
+## Develop
 
-**Commencez ici.** `src/index.ts` — les noms d'événements et l'assainisseur sont le contrat.
+```bash
+pnpm --filter @openmasq/analytics build       # tsup → dist/, rebuild before a consumer build
+pnpm --filter @openmasq/analytics typecheck
+pnpm test packages/analytics                  # from the repository root
+```
+
+> [!IMPORTANT]
+> Never add a path that sends a raw payload: the allow-list walk is the single choke point.
+> What a build sends, and how to turn it off, is in the root README under
+> [Data collection & usage](../../README.md#data-collection--usage).
