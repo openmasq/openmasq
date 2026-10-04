@@ -7,13 +7,15 @@ import type { Messages } from "../messages";
 export const shell = {
   rightRail: {
     ariaLabel: "Browser, folders and help",
-    title: "Right panel",
+    footAriaLabel: "Help, feedback and updates",
+    title: "Browser and files",
     collapse: "Collapse sidebar",
     expand: "Expand sidebar",
     newBrowserTab: "New browser tab",
-    browser: "Browser",
+    openBrowser: "Assistant's browser: open a tab",
+    browser: "Assistant's browser",
     web: "Web",
-    noTabs: "No open tabs.",
+    noTabs: "No tabs. The assistant opens the pages it looks up for you here.",
     foldersTip: "Open folders and connected storage",
     folders: "Folders and connected storage",
     collapseItem: (label) => `Collapse — ${label}`,

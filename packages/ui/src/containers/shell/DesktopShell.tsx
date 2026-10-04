@@ -138,7 +138,8 @@ export function DesktopShell({ chat }: { chat: ChatStore }) {
     );
 
   // The right rail is a SHELL sibling on the `.app` frame (like the left nav-dock), not a
-  // child of the workspace card, and only where the shared panel lives.
+  // child of the workspace card — in EVERY section: where the shared panel doesn't live,
+  // it keeps only its foot (update, help, feedback, the Demandes bell).
   // Accepting a PERSON share adopts its items into the PERSONAL lists — « vous
   // gardez votre copie » goes both ways (design). Dedup terms by id; a
   // compétence adopts as a fresh entry (its author keeps theirs).
@@ -161,8 +162,9 @@ export function DesktopShell({ chat }: { chat: ChatStore }) {
       });
   };
 
-  const footer = (section === "chats" || section === "library") && (
+  const footer = (
     <RightRail
+      hostsPanel={section === "chats" || section === "library"}
       browserTabs={pane.railBrowserTabs}
       activeBrowserTab={pane.activeWebTab}
       browserOnScreen={pane.browserOnScreen}

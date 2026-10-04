@@ -11,7 +11,7 @@ import {
 import { useFolderTree } from "../../../hooks/useFolderTree";
 import { useGrantFolder } from "../../../hooks/useGrantFolder";
 import { StorageSources } from "./StorageSources";
-import { TreeRow } from "./TreeRow";
+import { AskButton, TreeRow } from "./TreeRow";
 import { panelOpenLocalFile, useAppDispatch } from "../../../state/redux";
 
 import { useT } from "../../../i18n";
@@ -91,6 +91,7 @@ export function FolderTreePanel({
               expanded={expanded}
               loading={loading}
               onToggle={() => tree.toggle(entry.path)}
+              onAsk={onAskTarget && (() => onAskTarget({ kind: "folder", name: entry.name, path: entry.path }))}
             />
           ) : (
             <TreeRow
@@ -135,7 +136,7 @@ export function FolderTreePanel({
         <p className="rr-tree-error">
           {tree.error || addError}{" "}
           <button type="button" className="rr-tree-retry" onClick={tree.refresh}>
-            <RefreshIcon size={12} /> Réessayer
+            <RefreshIcon size={12} /> {t.common.retry}
           </button>
         </p>
       )}
@@ -145,22 +146,26 @@ export function FolderTreePanel({
 }
 
 /** A granted ROOT: the row carries where it comes from, which the folder
- *  name alone doesn't say ("Documents" — which one?). */
+ *  name alone doesn't say ("Documents" — which one?). It offers « Demander » like
+ *  any folder below it — the granted folder is the likeliest thing to ask about. */
 function SourceRow({
   entry,
   expanded,
   loading,
   onToggle,
+  onAsk,
 }: {
   entry: LocalFsEntry;
   expanded: boolean;
   loading: boolean;
   onToggle: () => void;
+  onAsk?: () => void;
 }) {
   return (
-    /* The full path is in the tooltip, not under the name: two lines per root
-       doubled the group's height for information read once. */
-    <button type="button" className="rr-src" title={entry.path} onClick={onToggle}>
+    <span className="rr-tree-line">
+    {/* The full path is in the tooltip, not under the name: two lines per root
+       doubled the group's height for information read once. */}
+    <button type="button" className="rr-src" title={entry.path} aria-expanded={expanded} onClick={onToggle}>
       <span className={`rr-tree-chev${expanded ? " open" : ""}`} aria-hidden="true">
         <ChevRightIcon size={11} />
       </span>
@@ -170,5 +175,7 @@ function SourceRow({
       <span className="rr-src-name">{entry.name}</span>
       {loading && <span className="rr-tree-loading">…</span>}
     </button>
+    {onAsk && <AskButton name={entry.name} onAsk={onAsk} />}
+    </span>
   );
 }
