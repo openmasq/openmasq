@@ -82,7 +82,7 @@ export const composer = {
   undo: "Annuler",
   protectionLevel: "Niveau de protection",
 
-  placeholder: (brand) => `Message à ${brand}…`,
+  placeholder: (brand) => `Écrivez à ${brand} ou déposez un fichier…`,
 
   editSkill: "Modifier la compétence",
   slotsToFill: "À préciser dans votre message",
