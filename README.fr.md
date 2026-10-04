@@ -300,7 +300,8 @@ packages/
   redact/        Le moteur de masquage, publié sur npm sous @openmasq/redact
   ui/            Toute l'interface React, le store et le design system
   llm/           Clients des fournisseurs, registre des modèles, streaming, appels d'outils
-  mcp/           Client MCP qui masque · connectors/ outils OAuth sur l'appareil
+  mcp/           Client MCP qui masque
+  connectors/    Outils OAuth sur l'appareil (Gmail, Drive, Outlook, Slack, GitHub…)
   catalog/       Listes de référence uniques : modèles, connecteurs, catégories
   i18n/          Catalogue de messages typé (source française, anglais)
   credits/ schema/ sync/ branding/ analytics/

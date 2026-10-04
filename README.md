@@ -294,7 +294,8 @@ packages/
   redact/        The redaction engine, published on npm as @openmasq/redact
   ui/            All React UI, the store and the design system
   llm/           Provider clients, model registry, streaming, tool calls
-  mcp/           Redacting MCP client · connectors/ on-device OAuth tools
+  mcp/           Redacting MCP client
+  connectors/    On-device OAuth tools (Gmail, Drive, Outlook, Slack, GitHub…)
   catalog/       Single-source lists: models, connectors, categories
   i18n/          Typed message catalogue (French source, English)
   credits/ schema/ sync/ branding/ analytics/

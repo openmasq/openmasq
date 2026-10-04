@@ -1,27 +1,47 @@
-# @openmasq/mcp — the redacting MCP client
+[Français](README.fr.md)
 
-<sub>**English** · [Français](#openmasqmcp--le-client-mcp-masquant) · [openmasq.com](https://openmasq.com)</sub>
+# @openmasq/mcp
 
-A Model Context Protocol client where **every tool call goes through the vault in both
-directions**: arguments leave un-redacted (the outside world gets real values), results
-come back re-redacted before the model sees them. `./transport` carries the transports
-(stdio, Streamable HTTP) the desktop wires into its process boundary.
+**A Model Context Protocol client that keeps real values away from the model.**
 
-**Boundary.** Depends on `@openmasq/redact` only. The desktop decides which tools are
-allowed (allow-listed, never deny-listed) — this package executes what it is handed.
+Every tool call goes through the conversation's vault in both directions. Arguments are
+restored to their real values before they reach the MCP server, because the outside world
+needs the real recipient or the real search term. Results are redacted again before the
+model sees them. The package is used by `@openmasq/ui`, the desktop app, `apps/proxy` and
+`apps/mcp-broker`. It is a private workspace package, not published on npm.
 
-**Start here.** `src/index.ts`; the un-redact / re-redact pair is the invariant to keep.
+## What's inside
 
----
+- **`@openmasq/mcp`**: `RedactingMcpClient` (`src/redact/client.ts`), the JSON walk that
+  maps every string in arguments and results, and the adapters between MCP tools and the
+  Anthropic and OpenAI tool formats (`toProviderTools`, `parseAnthropicToolUse`,
+  `parseOpenAIToolCall`). No SDK is loaded by this entry.
+- **`@openmasq/mcp/transport`**: connections built on the official MCP SDK: `connectStdio`
+  for a local server, `connectHttp` for a remote server over Streamable HTTP, and
+  `makeOAuthProvider` for the OAuth sign-in.
+- **`@openmasq/mcp/node`**: Node-only helpers for a local MCP host: a loopback server for
+  the OAuth redirect and encrypted token storage.
 
-# @openmasq/mcp — le client MCP masquant
+```ts
+import { RedactingMcpClient, toProviderTools, parseAnthropicToolUse } from "@openmasq/mcp";
+import { connectStdio } from "@openmasq/mcp/transport";
 
-Un client Model Context Protocol où **chaque appel d'outil passe par le coffre dans les deux
-sens** : les arguments partent démasqués (le monde extérieur reçoit de vraies valeurs), les
-résultats reviennent re-masqués avant que le modèle ne les voie. `./transport` porte les
-transports (stdio, Streamable HTTP) que le bureau câble dans sa frontière de processus.
+const server = await connectStdio({ id: "files", command: "npx", args: ["some-mcp-server"] });
+const mcp = new RedactingMcpClient({ connections: [server], vault });
 
-**Frontière.** Ne dépend que de `@openmasq/redact`. Le bureau décide quels outils sont permis
-(sur liste d'autorisation, jamais d'interdiction) — ce paquet exécute ce qu'on lui remet.
+const tools = toProviderTools("anthropic", await mcp.listTools()); // schemas only
+const result = await mcp.callTool(parseAnthropicToolUse(block));    // redacted result
+```
 
-**Commencez ici.** `src/index.ts` ; la paire démasquer / re-masquer est l'invariant à tenir.
+## Develop
+
+```bash
+pnpm --filter @openmasq/mcp build       # tsup, into dist/
+pnpm --filter @openmasq/mcp typecheck
+pnpm test packages/mcp                  # from the root
+```
+
+> [!IMPORTANT]
+> Argument restoration is unconditional, and result redaction runs one call at a time so
+> two values never collide on the same substitute (`src/redact/client.test.ts`). Which
+> tools may run is decided by the caller: this package runs what it is given.

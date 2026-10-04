@@ -1,20 +1,36 @@
-# @openmasq/credits — billing tiers and prepaid credits
+[Français](README.fr.md)
 
-<sub>**English** · [Français](#openmasqcredits--paliers-de-facturation-et-crédits-prépayés) · [openmasq.com](https://openmasq.com)</sub>
+# @openmasq/credits
 
-The plan tiers and the credit amounts as **one fact**, plus the DB-agnostic credit
-engine (pure logic + queries against an injected handle). The server side that meters
-lives in a separate repository and imports this so both sides compute the same numbers.
+**Billing tiers and the prepaid-credit engine, for deployments that charge for model use.**
 
-**Start here.** `src/index.ts`.
+The app built from this repository and the app the brand publishes sell nothing (see
+[Build from source](../../README.md#build-from-source)). This package exists for someone who
+deploys the private backend behind the `OPENMASQ_BILLING` gate and bills for it. That backend
+imports it so its numbers match what the app shows. In this repository its only consumer is a
+parity test in `@openmasq/ui` (`packages/ui/src/state/billing/billing.parity.test.ts`).
 
----
+## What's inside
 
-# @openmasq/credits — paliers de facturation et crédits prépayés
+- **Tiers**: `AccountType` and `CREDITS_CENTS_PER_SEAT`, the monthly credit allotment per
+  seat in eurocents (`src/tiers.ts`).
+- **Cost**: `deriveCreditCents` turns a model and token counts into credits, from the prices
+  in `@openmasq/llm`; `meterCachedUsage` applies the cache multipliers (`src/deriveCost.ts`).
+- **Balance**: `creditPeriod`, `getOrgCredits` and `getUserCredits` compute a
+  `CreditStatus` (`src/credits.ts`).
+- **Scope and usage**: `resolveCreditScope` and `recordUsage` (`src/scope.ts`).
+- **Free mode**: `isFreeMode`, true when `OPENMASQ_FREE_MODE=1` (`src/freeMode.ts`).
 
-Les paliers d'abonnement et les montants de crédits comme **un seul fait**, plus le moteur
-de crédits agnostique de la base (logique pure + requêtes contre un handle injecté). Le côté
-serveur qui compte vit dans un dépôt séparé et importe celui-ci, pour que les deux côtés
-calculent les mêmes nombres.
+The queries take an injected `Knex` handle. This repository builds the package and tests the
+pure logic; the queries need a live database.
 
-**Commencez ici.** `src/index.ts`.
+## Develop
+
+```bash
+pnpm --filter @openmasq/credits build       # tsup → dist/
+pnpm --filter @openmasq/credits typecheck
+pnpm test packages/credits                  # from the repository root
+```
+
+> [!NOTE]
+> To run your own stack, see [`SELF_HOSTING.md`](../../SELF_HOSTING.md).

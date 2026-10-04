@@ -1,56 +1,43 @@
-# @openmasq/ui — the whole interface
+[Français](README.fr.md)
 
-<sub>**English** · [Français](#openmasqui--toute-linterface) · [openmasq.com](https://openmasq.com)</sub>
+# @openmasq/ui
 
-All the React UI, the app state and the design system, **platform-agnostic**: the
-package never touches the OS, a database or the network directly — it reaches them
-through the injected `Host` (`src/host/`), which `apps/desktop` implements.
+**The OpenMasq interface: every screen, the app state and the design system.**
 
-**Boundary.** May import `llm`, `redact`, `mcp`, `catalog`, `schema`, `analytics`,
-`i18n`. Never an app. Copy goes through the typed catalogue (`useT()`); structure stays
-in code. Styling is Tailwind + `src/styles.css` tokens — no inline styles.
+This package holds all the React code of the app. It never reaches the operating system, a
+database or the network directly. It goes through a `Host` the app injects (`src/host/`).
+`apps/desktop` implements that `Host` and mounts the interface; `apps/proxy` only uses the
+tooltip helper (`@openmasq/ui/tooltip`). It is a private workspace package, not published
+on npm.
 
-**Three tiers, one rule each.**
-- `pages/` — one folder per screen: renders it, collects the user's decisions.
-- `containers/` — the tier allowed to have state and talk to the Host: the shell,
-  the providers, the modal family.
-- `components/` — pure render: props in, branded DOM out. Themed folders, never by type.
+## What's inside
 
-**Start here.**
-- `src/state/` — the store and the state modules (grouped by theme); `src/send/` — the send
-  pipeline (redaction gates, vault terms, preflight); `src/agent/` — the tool-calling loop.
-- `src/skills/` (reusable instructions), `src/memory/`, `src/feedback/` — feature logic
-  behind the Skills and Memory screens and the « Votre avis » modal.
-- `src/styles.css` — tokens and the four themes.
+- **Pages** (`src/pages/`): one folder per screen (chat, library, settings, skills, memory,
+  vault, onboarding, login). A page renders its screen and collects the user's choices.
+- **Containers** (`src/containers/`): the only layer that holds state and talks to the
+  `Host`: the app shell, the providers and the modals.
+- **Components** (`src/components/`): pure rendering, props in and DOM out, in folders
+  grouped by theme.
+- **State** (`src/state/`): the store and its modules, grouped by theme.
+- **Send pipeline** (`src/send/`): what runs before a message leaves, including the
+  redaction gates and the preflight checks.
+- **Agent** (`src/agent/`): the tool-calling loop.
+- **Styles** (`src/styles.css`): Tailwind tokens and the light and dark themes, exported as
+  `@openmasq/ui/styles.css`.
 
-`pnpm test:changed` after each burst; `pnpm test` before pushing.
+The desktop shows how the pieces fit together in
+[`apps/desktop/src/renderer/src/main.tsx`](../../apps/desktop/src/renderer/src/main.tsx).
 
----
+## Develop
 
-# @openmasq/ui — toute l'interface
+```bash
+pnpm --filter @openmasq/ui build       # tsup, into dist/
+pnpm --filter @openmasq/ui typecheck
+pnpm test:changed                      # from the root, after each change
+pnpm test                              # from the root, before pushing
+```
 
-Toute l'interface React, l'état de l'application et le système de design,
-**indépendants de la plateforme** : le paquet ne touche jamais directement l'OS, une base de
-données ou le réseau — il les atteint par le `Host` injecté (`src/host/`), qu'`apps/desktop`
-implémente.
-
-**Frontière.** Peut importer `llm`, `redact`, `mcp`, `catalog`, `schema`, `analytics`, `i18n`.
-Jamais une app. La copie passe par le catalogue typé (`useT()`) ; la structure reste dans le
-code. Le style est Tailwind + les tokens de `src/styles.css` — pas de style en ligne.
-
-**Trois étages, une règle chacun.**
-- `pages/` — un dossier par écran : il le rend et recueille les décisions de l'utilisateur.
-- `containers/` — l'étage autorisé à avoir de l'état et à parler au Host : la coquille, les
-  providers, la famille des modales.
-- `components/` — du rendu pur : des props entrent, du DOM à la marque sort. Des dossiers
-  thématiques, jamais par type.
-
-**Commencez ici.**
-- `src/state/` — le store et les modules d'état (groupés par thème) ; `src/send/` — le
-  pipeline d'envoi (portes de masquage, termes de coffre, préflight) ; `src/agent/` — la
-  boucle d'appel d'outils.
-- `src/skills/` (instructions réutilisables), `src/memory/`, `src/feedback/` — la logique
-  derrière les écrans Compétences et Mémoire et la modale « Votre avis ».
-- `src/styles.css` — les tokens et les quatre thèmes.
-
-`pnpm test:changed` après chaque salve ; `pnpm test` avant de pousser.
+> [!NOTE]
+> `ui` may import `llm`, `redact`, `mcp`, `catalog`, `schema`, `analytics`, `i18n` and
+> `branding`, never an app. User-facing text goes through the typed catalogue (`useT()`).
+> Styling uses Tailwind and the tokens in `src/styles.css`, with no inline styles.
