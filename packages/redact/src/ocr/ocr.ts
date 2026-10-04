@@ -217,6 +217,11 @@ async function tesseractRects(buf: Uint8Array, lang: string, rects: readonly Gar
   const createWorker = await loadTesseract();
   const worker = await createWorker(lang, 1, tesseract2Options());
   try {
+    // Each box is ONE docTR word box, ≥ 4 heights wide (`garbled.ts`): a single line by
+    // construction. Read it as one (PSM 7) instead of laying out the rectangle as a page —
+    // same languages, same reading of a real line, ~6× faster on a wide strip (measured:
+    // 8.7 s → 1.5 s for a 485×38 box, 12 languages).
+    await worker.setParameters?.({ tessedit_pageseg_mode: "7" });
     const out: OcrWord[] = [];
     for (const rectangle of rects) {
       const { data } = await worker.recognize(Buffer.from(buf), { rectangle }, { text: true, blocks: true });

@@ -7,6 +7,7 @@ import { DocumentError } from "../documents/errors";
 import { DEFAULT_OCR_MARKERS, type OcrMarkers } from "../documents/ocrMarkers";
 import { rasterScale } from "../documents/safety/guard";
 import type { OcrLayerPage } from "../documents/layers/geometry";
+import { isBlankRaster } from "./blank";
 import { ocrImageLayout } from "./ocr";
 import { pdfRenderFactories } from "./pdfFactories";
 import { ocrCanvasRegions, regionBoxes } from "./pdfRegions";
@@ -169,6 +170,18 @@ export async function ocrPdf(
     const canvas = canvasMod.createCanvas(Math.ceil(viewport.width), Math.ceil(viewport.height));
     const ctx = canvas.getContext("2d");
     await page.render({ canvasContext: ctx, viewport }).promise;
+    // A page with no ink at all has nothing to read and nothing to hide (`./blank.ts`): an
+    // empty reading, in this page's raster space, without running OCR on white. A canvas
+    // that cannot hand its pixels back proves nothing: the page is read (fail closed).
+    const pixels = typeof ctx.getImageData === "function" ? ctx.getImageData(0, 0, canvas.width, canvas.height)?.data : undefined;
+    if (pixels && isBlankRaster(pixels)) {
+      out.push("");
+      layout.push({ text: "", words: [], width: canvas.width, height: canvas.height });
+      pageRead(i, "");
+      tick(++done);
+      page.cleanup?.();
+      continue;
+    }
     // Route each page through the same docTR/Tesseract router; collect the engine(s) used.
     // A page whose only unproved content is images reads just those (same raster space).
     const boxes = regions?.[i]?.length ? regionBoxes(regions[i], canvas.width, canvas.height) : null;
