@@ -50,6 +50,22 @@ kept in the French they were sent in, for the reason given above.
 
 ---
 
+## 0.15.0 — 2026-10-04
+> The right sidebar and your folders are easier to find, read and use.
+
+### What's new
+- **A friendlier right sidebar** — it remembers its width, works from the keyboard, and Help is on every screen.
+- **Folders you can read** — each allowed folder shows its name and where it lives, not a raw path.
+- **Ask about any folder** — the folder you allowed now offers Ask too, not only the ones inside it.
+
+### Improvements & fixes
+- Earlier messages are masked the same way on every new message, after a restart too.
+- Imported conversations are checked on your device before they are used.
+- Long lists of people each get a replacement name of their own.
+- Opening files and web searches follow stricter rules.
+- Company names and addresses are told apart more precisely.
+- A folder that can't be read now says why.
+
 ## 0.14.0 — 2026-10-03
 > Every document is masked from the first page to the last, and you can watch it happen.
 
