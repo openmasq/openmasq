@@ -71,7 +71,7 @@ describe("ocrPdf", () => {
   it("reads every page by default, and only the named pages when given a list", async () => {
     const all = await ocrPdf(new Uint8Array([0]), "eng");
     expect(createCanvas).toHaveBeenCalledTimes(2);
-    expect(all.text).not.toContain("non océrisée");
+    expect(all.text).not.toContain("not OCR'd");
     createCanvas.mockClear();
     const ticks: [number, number][] = [];
     const one = await ocrPdf(new Uint8Array([0]), "eng", [2], (d, n) => ticks.push([d, n]));
@@ -91,7 +91,7 @@ describe("ocrPdf", () => {
     doc.getPage.mockImplementation(async () => pageOfSize(28800, 28800) as never);
     const { text, layout } = await ocrPdf(new Uint8Array([0]), "eng");
     expect(createCanvas).not.toHaveBeenCalled(); // aucune toile n'est jamais demandée
-    expect(text).toContain("dimensions excessives");
+    expect(text).toContain("dimensions too large");
     // La page garde sa PLACE dans la géométrie — l'index de page ne glisse pas.
     expect(layout).toHaveLength(2);
     expect(layout[0].words).toEqual([]);

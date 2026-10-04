@@ -37,7 +37,7 @@ export interface ExtractedFile {
   chars: number;
   error?: string;
   /** The STABLE code behind `error` (+ its numbers), for a caller that words it in the
-   *  user's language; `error` stays the French fallback. Absent on an uncoded cause. */
+   *  user's language; `error` stays the English fallback. Absent on an uncoded cause. */
   errorCode?: DocumentErrorCode;
   errorParams?: DocumentErrorParams;
   /** The RAW cause behind a generic `error`. NEVER rendered in the UI (`cleanErr`'s

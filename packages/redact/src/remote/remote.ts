@@ -108,7 +108,7 @@ export function remoteContractDowngrade(
   honored: string[] | undefined,
 ): string | null {
   if (input.peopleNotoriety === false && !honored?.includes("peopleNotoriety")) {
-    return "le serveur de redaction n'applique pas encore le niveau Strict aux personnalités";
+    return "the redaction server does not apply the Strict level to public figures yet";
   }
   return null;
 }

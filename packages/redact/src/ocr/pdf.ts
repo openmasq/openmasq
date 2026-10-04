@@ -33,7 +33,7 @@ export async function loadCanvas(): Promise<any> {
   } catch {
     throw new DocumentError(
       "pdf_renderer_missing",
-      "moteur de rendu PDF indisponible sur cet appareil (composant natif manquant) — réinstallez l'application",
+      "PDF rendering engine unavailable on this device (native component missing)",
     );
   }
   // CJS→ESM interop can put the exports on `.default`; accept either.
@@ -41,7 +41,7 @@ export async function loadCanvas(): Promise<any> {
   if (typeof resolved?.createCanvas !== "function") {
     throw new DocumentError(
       "pdf_renderer_incompatible",
-      "moteur de rendu PDF incompatible sur cet appareil — réinstallez l'application",
+      "PDF rendering engine incompatible on this device",
     );
   }
   return resolved;

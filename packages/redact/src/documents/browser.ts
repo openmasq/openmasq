@@ -35,7 +35,7 @@ export interface BrowserExtractConfig {
   /** OCR one image's bytes → text. Injected by the consumer (e.g. tesseract.js
    *  wired to bundled MV3 assets). Absent → images / scanned PDFs return an error. */
   ocr?: (bytes: Uint8Array) => Promise<string>;
-  /** Wording of the skipped-page markers; absent ⇒ `DEFAULT_OCR_MARKERS` (French). */
+  /** Wording of the skipped-page markers; absent ⇒ `DEFAULT_OCR_MARKERS` (English). */
   ocrMarkers?: OcrMarkers;
 }
 
@@ -79,7 +79,7 @@ async function pdfText(bytes: Uint8Array): Promise<string> {
 }
 
 async function ocrImage(bytes: Uint8Array): Promise<string> {
-  if (!cfg.ocr) throw new Error("OCR non configuré (tesseract non chargé)");
+  if (!cfg.ocr) throw new Error("OCR not configured (tesseract not loaded)");
   return (await cfg.ocr(bytes)).trim();
 }
 
@@ -94,7 +94,7 @@ async function ocrPdf(
   markers: OcrMarkers = cfg.ocrMarkers ?? DEFAULT_OCR_MARKERS,
 ): Promise<{ text: string; meta: { engine: string; ms: number; pages: number; pagesTotal: number } }> {
   const t0 = Date.now();
-  if (!cfg.ocr) throw new Error("OCR non configuré (tesseract non chargé)");
+  if (!cfg.ocr) throw new Error("OCR not configured (tesseract not loaded)");
   const lib = await pdfjs();
   const doc = await lib.getDocument({ data: bytes, isEvalSupported: false }).promise;
   const total: number = doc.numPages;

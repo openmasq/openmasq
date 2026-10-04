@@ -42,13 +42,13 @@ describe("guard refusals carry a code and keep their fallback text", () => {
 
 describe("OCR failures carry a code", () => {
   it("a typed engine error keeps its code", () => {
-    const c = cleanErr(new DocumentError("pdf_renderer_missing", "moteur de rendu PDF indisponible"), "fallback");
+    const c = cleanErr(new DocumentError("pdf_renderer_missing", "PDF rendering engine unavailable"), "fallback");
     expect(c.code).toBe("pdf_renderer_missing");
   });
 
   it("an untyped curated wording maps to its code (docTR's own errors)", () => {
-    expect(cleanErr(new Error("moteur OCR docTR incompatible (onnxruntime-node)"), "f").code).toBe("ocr_engine_incompatible");
-    expect(cleanErr(new Error("moteur OCR docTR indisponible (onnxruntime-node manquant)"), "f").code).toBe("ocr_engine_missing");
+    expect(cleanErr(new Error("OCR engine docTR incompatible (onnxruntime-node)"), "f").code).toBe("ocr_engine_incompatible");
+    expect(cleanErr(new Error("OCR engine docTR unavailable (onnxruntime-node missing)"), "f").code).toBe("ocr_engine_missing");
   });
 
   it("an unknown cause is hidden behind the fallback and coded ocr_failed", () => {
@@ -60,7 +60,7 @@ describe("OCR failures carry a code", () => {
     const d = deps({ ocrPdf: vi.fn(async () => Promise.reject(new Error("boom"))) });
     const f = await extractFromBytes(enc("%PDF"), { name: "scan.pdf" }, d);
     expect(f.errorCode).toBe("ocr_failed");
-    expect(f.error).toMatch(/PDF sans couche texte/);
+    expect(f.error).toMatch(/PDF without a text layer/);
   });
 
   it("an unsupported type is coded with its extension", async () => {
@@ -70,8 +70,8 @@ describe("OCR failures carry a code", () => {
 });
 
 describe("OCR markers are the caller's wording", () => {
-  it("the default keeps the historical French", () => {
-    expect(DEFAULT_OCR_MARKERS.pageTooLarge(3)).toBe("[… page 3 non océrisée : dimensions excessives]");
+  it("the default is English", () => {
+    expect(DEFAULT_OCR_MARKERS.pageTooLarge(3)).toBe("[… page 3 not OCR'd: dimensions too large]");
   });
 
   it("extractFromBytes threads the caller's markers to the OCR binding (4th argument)", async () => {
