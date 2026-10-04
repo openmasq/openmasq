@@ -1,31 +1,63 @@
-/* The PDF viewer's page bar (`containers/modals/viewers/pdf/PageStrip.tsx`): the page strip
-   and the zoom, stuck to the top of the scrolling panel; and the TILE a page shows while it
-   may not be shown (`pdf/pendingTile.ts`). A tile's picture is already illegible at the
-   source (≤ 40 px wide, `@openmasq/redact` `THUMB_MAX_WIDTH_PX`); the blur only turns the
-   upscale into a page. Every colour is a token both themes define; ink on `--brand` is
-   `--ink-on-brand` (rule 12). */
-.pdfv-bar {
+/* The PDF viewer's SIDE column (`containers/modals/viewers/pdf/PdfRedactedViewer.tsx`): the
+   zoom, then the page strip (`PageStrip.tsx`) as a vertical list, stuck beside the pages while
+   the panel scrolls, on the RIGHT, the pages centred — a column and not a top bar, which
+   took the height the pages need. And
+   the TILE a page shows while it may not be shown (`pdf/pendingTile.ts`). A tile's picture is
+   already illegible at the source (≤ 40 px wide, `@openmasq/redact` `THUMB_MAX_WIDTH_PX`); the
+   blur only turns the upscale into a page. Every colour is a token both themes define; ink on
+   `--brand` is `--ink-on-brand` (rule 12). */
+.pdfv-main {
+  /* Three columns, the outer two the SAME width: the pages sit in the exact middle of the
+     viewer, the side column on the right balanced by an empty gutter on the left. */
+  display: grid;
+  grid-template-columns: var(--pdfv-side-w) minmax(0, 1fr) var(--pdfv-side-w);
+  column-gap: 14px;
+  align-items: start;
+  width: 100%;
+  --pdfv-side-w: 76px;
+}
+.pdfv-main > .pdfv-pages {
+  grid-column: 2;
+  grid-row: 1;
+  width: auto;
+}
+.pdfv-side {
+  grid-column: 3;
+  grid-row: 1;
   position: sticky;
   top: 0;
   z-index: 5;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  width: 100%;
+  gap: 10px;
+  width: var(--pdfv-side-w);
+  /* The column never outgrows the visible panel: its list scrolls on its own. */
+  max-height: calc(100vh - 150px);
   padding: 4px 0;
   background: var(--surface-card);
 }
+.pdfv-side .pdfv-zoom {
+  flex-direction: column;
+  border-radius: var(--radius-md);
+}
 .pdfv-strip {
+  display: flex;
   flex: 1;
-  min-width: 0;
+  min-height: 0;
+  width: 100%;
 }
 .pdfv-strip-list {
   list-style: none;
   margin: 0;
   padding: 4px 2px;
   display: flex;
-  gap: 6px;
-  overflow-x: auto;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
   scrollbar-width: thin;
 }
 .pdfv-strip-page {
@@ -41,7 +73,7 @@
 .pdfv-strip-sheet {
   position: relative;
   display: block;
-  width: 26px;
+  width: 34px;
   aspect-ratio: 1 / 1.414;
   overflow: hidden;
   border-radius: 3px;
@@ -76,7 +108,7 @@
 /* Once final, the tile is a real preview: a bigger sheet, the masked page whole (contain:
    a landscape page is not cropped), sharp — it is painted masked (`usePdfThumbs.ts`). */
 .pdfv-strip.is-final .pdfv-strip-sheet {
-  width: 40px;
+  width: 52px;
   background: var(--surface-card);
 }
 .pdfv-strip-thumb.is-preview {
@@ -187,4 +219,17 @@
   overflow: hidden;
   text-overflow: ellipsis;
   pointer-events: none;
+}
+/* A narrow panel (the side panel beside a conversation) keeps its width for the pages: the
+   column drops its page list and keeps the zoom; ←/→ still move page to page (`usePageNav`). */
+.pdfv {
+  container-type: inline-size;
+}
+@container (max-width: 440px) {
+  .pdfv-main {
+    --pdfv-side-w: 40px;
+  }
+  .pdfv-strip {
+    display: none;
+  }
 }
