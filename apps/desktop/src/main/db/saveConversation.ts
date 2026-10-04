@@ -111,7 +111,9 @@ export async function dbSaveConversation(conv: DbConversation): Promise<void> {
         conv.id,
         m.role,
         m.content,
-        m.redactions ?? 0,
+        // NULL = this turn's redaction never completed; 0 = it did, and found nothing. The
+        // two must stay apart: only a completed one is replayed to the model (`send/replayable.ts`).
+        m.redactions ?? null,
         m.error ? 1 : 0,
         m.errorText ?? null,
         i,
