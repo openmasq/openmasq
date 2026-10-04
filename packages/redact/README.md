@@ -95,8 +95,7 @@ import { pseudonymize, requiresModel, detectLocalNer } from "@openmasq/redact";
 import { createNerPredict } from "@openmasq/redact/ner"; // + @huggingface/transformers, onnxruntime-node
 
 const predict = await createNerPredict();                 // load once, reuse
-const detectLocal = (t: string) =>
-  detectLocalNer(t, predict, { onError: (err) => { throw err; } }); // surface a failed inference
+const detectLocal = (t: string) => detectLocalNer(t, predict); // rejects if inference fails
 
 const res = await pseudonymize(text, { vault, disabledKinds, detectLocal });
 // A detector that fails does NOT reject: the pass continues on the rules and says so.

@@ -119,6 +119,9 @@ export function createMasker(opts: MaskerOptions): Masker {
         secrets: opts.secrets,
         numbers: false,
       });
+      // The model detector failed mid-pass: the text was masked by the rules alone. Refuse it —
+      // the JSON error handler answers 502 and nothing is forwarded (rule 7, fail closed).
+      if (res.modelError) throw new Error(`on-device model failed, nothing was sent: ${res.modelError}`);
       return { text: res.text, matches: res.matches as RedactionMatch[] };
     },
     restoreReply: (text, vault) => (text ? unredactReply(text, vault) : text),

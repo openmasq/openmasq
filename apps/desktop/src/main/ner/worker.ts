@@ -107,18 +107,10 @@ parentPort.on("message", (e) => {
       const p = runs.guard(id, await getPredict());
       // Bigger windows than the 250-char default (a small window splits a record and hurts
       // detection); ~1000 chars ≈ 300-400 tokens stays under the model's ~512 cap with context.
-      // `onError` RE-THROWS (audit M1): `detectLocalNer` otherwise SWALLOWS a POST-load
-      // inference failure (an onnxruntime runtime error / OOM on one chunk) to `[]`, and
-      // without an onError the worker would post `ok:true, detections:[]` — a silent
-      // fail-OPEN that ships regex-only coverage. Re-throwing propagates it to the outer
-      // catch → `ok:false` → the renderer fails CLOSED (blocks the send / masks the result).
-      const detections = await detectLocalNer(text, p, {
-        chunkSize: 1000,
-        chunkOverlap: 100,
-        onError: (err) => {
-          throw err instanceof Error ? err : new Error(String(err));
-        },
-      });
+      // `detectLocalNer` REJECTS on a post-load inference failure (an onnxruntime runtime
+      // error / OOM on one chunk): it reaches the outer catch → `ok:false` → the renderer
+      // fails CLOSED (blocks the send / masks the result). Never `ok:true` with `[]`.
+      const detections = await detectLocalNer(text, p, { chunkSize: 1000, chunkOverlap: 100 });
       parentPort.postMessage({ id, ok: true, detections });
     } catch (err) {
       // A load/integrity/inference failure comes back as ok:false so the parent REJECTS and the
