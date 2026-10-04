@@ -63,7 +63,10 @@ jobs:
       # `--force`: no turbo cache in a release, the tarball is built from this commit only.
       - run: pnpm build --filter=@openmasq/redact --force
       - run: pnpm --filter @openmasq/redact typecheck
-      - run: pnpm test:redact
+      # ISOLATED, like `verify.yml` — the reference run. `test:redact` (`--no-isolate`) is the
+      # local fast lane: it once stalled 7 min on `secretWhitespaceRun` in a release run and
+      # passed in 0.8 s on the next, same commit — a release gate must not flake.
+      - run: pnpm vitest run packages/redact
 
       - name: Pack
         working-directory: packages/redact
