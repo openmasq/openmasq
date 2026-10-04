@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { McpCatalogEntry } from "../../../host";
 import { Btn } from "./McpBtn";
+import { McpDirList } from "./McpDirList";
 import { BRAND } from "@openmasq/branding";
 
 import { useT } from "../../../i18n";
@@ -66,21 +67,8 @@ export function McpLocalFields({
       {(entry.params ?? []).map((p) => {
         const dirs = dirsOf(p.key);
         return (
-          <div key={p.key} className="mcp-param">
-            {dirs.map((d) => (
-              <div key={d} className="flex items-center gap-2">
-                <code className="mcp-cmd flex-min">{d}</code>
-                <button
-                  type="button"
-                  className="opacity-60 hover:opacity-100"
-                  onClick={() => removeDir(p.key, d)}
-                  aria-label={t.mcpTab.removeDir(d)}
-                  title={t.mcpTab.remove}
-                >
-                  ✕
-                </button>
-              </div>
-            ))}
+          <div key={p.key} className="mcp-dirs">
+            <McpDirList dirs={dirs} onRemove={(d) => removeDir(p.key, d)} />
             <Btn
               label={p.multiple && dirs.length ? t.mcpTab.addDir : t.mcpTab.chooseDir(p.label)}
               onClick={() => addDir(p)}
