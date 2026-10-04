@@ -99,7 +99,9 @@ export async function loadRedactedPdf(o: RenderRedactedPdfOptions): Promise<Reda
         const page = await doc.getPage(p);
         if (aborted()) return null;
         const ocrPages = over?.ocrPages ?? o.ocrPages;
-        return paintPage(page, p, { o: { ...o, reveal, ocrPages }, redacted, reps: over?.replacements ?? reps, aborted });
+        // A thumbnail collects no words: they only serve the page's picking and halo layers.
+        const collectWords = over?.width ? false : o.collectWords;
+        return paintPage(page, p, { o: { ...o, reveal, ocrPages, collectWords }, redacted, reps: over?.replacements ?? reps, aborted, width: over?.width });
       },
       destroy,
     };

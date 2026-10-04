@@ -3,6 +3,7 @@ import { vaultReplacements, type PdfReplacement } from "@openmasq/redact/pdf-red
 import { useDisplayReplacements } from "../doc/displayReplacements";
 import { FileSkeleton } from "../FileSkeleton";
 import { imageSourceNote } from "./pageLayers";
+import { usePdfThumbs } from "./usePdfThumbs";
 import { PageStrip, type StripPage } from "./PageStrip";
 import type { PendingPdf } from "./pendingPages";
 import { usePageNav } from "./usePageNav";
@@ -76,6 +77,15 @@ export function PdfRedactedViewer({
   const effective = useDisplayReplacements(resolved);
   const pages = usePdfPages({ bytes, redacted, replacements: effective, ocrPages, pending, showTextHalo, revealed, onReveal, onWordPick, t });
   const nav = usePageNav(pages.shellsRef, pages.total);
+  // Once final, the strip previews each page — painted small and MASKED (`usePdfThumbs`).
+  const thumbs = usePdfThumbs({
+    docRef: pages.docRef,
+    ready: pages.state === "ready",
+    total: pages.total,
+    final: !pending,
+    replacements: effective,
+    ocrPages,
+  });
   // Loupe: page width = FIT-to-panel width × zoom (1 = adjusted to the panel).
   // CSS-only (a custom property) so changing it never re-runs the heavy render.
   const [zoom, setZoom] = useState(1);
@@ -83,9 +93,10 @@ export function PdfRedactedViewer({
     () =>
       Array.from({ length: pages.total }, (_, i) => {
         const p = pending?.pages.length === pages.total ? pending.pages[i] : undefined;
-        return { n: i + 1, state: pending ? (p?.state ?? "waiting") : "masked", ...(p?.thumb ? { thumb: p.thumb } : {}) };
+        const thumb = pending ? p?.thumb : thumbs[i];
+        return { n: i + 1, state: pending ? (p?.state ?? "waiting") : "masked", ...(thumb ? { thumb } : {}) };
       }),
-    [pages.total, pending],
+    [pages.total, pending, thumbs],
   );
   const ready = pages.state === "ready";
   const note = ready ? imageSourceNote(pages.imgSrc.zones, pages.imgSrc.pages, t) : null;

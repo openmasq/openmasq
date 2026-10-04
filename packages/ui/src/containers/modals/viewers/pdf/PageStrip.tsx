@@ -6,7 +6,8 @@ import type { PdfPageState } from "./pendingPages";
 export interface StripPage {
   n: number;
   state: PdfPageState;
-  /** The unreadable thumbnail streamed while the file is read (≤ 40 px at the source). */
+  /** While the file is read: the unreadable thumbnail it streamed (≤ 40 px at the source).
+   *  Once final: the page painted small, MASKED (`usePdfThumbs`). */
   thumb?: string;
 }
 
@@ -52,7 +53,7 @@ export function PageStrip({
             ? r.pageCurrent(p.n)
             : r.pageWaiting(p.n);
   return (
-    <nav className="pdfv-strip" aria-label={r.pagesLabel}>
+    <nav className={`pdfv-strip${final ? " is-final" : ""}`} aria-label={r.pagesLabel}>
       <ol ref={listRef} className="pdfv-strip-list">
         {pages.map((p) => (
           <li key={p.n}>
@@ -65,7 +66,7 @@ export function PageStrip({
               onClick={() => onPick(p.n)}
             >
               <span className="pdfv-strip-sheet">
-                {p.thumb && <img className="pdfv-strip-thumb" src={p.thumb} alt="" draggable={false} />}
+                {p.thumb && <img className={`pdfv-strip-thumb${final ? " is-preview" : ""}`} src={p.thumb} alt="" draggable={false} />}
                 {!final && p.state === "masked" && (
                   <span className="pdfv-strip-badge" aria-hidden="true">
                     <CheckIcon size={9} />

@@ -27,6 +27,8 @@ export interface PaintContext {
   redacted: boolean;
   reps: PdfReplacement[];
   aborted: () => boolean | undefined;
+  /** Paint at this canvas width (device px) — a thumbnail; absent = the natural size. */
+  width?: number;
 }
 
 /** CSS px per PDF point: a page's natural CSS size is its viewport at this scale. */
@@ -35,8 +37,10 @@ export const PAGE_SCALE = 1.3;
 /** Paint page `p` (1-based) of an open pdf.js `page`. `null` when aborted mid-way. */
 export async function paintPage(page: any, p: number, c: PaintContext): Promise<RenderedPage | null> {
   const { o, redacted, reps, aborted } = c;
-  const dpr = Math.min((globalThis.devicePixelRatio as number) || 1, 2);
-  const scale = PAGE_SCALE;
+  // A thumbnail is painted at its own small size, at 1:1 — same masks, a fraction of the pixels.
+  const natural = c.width ? page.getViewport({ scale: 1 }).width : 0;
+  const dpr = c.width ? 1 : Math.min((globalThis.devicePixelRatio as number) || 1, 2);
+  const scale = c.width && natural > 0 ? c.width / natural : PAGE_SCALE;
   const vp = page.getViewport({ scale: scale * dpr });
   const cssW = vp.width / dpr;
   const cssH = vp.height / dpr;

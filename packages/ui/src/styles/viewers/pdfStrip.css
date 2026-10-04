@@ -73,6 +73,17 @@
   user-select: none;
   pointer-events: none;
 }
+/* Once final, the tile is a real preview: a bigger sheet, the masked page whole (contain:
+   a landscape page is not cropped), sharp — it is painted masked (`usePdfThumbs.ts`). */
+.pdfv-strip.is-final .pdfv-strip-sheet {
+  width: 40px;
+  background: var(--surface-card);
+}
+.pdfv-strip-thumb.is-preview {
+  object-fit: contain;
+  filter: none;
+  transform: none;
+}
 .pdfv-strip-badge {
   position: absolute;
   right: 1px;
