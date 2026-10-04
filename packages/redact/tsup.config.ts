@@ -18,6 +18,11 @@ export default defineConfig({
   target: "node18",
   // The NER inference deps (transformers.js + onnxruntime) are optional — they are
   // lazy-`import()`ed at runtime and must never be bundled here (the consumer
-  // installs + supplies them, like pdf.js for the viewer).
-  external: ["@huggingface/transformers", "onnxruntime-node", "onnxruntime-web"],
+  // installs + supplies them, like pdf.js for the viewer). Optional PEERS are external
+  // by default; `tesseract2.js` is only a devDependency (unpublished), so it is listed
+  // explicitly — bundled, its `worker_threads` Worker started via `__dirname` breaks.
+  external: ["@huggingface/transformers", "onnxruntime-node", "onnxruntime-web", "tesseract2.js"],
+  // The brand values are INLINED: the published package must not depend on the private
+  // `@openmasq/branding` workspace, and `branding.json` stays their one home (rule 9).
+  noExternal: ["@openmasq/branding"],
 });

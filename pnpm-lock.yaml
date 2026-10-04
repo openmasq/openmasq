@@ -444,40 +444,40 @@ importers:
 
   packages/redact:
     dependencies:
-      '@napi-rs/canvas':
-        specifier: ^1.0.8
-        version: 1.0.8
-      '@openmasq/branding':
-        specifier: workspace:*
-        version: link:../branding
       fflate:
         specifier: ^0.8.3
         version: 0.8.3
       libphonenumber-js:
         specifier: ^1.13.12
         version: 1.13.12
+    devDependencies:
+      '@napi-rs/canvas':
+        specifier: ^1.0.8
+        version: 1.0.8
+      '@openmasq/branding':
+        specifier: workspace:*
+        version: link:../branding
       mammoth:
         specifier: ^1.12.2
         version: 1.12.2
+      pdf-lib:
+        specifier: ^1.17.1
+        version: 1.17.1
       pdfjs-dist:
         specifier: ^6.3.289
         version: 6.3.289
       tesseract2.js:
         specifier: workspace:*
         version: link:../tesseract2
-      xlsx:
-        specifier: workspace:*
-        version: link:../../vendor/xlsx
-    devDependencies:
-      pdf-lib:
-        specifier: ^1.17.1
-        version: 1.17.1
       tsup:
         specifier: ^8.3.0
         version: 8.5.1(jiti@2.7.0)(postcss@8.5.15)(tsx@4.23.13)(typescript@5.9.3)(yaml@2.9.0)
       typescript:
         specifier: ^5.6.3
         version: 5.9.3
+      xlsx:
+        specifier: workspace:*
+        version: link:../../vendor/xlsx
 
   packages/schema:
     dependencies:

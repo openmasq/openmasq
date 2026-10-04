@@ -3,7 +3,23 @@
   "version": "0.1.0",
   "description": "The redaction engine: detect, redact, pseudonymise and restore sensitive data with a per-conversation vault — pure, unit-tested, the suite is the specification.",
   "license": "Apache-2.0",
-  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/openmasq/openmasq.git",
+    "directory": "packages/redact"
+  },
+  "homepage": "https://github.com/openmasq/openmasq/tree/dev/packages/redact#readme",
+  "bugs": "https://github.com/openmasq/openmasq/issues",
+  "keywords": [
+    "redaction",
+    "pseudonymization",
+    "anonymization",
+    "pii",
+    "privacy",
+    "llm",
+    "dlp",
+    "gdpr"
+  ],
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -50,26 +66,57 @@
       "require": "./dist/local/ner.cjs"
     }
   },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.bench.json --noEmit",
     "lint": "echo \"(no lint configured)\"",
-    "clean": "rm -rf dist .turbo"
+    "clean": "rm -rf dist .turbo",
+    "prepack": "cp ../../LICENSE ../../NOTICE .",
+    "postpack": "rm -f LICENSE NOTICE"
   },
   "dependencies": {
-    "@napi-rs/canvas": "^1.0.8",
-    "@openmasq/branding": "workspace:*",
     "fflate": "^0.8.3",
-    "libphonenumber-js": "^1.13.12",
-    "mammoth": "^1.12.2",
-    "pdfjs-dist": "^6.3.289",
-    "tesseract2.js": "workspace:*",
-    "xlsx": "workspace:*"
+    "libphonenumber-js": "^1.13.12"
   },
   "devDependencies": {
+    "@napi-rs/canvas": "^1.0.8",
+    "@openmasq/branding": "workspace:*",
+    "mammoth": "^1.12.2",
     "pdf-lib": "^1.17.1",
+    "pdfjs-dist": "^6.3.289",
+    "tesseract2.js": "workspace:*",
     "tsup": "^8.3.0",
-    "typescript": "^5.6.3"
+    "typescript": "^5.6.3",
+    "xlsx": "workspace:*"
+  },
+  "peerDependencies": {
+    "@napi-rs/canvas": "^1.0.8",
+    "mammoth": "^1.12.2",
+    "pdfjs-dist": "^6.3.289",
+    "xlsx": ">=0.20.3"
+  },
+  "peerDependenciesMeta": {
+    "@napi-rs/canvas": {
+      "optional": true
+    },
+    "mammoth": {
+      "optional": true
+    },
+    "pdfjs-dist": {
+      "optional": true
+    },
+    "xlsx": {
+      "optional": true
+    }
   }
 }

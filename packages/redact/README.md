@@ -12,6 +12,37 @@ entry (an optional remote engine the caller opts into) and `local/ner.ts` (ONNX 
 device). Every subpath in `package.json` `exports` has a matching `tsup.config.ts` entry:
 move one, move both.
 
+## Install & use
+
+```bash
+npm install @openmasq/redact
+```
+
+```ts
+import { pseudonymize, unredact } from "@openmasq/redact";
+
+const vault = {};                                    // yours: keep it, never send it
+const { text } = await pseudonymize(prompt, { vault }); // what the model sees
+const restored = unredact(modelReply, vault);           // what the user sees
+```
+
+The **vault** maps every substitute to the real value: it is the sensitive data itself.
+The engine never stores it — the caller keeps it in memory, encrypts it at rest, and never
+sends it with the text.
+
+The core entry (`.`) only depends on `libphonenumber-js` and `fflate`. The other entries
+need **optional peers** the consumer installs:
+
+| Entry | Install |
+|---|---|
+| `/documents`, `/documents.browser` | `pdfjs-dist`, `mammoth`, `@napi-rs/canvas` (Node), `xlsx` ≥ 0.20.3 from the official [SheetJS CDN](https://cdn.sheetjs.com) |
+| `/inplace` | `xlsx` (as above) |
+| `/pdf-redact`, `/image-redact` | `pdfjs-dist`, `@napi-rs/canvas` (Node) |
+| `/ner` | `@huggingface/transformers`, `onnxruntime-node` |
+
+OCR of scans (`tesseract2.js`) is not published yet: outside this monorepo, a document that
+needs OCR fails with a `DocumentError` of code `ocr_engine_missing`; text layers still extract.
+
 **Start here.**
 - `src/index.ts` — the barrel; `src/engine/` — the pipeline (rules, fakes, formulas).
 - `src/model/` — categories, validators, vocabularies (French-language term lists — the
@@ -36,6 +67,38 @@ conversation**. Ce paquet est ce moteur : `redact` / `pseudonymize` / `unredact`
 `remote/` (un moteur distant optionnel que l'appelant choisit) et `local/ner.ts` (ONNX sur
 l'appareil). Chaque sous-chemin des `exports` de `package.json` a une entrée correspondante
 dans `tsup.config.ts` : si vous en déplacez un, déplacez les deux.
+
+## Installation et usage
+
+```bash
+npm install @openmasq/redact
+```
+
+```ts
+import { pseudonymize, unredact } from "@openmasq/redact";
+
+const vault = {};                                    // le vôtre : gardez-le, ne l'envoyez jamais
+const { text } = await pseudonymize(prompt, { vault }); // ce que voit le modèle
+const restored = unredact(modelReply, vault);           // ce que voit l'utilisateur
+```
+
+Le **coffre** associe chaque substitut à la vraie valeur : c'est la donnée sensible elle-même.
+Le moteur ne le stocke jamais — l'appelant le garde en mémoire, le chiffre au repos, et ne
+l'envoie jamais avec le texte.
+
+L'entrée principale (`.`) ne dépend que de `libphonenumber-js` et `fflate`. Les autres entrées
+demandent des **peers optionnels** que le consommateur installe :
+
+| Entrée | À installer |
+|---|---|
+| `/documents`, `/documents.browser` | `pdfjs-dist`, `mammoth`, `@napi-rs/canvas` (Node), `xlsx` ≥ 0.20.3 depuis le [CDN officiel SheetJS](https://cdn.sheetjs.com) |
+| `/inplace` | `xlsx` (idem) |
+| `/pdf-redact`, `/image-redact` | `pdfjs-dist`, `@napi-rs/canvas` (Node) |
+| `/ner` | `@huggingface/transformers`, `onnxruntime-node` |
+
+L'OCR des scans (`tesseract2.js`) n'est pas encore publié : hors de ce monorepo, un document
+qui en a besoin échoue avec une `DocumentError` de code `ocr_engine_missing` ; les couches texte
+s'extraient normalement.
 
 **Commencez ici.**
 - `src/index.ts` — le barrel ; `src/engine/` — le pipeline (règles, faux, formules).
