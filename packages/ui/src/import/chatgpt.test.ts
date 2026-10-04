@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { isImportedMessageId } from "./ids";
 import { parseChatGptExport } from "./chatgpt";
 
 /** Minimal export fixture: root → user → assistant, plus a forked (abandoned) branch
@@ -69,6 +70,13 @@ describe("parseChatGptExport", () => {
     expect(c.messages[1].at).toBe(1700000020000);
     // The abandoned branch never appears.
     expect(c.messages.some((m) => m.content.includes("abandonnée"))).toBe(false);
+  });
+
+  it("mints the ids the send path recognises as imported (`import/ids.ts`)", () => {
+    const [conv] = parseChatGptExport(FIXTURE, { modelId: "gpt-5.5" });
+    expect(conv.messages.length).toBeGreaterThan(0);
+    for (const m of conv.messages) expect(isImportedMessageId(m.id)).toBe(true);
+    expect(isImportedMessageId("u1")).toBe(false);
   });
 
   it("skips empty/unknown conversations instead of throwing", () => {

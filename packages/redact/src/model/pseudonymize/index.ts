@@ -11,7 +11,6 @@ import { keyFromHex } from "../fakes/prf";
 // loop lives in ./allocate over an explicit context.
 import type { RedactionMatch, RedactionResult, RedactionType } from "../../types";
 import { keepSet, isKept, capitalize, entityKey } from "../../util";
-import { applyVault, applyVaultVariants } from "../../engine/vault";
 import { forwardExclusions } from "./exclusions";
 import { extendEdges } from "./extendEdges";
 import { detectHostedUrlSpans, detectUrlSpans, detectEmailSpans, urlOccurrenceGuard } from "../../engine/urls";
@@ -27,7 +26,7 @@ import { planPathEntities } from "./pathEntities";
 import { splitLineCrossing } from "./lineSplit";
 import { allocateEntities } from "./allocate";
 import { allocateTokens } from "./allocateTokens";
-import { applyTokenFragments } from "./tokenFragments";
+import { replayForModel } from "./replay";
 import type { PseudonymizeOptions } from "./options";
 import { reconcileMatches } from "./postcondition";
 
@@ -245,15 +244,9 @@ export async function pseudonymize(
         return k === undefined || URL_EXEMPT_KINDS.has(redactionCategory(k));
       })
     : undefined;
-  // Exact pass first (longest-first), then the TOLERANT residual pass for the variants an
-  // entity comes back as ("KARL_STUDIO" in a filename, a slug, an upper-cased heading).
-  // ⚠️ The variant pass gets NO url guard on purpose: a slugified real value inside a URL is
-  // the user's data wearing a URL's clothes. Only the EXACT spelling is spared, which is
-  // what the structural parts of a link (host, id, query flag) actually are.
-  const replayed = applyVaultVariants(applyVault(input, vault, exclude, urlGuard), vault, exclude);
-  // Token mode has no per-word aliases in the vault (`tokenFragments.ts` says why), so the
-  // standalone surname of a known person is caught by a forward-only pass of its own.
-  const text = options.mode === "token" ? applyTokenFragments(replayed, vault, exclude) : replayed;
+  // The substitution itself is `replayForModel` — the ONE function every later replay of
+  // this text runs too (history, summary, memory), so a value masked here is masked there.
+  const text = replayForModel(input, vault, { exclude, urlGuard, mode: options.mode });
 
   // POSTCONDITION — "reported ⇒ vaulted ⇒ substituted", reconciled at the single exit
   // (`postcondition.ts` says which mismatch is dropped, accepted, or fails CLOSED).

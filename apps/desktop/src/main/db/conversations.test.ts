@@ -173,3 +173,20 @@ describe("dbSaveConversation → dbLoad round-trip", () => {
     expect(loaded!.conversations[0].messages[0].content).toBe("a");
   });
 });
+
+describe("le marqueur de masquage survit à l'aller-retour", () => {
+  // `redactions` says a user turn's redaction COMPLETED — the condition for replaying it
+  // to the model. 0 (« rien à masquer ») and absent (« jamais masqué ») must not merge.
+  it("0 reste 0, un nombre reste ce nombre, l'absence reste l'absence", async () => {
+    await dbSaveConversation(
+      conv([
+        { id: "u1", role: "user", content: "bonjour", redactions: 0 },
+        { id: "u2", role: "user", content: "Ninon Verdolini", redactions: 1 },
+        { id: "u3", role: "user", content: "refusé" },
+      ]) as any,
+    );
+    const m = (await dbLoad())!.conversations[0].messages;
+    expect(m.map((x: any) => x.redactions)).toEqual([0, 1, undefined]);
+  });
+});
+

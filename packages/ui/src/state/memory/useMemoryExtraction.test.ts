@@ -30,6 +30,7 @@ const conv = (over: Partial<Conversation> = {}): Conversation =>
       {
         id: "u1",
         role: "user",
+        redactions: 1,
         content: "Retiens le contexte : notre client principal est Karl Studio.",
         redactedSpans: [{ value: "Karl Studio", kind: "company" }],
       },
@@ -43,7 +44,7 @@ describe("sweepCandidates — le balayage de démarrage est BORNÉ", () => {
     const convs = [
       conv({ id: "done", memoryWatermark: 2 }), // already extracted → out
       conv({ id: "old", updatedAt: NOW - MEMORY_SWEEP_RECENCY_MS - 1 }), // too old
-      conv({ id: "pending", messages: [{ id: "p", role: "user", content: "x", pending: true } as never] }),
+      conv({ id: "pending", messages: [{ id: "p", role: "user", redactions: 0, content: "x", pending: true } as never] }),
       conv({ id: "r1", updatedAt: NOW - 1000 }),
       conv({ id: "r2", updatedAt: NOW - 100 }),
       conv({ id: "r3", updatedAt: NOW - 10 }),
@@ -117,9 +118,9 @@ function runDeps(replies: Array<string | Error>) {
 
 const askConv = conv({
   messages: [
-    { id: "u1", role: "user", content: "Qui dirige le projet côté client ?" },
+    { id: "u1", role: "user", redactions: 0, content: "Qui dirige le projet côté client ?" },
     { id: "a1", role: "assistant", content: "D'après la page consultée, c'est Laurent Saint-Andiol." },
-    { id: "u2", role: "user", content: "retiens tout ça dans ta mémoire" },
+    { id: "u2", role: "user", redactions: 0, content: "retiens tout ça dans ta mémoire" },
     { id: "a2", role: "assistant", content: "Noté." },
   ] as never,
 });

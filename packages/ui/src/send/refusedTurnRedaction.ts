@@ -48,6 +48,9 @@ export async function redactRefusedTurn(p: {
       p.conv.redactCategories,
       { salt: redactionSalt, key: redactionKey, mode: redactionMode },
     );
+    // A detector that did not run leaves the turn UNMARKED (no `redactions`): the regex
+    // tier alone vaulted it, and `send/replayable.ts` keeps an unmarked turn off the wire.
+    if (r.modelError) return;
     const redactedSpans = deriveRedactedSpans(r.matches);
     p.patchConversation(p.conv.id, (c) => ({
       ...c,

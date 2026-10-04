@@ -4,6 +4,7 @@ import { uid } from "../../state/storePersistence";
 import { pickAttachmentMetas } from "../sendGuards";
 import type { RedactionSetup } from "./redactionSetup";
 import type { TurnContext } from "./turnSetup";
+import { mergeVault } from "../mergeVault";
 
 /**
  * Resolve file names the model wants to ATTACH to the ORIGINAL bytes of the conversation's
@@ -56,7 +57,7 @@ export function makeOnExportedFile(ctx: TurnContext, r: RedactionSetup): NonNull
       const attKind = attMime.startsWith("image/") ? "image" : "file";
       d.patchConversation(convId, (c) => ({
         ...c,
-        redactionVault: merged,
+        redactionVault: mergeVault(c.redactionVault, merged),
         redactionKinds: { ...c.redactionKinds, ...kinds },
         messages: c.messages.map((m) =>
           m.id === assistantMsg.id

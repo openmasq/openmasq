@@ -16,7 +16,8 @@ choice, consent to anonymous statistics, and link previews (under « Vie privée
 outgoing request per link is a privacy decision, not a developer toggle).
 
 **What it gives you.** The import is the gesture that makes changing tools possible: your
-ChatGPT or Claude history arrives **redacted on import**, hence reusable here without
+ChatGPT or Claude history arrives here, and goes back to a model only **redacted** (pattern
+rules on import, the on-device detector on its first send), hence reusable here without
 starting from scratch. Billing leaves you the choice between your own key (you pay the
 provider directly — the only route for OpenAI, Anthropic, Google, Mistral and DeepSeek) and
 the included credits (nothing to configure: Scaleway + a selection of OpenRouter).
@@ -28,7 +29,9 @@ hence revealing that you received it.
 
 - [x] Device identity, sign-out
 - [x] « **Mode sombre** » (the ground: two themes, light and dark, the indigo accent is not a setting; a theme name persisted by an earlier version is still read, `packages/ui/src/state/settings/theme.ts`)
-- [x] « **Importer des conversations** » (official ChatGPT / Claude exports, redacted on import)
+- [x] « **Importer des conversations** » (official ChatGPT / Claude exports: pattern rules on
+      import, the on-device detector over the whole history the first time it goes back to a
+      model — no imported message leaves before that, `send/sendOrchestrator/importedTurns.ts`)
       — the « Importer » button of Réglages → Compte opens the source + drop dialog —
       `packages/ui/src/pages/Settings/import/ImportModal.tsx`
 - [x] « **Facturation des messages** » : your key, or the included credits

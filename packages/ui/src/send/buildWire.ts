@@ -3,6 +3,7 @@ import { NUMBER_TOKEN_INSTRUCTION } from "@openmasq/redact";
 import { datePreamble, DOCUMENT_GUIDANCE, SKILL_GUIDANCE, LANGUAGE_GUIDANCE, PRODUCT_GROUNDING } from "../prompt/systemPrompt";
 import { generatedFilesNote, pythonScriptNote } from "./generatedFiles";
 import type { Message } from "../types";
+import { replayable } from "./replayable";
 
 // The wire/prompt ASSEMBLY of a send, pulled out of `store.ts` `sendMessage`. Pure:
 // the actual redaction lives entirely in the injected `toWire`, so this module only
@@ -46,14 +47,16 @@ export function buildSystemContent(
  *  document rides in `modelContent`; an assistant-generated non-image FILE is surfaced by
  *  name via `generatedFilesNote` so a follow-up turn REUSES it instead of regenerating it),
  *  then the final user turn (plus any redacted document-page images). Redaction is entirely
- *  in `toWire`; this only structures the payload. */
+ *  in `toWire`; this only structures the payload. A past user turn whose redaction never
+ *  completed is left out (`replayable.ts`). */
 export function buildWireHistory(
-  messages: Message[],
+  allMessages: Message[],
   userWire: { text: string },
   systemContent: string,
   imageAttachments: LlmAttachment[] | undefined,
   toWire: ToWire,
 ): ChatMessage[] {
+  const messages = replayable(allMessages);
   // The working script rides ONLY its LATEST occurrence — replaying every version
   // would pay its token cost N times for N analyses in the conversation.
   const lastScriptIdx = messages.reduce(

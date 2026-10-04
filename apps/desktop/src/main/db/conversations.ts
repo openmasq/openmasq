@@ -85,7 +85,9 @@ export async function dbLoad(): Promise<{
       id: r.id,
       role: r.role,
       content: r.content ?? "",
-      redactions: Number(r.redactions) || undefined,
+      // Keep 0: « redacted, nothing found » is a completed redaction, and `send/replayable.ts`
+      // replays only those. Read as absent, every quiet turn left the history after a restart.
+      redactions: r.redactions == null ? undefined : Number(r.redactions),
       error: r.error ? true : undefined,
       incomplete: r.incomplete ? true : undefined,
       errorText: r.error_text || undefined,

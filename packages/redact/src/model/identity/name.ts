@@ -127,26 +127,49 @@ export function buildFakeName(
     // the recased form is what becomes the vault key (see matchTokenCase).
     const pool = elementIdx === 0 ? firstNamePool(part) : FAKE_LAST;
     const seed = h + attempt + i * 7;
-    let fake = matchTokenCase(pool[seed % pool.length], part);
-    for (let k = 0; k < pool.length; k++) {
+    const free = (cand: string): boolean =>
+      cand.toLowerCase() !== part.toLowerCase() &&
+      !isTaken(cand) &&
+      !usedHere.has(cand.toLowerCase()) &&
+      // Never pick a fake that fails isNamePart: a pool surname that is ALSO a stopword
+      // ("Petit") can never be aliased, so the surname canonical stays unresolvable and
+      // the next shorter form mints a SECOND identity for the same person.
+      isNamePart(cand);
+    let fake: string | undefined;
+    for (let k = 0; k < pool.length && !fake; k++) {
       const cand = matchTokenCase(pool[(seed + k) % pool.length], part);
-      if (
-        cand.toLowerCase() !== part.toLowerCase() &&
-        !isTaken(cand) &&
-        !usedHere.has(cand.toLowerCase()) &&
-        // Never pick a fake that fails isNamePart: a pool surname that is ALSO a stopword
-        // ("Petit") can never be aliased, so the surname canonical stays unresolvable and
-        // the next shorter form mints a SECOND identity for the same person.
-        isNamePart(cand)
-      ) {
-        fake = cand;
+      if (free(cand)) fake = cand;
+    }
+    // The pool is spent (a list of more people than it holds): a TAKEN name is never an
+    // answer — its alias cannot be registered, so the real token stays in clear, and one
+    // fake would stand for two people. Cross two pool names instead (`crossedNames`).
+    for (const cand of fake ? [] : crossedNames(pool, seed)) {
+      const recased = matchTokenCase(cand, part);
+      if (free(recased)) {
+        fake = recased;
         break;
       }
     }
+    if (!fake) throw new Error("fake name space exhausted for this conversation");
     usedHere.add(fake.toLowerCase());
     return fake;
   });
   return out.join("");
+}
+
+/** More names than a pool holds, in the pool's own sound: the head of one name on the tail
+ *  of another (« Aubertin » × « Bouchereau » → « Aubereau »), every ordered pair, seeded so a
+ *  conversation walks them in its own order. Pure; finite (pool² names). */
+export function* crossedNames(pool: readonly string[], seed: number): Generator<string> {
+  const n = pool.length;
+  for (let k = 0; k < n * n; k++) {
+    const a = pool[(seed + k) % n];
+    const b = pool[(seed + Math.floor(k / n) + k) % n];
+    if (a === b) continue;
+    const head = a.slice(0, Math.ceil(a.length / 2));
+    const tail = b.slice(Math.floor(b.length / 2));
+    yield head.charAt(0).toUpperCase() + (head.slice(1) + tail).toLowerCase();
+  }
 }
 
 /**

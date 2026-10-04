@@ -1,4 +1,5 @@
 import type { Conversation, Message } from "../types";
+import { importedConvId, importedMessageId } from "./ids";
 
 /**
  * Parser for the OFFICIAL ChatGPT data export (`conversations.json` in the zip from
@@ -67,7 +68,7 @@ export function parseChatGptExport(data: unknown, opts: { modelId: string }): Co
     if (!raw || typeof raw !== "object" || !raw.mapping) continue;
     const sourceId = raw.conversation_id ?? raw.id;
     if (!sourceId) continue;
-    const convId = `imp-gpt-${sourceId}`;
+    const convId = importedConvId("gpt", sourceId);
 
     const messages: Message[] = [];
     for (const node of activeChain(raw.mapping, raw.current_node)) {
@@ -77,7 +78,7 @@ export function parseChatGptExport(data: unknown, opts: { modelId: string }): Co
       const text = nodeText(node);
       if (!text) continue;
       messages.push({
-        id: `${convId}:m${messages.length}`,
+        id: importedMessageId(convId, messages.length),
         role,
         content: text,
         at: toMs(node.message?.create_time),

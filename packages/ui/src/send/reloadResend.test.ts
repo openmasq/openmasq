@@ -22,6 +22,8 @@ const sent: Conversation = {
       role: "user",
       content: "Résume ce bail.",
       attachments: [{ name: "bail.pdf", kind: "pdf" }],
+      // A SENT turn: its redaction completed (`persistUserTurn`), the condition for replay.
+      redactions: 2,
       modelContent: `Résume ce bail.\n\n=== Attached file: document-1.pdf ===\n${DOC}`,
     },
     { id: "a1", role: "assistant", content: "Un bail de trois ans." },
