@@ -616,3 +616,21 @@ describe("a SECRET label does not swallow a running-prose clause", () => {
     expect(got.SECRET).toEqual(["hunter2"]);
   });
 });
+
+describe("detectLabeledFields — an organisation field stops where its address starts", () => {
+  it("company + address on one labelled line: the ORG value is the company alone", () => {
+    expect(byCategory("Employer: Northwind Logistics SAS, 12 rue des Lilas, 69003 Lyon").ORG).toEqual([
+      "Northwind Logistics",
+    ]);
+    expect(byCategory("Raison sociale : Acme GmbH, Hauptstraße 5, 10115 Berlin").ORG).toEqual(["Acme"]);
+  });
+
+  it("a comma before a digit ends it where only the postal code is recognised", () => {
+    expect(byCategory("Company: Acme Ltd, 221B Baker Street, London NW1 6XE").ORG).toEqual(["Acme"]);
+  });
+
+  it("digits and parentheses INSIDE the name stay", () => {
+    expect(byCategory("Employeur : Studio 54 SARL, 3 avenue Foch, 75116 Paris").ORG).toEqual(["Studio 54"]);
+    expect(byCategory("Employer: Acme (France) SAS").ORG).toEqual(["Acme (France)"]);
+  });
+});
