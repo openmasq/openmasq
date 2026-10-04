@@ -57,7 +57,7 @@ export function pdfPagesRefusal(pages: number): DocumentError | null {
   if (pages <= MAX_PDF_PAGES) return null;
   return new DocumentError(
     "pdf_too_many_pages",
-    `PDF trop long (${pages} pages, ${MAX_PDF_PAGES} maximum). Découpez-le en plusieurs parties.`,
+    `PDF too long (${pages} pages, ${MAX_PDF_PAGES} maximum). Split it into several parts.`,
     { pages, max: MAX_PDF_PAGES },
   );
 }
@@ -65,7 +65,7 @@ export function pdfPagesRefusal(pages: number): DocumentError | null {
 /** The oversize refusal, ONE wording for the byte gate and the on-disk size check. */
 export function fileTooLargeRefusal(): DocumentFailure {
   const mb = Math.round(MAX_FILE_BYTES / (1024 * 1024));
-  return { code: "file_too_large", params: { mb }, message: `Fichier trop volumineux (${mb} Mo maximum). Découpez-le en plusieurs parties.` };
+  return { code: "file_too_large", params: { mb }, message: `File too large (${mb} MB maximum). Split it into several parts.` };
 }
 
 /**
@@ -146,7 +146,7 @@ function zipBombRefusal(b: Uint8Array): DocumentFailure | null {
   if (eocd < 0) return null; // not a well-formed ZIP → let the parser deal with it
   const entries = u16le(b, eocd + 10);
   if (entries > MAX_ZIP_ENTRIES)
-    return { code: "zip_entries", params: { entries }, message: `Fichier compressé suspect (${entries} entrées) — refusé.` };
+    return { code: "zip_entries", params: { entries }, message: `Suspicious compressed file (${entries} entries) — refused.` };
   let cd = u32le(b, eocd + 16); // central-directory offset
   let totalUncompressed = 0;
   let totalCompressed = 0;
@@ -163,7 +163,7 @@ function zipBombRefusal(b: Uint8Array): DocumentFailure | null {
     if (totalUncompressed > MAX_ZIP_TOTAL_BYTES) {
       return {
         code: "zip_too_large",
-        message: `Fichier compressé trop volumineux une fois décompressé — refusé (protection anti-bombe).`,
+        message: `Compressed file too large once decompressed — refused (zip-bomb protection).`,
       };
     }
     const nameLen = u16le(b, cd + 28);
@@ -176,7 +176,7 @@ function zipBombRefusal(b: Uint8Array): DocumentFailure | null {
     totalUncompressed / totalCompressed > MAX_ZIP_RATIO &&
     totalUncompressed > 10 * 1024 * 1024
   ) {
-    return { code: "zip_ratio", message: `Ratio de compression anormal — fichier refusé (protection anti-bombe).` };
+    return { code: "zip_ratio", message: `Abnormal compression ratio — file refused (zip-bomb protection).` };
   }
   return null;
 }
@@ -199,10 +199,10 @@ export function guardUploadRefusal(bytes: Uint8Array, ext: string): DocumentFail
 
   const s = sniff(bytes);
   // An executable posing as a document is always hostile.
-  if (s.family === "exe") return { code: "executable", message: `Type de fichier non autorisé (contenu exécutable).` };
+  if (s.family === "exe") return { code: "executable", message: `File type not allowed (executable content).` };
   // A positive, incompatible type contradiction (e.g. a ".pdf" that is a ZIP).
   if (s.family !== "unknown" && !allowed.has(s.family)) {
-    return { code: "type_mismatch", message: `Le contenu du fichier ne correspond pas à son extension — refusé.` };
+    return { code: "type_mismatch", message: `The file's content does not match its extension — refused.` };
   }
   // Image "pixel flood": tiny header, enormous declared canvas.
   if (
@@ -214,7 +214,7 @@ export function guardUploadRefusal(bytes: Uint8Array, ext: string): DocumentFail
     return {
       code: "image_too_large",
       params: { width: s.width, height: s.height },
-      message: `Image aux dimensions excessives (${s.width}×${s.height}) — refusée.`,
+      message: `Image dimensions too large (${s.width}×${s.height}) — refused.`,
     };
   }
   // FAIL CLOSED for the two families whose size is not a fixed field: a TIFF whose first
@@ -223,7 +223,7 @@ export function guardUploadRefusal(bytes: Uint8Array, ext: string): DocumentFail
   // conservative "unrecognised passes" policy above is about a file's TYPE; once the type
   // says image, an unreadable SIZE is a positive danger signal, not an absence of one.
   if ((s.family === "tiff" || s.family === "webp") && !(s.width && s.height)) {
-    return { code: "image_unreadable", message: `Image illisible (dimensions introuvables) — refusée.` };
+    return { code: "image_unreadable", message: `Unreadable image (dimensions not found) — refused.` };
   }
   // ZIP-container bomb (Office formats).
   if (s.family === "zip") {

@@ -109,7 +109,7 @@ describe("picked file past the byte cap", () => {
     const f = await extractText(big);
     expect(f.errorCode).toBe("file_too_large");
     expect(f.blocked).toBe(true);
-    expect(f.error).toContain("50 Mo maximum");
+    expect(f.error).toContain("50 MB maximum");
     expect(fsSpy.readFile).not.toHaveBeenCalled();
   });
 

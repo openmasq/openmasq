@@ -64,7 +64,7 @@ export async function extractPdf(
     const approx = approxPages(estimate);
     return {
       name, kind: "pdf", text: "", chars: 0, mime, blocked: true,
-      error: `Document trop long pour être masqué en entier (≈ ${approx} pages). Découpez-le en plusieurs parties.`,
+      error: `Document too long to be masked in full (≈ ${approx} pages). Split it into several parts.`,
       errorCode: "too_long_to_mask", errorParams: { pages: approx },
     };
   }
@@ -113,10 +113,10 @@ export async function extractPdf(
     // sent with part of its pages. No text rides out: a thin layer is not the document.
     const c = cleanErr(e, OCR_FAILED); // the fallback STATES the fact, it does not diagnose — `errors.ts`
     return noLayer
-      ? { name, kind: "pdf", text: "", chars: 0, mime, error: `PDF sans couche texte — ${c.message}`, errorCode: c.code, rawCause: c.raw }
+      ? { name, kind: "pdf", text: "", chars: 0, mime, error: `PDF without a text layer — ${c.message}`, errorCode: c.code, rawCause: c.raw }
       : {
           name, kind: "pdf", text: "", chars: 0, mime, errorCode: c.code, rawCause: c.raw, errorParams: { unread: ocrCount },
-          error: `${ocrCount} page(s) du PDF non lue(s) — ${c.message}`,
+          error: `${ocrCount} PDF page(s) not read — ${c.message}`,
         };
   }
   streamed.stop();

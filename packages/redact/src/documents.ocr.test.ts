@@ -71,7 +71,7 @@ describe("extractText — OCR dispatch", () => {
     // The fallback OBSERVES the failure; it does not DIAGNOSE it (15/08/2026: a
     // binding crash used to display « OCR indisponible sur cet appareil » even though
     // the models were indeed present — a false verdict, with no possible follow-up for the user).
-    expect(f.error).toMatch(/la reconnaissance de texte a échoué/i);
+    expect(f.error).toMatch(/text recognition failed/i);
     expect(f.error).not.toMatch(/indisponible sur cet appareil/i);
     expect(f.rawCause).toContain("no native binary"); // the real cause stays, for the log
   });

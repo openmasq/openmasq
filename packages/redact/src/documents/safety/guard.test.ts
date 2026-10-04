@@ -82,27 +82,27 @@ describe("guardUpload — reject decisions", () => {
   });
 
   it("rejects a .pdf whose bytes are really a ZIP", () => {
-    expect(guardUpload(ZIP, ".pdf")).toMatch(/ne correspond pas/i);
+    expect(guardUpload(ZIP, ".pdf")).toMatch(/does not match/i);
   });
 
   it("rejects an executable posing as a document", () => {
-    expect(guardUpload(ELF, ".pdf")).toMatch(/exécutable/i);
-    expect(guardUpload(ELF, ".png")).toMatch(/exécutable/i);
+    expect(guardUpload(ELF, ".pdf")).toMatch(/executable/i);
+    expect(guardUpload(ELF, ".png")).toMatch(/executable/i);
   });
 
   it("rejects an over-size file before any parsing", () => {
     const big = new Uint8Array(MAX_FILE_BYTES + 1);
     big.set([0x25, 0x50, 0x44, 0x46]); // valid %PDF head — size is what kills it
-    expect(guardUpload(big, ".pdf")).toMatch(/trop volumineux/i);
+    expect(guardUpload(big, ".pdf")).toMatch(/too large/i);
   });
 
   it("rejects an image pixel-flood (tiny header, giant canvas)", () => {
-    expect(guardUpload(pngHeader(60000, 60000), ".png")).toMatch(/dimensions excessives/i);
+    expect(guardUpload(pngHeader(60000, 60000), ".png")).toMatch(/dimensions too large/i);
   });
 
   it("rejects a zip bomb declaring gigabytes uncompressed", () => {
     const bomb = zipDeclaring(MAX_ZIP_TOTAL_BYTES + 1);
-    expect(guardUpload(bomb, ".docx")).toMatch(/anti-bombe/i);
+    expect(guardUpload(bomb, ".docx")).toMatch(/zip-bomb/i);
   });
 
   it("allows a normal small ZIP (docx) below the bomb thresholds", () => {
@@ -199,8 +199,8 @@ describe("dimensions TIFF / WebP — les deux formats qui contournaient le plafo
 
   it("REFUSE désormais l'inondation de pixels sur ces deux formats", () => {
     // 28800 × 28800 ≈ 830 Mpx : ~3,3 Go une fois décodé en RGBA.
-    expect(guardUpload(tiffHeader(28800, 28800), ".tiff")).toMatch(/dimensions excessives/i);
-    expect(guardUpload(vp8x(28800, 28800), ".webp")).toMatch(/dimensions excessives/i);
+    expect(guardUpload(tiffHeader(28800, 28800), ".tiff")).toMatch(/dimensions too large/i);
+    expect(guardUpload(vp8x(28800, 28800), ".webp")).toMatch(/dimensions too large/i);
   });
 
   it("laisse passer une image ordinaire de ces deux formats", () => {
@@ -213,10 +213,10 @@ describe("dimensions TIFF / WebP — les deux formats qui contournaient le plafo
     // deux cas la toile n'est PAS mesurée, et les deux formats vont à l'OCR (décodage
     // complet). Un plafond qu'on ne peut pas appliquer n'est pas un plafond.
     const tiffTronque = bytes(0x49, 0x49, 0x2a, 0x00, 0xff, 0xff, 0xff, 0x7f);
-    expect(guardUpload(tiffTronque, ".tiff")).toMatch(/illisible/i);
-    expect(guardUpload(webp("ANIM", [0, 0, 0, 0]), ".webp")).toMatch(/illisible/i);
+    expect(guardUpload(tiffTronque, ".tiff")).toMatch(/unreadable/i);
+    expect(guardUpload(webp("ANIM", [0, 0, 0, 0]), ".webp")).toMatch(/unreadable/i);
     // …et un VP8L dont la signature 0x2f manque : le morceau existe, la taille non.
-    expect(guardUpload(webp("VP8L", [0x00, 1, 0, 0, 0]), ".webp")).toMatch(/illisible/i);
+    expect(guardUpload(webp("VP8L", [0x00, 1, 0, 0, 0]), ".webp")).toMatch(/unreadable/i);
   });
 
   it("ne change RIEN pour les familles dont l'en-tête était déjà lu", () => {

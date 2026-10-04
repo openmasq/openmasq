@@ -104,7 +104,7 @@ export interface ChunkMasker {
   readonly finished: boolean;
 }
 
-export const DIVERGED = "texte du document modifié pendant le masquage";
+export const DIVERGED = "document text changed during masking";
 
 export function createChunkMasker(
   redact: RedactFn,
