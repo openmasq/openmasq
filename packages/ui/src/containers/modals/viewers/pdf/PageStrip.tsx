@@ -12,7 +12,7 @@ export interface StripPage {
 }
 
 /**
- * The page strip at the top of the PDF viewer: one small tile per page, its state while the
+ * The page column at the side of the PDF viewer: one small tile per page, its state while the
  * document is read and masked (masked ✓, read, being read, waiting), the page in view
  * marked. A click — or ←/→, ↑/↓ (`usePageNav`) — jumps to a page. The same strip while the
  * masking runs and once it is over.
@@ -32,14 +32,14 @@ export function PageStrip({
   const t = useT();
   const r = t.viewers.reading;
   const listRef = useRef<HTMLOListElement>(null);
-  // Keep the tile of the page in view visible — scrolling the STRIP only, never the panel.
+  // Keep the tile of the page in view visible — scrolling the COLUMN only, never the panel.
   useEffect(() => {
     const list = listRef.current;
     const tile = list?.children[current - 1] as HTMLElement | undefined;
     if (!list || !tile) return;
-    const left = tile.offsetLeft - list.offsetLeft;
-    if (left < list.scrollLeft || left + tile.offsetWidth > list.scrollLeft + list.clientWidth) {
-      list.scrollLeft = left - list.clientWidth / 2 + tile.offsetWidth / 2;
+    const top = tile.offsetTop - list.offsetTop;
+    if (top < list.scrollTop || top + tile.offsetHeight > list.scrollTop + list.clientHeight) {
+      list.scrollTop = top - list.clientHeight / 2 + tile.offsetHeight / 2;
     }
   }, [current]);
   const label = (p: StripPage) =>

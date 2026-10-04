@@ -130,38 +130,43 @@ export function PdfRedactedViewer({
       )}
       {pages.state === "error" && <div className="fv-status">{t.viewers.pdf.unavailable}</div>}
       {ready && pages.empty && <div className="fv-status">{t.viewers.pdf.noPages}</div>}
-      {ready && !pages.empty && (
-        <div className="pdfv-bar">
-          {pages.total > 1 ? <PageStrip pages={strip} current={nav.current} final={!pending} onPick={nav.go} /> : <span className="flex-min" />}
-          <div className="pdfv-zoom" role="group" aria-label={t.viewers.pdf.zoomGroup}>
-            <button
-              type="button"
-              onClick={() => setZoom((z) => Math.max(0.5, Math.round((z / 1.25) * 100) / 100))}
-              aria-label={t.viewers.pdf.zoomOut}
-              title={t.viewers.pdf.zoomOut}
-            >
-              −
-            </button>
-            <button type="button" className="pdfv-zoom-fit" onClick={() => setZoom(1)} title={t.viewers.pdf.fitWidth}>
-              {Math.round(zoom * 100)} %
-            </button>
-            <button
-              type="button"
-              onClick={() => setZoom((z) => Math.min(3, Math.round(z * 1.25 * 100) / 100))}
-              aria-label={t.viewers.pdf.zoomIn}
-              title={t.viewers.pdf.zoomIn}
-            >
-              +
-            </button>
-          </div>
-        </div>
-      )}
-      <div
-        ref={pages.rootRef}
-        className={`pdfv-pages${zoom !== 1 ? " zoomed" : ""}`}
-        // Runtime-computed zoom factor — the sanctioned inline-style case.
-        style={{ "--pdf-zoom": zoom } as CSSProperties}
-      />
+      {/* The pages, with their column on the side: zoom, then one tile per page. A side
+          column and not a top bar — a bar of thumbnails took the height the pages need. The
+          page root is ALWAYS mounted: the pages are painted into it while it loads. */}
+      <div className="pdfv-main">
+        {ready && !pages.empty && (
+          <aside className="pdfv-side">
+            <div className="pdfv-zoom" role="group" aria-label={t.viewers.pdf.zoomGroup}>
+              <button
+                type="button"
+                onClick={() => setZoom((z) => Math.max(0.5, Math.round((z / 1.25) * 100) / 100))}
+                aria-label={t.viewers.pdf.zoomOut}
+                title={t.viewers.pdf.zoomOut}
+              >
+                −
+              </button>
+              <button type="button" className="pdfv-zoom-fit" onClick={() => setZoom(1)} title={t.viewers.pdf.fitWidth}>
+                {Math.round(zoom * 100)} %
+              </button>
+              <button
+                type="button"
+                onClick={() => setZoom((z) => Math.min(3, Math.round(z * 1.25 * 100) / 100))}
+                aria-label={t.viewers.pdf.zoomIn}
+                title={t.viewers.pdf.zoomIn}
+              >
+                +
+              </button>
+            </div>
+            {pages.total > 1 && <PageStrip pages={strip} current={nav.current} final={!pending} onPick={nav.go} />}
+          </aside>
+        )}
+        <div
+          ref={pages.rootRef}
+          className={`pdfv-pages${zoom !== 1 ? " zoomed" : ""}`}
+          // Runtime-computed zoom factor — the sanctioned inline-style case.
+          style={{ "--pdf-zoom": zoom } as CSSProperties}
+        />
+      </div>
     </div>
   );
 }
