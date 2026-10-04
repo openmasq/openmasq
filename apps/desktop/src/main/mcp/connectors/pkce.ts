@@ -7,7 +7,7 @@ import { createHash, randomBytes } from "node:crypto";
  */
 
 /** base64url (no padding) of a buffer. */
-export function base64url(buf: Buffer): string {
+function base64url(buf: Buffer): string {
   return buf.toString("base64").replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 

@@ -3,9 +3,14 @@
 // ocr.ts (LOC cap): this file owns the pdf→raster plumbing; the engines, the router
 // and the traineddata pin logic stay in ocr.ts.
 import { OCR_LANGS, PAGE_BREAK, type OcrMeta } from "../documents/core";
+import { DocumentError } from "../documents/errors";
+import { DEFAULT_OCR_MARKERS, type OcrMarkers } from "../documents/ocrMarkers";
 import { rasterScale } from "../documents/safety/guard";
 import type { OcrLayerPage } from "../documents/layers/geometry";
 import { ocrImageLayout } from "./ocr";
+import { pdfRenderFactories } from "./pdfFactories";
+import { ocrCanvasRegions, regionBoxes } from "./pdfRegions";
+import type { PageFractionRect } from "../documents/layers/imageRegions";
 
 const DEFAULT_LANG = OCR_LANGS.join("+");
 
@@ -18,7 +23,7 @@ const DEFAULT_LANG = OCR_LANGS.join("+");
  * undefined". Turn that (and a missing package) into a CLEAR, actionable error so
  * the caller degrades gracefully (the document still attaches, just without OCR).
  */
-async function loadCanvas(): Promise<any> {
+export async function loadCanvas(): Promise<any> {
   let mod: any;
   try {
     // The crash happens HERE, at module eval: a version-mismatched binary loads
@@ -26,22 +31,24 @@ async function loadCanvas(): Promise<any> {
     // throws "Cannot use 'in' operator … 'families' in undefined". Catch it.
     mod = await import("@napi-rs/canvas");
   } catch {
-    throw new Error(
-      "moteur de rendu PDF indisponible sur cet appareil (composant natif manquant) — réinstallez l'application",
+    throw new DocumentError(
+      "pdf_renderer_missing",
+      "PDF rendering engine unavailable on this device (native component missing)",
     );
   }
   // CJS→ESM interop can put the exports on `.default`; accept either.
   const resolved = typeof mod?.createCanvas === "function" ? mod : (mod?.default ?? mod);
   if (typeof resolved?.createCanvas !== "function") {
-    throw new Error(
-      "moteur de rendu PDF incompatible sur cet appareil — réinstallez l'application",
+    throw new DocumentError(
+      "pdf_renderer_incompatible",
+      "PDF rendering engine incompatible on this device",
     );
   }
   return resolved;
 }
 
 /** pdfjs v4 uses Promise.withResolvers (Node 22+); polyfill for Node 20. */
-function ensureWithResolvers(): void {
+export function ensureWithResolvers(): void {
   const P = Promise as unknown as { withResolvers?: unknown };
   if (typeof P.withResolvers === "function") return;
   P.withResolvers = <T>() => {
@@ -56,18 +63,29 @@ function ensureWithResolvers(): void {
 }
 
 /**
- * OCR a scanned PDF: rasterize the first `maxPages` pages to PNG (via pdfjs +
- * @napi-rs/canvas) and OCR each. Returns the joined text. Throws on failure.
- * `onProgress(done, pages)` fires once the page count is known (0/N) and after each
- * page — the per-page loop is the ONLY measurable phase of an extraction, and it's
- * also the long one (seconds per page on a scan). A progress callback that throws
- * must never break the OCR: it is advisory display, swallowed on error.
+ * OCR a PDF: rasterize each page to read (via pdfjs + @napi-rs/canvas) and OCR it. Returns
+ * the joined text. Throws on failure — never a text missing a page it had to read.
+ * `only` (1-based) narrows the pages to those whose text layer could not prove complete
+ * (`../documents/layers/ocrSkip.ts`); absent, EVERY page is read. There is no page cap: the
+ * size limits are decided before this runs (`../documents/pdfExtract.ts`).
+ * `onProgress(done, pages)` fires once the count of pages to read is known (0/N) and after
+ * each — the per-page loop is the ONLY measurable phase of an extraction, and it's also the
+ * long one (seconds per page on a scan). A progress callback that throws must never break
+ * the OCR: it is advisory display, swallowed on error.
  */
 export async function ocrPdf(
   buf: Uint8Array,
   lang: string = DEFAULT_LANG,
-  maxPages = 10,
+  only?: readonly number[],
   onProgress?: (done: number, pages: number) => void,
+  /** The skipped-page markers' wording (the caller's language). */
+  markers: OcrMarkers = DEFAULT_OCR_MARKERS,
+  /** Each page read, with the text it adds to the result, in page order — display only,
+   *  swallowed on error like `onProgress`. Pages the caller excluded are not reported. */
+  onPage?: (n: number, total: number, text: string) => void,
+  /** Per page, the image rectangles to read instead of the whole page (`./pdfRegions.ts`);
+   *  a page absent is read whole. Only ever handed for a page whose text layer is proved. */
+  regions?: Readonly<Record<number, readonly PageFractionRect[]>>,
 ): Promise<{ text: string; meta: OcrMeta; layout: OcrLayerPage[] }> {
   const t0 = Date.now();
   ensureWithResolvers();
@@ -88,14 +106,27 @@ export async function ocrPdf(
     data: buf.slice(),
     useSystemFonts: true,
     isEvalSupported: false,
+    // Never pdf.js's defaults: in the extraction worker (a utilityProcess) they are the DOM ones.
+    ...pdfRenderFactories(canvasMod),
   }).promise;
 
-  const pages = Math.min(doc.numPages, maxPages);
+  const total: number = doc.numPages;
+  // Out-of-range or repeated entries are ignored; an EMPTY list reads nothing (the caller
+  // had nothing to read), an absent one reads everything.
+  const toRead = only ? new Set(only.filter((n) => Number.isInteger(n) && n >= 1 && n <= total)) : null;
+  const pages = toRead ? toRead.size : total;
   const tick = (done: number) => {
     try {
       onProgress?.(done, pages);
     } catch {
       /* progress is display only — it never interrupts the OCR */
+    }
+  };
+  const pageRead = (n: number, text: string) => {
+    try {
+      onPage?.(n, total, text);
+    } catch {
+      /* display only */
     }
   };
   tick(0);
@@ -105,7 +136,16 @@ export async function ocrPdf(
   // (`../documents/geometry`). Boxes are relative to THIS raster, whose scale is 2 unless
   // the pixel ceiling clamped it (below) — hence the `width`/`height` carried per page.
   const layout: OcrLayerPage[] = [];
-  for (let i = 1; i <= pages; i++) {
+  let done = 0;
+  let regionPages = 0;
+  for (let i = 1; i <= total; i++) {
+    if (toRead && !toRead.has(i)) {
+      // Not rasterised: its text layer holds it all. A placeholder keeps `layout` indexed
+      // BY PAGE (`../documents/geometry.ts`) and the joined text page-aligned.
+      out.push("");
+      layout.push({ text: "", words: [], width: 0, height: 0 });
+      continue;
+    }
     const page = await doc.getPage(i);
     // ⚠️ The canvas is sized from the page's OWN geometry, which the file chooses: at a
     // fixed scale 2 a 28 800×28 800 pt page (the format's maximum) asks for 3.3 GP —
@@ -115,12 +155,13 @@ export async function ocrPdf(
     const base = page.getViewport({ scale: 1 });
     const scale = rasterScale(base.width, base.height, 2);
     if (scale === null) {
-      const marker = `[… page ${i} non océrisée : dimensions excessives]`;
+      const marker = markers.pageTooLarge(i);
       out.push(marker);
       // A placeholder entry, not a skipped one: `layout` is read BY PAGE INDEX
       // (`../documents/geometry.ts`), so dropping it would shift every later page.
       layout.push({ text: marker, words: [], width: 0, height: 0 });
-      tick(i);
+      pageRead(i, marker);
+      tick(++done);
       page.cleanup?.();
       continue;
     }
@@ -128,27 +169,34 @@ export async function ocrPdf(
     const canvas = canvasMod.createCanvas(Math.ceil(viewport.width), Math.ceil(viewport.height));
     const ctx = canvas.getContext("2d");
     await page.render({ canvasContext: ctx, viewport }).promise;
-    const png: Uint8Array = await canvas.encode("png");
     // Route each page through the same docTR/Tesseract router; collect the engine(s) used.
-    const { text, words, meta } = await ocrImageLayout(png, lang);
-    engines.add(meta.engine);
+    // A page whose only unproved content is images reads just those (same raster space).
+    const boxes = regions?.[i]?.length ? regionBoxes(regions[i], canvas.width, canvas.height) : null;
+    let text: string;
+    let words: OcrLayerPage["words"];
+    if (boxes?.length) {
+      const res = await ocrCanvasRegions(canvasMod, canvas, boxes, lang);
+      ({ text, words } = res);
+      res.engines.forEach((e) => engines.add(e));
+      regionPages++;
+    } else {
+      const res = await ocrImageLayout(await canvas.encode("png"), lang);
+      ({ text, words } = res);
+      engines.add(res.meta.engine);
+    }
     out.push(text);
     layout.push({ text, words, width: canvas.width, height: canvas.height });
-    tick(i);
+    pageRead(i, text);
+    tick(++done);
     page.cleanup?.();
   }
   await doc.destroy?.();
-  if (doc.numPages > maxPages) {
-    out.push(`[… ${doc.numPages - maxPages} page(s) supplémentaire(s) non océrisée(s)]`);
-  }
   // Engine label: the single engine, or "docTR+Tesseract" when pages routed differently.
   const engine = engines.size === 1 ? [...engines][0] : [...engines].sort().join("+");
-  // `pagesTotal`: the document's true page count, so DOWNSTREAM can SAY that
-  // a read was partial (the « N/M pages read » chip) instead of burying it
-  // in a text marker nobody re-reads.
+  // `pages`: how many were rasterised; `pagesTotal`: the document's page count.
   return {
     text: out.join(PAGE_BREAK).trim(),
-    meta: { engine, ms: Date.now() - t0, pages, pagesTotal: doc.numPages },
+    meta: { engine, ms: Date.now() - t0, pages, pagesTotal: total, ...(regionPages ? { regionPages } : {}) },
     layout,
   };
 }

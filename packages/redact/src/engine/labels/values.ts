@@ -3,7 +3,7 @@ import { isCodeReference } from "../validators";
 // labeled-field pass goes through these three functions — the single copy of the gate
 // (rule 9): here we decide what a value IS, in the patterns file where it starts.
 import { isStopword, isGenericTerm, isGenericCompound, stripOrgAffixes } from "../../model/detect";
-import { trimAddressTail } from "../addresses";
+import { detectAddresses, trimAddressTail } from "../addresses";
 
 // A NAME field whose value is a CODE IDENTIFIER (`name: read-data-schema`, `getUserById`)
 // is tool/API metadata, not a person — read as a multi-word NAME it hands each fragment
@@ -90,6 +90,25 @@ function trimNameValue(v: string): string {
     .trim();
 }
 
+/**
+ * An ORGANISATION field's value stops where an ADDRESS starts: « Employer: Acme SAS, 12 rue
+ * des Lilas, 69003 Lyon » is a company AND an address, each with its own fake. Captured
+ * whole, the line is ONE organisation and its fake is noise. The address detector says
+ * where the address starts (rule 9, one home for that shape); a comma before a digit ends
+ * it too (« Acme Ltd, 221B Baker Street »), where only the postal code is recognised. A digit
+ * BEFORE the comma stays (« Studio 54 SARL »). What is cut falls back under the address and
+ * postal-code detectors. Pinned in `contextFields.test.ts`.
+ */
+function trimOrgValue(v: string): string {
+  const starts = detectAddresses(v)
+    .map((d) => d.start ?? v.indexOf(d.value))
+    .filter((i) => i > 0);
+  const comma = v.search(/,\s*\d/u);
+  if (comma > 0) starts.push(comma);
+  if (!starts.length) return v;
+  return v.slice(0, Math.min(...starts)).replace(/[\s,;:\-–—]+$/u, "").trim();
+}
+
 /** The shared per-value gate every labeled-field pass applies, and the ONLY copy of it.
  *  Returns the accepted value + its (possibly promoted) category, or `null` to drop the
  *  candidate. Exported so a pass living in another file — the detached label BLOCK
@@ -100,7 +119,7 @@ export function acceptFieldValue(
   numeric: boolean = NUMERIC_CATS.has(groupCategory),
 ): { value: string; category: string } | null {
   let value = raw;
-  if (groupCategory === "ORG") value = stripOrgAffixes(value);
+  if (groupCategory === "ORG") value = stripOrgAffixes(trimOrgValue(value));
   if (groupCategory === "NAME") value = trimNameValue(value);
   // An ADDRESS value stops at the end of the address (a labeled capture runs to the end of
   // the line). Same cut as the address detector, not a second one (rule 9).

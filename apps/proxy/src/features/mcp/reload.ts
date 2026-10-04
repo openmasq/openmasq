@@ -14,7 +14,7 @@ import type { ServerSpec } from "./servers.js";
 /** The files whose change means "the servers, their credentials, or how they are masked
  *  moved". `proxy.json` is here for its `mcp` section ALONE (`policyReload.ts`): a port
  *  cannot move under a listening server, a masking level can. */
-export const WATCHED = new Set(["mcp.json", "mcp-auth.enc", "proxy.json"]);
+const WATCHED = new Set(["mcp.json", "mcp-auth.enc", "proxy.json"]);
 
 export interface ReloadDeps {
   /** The state directory (`lib/stateDir.ts`). */

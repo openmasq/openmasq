@@ -1,10 +1,12 @@
 // Process-level channels: local PII detection, versions, the e2e flag, the auth store.
 import { ipcMain, app } from "electron";
 import { release } from "os";
-import { type DetectLocalPayload, detectLocalPii } from "../localNer";
+import { type DetectLocalPayload, cancelLocalPii, detectLocalPii } from "../localNer";
 import { authStoreGet, authStoreSet, authStoreRemove } from "../store/authStore";
 import { whenWindowShown } from "../store/safeStore";
 import { devOnly } from "../security/devOnly";
+import { setMainLocale } from "../i18n";
+import { handle, any } from "./handle";
 
 // M-9: in a PACKAGED build with no OS keychain (a Linux box lacking libsecret /
 // GNOME Keyring / KWallet, or a user who denied access), `safeStorage` can't
@@ -19,6 +21,9 @@ export function registerAppHandlers(): void {
   // Runs in-process (Node); the renderer wraps it into the redaction pipeline.
   ipcMain.handle("redact:detect-local", (_e, payload: DetectLocalPayload) => detectLocalPii(payload)
   );
+  // A superseded preview stops its inference. Cancelling can only make a run REJECT (every
+  // caller fails closed on that), so the renderer gains no capability; the key is checked.
+  ipcMain.on("redact:detect-local-cancel", (_e, key: unknown) => cancelLocalPii(key));
   // App + runtime component versions for the Versions settings tab.
   ipcMain.handle("app:versions", () => ({
     app: app.getVersion(),
@@ -28,6 +33,11 @@ export function registerAppHandlers(): void {
     v8: process.versions.v8,
     os: `${process.platform} ${release()} (${process.arch})`,
   }));
+
+  // The user's interface language, so main's dialogs and menus speak it. A display
+  // preference: `setMainLocale` ALLOW-LISTS the catalogue's locales and refuses the rest
+  // (`false`, nothing changes). It grants nothing and decides nothing.
+  handle("app:set-locale", [any], (_e, tag) => setMainLocale(tag));
 
   // Is this a TEST launch? Read from main's LAUNCH-TIME env — the sandboxed preload
   // has no `process.env`, so the renderer can only learn it here. Discloses a single

@@ -8,6 +8,13 @@ import {
   sendForcedList,
   shouldRedactSystemPrompt,
 } from "./redactionOptions";
+import { integrationProductNames } from "./integrationKeep";
+/** The list minus the catalogue's product names a test did not pass in itself — they ride
+ *  every send now (`integrationKeep.ts`), and these cases are about the OTHER entries. */
+const PRODUCTS = new Set(integrationProductNames().map((n) => n.toLowerCase()));
+const own = (list: string[], passed: string[] = []) =>
+  list.filter((k) => !PRODUCTS.has(k.toLowerCase()) || passed.some((p) => p.toLowerCase() === k.toLowerCase()));
+
 import type { VaultTerm } from "../types";
 
 describe("effectiveRedactCategories", () => {
@@ -65,12 +72,12 @@ describe("convKindsFromSpans", () => {
     // — filed as generic info instead of a person.
     const conv = {
       messages: [{ content: "", redactedSpans: [{ value: "Julien", kind: "name" }] }],
-      redactionKinds: { Stephane: "name", "36 AV DU CAPITAINE GLARNER": "address" },
+      redactionKinds: { Stephane: "name", "36 AV DU CAPITAINE VERMOND": "address" },
     };
     expect(convKindsFromSpans(conv)).toEqual({
       Julien: "name",
       Stephane: "name",
-      "36 AV DU CAPITAINE GLARNER": "address",
+      "36 AV DU CAPITAINE VERMOND": "address",
     });
   });
 
@@ -95,7 +102,7 @@ describe("avoidBlob", () => {
 
 describe("sendKeepList", () => {
   it("concatenates connected names + revealed values + composer keeps", () => {
-    expect(sendKeepList(["Stripe"], { revealedValues: ["redonne"] }, ["france"])).toEqual([
+    expect(own(sendKeepList(["Stripe"], { revealedValues: ["redonne"] }, ["france"]), ["Stripe"])).toEqual([
       "Stripe",
       "redonne",
       "france",

@@ -4,7 +4,7 @@ import { ChevRightIcon, CloudIcon, PlugIcon, RefreshIcon } from "../../../compon
 import { McpTile } from "../../../components/media/McpTile";
 import { useCloudTree, parseCloudKey } from "../../../hooks/useCloudTree";
 import { useMcpConnectedIds } from "../../../hooks/useMcpConnectedIds";
-import { TreeRow } from "./TreeRow";
+import { FailedNote, TreeRow } from "./TreeRow";
 
 import { useT } from "../../../i18n";
 /**
@@ -58,11 +58,12 @@ export function StorageSources({
         const connector = STORAGE_CONNECTORS.find((c) => c.id === source?.connectorId);
         const label = (connector && connectorBrandName(connector.id)) ?? entry.name;
         return depth === 0 ? (
+          <span key={key} className="rr-tree-line">
           <button
-            key={key}
             type="button"
             className="rr-src"
             title={t.shell.folders.sourceLabel(connector?.name ?? label, source?.label ?? "")}
+            aria-expanded={expanded}
             onClick={() => cloud.toggle(entry.path)}
           >
             <span className={`rr-tree-chev${expanded ? " open" : ""}`} aria-hidden="true">
@@ -73,7 +74,7 @@ export function StorageSources({
             )}
             <span className="rr-src-name">{label}</span>
             {failed ? (
-              <span className="rr-tree-failed" title={t.shell.folders.accountFailed}>
+              <span className="rr-tree-failed" aria-hidden="true">
                 !
               </span>
             ) : loading ? (
@@ -82,6 +83,8 @@ export function StorageSources({
               <span className="rr-src-dot" aria-hidden="true" />
             )}
           </button>
+          {failed && <FailedNote text={t.shell.folders.accountFailed} />}
+          </span>
         ) : (
           <TreeRow
             key={key}
@@ -124,8 +127,8 @@ export function StorageSources({
                fills the panel with explanations and hides what you came there to find. */
             title={
               on
-                ? `${c.name} — connecté, accessible au modèle. Ouvrir ses réglages.`
-                : `${c.name} — non connecté. Se connecter.`
+                ? t.shell.folders.sourceConnectedTip(c.name)
+                : t.shell.folders.sourceDisconnectedTip(c.name)
             }
             onClick={() => onOpenConnector?.(c.id)}
           >
@@ -152,7 +155,7 @@ export function StorageSources({
         <p className="rr-tree-error">
           {cloud.error}{" "}
           <button type="button" className="rr-tree-retry" onClick={cloud.refresh}>
-            <RefreshIcon size={12} /> Réessayer
+            <RefreshIcon size={12} /> {t.common.retry}
           </button>
         </p>
       )}

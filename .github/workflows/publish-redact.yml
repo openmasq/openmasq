@@ -1,0 +1,90 @@
+name: publish-redact
+
+# Publishes `@openmasq/redact` — the ONE workspace package on npm — at the version already in
+# `packages/redact/package.json` (bumped beforehand by `pnpm changeset version`, reviewed in a PR).
+# Every other workspace package is private; the desktop and the proxy keep consuming redact
+# through `workspace:*` and never read the npm copy.
+#
+# AUTH: npm TRUSTED PUBLISHING (OIDC) — no npm token exists anywhere. npm trusts THIS workflow
+# file in THIS repository (configured on npmjs.com, package settings → Trusted publisher), and
+# signs a provenance attestation tying the tarball to this run. Requires npm ≥ 11.5.1, checked.
+# The very first version is published by hand (a trusted publisher attaches to an existing
+# package): `pnpm --filter @openmasq/redact build`, then `pnpm publish` in packages/redact.
+#
+# Manual only, and `dry_run` defaults to TRUE: a run publishes nothing unless asked to.
+# NOTE: GitHub only offers workflow_dispatch from the DEFAULT branch.
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Build, test and pack only — publish nothing"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: publish-redact
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    # The environment npm's trusted-publisher entry names: add required reviewers on it
+    # (Settings → Environments) and every publish waits for a human approval.
+    environment: npm
+    permissions:
+      contents: write # the redact-v<version> tag
+      id-token: write # OIDC → npm trusted publishing + provenance
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+      # No `cache: pnpm`: a release builds from a clean store, never from a restored cache.
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 26
+      - run: pnpm install --frozen-lockfile
+
+      - name: Version to publish
+        id: meta
+        run: |
+          version=$(node -p "require('./packages/redact/package.json').version")
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          if npm view "@openmasq/redact@$version" version >/dev/null 2>&1; then
+            echo "::error::@openmasq/redact@$version is already on npm — run \`pnpm changeset version\` first."
+            exit 1
+          fi
+          node -e "const [a,b,c]=process.argv[1].split('.').map(Number); process.exit(a>11||(a===11&&(b>5||(b===5&&c>=1)))?0:1)" "$(npm --version)" \
+            || { echo "::error::npm $(npm --version) predates trusted publishing (needs >= 11.5.1)"; exit 1; }
+
+      # `--force`: no turbo cache in a release, the tarball is built from this commit only.
+      - run: pnpm build --filter=@openmasq/redact --force
+      - run: pnpm --filter @openmasq/redact typecheck
+      # ISOLATED, like `verify.yml` — the reference run. `test:redact` (`--no-isolate`) is the
+      # local fast lane: it once stalled 7 min on `secretWhitespaceRun` in a release run and
+      # passed in 0.8 s on the next, same commit — a release gate must not flake.
+      - run: pnpm vitest run packages/redact
+
+      - name: Pack
+        working-directory: packages/redact
+        run: pnpm pack --pack-destination "$RUNNER_TEMP"
+      - name: The tarball installs alone and round-trips
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: node scripts/checks/check-redact-pack.mjs "$RUNNER_TEMP/openmasq-redact-$VERSION.tgz"
+
+      - name: Publish
+        if: ${{ !inputs.dry_run }}
+        env:
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: npm publish "$RUNNER_TEMP/openmasq-redact-$VERSION.tgz" --provenance --access public
+      - name: Tag
+        if: ${{ !inputs.dry_run }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.meta.outputs.version }}
+        # `redact-v*` matches neither `v*` nor `beta-v*`: it never starts an app release.
+        run: gh api "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/redact-v$VERSION" -f sha="$GITHUB_SHA"

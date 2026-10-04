@@ -1,14 +1,13 @@
 import type { Block, Run } from "./documentBlocks";
 import type { PdfDocument } from "../../host/platform";
-import { DOC_BG, DOC_GRID, DOC_INK, DOC_LIME, DOC_MUTED, DOC_STRIPE } from "./documentTheme";
-import { BRAND } from "@openmasq/branding";
+import { DOC_BG, DOC_FONT_PRINT, DOC_GRID, DOC_INK, DOC_LIME, DOC_MUTED, DOC_STRIPE } from "./documentTheme";
 
 /**
  * Turns a document's `Block[]` into the HTML + PRINT stylesheet the platform typesets to
  * PDF (`Host.pdf.renderHtml`). This is the pretty path: a real layout engine gives the
- * brand webfont at its true weights, full Unicode, real tables, page-breaking and repeated
- * table headers — none of which `documentPdf.ts` (pdf-lib, WinAnsi, 14 standard fonts) can
- * do. That exporter stays the fallback when the host slot is absent.
+ * document font (Inter) at its true weights, full Unicode, real tables, page-breaking and
+ * repeated table headers — none of which `documentPdf.ts` (pdf-lib, WinAnsi, 14 standard
+ * fonts) can do. That exporter stays the fallback when the host slot is absent.
  *
  * Pure + unit-tested. Two rules that are load-bearing rather than cosmetic:
  *
@@ -90,15 +89,15 @@ function blockHtml(block: Block): string {
  * The print stylesheet. `@page` owns the paper (the platform passes
  * `preferCSSPageSize`), and the bottom margin leaves room for the running footer the
  * platform draws. Sizes are in `pt`/`mm` on purpose — this sheet never meets a screen.
- * The brand-named face is the one the platform inlines as a `data:` font; the fallbacks cover
- * an install with no bundled font (and the mono stack is always a system one — only the
+ * `DOC_FONT_PRINT` (Inter) is the face the platform inlines as a `data:` font; the fallbacks
+ * cover an install with no verified bundled font (and the mono stack is always a system one — only the
  * text face is bundled).
  */
 export const DOCUMENT_PRINT_CSS = `
 *{box-sizing:border-box}
 @page{size:A4;margin:18mm 16mm 20mm}
 html,body{margin:0;padding:0}
-body{background:${DOC_BG};color:${DOC_INK};font-family:${BRAND.name},-apple-system,system-ui,"Segoe UI",sans-serif;
+body{background:${DOC_BG};color:${DOC_INK};font-family:"${DOC_FONT_PRINT}",-apple-system,system-ui,"Segoe UI",sans-serif;
   font-size:10.5pt;line-height:1.55;orphans:3;widows:3;-webkit-font-smoothing:antialiased}
 h1,h2,h3,h4,h5,h6{break-after:avoid;page-break-after:avoid;font-weight:700;line-height:1.25;margin:0}
 h1{font-size:23pt;letter-spacing:-.01em;margin:0 0 3mm}

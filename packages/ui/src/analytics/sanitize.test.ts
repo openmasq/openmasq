@@ -54,6 +54,16 @@ describe("analytics sanitize (privacy guard)", () => {
     expect((sneaky.props as Record<string, unknown>).text).toBeUndefined();
   });
 
+  it("buckets the router duration of a loop summary, never the raw ms", () => {
+    const out = sanitize({
+      name: "tool_loop_summary",
+      provider: "claude-cli", model: "claude-cli", turns: 1, toolCalls: 0,
+      routerOffered: 0, routerTotal: 16, routerMs: 4200,
+      loadToolsUnknown: 0, navClear: 0, navEscalated: 0, outcome: "answered",
+    });
+    expect(out.props.routerMs).toBe("3-10s");
+  });
+
   it("bucketMs quantises latency into coarse ranges", () => {
     expect(bucketMs(10)).toBe("<50ms");
     expect(bucketMs(300)).toBe("200-500ms");

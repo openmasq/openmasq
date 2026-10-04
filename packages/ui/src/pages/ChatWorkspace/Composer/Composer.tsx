@@ -24,6 +24,7 @@ import { UtilityRiskNote } from "./parts/UtilityRiskNote";
 import type { ComposerProps } from "./types";
 import { useLiveDetection } from "./useLiveDetection";
 import { useSendState } from "./useSendState";
+import { useLongPasteUndo } from "./useLongPasteUndo";
 import { useSlashPalette } from "./useSlashPalette";
 
 type MarkMenu = { x: number; y: number; value: string; hue: string; uncertain?: boolean };
@@ -82,12 +83,14 @@ export function Composer(p: ComposerProps) {
     if (palette.onKeyDown(e)) return;
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      // Never send while the redaction is still being computed (or a file redacted).
+      // Never send while a file is read or the redaction is still being computed (or a file redacted).
       if (!busy) onSubmit();
     }
   }
-  // A long draft collapses the inline box to a card; editing moves to the modal.
+  // A long draft collapses the inline box to a card; editing moves to the modal. The
+  // paste that folds it stays undoable from the card (Cmd/Ctrl+Z), focus included.
   const longStats = input.length > LONG_TEXT_THRESHOLD ? longTextStats(input) : null;
+  const pasteUndo = useLongPasteUndo({ input, onInput, taRef });
 
   return (
     <div className="composer">
@@ -127,14 +130,20 @@ export function Composer(p: ComposerProps) {
           </div>
         )}
         {longStats ? (
-          <LongTextCard stats={longStats} onOpen={() => setEditorOpen(true)} />
+          <LongTextCard
+            stats={longStats}
+            onOpen={() => setEditorOpen(true)}
+            cardRef={pasteUndo.cardRef}
+            onKeyDown={pasteUndo.onCardKeyDown}
+            canUndo={pasteUndo.canUndo}
+          />
         ) : (
           // The privacy CLAIM is made once, by the welcome subtitle; here only the invitation.
           <HighlightedTextarea
             taRef={taRef}
             backdropRef={backdropRef}
             value={input}
-            onChange={onInput}
+            onChange={pasteUndo.onInlineChange}
             segments={segments}
             placeholder={t.composer.placeholder(BRAND.name)}
             grow={200}
@@ -213,6 +222,7 @@ export function Composer(p: ComposerProps) {
         <SendButton
           isStreaming={p.isStreaming}
           busy={busy}
+          reading={sendState.reading}
           showDone={showDone}
           disabled={sendState.sendDisabled}
           onStop={p.onStop}

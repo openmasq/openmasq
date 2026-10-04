@@ -1,6 +1,7 @@
 import { captureError, captureEvent } from "../../analytics";
 import { httpStatus, requestIdOf, retriesOf } from "../../state/errors/fields";
 import { cleanErrorText, humanizeSendError, isRateLimitError, sendErrorAction, sendErrorReason } from "../../state/errors";
+import { noteCliAuthFailure } from "../../state/effects/cliSession";
 import { estimateTurnUsage } from "../estimateUsage";
 import type { ChatMessage } from "@openmasq/llm";
 import type { Conversation } from "../../types";
@@ -78,9 +79,10 @@ export function failAgentTurn(ctx: TurnContext, r: RedactionSetup, routing: Rout
   });
   // `humanizeSendError` FIRST, 429 included; the action follows the cause.
   const act = sendErrorAction(detail, model.provider);
+  noteCliAuthFailure(detail);
   const friendly =
     humanizeSendError(detail, d.t, { personal: !d.orgProfileRef.current, provider: model.provider }) ??
-    r.fromWire(cleanErrorText(detail));
+    r.fromWire(cleanErrorText(detail, d.t));
   commitTurnVault(ctx, r, f.toolKinds);
   updateAssistant({
     pending: false,

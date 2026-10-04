@@ -2,7 +2,7 @@ import { contextWindow, type ToolDef } from "@openmasq/llm";
 import { captureEvent, type SendErrorReason } from "../../analytics";
 import { pushDebug } from "../../state/debug/debug";
 import type { SoloReadStreak } from "../batchReads";
-import { exhaustionMessage, type repeatedFailureOf } from "../mcpAgentGuidance";
+import { exhaustionMessage, loopCopy, type repeatedFailureOf } from "../mcpAgentGuidance";
 import { isWriteTool } from "../mcpAgentClassify";
 import { resultCharBudget, toolResultChars } from "../prefetch";
 import { ResultEchoLedger } from "../resultEcho";
@@ -123,6 +123,7 @@ export function createLoopCtx(
       provider: p.provider, model: p.modelId, loopId,
       turns: st.currentTurn + 1, toolCalls: loopStats.toolCalls, ms: Date.now() - loopT0,
       routerOffered: setup.selected.length, routerTotal: setup.mcpTools.length,
+      ...(setup.routerMs !== undefined ? { routerMs: setup.routerMs } : {}),
       loadToolsUnknown: loopStats.loadToolsUnknown,
       navClear: loopStats.navClear, navEscalated: loopStats.navEscalated,
       outcome,
@@ -135,7 +136,7 @@ export function createLoopCtx(
     // this checkpoint the retry replays a transcript where the call "never happened".
     checkpointTranscript();
     dbg({ type: "phase", scope: "system", label: "Interrompu par l'utilisateur", ok: false });
-    p.onText(st.lastText || p.fromWire("_(Interrompu.)_"), false);
+    p.onText(st.lastText || p.fromWire(loopCopy(p.t).runtime.loop.interrupted), false);
     emitUsage();
     emitLoopSummary("aborted");
     return true;
@@ -148,7 +149,7 @@ export function createLoopCtx(
         exhaustionMessage({
           callCounts, repeatedResult, argErrored: struggle.argErrored, succeeded: struggle.succeeded,
           maxTurns: st.turnBudget, stopped: "stuck", hammered, repeatedFailure: st.repeatedFailure,
-        }),
+        }, loopCopy(p.t)),
       ),
       false,
     );

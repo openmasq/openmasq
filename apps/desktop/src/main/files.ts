@@ -1,21 +1,22 @@
 import { dialog, BrowserWindow } from "electron";
-import { SUPPORTED_EXTENSIONS, type ExtractedFile } from "@openmasq/redact/documents";
+import { SUPPORTED_EXTENSIONS, type ExtractedFile, type ExtractStreamEvent } from "@openmasq/redact/documents";
 import {
   extractTextInWorker as extractText,
   extractBytesInWorker as extractBytes,
-} from "./ocr/extractClient";
+} from "./ocr/extractJobs";
+import { mainMessages } from "./i18n";
 
 /**
  * File attachments for the desktop app. The text extraction + document
  * redaction lives in @openmasq/redact (shared, unit-tested) — run in the
- * extraction WORKER (`ocr/extractClient.ts`): in main, the per-page loop of a
+ * extraction WORKER (`ocr/extractJobs.ts`): in main, the per-page loop of a
  * scan blocked IPC in ~1 s bursts (measured 13/08). This module owns the
  * Electron-specific bits — the native file picker and batch extraction over chosen
  * paths — and the worker inherits the best-effort contract (a failure returns `{error}`).
  */
 
 export type { ExtractedFile };
-export { extractText, extractBytes };
+export { extractBytes };
 
 const MIME: Record<string, string> = {
   csv: "text/csv",
@@ -38,32 +39,54 @@ const MIME: Record<string, string> = {
 const mimeFor = (name: string): string =>
   MIME[name.slice(name.lastIndexOf(".") + 1).toLowerCase()] ?? "application/octet-stream";
 
-/** Per-file OCR progress: `(name, pagesRead, pagesTotal)` — relayed over IPC
- *  to the renderer (the attachment chip displays « OCR… page x/y »). */
-export type OcrProgressFn = (name: string, page: number, pages: number) => void;
+/** Per-file OCR progress: `(name, pagesRead, pagesTotal, meta)` — relayed over IPC
+ *  to the renderer (the attachment chip displays « OCR… page x/y »). `meta.queued`: the
+ *  file is waiting its turn with that many ahead (`ocr/extractQueue.ts`); `meta.path`:
+ *  which file, when two picked files share a name. */
+export type OcrProgressFn = (
+  name: string,
+  page: number,
+  pages: number,
+  meta?: { queued?: number; path?: string },
+) => void;
+
+/** The preview stream of one file being read (pages, thumbnails — `ocr/extractStream.ts`). */
+export type ExtractStreamFn = (ev: ExtractStreamEvent, file: { name: string; path?: string }) => void;
 
 /** Extract + tag each result with its source `path` and `mime`, so the renderer
  *  can later store the original file (hidden-mode redaction). */
 async function extractTagged(
   path: string,
   onProgress?: OcrProgressFn,
-  ocrAllPages?: boolean,
+  onStream?: ExtractStreamFn,
+  signal?: AbortSignal,
 ): Promise<ExtractedFile> {
   const name = path.split(/[\\/]/).pop() || path;
-  const extracted = await extractText(path, (done, pages) => onProgress?.(name, done, pages), ocrAllPages);
+  const extracted = await extractText(path, {
+    onOcrProgress: (done, pages) => onProgress?.(name, done, pages, { path }),
+    onWaiting: (ahead) => onProgress?.(name, 0, 0, { queued: ahead, path }),
+    onStream: onStream ? (ev) => onStream(ev, { name, path }) : undefined,
+    signal,
+  });
   return { ...extracted, path, mime: mimeFor(path) };
+}
+
+/** The native picker's options: multi-select, documents first, in main's language. */
+function pickerOptions(): Electron.OpenDialogOptions {
+  const t = mainMessages().desktopMain.filePicker;
+  return {
+    title: t.title,
+    properties: ["openFile", "multiSelections"],
+    filters: [
+      { name: t.documents, extensions: SUPPORTED_EXTENSIONS },
+      { name: t.allFiles, extensions: ["*"] },
+    ],
+  };
 }
 
 export async function pickAndExtract(onProgress?: OcrProgressFn): Promise<ExtractedFile[]> {
   const win = BrowserWindow.getFocusedWindow();
-  const opts: Electron.OpenDialogOptions = {
-    title: "Attach files",
-    properties: ["openFile", "multiSelections"],
-    filters: [
-      { name: "Documents", extensions: SUPPORTED_EXTENSIONS },
-      { name: "All files", extensions: ["*"] },
-    ],
-  };
+  const opts = pickerOptions();
   const res = win
     ? await dialog.showOpenDialog(win, opts)
     : await dialog.showOpenDialog(opts);
@@ -74,10 +97,11 @@ export async function pickAndExtract(onProgress?: OcrProgressFn): Promise<Extrac
 export async function extractPaths(
   paths: string[],
   onProgress?: OcrProgressFn,
-  /** « Read all » (chip on a truncated attachment): OCR with no page cap. */
-  ocrAllPages?: boolean,
+  onStream?: ExtractStreamFn,
+  /** The user removed the file (`ocr/extractCancel.ts`) — absent ⇒ uncancellable. */
+  signal?: AbortSignal,
 ): Promise<ExtractedFile[]> {
-  return Promise.all(paths.map((p) => extractTagged(p, onProgress, ocrAllPages)));
+  return Promise.all(paths.map((p) => extractTagged(p, onProgress, onStream, signal)));
 }
 
 /** Just the native picker — returns the chosen paths (+ basenames) WITHOUT extracting.
@@ -85,14 +109,7 @@ export async function extractPaths(
  *  PDF / scanned-doc OCR can take seconds — the file shouldn't wait to appear). */
 export async function pickPaths(): Promise<{ name: string; path: string }[]> {
   const win = BrowserWindow.getFocusedWindow();
-  const opts: Electron.OpenDialogOptions = {
-    title: "Attach files",
-    properties: ["openFile", "multiSelections"],
-    filters: [
-      { name: "Documents", extensions: SUPPORTED_EXTENSIONS },
-      { name: "All files", extensions: ["*"] },
-    ],
-  };
+  const opts = pickerOptions();
   const res = win ? await dialog.showOpenDialog(win, opts) : await dialog.showOpenDialog(opts);
   if (res.canceled) return [];
   return res.filePaths.map((p) => ({ name: p.split(/[\\/]/).pop() || p, path: p }));

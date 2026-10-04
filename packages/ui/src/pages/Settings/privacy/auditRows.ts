@@ -1,5 +1,7 @@
 import { redactionCategory } from "@openmasq/redact";
+import type { Messages } from "@openmasq/i18n";
 import type { Conversation } from "../../../types";
+import { displayTitle } from "../../../state/conversation/displayTitle";
 import { protectedEntries } from "../../../state/redaction/protectedCount";
 import { conversationKindIndex, kindOf } from "./privacyStats";
 
@@ -38,7 +40,7 @@ export interface AuditGroup {
 }
 
 /** The journal's groups, most recent conversation first. */
-export function buildAuditGroups(conversations: readonly Conversation[]): AuditGroup[] {
+export function buildAuditGroups(conversations: readonly Conversation[], t: Messages): AuditGroup[] {
   const out: AuditGroup[] = [];
   for (const c of conversations) {
     const index = conversationKindIndex(c);
@@ -62,7 +64,7 @@ export function buildAuditGroups(conversations: readonly Conversation[]): AuditG
       });
     }
     if (rows.length) {
-      out.push({ convId: c.id, convTitle: c.title || "Nouvelle conversation", at: c.updatedAt, rows });
+      out.push({ convId: c.id, convTitle: displayTitle(c.title, t), at: c.updatedAt, rows });
     }
   }
   return out.sort((a, b) => b.at - a.at);

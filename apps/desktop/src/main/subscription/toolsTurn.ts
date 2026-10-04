@@ -119,6 +119,7 @@ export async function completeSubscriptionTools(
 
   const run = (async (): Promise<StreamDone> => {
     const it = streamCliProcess({
+      cli: env.cli ?? "claude",
       binPath: env.binPath,
       args: plan.args,
       cwd: env.cwd,

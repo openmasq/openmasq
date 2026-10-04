@@ -9,21 +9,21 @@ export const redactionCatalog = {
     name: {
       label: "Noms & prénoms",
       detail:
-        "Prénoms, noms, identités complètes détectés par le modèle local — y compris en MAJUSCULES, collés ou dans un champ étiqueté (Nom :, Prénom(s) :). Les personnalités publiques restent lisibles.",
+        "Prénoms, noms et identités complètes repérés par la détection sur l'appareil, y compris en MAJUSCULES, collés ou dans un champ étiqueté (Nom :, Prénom(s) :). Les personnalités publiques ne sont pas masquées par défaut.",
     },
     dob: {
       label: "Date de naissance",
       detail:
         "Dates de naissance (né le…, date of birth, formats FR/EN/DE), champs étiquetés inclus. Les autres dates relèvent de « Dates », éteinte par défaut.",
       impact:
-        "Masquée, un âge ou un délai CALCULÉ par le modèle peut être décalé (la fausse date protège l'année réelle, elle-même identifiante). La date restituée, elle, est toujours la vraie.",
+        "Une fois la date masquée, un âge ou un délai calculé par le modèle peut être décalé : la date de substitution cache aussi l'année réelle, qui peut identifier une personne. La date affichée est toujours la vraie.",
     },
     date: {
       label: "Dates",
       detail:
-        "Toutes les autres dates — en chiffres (12/05/2024, 2024-05-12, 20240512) ou en lettres (12 mai 2024, May 12, 2024, mai 2024) — et les heures (14:30, 8:15 AM, 07h30), dans les langues du produit. Éteinte par défaut ; le niveau Strict l'allume. Les années seules et les durées ne sont jamais touchées.",
+        "Toutes les autres dates, en chiffres (12/05/2024, 2024-05-12, 20240512) ou en lettres (12 mai 2024, May 12, 2024, mai 2024), et les heures (14:30, 8:15 AM, 07h30), dans les langues du produit. Éteinte par défaut ; le niveau Strict l'allume. Les années seules et les durées ne sont jamais masquées.",
       impact:
-        "Masquées, les durées, délais et chronologies que le modèle calcule portent sur des dates d'emprunt : décalées de quelques années mais cohérentes entre elles, et toujours restituées vraies.",
+        "Une fois les dates masquées, les durées, délais et chronologies calculés par le modèle portent sur des dates de substitution. Elles sont décalées de quelques années mais restent cohérentes entre elles. Les vraies dates sont toujours rétablies.",
     },
     username: {
       label: "Pseudo / identifiant",
@@ -32,37 +32,37 @@ export const redactionCatalog = {
     email: {
       label: "E-mail",
       detail:
-        "Adresses e-mail (le faux garde un prénom cohérent pour que « Bonjour X » reste réversible).",
+        "Adresses e-mail. Le substitut garde un prénom cohérent, pour qu'une formule comme « Bonjour X » soit bien rétablie.",
     },
     phone: {
       label: "Téléphone",
       detail:
-        "Numéros français et internationaux (+33, 00…), validés libphonenumber pour l'international.",
+        "Numéros français et internationaux (+33, 00…). Les numéros internationaux sont vérifiés selon les règles de chaque pays.",
     },
     address: {
       label: "Adresse postale",
       detail:
-        "Adresses complètes multi-langues (FR/EN/DE/ES/IT/PT/NL + CJK) — remplacées par une vraie adresse du même pays, région différente.",
+        "Adresses complètes multilingues (FR/EN/DE/ES/IT/PT/NL + CJK), remplacées par une adresse réaliste du même pays, dans une autre région.",
       impact:
-        "Masquée, l'adresse reste cohérente (même pays, même forme) mais tout calcul géographique — distance, proximité, secteur — porte sur le lieu d'emprunt.",
+        "Une fois l'adresse masquée, elle reste cohérente (même pays, même forme), mais tout calcul géographique (distance, proximité, secteur) porte sur le lieu de substitution.",
     },
     location: {
       label: "Lieu / ville / code postal",
       detail:
-        "Villes, codes postaux, départements, régions, lieux de naissance. Les PAYS ne sont jamais masqués (connaissance du monde).",
+        "Villes, codes postaux, départements, régions, lieux de naissance. Les pays ne sont jamais masqués (culture générale).",
       impact:
-        "Masqués, distances, trajets et juridictions sont raisonnés sur des lieux d'emprunt — cohérents entre eux, mais pas avec la carte réelle.",
+        "Une fois les lieux masqués, distances, trajets et juridictions sont raisonnés sur des lieux de substitution. Ils restent cohérents entre eux, mais pas avec la carte réelle.",
     },
     company: {
       label: "Entreprise",
       detail:
-        "Noms d'entreprises et d'organisations détectés par le modèle. Les grandes marques, produits et indices connus restent lisibles ; vos numéros SIREN/TVA relèvent d'« Identifiants d'entreprise ».",
+        "Noms d'entreprises et d'organisations repérés par la détection sur l'appareil. Les grandes marques, produits et indices connus ne sont pas masqués par défaut. Les numéros d'immatriculation (SIREN, TVA…) relèvent d'« Identifiants d'entreprise ».",
       impact:
-        "Masquée, le modèle ne sait RIEN de l'entreprise (secteur, taille, convention collective) : son nom d'emprunt est inconnu du monde, exprès.",
+        "Une fois l'entreprise masquée, le modèle ne sait rien d'elle (secteur, taille, convention collective), car le nom de substitution est fictif.",
     },
     card: {
       label: "Carte bancaire",
-      detail: "Numéros de carte 13-19 chiffres validés Luhn, espaces/tirets tolérés.",
+      detail: "Numéros de carte de 13 à 19 chiffres vérifiés par l'algorithme de Luhn. Espaces et tirets acceptés.",
     },
     iban: {
       label: "IBAN / coordonnées bancaires",
@@ -72,7 +72,7 @@ export const redactionCatalog = {
     national_id: {
       label: "ID national / passeport / permis",
       detail:
-        "Documents d'identité de 40+ pays : CNI, passeports, NIR/sécu (espacé, Corse), permis de conduire, titres de séjour, numéros fiscaux, MRZ de documents scannés, SSN/ITIN, NHS, PESEL, AVS suisse, registre belge, CPF brésilien, carte d'identité chinoise, HKID, My Number… plus plaques d'immatriculation, VIN et IMEI. Sommes de contrôle vérifiées quand le pays en publie une.",
+        "Documents d'identité de 40+ pays : CNI, passeports, NIR/sécurité sociale, permis de conduire, titres de séjour, numéros fiscaux, MRZ de documents scannés, SSN/ITIN, NHS, PESEL, AVS suisse, registre belge, CPF brésilien, carte d'identité chinoise, HKID, My Number… plus plaques d'immatriculation, VIN et IMEI. Les clés de contrôle sont vérifiées quand le pays en publie une.",
     },
     company_id: {
       label: "Identifiants d'entreprise",
@@ -82,17 +82,17 @@ export const redactionCatalog = {
     ip: {
       label: "Adresse IP",
       detail:
-        "IPv4, IPv6 (formes compressées ::) et adresses MAC — remplacées par des adresses valides.",
+        "IPv4, IPv6 (formes compressées :: comprises) et adresses MAC, remplacées par des adresses valides.",
     },
     path: {
       label: "Chemins de fichiers",
       detail:
-        "Chemins absolus (macOS/Windows/Linux), noms de fichiers et dossiers personnels (documents, images, archives) — le code source n'est pas visé.",
+        "Chemins absolus (macOS/Windows/Linux) et noms de fichiers et dossiers : le nom d'utilisateur et les personnes, sociétés et numéros qu'ils contiennent sont remplacés, les mots courants restent lisibles (en Strict, tout mot non reconnu est remplacé aussi). Le code source n'est pas visé.",
     },
     url: {
       label: "Adresses web (URL)",
       detail:
-        "Masque l'adresse ENTIÈRE — domaine, chemin et paramètres — pas seulement ce qu'elle contient. Éteinte, les URL restent lisibles ET rien de ce qui se trouve à l'intérieur n'est masqué par erreur (noms de fichiers, jetons de cache d'une page consultée) ; les clés qui y figurent le sont toujours. Activée au niveau Strict, pensé pour l'analyse de documents.",
+        "Masque l'adresse entière (domaine, chemin et paramètres), pas seulement son contenu. Éteinte, les URL restent lisibles et rien à l'intérieur n'est masqué par erreur (noms de fichiers, jetons de cache d'une page), mais les clés qu'elles contiennent restent masquées. Activée au niveau Strict, pour l'analyse de documents.",
     },
     secret: {
       label: "Clés & secrets",
@@ -102,7 +102,7 @@ export const redactionCatalog = {
     apikey: {
       label: "Chaînes type clé (générique)",
       detail:
-        "Heuristique large : toute chaîne qui RESSEMBLE à une clé (mélange lettres/chiffres long). Active à tous les niveaux de protection — une clé manquée part en clair. En contrepartie elle attrape aussi des références produit inoffensives.",
+        "Règle large : masque toute chaîne qui ressemble à une clé (long mélange de lettres et de chiffres). Active à tous les niveaux de protection, car une clé manquée serait envoyée non masquée. Elle peut aussi attraper des références produit inoffensives.",
     },
   },
   sections: {
@@ -146,5 +146,5 @@ export const redactionCatalog = {
   neutralKind: "élément",
   allOn: "Tout activer",
   allOff: "Tout désactiver",
-  reset: "Réinitialiser — hériter des réglages par défaut",
+  reset: "Rétablir les réglages par défaut",
 } satisfies Messages["redactionCatalog"];

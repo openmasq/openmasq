@@ -10,6 +10,13 @@ import {
   combinedVaultTerms,
 } from "./vaultTerms";
 import { sendKeepList } from "./redactionOptions";
+import { integrationProductNames } from "./integrationKeep";
+/** The list minus the catalogue's product names a test did not pass in itself — they ride
+ *  every send now (`integrationKeep.ts`), and these cases are about the OTHER entries. */
+const PRODUCTS = new Set(integrationProductNames().map((n) => n.toLowerCase()));
+const own = (list: string[], passed: string[] = []) =>
+  list.filter((k) => !PRODUCTS.has(k.toLowerCase()) || passed.some((p) => p.toLowerCase() === k.toLowerCase()));
+
 
 const term = (over: Partial<VaultTerm> = {}): VaultTerm => ({
   id: "t1",
@@ -172,27 +179,27 @@ describe("the Coffre outranks the automatic connector keep-list", () => {
   it("drops a connected TOOL name that collides with a Coffre term", () => {
     // The user connected a server exposing `notes__Nightingale`; `connectedKeep` holds
     // the bare tool name. Before the fix this silently disabled the Coffre term.
-    expect(sendKeepList(["Nightingale", "stripe"], conv, undefined, forced)).toEqual(["stripe"]);
+    expect(own(sendKeepList(["Nightingale", "stripe"], conv, undefined, forced), ["stripe"])).toEqual(["stripe"]);
   });
 
   it("matches case-insensitively (the Coffre is case-insensitive too)", () => {
-    expect(sendKeepList(["nightingale"], conv, undefined, forced)).toEqual([]);
+    expect(own(sendKeepList(["nightingale"], conv, undefined, forced))).toEqual([]);
   });
 
   it("keeps every non-colliding connector name — routing must not break", () => {
-    expect(sendKeepList(["stripe", "canva"], conv, undefined, forced)).toEqual(["stripe", "canva"]);
+    expect(own(sendKeepList(["stripe", "canva"], conv, undefined, forced), ["stripe", "canva"])).toEqual(["stripe", "canva"]);
   });
 
   it("an EXPLICIT reveal still wins: the user asked for it, deliberately", () => {
-    expect(sendKeepList([], { revealedValues: ["Nightingale"] }, undefined, forced)).toEqual([
+    expect(own(sendKeepList([], { revealedValues: ["Nightingale"] }, undefined, forced))).toEqual([
       "Nightingale",
     ]);
-    expect(sendKeepList([], conv, ["Nightingale"], forced)).toEqual(["Nightingale"]);
+    expect(own(sendKeepList([], conv, ["Nightingale"], forced))).toEqual(["Nightingale"]);
   });
 
   it("no forced list ⇒ the connector list is untouched (unchanged behaviour)", () => {
-    expect(sendKeepList(["Nightingale"], conv, undefined, [])).toEqual(["Nightingale"]);
-    expect(sendKeepList(["Nightingale"], conv, undefined)).toEqual(["Nightingale"]);
+    expect(own(sendKeepList(["Nightingale"], conv, undefined, []))).toEqual(["Nightingale"]);
+    expect(own(sendKeepList(["Nightingale"], conv, undefined))).toEqual(["Nightingale"]);
   });
 
   it("END-TO-END: the Coffre term survives a colliding tool name on the real engine", async () => {

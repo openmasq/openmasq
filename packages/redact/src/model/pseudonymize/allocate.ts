@@ -4,7 +4,9 @@ import { buildFakeWordIndex } from "./fakeWordIndex";
 import { recaseLike, entityKey } from "../../util";
 import { fakeFor } from "../fakes";
 import { buildFakePath } from "../paths";
+import type { PathPlan } from "./pathEntities";
 import { registerSidePairs } from "./sidePairs";
+import { substringTest } from "./substringIndex";
 import {
   buildFakeEmail,
   emailNameAliases,
@@ -35,6 +37,8 @@ export interface AllocateCtx {
   /** Per-conversation secret shift for the value→fake mapping (0 = legacy deterministic). */
   salt: number; convKey?: Uint8Array;
   notorietyCommercial?: boolean; // commercial notoriety: email fakes KEEP a notorious domain
+  /** What the paths hold (`pathEntities.ts`); absent ⇒ a path is scrambled whole. */
+  pathPlan?: PathPlan;
 }
 
 /**
@@ -51,6 +55,8 @@ export function allocateEntities(deNested: Detection[], ctx: AllocateCtx): void 
   // No word may serve two identities (`fakeWordIndex.ts`): seeded from the fakes already in
   // the vault, maintained at every mint site below so an intra-pass batch is guarded too.
   const fakeIndex = buildFakeWordIndex(vault);
+  // `input.includes`, indexed once: every minted fake is checked against the input.
+  const inInput = substringTest(input);
   // Words present in the INPUT, case-insensitive — a NAME/EMAIL word-fake must never be
   // minted equal to one (a fake surname "Laurent" while a REAL "Maître GERMAIN" sits in the
   // text: un-redaction rewrites the real person into the faked one). NAME/EMAIL skip
@@ -88,7 +94,7 @@ export function allocateEntities(deNested: Detection[], ctx: AllocateCtx): void 
         if (!entityValues.includes(value)) entityValues.push(value);
         // The entry for THIS casing is what makes `applyVault` (case-sensitive)
         // actually substitute.
-        if (!reverse.has(value) && !vault[cased] && cased !== value && !input.includes(cased)) {
+        if (!reverse.has(value) && !vault[cased] && cased !== value && !inInput(cased)) {
           vault[cased] = value;
           reverse.set(value, cased);
           taken.add(cased);
@@ -104,7 +110,7 @@ export function allocateEntities(deNested: Detection[], ctx: AllocateCtx): void 
     // only fires when the whole value segments into ≥2 known reals.
     if (cat === "name" || cat === "company" || cat === "username") {
       const glued = reconstructGlued(value, resolveFakeCI, reverse.keys());
-      if (glued && !taken.has(glued) && glued !== value && !input.includes(glued)) {
+      if (glued && !taken.has(glued) && glued !== value && !inInput(glued)) {
         vault[glued] = value;
         reverse.set(value, glued);
         taken.add(glued);
@@ -149,11 +155,16 @@ export function allocateEntities(deNested: Detection[], ctx: AllocateCtx): void 
     // (whole-candidate rejection here would also reject canonical REUSE and split the
     // person in two — the documented trap), and a PATH is never echoed as a bare word.
     const accept = (c: string): boolean =>
-      !taken.has(c) && c !== value && !input.includes(c) &&
+      !taken.has(c) && c !== value && !inInput(c) &&
       (skipAvoid || (!collidesAvoid(c) && !fakeIndex.clashes(c, value)));
     const entityKeyStr = isRecase ? `${cat}|${entityKey(value)}` : "";
     let fake = "";
     let pathPairs: [string, string][] = [];
+    // A path's inner entities were allocated before it: their fakes come from `reverse`.
+    const plan = ctx.pathPlan;
+    const sem = isPath && plan
+      ? { ...plan, entities: plan.entities.get(value) ?? [], resolve: (r: string) => reverse.get(r), ownerOf: (f: string) => vault[f] }
+      : undefined;
     // Block-coherent geo fake (Commune/Département/… of one address block share ONE real
     // place). Use it when it survives `accept` (free / not the value / no avoid clash);
     // otherwise fall through to the independent allocator below.
@@ -163,7 +174,7 @@ export function allocateEntities(deNested: Detection[], ctx: AllocateCtx): void 
       let candidate: string;
       if (isEmail) candidate = buildFakeEmail(value, a, resolveFakeCI, mintTaken, salt, ctx.notorietyCommercial === true, convKey);
       else if (isName) candidate = buildFakeName(value, a, resolveFakeCI, mintTaken, salt, convKey);
-      else if (isPath) candidate = buildFakePath(value, a, salt, convKey).fake;
+      else if (isPath) candidate = buildFakePath(value, a, salt, convKey, sem).fake;
       else if (isRecase && a === 0) {
         // An entity keeps ONE identity across casings. Recase a canonical BASE (this
         // call's earlier casing, else a prior turn's fake, else a fresh one) to THIS
@@ -192,7 +203,7 @@ export function allocateEntities(deNested: Detection[], ctx: AllocateCtx): void 
       } else candidate = fakeFor(category, value, a, country, salt, geoAnchors, convKey);
       if (accept(candidate)) {
         fake = candidate;
-        if (isPath) pathPairs = buildFakePath(value, a, salt, convKey).pairs;
+        if (isPath) pathPairs = buildFakePath(value, a, salt, convKey, sem).pairs;
         break;
       }
     }
@@ -207,7 +218,7 @@ export function allocateEntities(deNested: Detection[], ctx: AllocateCtx): void 
       for (let k = 0; !fake && k < 40; k++) {
         const raw = fakeFor(category, value, k, country, salt, geoAnchors, convKey);
         if (!raw || raw.toLowerCase().includes(value.toLowerCase())) continue;
-        if (!taken.has(raw) && raw !== value && !input.includes(raw) && !fakeIndex.clashes(raw, value)) {
+        if (!taken.has(raw) && raw !== value && !inInput(raw) && !fakeIndex.clashes(raw, value)) {
           fake = raw;
         }
       }
@@ -219,7 +230,7 @@ export function allocateEntities(deNested: Detection[], ctx: AllocateCtx): void 
         const base = "redacted"; // then suffixed until free
         let n = 2;
         fake = base;
-        while (taken.has(fake) || fake === value || input.includes(fake)) fake = `${base}-${n++}`;
+        while (taken.has(fake) || fake === value || inInput(fake)) fake = `${base}-${n++}`;
       }
     }
     vault[fake] = value;

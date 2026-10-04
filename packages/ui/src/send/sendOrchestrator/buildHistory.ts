@@ -3,6 +3,7 @@ import type { ChatMessage } from "@openmasq/llm";
 import { featureUsage } from "../../state/billing/featureAccess";
 import { DEFAULT_SETTINGS } from "../../state/storePersistence";
 import { buildSystemContent, buildWireHistory } from "../buildWire";
+import { droppedDocumentNames } from "../documentLoad";
 import { fitHistoryToContext } from "../historyWindow";
 import { makeRedactFn } from "../redactionEngine";
 import { shouldRedactSystemPrompt } from "../redactionOptions";
@@ -78,6 +79,9 @@ export async function buildHistory(
       label: "contexte tronqué",
       detail: `${droppedTurns} message(s) ancien(s) omis (fenêtre ${ctxTokens} tokens)`,
     });
+    // Told, never silent: the documents those turns carried are out of the model's sight.
+    const lost = droppedDocumentNames(conv.messages, droppedTurns);
+    if (lost.length) ctx.updateAssistant({ droppedDocs: lost });
   }
   return { history, usesTools };
 }

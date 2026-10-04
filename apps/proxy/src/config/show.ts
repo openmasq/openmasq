@@ -9,7 +9,7 @@ import { jsonSchema } from "./jsonSchema.js";
 import { OPTIONS, type Option } from "./options.js";
 import { type Io, parseConfig, type Parsed } from "./config.js";
 
-export const CONFIG_USAGE = `openmasq-proxy config <command> [the run's own flags] [-- <tool>]
+const CONFIG_USAGE = `openmasq-proxy config <command> [the run's own flags] [-- <tool>]
 
   show                   every setting, its value, and where it came from
   path                   the file that is (or would be) read
@@ -21,7 +21,7 @@ export const CONFIG_USAGE = `openmasq-proxy config <command> [the run's own flag
 
 /** A value as `show` prints it. The user's own sensitive lists are counted, not listed:
  *  \`always\` holds the very terms they never want on a screen. */
-export function display(o: Option, config: Parsed["config"]): string {
+function display(o: Option, config: Parsed["config"]): string {
   const v = (config as unknown as Record<string, unknown>)[o.key];
   if (o.kind === "always") return `${(v as unknown[]).length} term(s)`;
   if (o.name === "quiet") return String(!v); // the option is `quiet`, the field is `verbose`

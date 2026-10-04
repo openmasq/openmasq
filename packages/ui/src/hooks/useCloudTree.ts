@@ -15,7 +15,7 @@ import { useLazyTree } from "./useLazyTree";
  */
 
 /** The key of a remote entry. Empty `folderId` = the account's root. */
-export const cloudKey = (sourceId: string, folderId = ""): string => `${sourceId}|${folderId}`;
+const cloudKey = (sourceId: string, folderId = ""): string => `${sourceId}|${folderId}`;
 
 /** Undo a key — `folderId` is `null` at the root, which is what the host expects. */
 export function parseCloudKey(key: string): { sourceId: string; folderId: string | null } {

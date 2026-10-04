@@ -180,16 +180,40 @@ export interface ExtractionResult {
 /** OCR progress for an extraction in flight: `{name, page, pages}` per page read.
  *  Optional end to end — a host that doesn't relay it degrades to the chip's
  *  indeterminate bar, never a failure. */
-export type OcrProgress = { name: string; page: number; pages: number };
+export type OcrProgress = {
+  name: string;
+  page: number;
+  pages: number;
+  /** Waiting its turn: that many files ahead in the extraction queue. */
+  queued?: number;
+  /** Which picked file (two may share a name); absent on the bytes route. */
+  path?: string;
+};
+
+/** The PREVIEW stream of a PDF being read (`@openmasq/redact` `pageStream.ts`): a page read
+ *  (with its final text when known) or an unreadable thumbnail. Display only, never content:
+ *  the file's text is the extraction's result. Optional end to end. */
+export type ExtractStream = import("@openmasq/redact/documents.browser").ExtractStreamEvent & {
+  name: string;
+  path?: string;
+};
 
 /** Optional file-attachment text extraction (PDF/CSV/text → plain text). */
 export interface FilesHost {
   pick(): Promise<ExtractedFile[]>;
-  extract(paths: string[], onOcrProgress?: (p: OcrProgress) => void): Promise<ExtractedFile[]>;
-  /** « Lire tout »: re-extract while lifting the OCR cap (10 pages by default). A
-   *  300-page scan at a few seconds per page is a CHOICE the user makes, not a
-   *  default — hence a dedicated action rather than a higher cap. Optional: absent
-   *  (browser preview), the chip doesn't offer the action. */
+  extract(
+    paths: string[],
+    onOcrProgress?: (p: OcrProgress) => void,
+    onStream?: (ev: ExtractStream) => void,
+    /** The caller's job id (the chip's `cid`) — what `cancelExtract` names. */
+    job?: string,
+  ): Promise<ExtractedFile[]>;
+  /** Stop the extraction started under `job`: the user removed its chip. Fire-and-forget;
+   *  a job already finished (or unknown) is a no-op. Absent ⇒ reads run to their end. */
+  cancelExtract?(job: string): void;
+  /** « Lire tout »: re-extract a record read under the FORMER 10-page OCR cap. Extraction
+   *  reads every page now, so this is the same whole-document read as `extract`; it stays
+   *  a separate slot only so a host without re-reading (browser preview) can omit it. */
   extractAll?(paths: string[], onOcrProgress?: (p: OcrProgress) => void): Promise<ExtractedFile[]>;
   /** Native picker WITHOUT extraction — returns chosen paths + basenames instantly, so
    *  the composer can show a chip while `extract()` runs async (a big/scanned file's
@@ -205,6 +229,8 @@ export interface FilesHost {
     name: string,
     mime?: string,
     onOcrProgress?: (p: OcrProgress) => void,
+    onStream?: (ev: ExtractStream) => void,
+    job?: string,
   ): Promise<ExtractedBytes>;
   /** The on-disk path of a DROPPED item. ⚠️ Not a read capability. Its only sanctioned use
    *  is pre-positioning the native folder picker (`pages/ChatWorkspace/dropIntake.ts`); a
@@ -228,6 +254,9 @@ export interface FilesHost {
     mime: string;
     vault: Record<string, string>;
     disabledKinds?: string[];
+    /** Real value → fine category of the vault's values, so main files the values it
+     *  replaces from the vault (names the rules cannot find). Display only. */
+    kinds?: Record<string, string>;
     /** Drop-time distinct-redaction count for the file's TEXT. Stored as the file's
      *  `redactedCount` for formats that can't be scrubbed in place (image/PDF), whose
      *  in-place pass throws and would otherwise record 0. Display metadata only — the

@@ -1,46 +1,52 @@
-# @openmasq/desktop — the product
+[Français](README.fr.md)
 
-<sub>**English** · [Français](#openmasqdesktop--le-produit) · [openmasq.com](https://openmasq.com)</sub>
+# @openmasq/desktop
 
-The Electron app: `src/main` (IPC, SQLite, MCP, streaming, the process boundaries),
-`src/preload` (`contextBridge` → `window.openmasq`), `src/renderer` (mounts `@openmasq/ui`
-and supplies the real `Host`). `e2e/` drives the built app against real providers — it
-costs money, never run it casually.
+**The OpenMasq desktop app, built with Electron.**
 
-**Boundary.** Every trust boundary of the product is here: IPC handlers, `spawn` /
-`utilityProcess`, network egress, secrets at rest, the Python jail, the agent browser. A
-change there is not done until the fail-closed property is re-verified and pinned by a
-test (root `CLAUDE.md`, rule 7). The renderer is untrusted for security decisions.
+This is the app users install. The renderer mounts the interface from `@openmasq/ui` and
+gives it a `Host`, the object through which the interface reaches the operating system,
+the local database and the network. The main process does everything the interface cannot
+do on its own. The package is private to the monorepo and is not published on npm.
 
-**Start here.**
-- `src/main/index.ts` — boot; `src/main/ipc/` — the handlers; `src/main/db/` — the local
-  database and its migrations; `src/main/mcp/` — connectors, tool gates, the broker.
-- `scripts/buildDefines.ts` — every service address a build may receive, and why none has
-  a committed default.
-- `pnpm dev` from the repo root builds the packages and launches the app against the
-  same public services as a build; `.env.development` says how to point it at a local
-  stack instead (`.env.development.local`).
+## What's inside
 
----
+- **Main process** (`src/main/`): startup in `src/main/index.ts`, IPC handlers in
+  `src/main/ipc/`, the local database and its migrations in `src/main/db/`, connectors and
+  tool gates in `src/main/mcp/`, the Python sandbox in `src/main/python/`.
+- **Preload** (`src/preload/`): exposes the main-process API to the page as
+  `window.openmasq`, through `contextBridge`.
+- **Renderer** (`src/renderer/`): mounts `@openmasq/ui` and implements its `Host`, in
+  `src/renderer/src/main.tsx`.
+- **Build scripts** (`scripts/`): `buildDefines.ts` lists the service addresses a build can
+  receive, none with a committed default. The exception is `publicServices.ts`, the public
+  services every build reaches unless you set them empty.
+- **End-to-end tests** (`e2e/`): Playwright specs that drive the built app against real
+  providers. See [`e2e/README.md`](e2e/README.md).
 
-# @openmasq/desktop — le produit
+## Develop
 
-L'application Electron : `src/main` (IPC, SQLite, MCP, streaming, les frontières de
-processus), `src/preload` (`contextBridge` → `window.openmasq`), `src/renderer` (monte
-`@openmasq/ui` et fournit le vrai `Host`). `e2e/` pilote l'application construite contre de
-vrais fournisseurs — ça coûte de l'argent, ne le lancez jamais à la légère.
+Run these from the repository root.
 
-**Frontière.** Toutes les frontières de confiance du produit sont ici : les gestionnaires
-IPC, `spawn` / `utilityProcess`, les sorties réseau, les secrets au repos, la prison Python,
-le navigateur agent. Un changement là n'est pas fini tant que la propriété d'échec fermé n'a
-pas été revérifiée et épinglée par un test (`CLAUDE.md` racine, règle 7). Le renderer n'est
-pas de confiance pour les décisions de sécurité.
+```bash
+pnpm dev                                   # builds the packages, then launches the app
+pnpm --filter @openmasq/desktop bake       # fetches the on-device models and runtimes, once
+pnpm --filter @openmasq/desktop typecheck
+pnpm build
+```
 
-**Commencez ici.**
-- `src/main/index.ts` — le démarrage ; `src/main/ipc/` — les gestionnaires ; `src/main/db/` —
-  la base locale et ses migrations ; `src/main/mcp/` — connecteurs, portes d'outils, broker.
-- `scripts/buildDefines.ts` — chaque adresse de service qu'un build peut recevoir, et
-  pourquoi aucune n'a de défaut commité.
-- `pnpm dev` depuis la racine du dépôt construit les paquets et lance l'application contre les
-  mêmes services publics qu'un build ; `.env.development` dit comment la pointer plutôt vers
-  une pile locale (`.env.development.local`).
+`pnpm dev` talks to the same public services as an installed app. To point it at your
+own, put overrides in `.env.development.local`, which git ignores. The variables are
+listed in `.env.development`, and [`SELF_HOSTING.md`](../../SELF_HOSTING.md) covers the
+full setup.
+
+> [!WARNING]
+> The e2e specs call real provider APIs and cost money. They are not part of `pnpm test`,
+> and each spec skips itself when its key is missing.
+
+> [!IMPORTANT]
+> Every trust boundary of the product lives here: IPC handlers, child processes (`spawn`,
+> `utilityProcess`), network egress, secrets at rest, the Python sandbox and the agent
+> browser. The renderer is not trusted for security decisions, so a check made in the UI
+> is made again in main. Read rule 7 of the root [`CLAUDE.md`](../../CLAUDE.md) before
+> changing any of them.

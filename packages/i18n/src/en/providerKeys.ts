@@ -12,9 +12,9 @@ export const providerKeys = {
       "Sign in at platform.openai.com.",
       "Open “API keys” (profile menu), or go to platform.openai.com/api-keys.",
       "Click “Create new secret key”, name it, then copy it (it starts with sk-).",
-      "Paste it below. It is shown only once — create another if you lose it.",
+      "Paste it below. It is shown only once. Create a new one if you lose it.",
     ],
-    note: "Requires a payment method and credit in your OpenAI account's billing.",
+    note: "Requires a payment method and prepaid credits on your OpenAI account.",
   },
   anthropic: {
     steps: [
@@ -23,7 +23,7 @@ export const providerKeys = {
       "Click “Create Key”, then copy the key (it starts with sk-ant-).",
       "Paste it below.",
     ],
-    note: "Requires credit in your Anthropic account's billing.",
+    note: "Requires prepaid credits on your Anthropic account.",
   },
   google: {
     steps: [
@@ -32,7 +32,7 @@ export const providerKeys = {
       "Copy the key (it starts with AIza).",
       "Paste it below.",
     ],
-    note: "Limited free usage exists; a Google Cloud project is needed to go beyond it.",
+    note: "A limited free tier is available. Beyond it, you need a Google Cloud project.",
   },
   mistral: {
     steps: [
@@ -41,7 +41,7 @@ export const providerKeys = {
       "Click “Create new key”, then copy it.",
       "Paste it below.",
     ],
-    note: "Turn on billing for the paid models; a trial tier exists.",
+    note: "Turn on billing for paid models. A free trial is available.",
   },
   deepseek: {
     steps: [
@@ -50,7 +50,7 @@ export const providerKeys = {
       "Click “Create new API key”, then copy it (it starts with sk-).",
       "Paste it below.",
     ],
-    note: "Hosted in China: your messages (already masked) transit there. Add credit to the account to use it.",
+    note: "Hosted in China: your masked messages are processed there. Add credits to the account to use it.",
   },
   openrouter: {
     steps: [
@@ -59,9 +59,9 @@ export const providerKeys = {
       "Click “Create Key”, name it, then copy it (it starts with sk-or-).",
       "Paste it below.",
     ],
-    note: "One key, many models (free ones included). Paid models need credit; hosting depends on the model.",
+    note: "One key, many models, some of them free. Paid models need credits. Where a model is hosted depends on the model.",
   },
   wrongPrefix: (provider, prefix) =>
-    `A ${provider} key starts with ${prefix} — check that you copied the right one.`,
-  tooShort: "This key looks short: copy it in full.",
+    `A ${provider} key starts with ${prefix}. Check that you copied the right one.`,
+  tooShort: "This key looks too short. Make sure you copied all of it.",
 } satisfies Messages["providerKeys"];

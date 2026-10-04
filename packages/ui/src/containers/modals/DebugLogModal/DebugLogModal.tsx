@@ -155,8 +155,8 @@ export function DebugLogModal({ onClose, convId }: { onClose: () => void; convId
         {shown.length === 0 ? (
           <div className="fv-status">
             {query.trim() || filter !== "all"
-              ? "Aucune entrée ne correspond à ce filtre."
-              : "Aucune entrée. Envoyez un message avec le mode débogage activé."}
+              ? t.modals.debug.emptyFiltered
+              : t.modals.debug.empty}
           </div>
         ) : (
           // Virtualized: up to 200 entries, each a tall variable-height row (a wire

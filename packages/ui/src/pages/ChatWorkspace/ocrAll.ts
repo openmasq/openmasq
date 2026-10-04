@@ -1,12 +1,13 @@
+import type { Messages } from "@openmasq/i18n";
+import { CHARS_PER_PAGE, maskPlan } from "@openmasq/redact";
 import type { ExtractedFile, FilesHost, OcrProgress } from "../../host";
+import { extractProgressPatch } from "./attachmentPending";
 import type { Attachment } from "./Composer";
-import { ocrShortfall } from "./ocrShortfall";
 
-export { ocrShortfall };
 
 /**
- * « Lire tout » — re-extract an attachment whose OCR stopped at the cap,
- * this time WITHOUT a cap. Same choreography as the initial extraction
+ * « Lire tout » — re-extract an attachment read under the former OCR cap (`ocrShortfall`),
+ * through the ordinary whole-document extraction. Same choreography as the initial extraction
  * (`deferredAttach`): `extracting` + progress during, then the result replaces and
  * redaction resumes — a path that diverged would make the second pass less
  * honest than the first. Extracted from `ChatView` (LOC cap); the dependencies
@@ -18,21 +19,31 @@ export interface OcrAllDeps {
   countMatches(text: string): number;
   /** Journal + re-redaction — the initial extraction's `onExtracted`. */
   onExtracted(file: ExtractedFile, attachment: Attachment): void;
+  /** The copy a failed chip shows. */
+  t: Messages;
 }
 
 export async function ocrAllAttachment(deps: OcrAllDeps, a: Attachment): Promise<void> {
   if (!a.path || !deps.files.extractAll) return;
-  deps.patch(a.cid, { extracting: true, error: undefined, extractProgress: undefined });
+  // Estimated BEFORE minutes of OCR: a document whose full text could not be masked in
+  // full is refused now, with the same rule the masking applies (`maskPlan`) once read.
+  const pages = a.ocr?.pagesTotal ?? 0;
+  const plan = maskPlan(pages * CHARS_PER_PAGE);
+  if (plan.kind === "refuse") {
+    deps.patch(a.cid, { error: deps.t.composer.attachments.tooLongToMask(pages) });
+    return;
+  }
+  deps.patch(a.cid, { extracting: true, error: undefined, extractProgress: undefined, extractQueued: undefined });
   let file: ExtractedFile;
   try {
     const out = await deps.files.extractAll([a.path], (pr: OcrProgress) =>
-      deps.patch(a.cid, { extractProgress: { done: pr.page, total: pr.pages } }),
+      deps.patch(a.cid, extractProgressPatch({ done: pr.page, total: pr.pages, queued: pr.queued })),
     );
     if (!out[0]) throw new Error("extraction vide");
     file = out[0];
   } catch {
-    // Failure LEAVES the old text (10 pages read beats zero) and says so.
-    deps.patch(a.cid, { extracting: false, extractProgress: undefined, error: "relecture échouée" });
+    // Failure LEAVES the old record as it was and says so.
+    deps.patch(a.cid, { extracting: false, extractProgress: undefined, extractQueued: undefined, error: deps.t.composer.attachments.rereadFailed });
     return;
   }
   const redactPreview = deps.countMatches(file.text);
@@ -40,6 +51,7 @@ export async function ocrAllAttachment(deps: OcrAllDeps, a: Attachment): Promise
     ...file,
     extracting: false,
     extractProgress: undefined,
+    extractQueued: undefined,
     redactPreview,
     redacting: !!file.text.trim(),
   });

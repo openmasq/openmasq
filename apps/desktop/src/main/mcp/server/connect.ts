@@ -1,4 +1,3 @@
-
 import { connectStdio } from "@openmasq/mcp/transport";
 import { nodeSpawnFor } from "../nodeSpawn";
 import { connectLocalFs } from "../../fs/connectLocalFs";
@@ -205,7 +204,7 @@ export async function mcpDisableBrowser(): Promise<void> {
  * Reconnect every persisted server that can come back WITHOUT user interaction (never a
  * login window). Best-effort: one that needs a fresh login stays disconnected.
  */
-export async function mcpReconnectStored(): Promise<void> {
+async function mcpReconnectStored(): Promise<void> {
   // CONCURRENTLY: each connect is a full handshake, and serial would light connectors
   // up one by one. `e2eFilterServers` is identity in production.
   await Promise.allSettled(

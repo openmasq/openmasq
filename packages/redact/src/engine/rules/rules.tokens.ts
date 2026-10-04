@@ -131,7 +131,9 @@ export const TOKEN_RULES: RedactionRule[] = [
   // through the attributes so the fake replaces one coherent declaration.
   {
     type: "cookie",
-    pattern: /(?<=\b(?:set-cookie|cookie)[ \t]*:[ \t]*)(?!\[REDACTED_)[^\r\n]{8,}/gi,
+    // The space runs are BOUNDED: the value may start with anything, so no cheap guard can sit
+    // in front, and an unbounded run in a lookbehind is quadratic on a long whitespace run.
+    pattern: /(?<=\b(?:set-cookie|cookie)[ \t]{0,40}:[ \t]{0,40})(?!\[REDACTED_)[^\r\n]{8,}/gi,
     validate: notPlaceholderCookie,
   },
   {

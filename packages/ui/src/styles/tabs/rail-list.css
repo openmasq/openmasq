@@ -56,15 +56,26 @@
   flex-direction: column;
   gap: 2px;
 }
+/* The row is a frame around TWO sibling buttons (select, close): the padding lives on
+   the main button so its whole surface stays clickable. */
 .rr-item {
   position: relative;
   display: flex;
   align-items: center;
-  gap: 9px;
   width: 100%;
-  padding: 8px 8px 8px 10px;
+  padding-right: 8px;
   border-radius: var(--radius-sm);
   border: 1px solid transparent;
+  background: transparent;
+}
+.rr-item-main {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  gap: 9px;
+  padding: 8px 4px 8px 10px;
+  border: none;
   background: transparent;
   cursor: pointer;
   text-align: left;
@@ -111,13 +122,19 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  border: none;
+  background: transparent;
   color: var(--text-muted);
+  cursor: pointer;
   opacity: 0;
   transition: opacity 0.12s;
   font-size: 13px;
   line-height: 1;
 }
-.rr-item:hover .rr-item-x {
+/* Hidden by OPACITY, never `display: none`: it stays a tab stop, and the keyboard
+   reveals it the way the pointer does. */
+.rr-item:hover .rr-item-x,
+.rr-item:focus-within .rr-item-x {
   opacity: 1;
 }
 .rr-item-x:hover {
@@ -129,6 +146,16 @@
   color: var(--text-faint);
   padding: 8px 4px;
   line-height: 1.5;
+}
+/* A failed tree row's reason, under the row (the tree's own family lives in
+   `rail-tree.css`, at its line cap). Same ink as the « ! » it explains. */
+.rr-tree-note {
+  display: block;
+  padding-block: 0 4px;
+  padding-inline-end: 6px;
+  color: var(--red-500);
+  font-size: var(--text-xs);
+  line-height: 1.4;
 }
 /* Drive indicator on a PILOTED browser tab — the kit's pink→sky gradient dot. */
 .rail-drive {

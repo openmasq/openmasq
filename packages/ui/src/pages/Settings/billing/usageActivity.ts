@@ -66,22 +66,3 @@ export function dailyActivityCounts(conversations: Conversation[], days = 14): n
   return out;
 }
 
-/**
- * Build the SVG point string for a sparkline over `values`, fit to a `w`×`h` box
- * with a small vertical padding. When every value is equal (incl. all-zero) the
- * line sits flat at mid-height instead of producing NaN.
- */
-export function sparkPoints(values: number[], w: number, h: number): string {
-  if (values.length === 0) return `0,${h / 2} ${w},${h / 2}`;
-  const max = Math.max(...values);
-  const min = Math.min(...values);
-  const span = max - min;
-  const n = values.length;
-  return values
-    .map((v, i) => {
-      const x = n > 1 ? (i / (n - 1)) * w : w / 2;
-      const y = span > 0 ? h - ((v - min) / span) * (h - 8) - 4 : h / 2;
-      return `${x.toFixed(1)},${y.toFixed(1)}`;
-    })
-    .join(" ");
-}

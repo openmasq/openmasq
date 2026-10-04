@@ -42,7 +42,7 @@ export interface RelayDeps {
   reporter: Reporter;
 }
 
-export interface StreamRewriter {
+interface StreamRewriter {
   rewrite: FrameRewriter;
   end: () => SseFrame[];
 }
@@ -63,7 +63,7 @@ export interface RelayOptions {
 /** The upstream path: what the client asked for, minus the prefixes that address US — the
  *  per-client `/s/<session>` and a `/openai`|`/anthropic`|`/gemini` family selector. Neither
  *  exists upstream. */
-export function upstreamPath(req: Request): string {
+function upstreamPath(req: Request): string {
   return (
     req.originalUrl
       .replace(/^\/s\/[^/]+/, "")

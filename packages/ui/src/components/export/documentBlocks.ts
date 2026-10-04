@@ -141,7 +141,7 @@ function collectBlock(el: Element, out: Block[]): void {
 
 /** Inline runs of an element: text with bold/italic/code flags from the nested
  *  `<strong>`/`<em>`/`<code>` (links + redaction `<mark>`s contribute their text). */
-export function runsOf(el: Node): Run[] {
+function runsOf(el: Node): Run[] {
   const out: Run[] = [];
   walkInline(el, {}, out);
   // French micro-typography applies HERE — the one seam the three

@@ -1,4 +1,5 @@
 import { ipcRenderer, webUtils } from "electron";
+import { withExtractStream, type ExtractStream } from "./extractStream";
 
 /** Turso/libSQL persistence (no-ops when not configured). */
 export const db = {
@@ -75,7 +76,15 @@ export const embeddings = {
 };
 
 /** OCR progress during an extraction: `{name, page, pages}` per page read. */
-export type OcrProgress = { name: string; page: number; pages: number };
+export type OcrProgress = {
+  name: string;
+  page: number;
+  pages: number;
+  /** Waiting its turn: that many files ahead in the extraction queue. */
+  queued?: number;
+  /** Which picked file (two may share a name); absent on the bytes route. */
+  path?: string;
+};
 
 /** Listens to `files:ocr-progress` for the DURATION of an invoke (the `python.run` model:
  *  per-call scoped subscription, unsubscribed on settle). The channel is global, the payload
@@ -101,29 +110,38 @@ export const files = {
   extract: (
     paths: string[],
     onProgress?: (p: OcrProgress) => void,
+    // The preview stream of a PDF being read (pages, unreadable thumbnails).
+    onStream?: (ev: ExtractStream) => void,
+    // The caller's job id (its chip), what `cancelExtract` names. Absent ⇒ uncancellable.
+    job?: string,
   ): Promise<
     { name: string; kind: string; text: string; chars: number; error?: string }[]
-  > => withOcrProgress(() => ipcRenderer.invoke("files:extract", paths), onProgress),
-  // "Read all": the same extraction, OCR cap lifted — see registerFilesIpc.
-  extractAll: (
-    paths: string[],
-    onProgress?: (p: OcrProgress) => void,
-  ): Promise<
-    { name: string; kind: string; text: string; chars: number; error?: string }[]
-  > => withOcrProgress(() => ipcRenderer.invoke("files:extract-all", paths), onProgress),
+  > =>
+    withExtractStream(
+      (req) => withOcrProgress(() => ipcRenderer.invoke("files:extract", paths, req, job), onProgress),
+      onStream,
+    ),
   read: (path: string): Promise<Uint8Array> => ipcRenderer.invoke("files:read", path),
   extractBytes: (
     data: string,
     name: string,
     mime?: string,
     onProgress?: (p: OcrProgress) => void,
+    onStream?: (ev: ExtractStream) => void,
+    job?: string,
     // Structured (text + words/ocrText/ocr/ocrPages): the bytes route renders the same
     // richness as the path route — a drop's preview depends on it.
   ): Promise<{ text: string } & Record<string, unknown>> =>
-    withOcrProgress(
-      () => ipcRenderer.invoke("files:extract-bytes", { data, name, mime }),
-      onProgress,
+    withExtractStream(
+      (req) =>
+        withOcrProgress(
+          () => ipcRenderer.invoke("files:extract-bytes", { data, name, mime, ...(req ? { req } : {}), ...(job ? { job } : {}) }),
+          onProgress,
+        ),
+      onStream,
     ),
+  /** Stop the read started under `job` (a removed chip). Main scopes it to THIS window's jobs. */
+  cancelExtract: (job: string): Promise<boolean> => ipcRenderer.invoke("files:extract-cancel", job),
   redactAndSave: (p: unknown): Promise<Record<string, string>> =>
     ipcRenderer.invoke("files:redact-and-save", p),
   fetchUrl: (url: string): Promise<{ path: string; name: string; mime: string }> =>

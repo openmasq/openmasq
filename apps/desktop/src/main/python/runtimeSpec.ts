@@ -62,7 +62,7 @@ export function isPruned(rel: string): boolean {
 export const PRUNE_ROOT_DIRS: string[] = [];
 
 /** Bumped when the on-disk LAYOUT changes. `2` = no venv (a venv bakes absolute paths). */
-export const LAYOUT = "2";
+const LAYOUT = "2";
 
 /** layout + CPython build + the pinned wheel set: any change flips it. */
 export const runtimeSignature = (): string =>

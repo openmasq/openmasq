@@ -40,3 +40,15 @@ export function effectiveScopes(
 ): string[] {
   return granted?.length ? [...granted] : [...requested];
 }
+
+/**
+ * Does the connection's scope list cover a tool's declared `scope`? Exact, OR Microsoft's
+ * wider `.All` form (« Mes clés » grants `Files.ReadWrite.All`, which includes
+ * `Files.ReadWrite`), OR the resource-qualified spelling Microsoft may echo back
+ * (`https://graph.microsoft.com/Files.ReadWrite`). Never a prefix match: `Files.Read` does
+ * NOT cover `Files.ReadWrite`.
+ */
+export function scopeCovered(granted: readonly string[], scope: string): boolean {
+  const wanted = new Set([scope, `${scope}.All`]);
+  return granted.some((g) => wanted.has(g) || wanted.has(g.slice(g.lastIndexOf("/") + 1)));
+}

@@ -47,16 +47,11 @@ describe("starters.css — l'accueil ne défile jamais latéralement", () => {
     expect(block(".om-starter-prompt")).toMatch(/line-clamp:\s*1/);
   });
 
-  it("la rangée de puces passe à la ligne", () => {
-    expect(block(".om-starter-chips")).toMatch(/flex-wrap:\s*wrap/);
-  });
-
   // The other half of the same trap, on the CENTERING axis. `.welcome` centers its children,
-  // so the starters block's width is that of its widest child: a chip row
-  // longer than the grid widened the block, the grid (capped at 560) stuck
-  // to the left and « Ne plus proposer » (right-aligned) went past the cards.
-  // One single width for all children — measured in the built app: block, grid
-  // and chip row share the same center as the greeting and the composer.
+  // so the starters block's width is that of its widest child: a child wider than
+  // the grid widened the block, the grid (capped at 560) stuck to the left and
+  // « Ne plus proposer » (right-aligned) went past the cards. One single width for
+  // all children — the same center as the greeting and the composer.
   it("le bloc d'amorces est borné à la largeur des cartes", () => {
     const wrap = block(".om-starters-wrap");
     const grid = block(".om-starters");

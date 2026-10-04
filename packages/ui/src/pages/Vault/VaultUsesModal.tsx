@@ -1,3 +1,4 @@
+import { displayTitle } from "../../state/conversation/displayTitle";
 import { hueForKind } from "@openmasq/redact";
 // Imported by FILE, not through the `containers/modals` barrel: the barrel also
 // re-exports AttachmentPreviewModal, which imports back up into `pages/` — pulling
@@ -47,7 +48,7 @@ function UseRow({
     >
       <ModelLogo provider={model?.provider ?? "openai-compat"} modelId={use.modelId} size={18} />
       <div className="om-vault-use-main">
-        <div className="om-vault-use-title">{use.title}</div>
+        <div className="om-vault-use-title">{displayTitle(use.title, t)}</div>
         <div className="om-vault-use-when">{ago(use.updatedAt, t)}</div>
       </div>
       <span className="om-vault-use-count">{use.count}×</span>

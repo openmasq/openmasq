@@ -6,6 +6,7 @@ import { mkdir, rm, writeFile, readFile, readdir, access } from "node:fs/promise
 import { join } from "node:path";
 import { Readable } from "node:stream";
 import { WHEELS } from "./wheels";
+import { verifiedDocumentFontDir } from "../pdf/documentFont";
 import {
   TARBALL,
   TARBALL_SHA256,
@@ -48,16 +49,20 @@ const devRuntimeDir = (): string => join(app.getPath("userData"), "python");
 
 /** Resolve the active runtime root: the bundled one if present, else the dev download. */
 let resolvedDir: string | undefined;
-export const runtimeDir = (): string => resolvedDir ?? devRuntimeDir();
+const runtimeDir = (): string => resolvedDir ?? devRuntimeDir();
 
 /** The base CPython interpreter for a runtime root (no venv — wheels live in its own
  *  `site-packages`, which is on `sys.path` by default, so nothing else is needed). */
-export const interpreterFor = (dir = runtimeDir()): string =>
+const interpreterFor = (dir = runtimeDir()): string =>
   isWin ? join(dir, "python", "python.exe") : join(dir, "python", "bin", "python3");
 
 /** Directory holding the brand font(s) matplotlib registers. Inside the runtime root
  *  (read-only in a bundle — matplotlib only READS it; see `wheels.ts` preamble). */
-export const fontsDir = (dir = runtimeDir()): string => join(dir, "fonts");
+const fontsDir = (dir = runtimeDir()): string => join(dir, "fonts");
+
+/** The font dir a sandboxed run's documents and charts read (`OPENMASQ_FONT_DIR`): the app's
+ *  pinned document font (Inter) when it VERIFIES, else the runtime's own brand font. */
+export const sandboxFontDir = (): string => verifiedDocumentFontDir() ?? fontsDir();
 
 /** PERSISTENT matplotlib config/cache dir (`fontlist-*.json`). ALWAYS under WRITABLE
  *  userData — decoupled from the runtime root, which may be a read-only bundle — and

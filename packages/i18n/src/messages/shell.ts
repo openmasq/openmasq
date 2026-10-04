@@ -11,10 +11,14 @@ export interface ShellMessages {
   /** The right rail, collapsed as well as expanded. */
   rightRail: {
     ariaLabel: string;
+    /** The FOOT-only rail of a section without a side panel. */
+    footAriaLabel: string;
     title: string;
     collapse: string;
     expand: string;
     newBrowserTab: string;
+    /** The narrow rail's globe: says WHOSE browser it is, not just « a tab ». */
+    openBrowser: string;
     browser: string;
     web: string;
     noTabs: string;
@@ -51,6 +55,11 @@ export interface ShellMessages {
     local: string;
     manageFolders: string;
     noFolders: string;
+    /** Where a local file opened from the sidebar lives. */
+    storedIn: (folder: string) => string;
+    storedOnDisk: string;
+    sourceConnectedTip: (name: string) => string;
+    sourceDisconnectedTip: (name: string) => string;
     addFolder: string;
     connectedStorage: string;
     cloud: string;

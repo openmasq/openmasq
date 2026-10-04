@@ -1,6 +1,7 @@
 import { ipcMain } from "electron";
 import { ensureRuntime, type Progress } from "./runtime";
 import { runPython, type PythonResult, type SeedFile } from "./sandbox";
+import { mainMessages } from "../i18n";
 
 /**
  * IPC surface for the sandboxed Python engine: `python:run` ensures the runtime
@@ -13,17 +14,18 @@ import { runPython, type PythonResult, type SeedFile } from "./sandbox";
  * indicator EVOLVES instead of sitting on a static "en cours…".
  */
 
-/** Map a runtime install phase to a user-facing FR status line. */
+/** Map a runtime install phase to a user-facing status line, in main's language. */
 function phaseLabel(p: Progress): string {
+  const t = mainMessages().desktopMain.python;
   switch (p.phase) {
     case "download":
-      return `Téléchargement de l'environnement Python…${p.pct != null ? ` ${p.pct} %` : ""}`;
+      return t.downloading(p.pct ?? null);
     case "extract":
-      return "Décompression de l'environnement…";
+      return t.extracting;
     case "install":
-      return "Installation des paquets (numpy, pandas, matplotlib…)…";
+      return t.installing;
     case "ready":
-      return "Environnement prêt.";
+      return t.ready;
   }
 }
 
@@ -59,7 +61,7 @@ export function registerPythonIpc(): void {
     // (no network on first use, unsupported platform) surface as a failed result.
     try {
       const { pythonBin } = await ensureRuntime((prog) => emit(phaseLabel(prog)));
-      emit("Exécution du code…");
+      emit(mainMessages().desktopMain.python.running);
       return await runPython(String(p.code ?? ""), {
         pythonBin,
         seedFiles: Array.isArray(p.files) ? (p.files as SeedFile[]) : undefined,

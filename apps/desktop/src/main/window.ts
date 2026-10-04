@@ -8,6 +8,7 @@ import { BrowserWindow, clipboard, Menu } from "electron";
 // (only there: on macOS the two implementations agree). `check-bundle.mjs` guards it.
 import { join } from "node:path";
 import { DEVTOOLS_PREF } from "./devtools";
+import { mainMessages } from "./i18n";
 import { setMainWindow } from "./mainWindowRef";
 import { stopAgentBrowser, setAppMainFocused } from "./mcp/browser";
 import { safeOpenExternal } from "./net/safeOpen";
@@ -78,23 +79,24 @@ export function createWindow(): void {
   // Right-click menu (Electron has none by default): link open/copy, basic copy/paste.
   mainWindow.webContents.on("context-menu", (_e, params) => {
     const items: Electron.MenuItemConstructorOptions[] = [];
+    const t = mainMessages().desktopMain.contextMenu;
     if (params.linkURL) {
       const url = params.linkURL;
       items.push(
-        { label: "Ouvrir le lien", click: () => safeOpenExternal(url) },
-        { label: "Copier l'adresse du lien", click: () => clipboard.writeText(url) }
+        { label: t.openLink, click: () => safeOpenExternal(url) },
+        { label: t.copyLinkAddress, click: () => clipboard.writeText(url) }
       );
     }
     if (params.selectionText) {
       if (items.length) items.push({ type: "separator" });
-      items.push({ label: "Copier", role: "copy" });
+      items.push({ label: t.copy, role: "copy" });
     }
     if (params.isEditable) {
       if (items.length) items.push({ type: "separator" });
       items.push(
-        { label: "Couper", role: "cut" },
-        { label: "Coller", role: "paste" },
-        { label: "Tout sélectionner", role: "selectAll" }
+        { label: t.cut, role: "cut" },
+        { label: t.paste, role: "paste" },
+        { label: t.selectAll, role: "selectAll" }
       );
     }
     if (items.length) Menu.buildFromTemplate(items).popup({ window: mainWindow });

@@ -1,6 +1,6 @@
 import type { Messages } from "@openmasq/i18n";
 import type { Message } from "../../types";
-import { KeyIcon, InfoIcon, RefreshIcon, ArrowRightIcon } from "../brand";
+import { KeyIcon, InfoIcon, RefreshIcon, ArrowRightIcon, UserIcon } from "../brand";
 import { AgentCard, GlyphTile, AgentCardTitle } from "./AgentCard";
 import { useT } from "../../i18n";
 
@@ -18,6 +18,8 @@ function eyebrowFor(
   text: string,
 ): string {
   if (reason !== "error") return t.turnStatus.eyebrow[reason];
+  // A subscription CLI signed out: the session is the cause, the sign-in the way out.
+  if (action?.kind === "cli_signin") return t.turnStatus.eyebrow.signedOut;
   // « n'a plus de crédits » = the user's PROVIDER account is dry;
   // « Crédits épuisés » = the subscription budget. In both cases the CTA's
   // key/subscription is a proposed way out, not the cause — the eyebrow must not lie about it.
@@ -48,7 +50,8 @@ function eyebrowFor(
  *
  *  - `error` — a FAILED / blocked turn: a missing provider key, an org/credit block, or a
  *    genuinely failed response. Scarlet (the semantic status tone, never an `--hl-*`).
- *    The optional CTA (`missing_key` → the key modal, `upgrade_plan` → Paiement)
+ *    The optional CTA (`missing_key` → the key modal, `upgrade_plan` → Paiement,
+ *    `cli_signin` → the CLI's own sign-in, `CliReconnectModal`)
  *    delegates to the SHARED `onAction` with the existing `errorAction` kinds — no new
  *    plumbing. `credit_options` never reaches this card (`CreditsCard`).
  *  - `interrupted` / `empty` / `tool` — not errors (no red): the stream was cut, nothing
@@ -99,7 +102,13 @@ export function FailedTurnCard({
       tile={
         failed ? (
           <GlyphTile bg="var(--red-soft)" color="var(--red-500)">
-            {action?.kind === "missing_key" ? <KeyIcon size={18} /> : <InfoIcon size={18} />}
+            {action?.kind === "missing_key" ? (
+              <KeyIcon size={18} />
+            ) : action?.kind === "cli_signin" ? (
+              <UserIcon size={18} />
+            ) : (
+              <InfoIcon size={18} />
+            )}
           </GlyphTile>
         ) : (
           <GlyphTile>
@@ -121,6 +130,11 @@ export function FailedTurnCard({
           {failed && action?.kind === "missing_key" && onAction && (
             <button className="btn-primary btn-inline" onClick={() => onAction(assistantId, action)}>
               <KeyIcon size={14} /> {t.turnStatus.fillKey}
+            </button>
+          )}
+          {failed && action?.kind === "cli_signin" && onAction && (
+            <button className="btn-primary btn-inline" onClick={() => onAction(assistantId, action)}>
+              <UserIcon size={14} /> {t.turnStatus.reconnect}
             </button>
           )}
           {failed && action?.kind === "upgrade_plan" && onAction && (

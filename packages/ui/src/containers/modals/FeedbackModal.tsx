@@ -96,7 +96,7 @@ export function FeedbackModal({
       setError(
         e instanceof Error && e.message
           ? e.message
-          : "Votre avis n'a pas pu être envoyé. Réessayez dans un instant — votre message est conservé.",
+          : t.modals.feedback.sendFailed,
       );
     } finally {
       setBusy(false);

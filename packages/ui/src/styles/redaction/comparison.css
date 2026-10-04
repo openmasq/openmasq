@@ -49,6 +49,10 @@
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+/* A long pair mounts in steps (`sliceSegments.ts`): the « show more » under it. */
+.tsp-pair .tsp-more {
+  margin-top: 8px;
+}
 /* Narrow (small window, split panel): stacked rather than two unreadable
    columns. The order stays « yours » then « what left ». */
 @media (max-width: 720px) {

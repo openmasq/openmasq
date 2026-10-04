@@ -43,7 +43,7 @@ describe("syncStatusLine — le plus récent des deux événements dit le verdic
   it("aucun appel depuis le lancement : neutre, pas une panne", () => {
     const { tone, text } = syncStatusLine(snap({}), fr, NOW);
     expect(tone).toBe("muted");
-    expect(text).toContain("Aucun échange");
+    expect(text).toContain("Aucune synchro");
   });
 
   it("un échec sans succès antérieur est bien un échec", () => {
@@ -52,17 +52,17 @@ describe("syncStatusLine — le plus récent des deux événements dit le verdic
 
   it("une panne DÉFINITIVE ne promet pas de se réparer seule — elle dit quoi faire", () => {
     // Decryption impossible (the passphrase doesn't open the envelope): no retry will
-    // change anything, and « Réessaiera tout seul » would make it wait for an outcome that never comes.
+    // change anything, and « Nouvel essai automatique » would make it wait for an outcome that never comes.
     const out = syncStatusLine(
       snap({ lastErrorAt: NOW - 5_000, lastError: "la phrase secrète…", lastErrorFatal: true }), fr, NOW,
     );
     expect(out.tone).toBe("err");
-    expect(out.text).not.toMatch(/Réessaiera tout seul/);
+    expect(out.text).not.toMatch(/Nouvel essai automatique/);
     expect(out.text).toMatch(/phrase secrète de cet appareil/);
   });
 
   it("une panne ORDINAIRE garde sa promesse de réessai", () => {
     const out = syncStatusLine(snap({ lastErrorAt: NOW - 5_000, lastError: "HTTP 503" }), fr, NOW);
-    expect(out.text).toMatch(/Réessaiera tout seul/);
+    expect(out.text).toMatch(/Nouvel essai automatique/);
   });
 });

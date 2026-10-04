@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { Connector } from "@openmasq/connectors";
-import { effectiveScopes, parseGrantedScopes } from "./scopes";
+import { effectiveScopes, parseGrantedScopes, scopeCovered } from "./scopes";
 import { makeConnectorConnection } from "./run";
 
 const GMAIL_READ = "https://www.googleapis.com/auth/gmail.readonly";
@@ -75,5 +75,24 @@ describe("the tool list a connection exposes", () => {
     // Listing `search` anyway made the model call it and hit a 403 mid-conversation.
     const granted = effectiveScopes(parseGrantedScopes(GMAIL_SEND), connector.scopes.byo);
     expect(await toolNames(granted)).not.toContain("search");
+  });
+});
+
+describe("scopeCovered — l'outil d'écriture apparaît avec l'autorisation qui le couvre", () => {
+  it("exact, la forme `.All` de « Mes clés », et la forme qualifiée par la ressource", () => {
+    expect(scopeCovered(["Files.ReadWrite"], "Files.ReadWrite")).toBe(true);
+    expect(scopeCovered(["Files.ReadWrite.All"], "Files.ReadWrite")).toBe(true);
+    expect(scopeCovered(["https://graph.microsoft.com/Files.ReadWrite"], "Files.ReadWrite")).toBe(true);
+  });
+
+  it("jamais par préfixe : la LECTURE ne couvre pas l'écriture", () => {
+    expect(scopeCovered(["Files.Read"], "Files.ReadWrite")).toBe(false);
+    expect(scopeCovered(["Files.Read.All"], "Files.ReadWrite")).toBe(false);
+    expect(scopeCovered(["https://www.googleapis.com/auth/drive.readonly"], "https://www.googleapis.com/auth/drive.file")).toBe(false);
+  });
+
+  it("Google garde l'égalité exacte", () => {
+    const s = "https://www.googleapis.com/auth/drive.file";
+    expect(scopeCovered([s], s)).toBe(true);
   });
 });

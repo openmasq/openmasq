@@ -1,15 +1,36 @@
-# @openmasq/ort — onnxruntime with a WASM fallback
+[Français](README.fr.md)
 
-<sub>**English** · [Français](#openmasqort--onnxruntime-avec-un-repli-wasm) · [openmasq.com](https://openmasq.com)</sub>
+# @openmasq/ort
 
-Takes the place of `onnxruntime-node` (a pnpm override) and picks the engine at runtime:
-the native binding where it exists, `onnxruntime-web` WASM where it does not (Intel Mac).
-Three hand-written files, no build step.
+**onnxruntime with a WebAssembly fallback where no native binding exists.**
 
----
+`onnxruntime-node` ships no native binding for Intel Macs. Without one, the local NER model
+cannot start, and the app refuses to send. This package takes the place of
+`onnxruntime-node` through a pnpm override in the root `package.json`, so the redaction
+engine, the desktop app and the local proxy load it under that name. At runtime it uses the native binding
+when there is one, and `onnxruntime-web` (WASM) otherwise.
 
-# @openmasq/ort — onnxruntime avec un repli WASM
+## What's inside
 
-Prend la place d'`onnxruntime-node` (une surcharge pnpm) et choisit le moteur à
-l'exécution : le binding natif là où il existe, `onnxruntime-web` en WASM là où il n'existe
-pas (Mac Intel). Trois fichiers écrits à la main, aucune étape de build.
+- **`src/index.cjs`**: the implementation. It loads the native engine, falls back to WASM,
+  and re-exports the engine with `OPENMASQ_ORT_BACKEND` (`"native"` or `"wasm"`).
+- **`src/index.mjs`**: an ES module facade over it.
+- **`src/index.d.ts`**: the types for the surface both entries share (`InferenceSession`,
+  `Tensor`, `env`, `OPENMASQ_ORT_BACKEND`).
+
+There is no build step.
+
+## Develop
+
+```bash
+pnpm test packages/ort       # from the repository root
+pnpm check:pkgtree           # checks the packaged dependency tree, this version included
+```
+
+> [!NOTE]
+> The WASM fallback stays local and offline. It loads the `.wasm` files installed next to it,
+> never from a CDN, and reads model weights from disk itself.
+
+> [!IMPORTANT]
+> The package `version` is the `onnxruntime-node` version it replaces (1.24.3). Raise it
+> when you upgrade `ort-native`.

@@ -54,7 +54,7 @@ describe("adresse — le fake porte l'habit de l'original", () => {
   });
 
   it("une rue TOUT EN CAPITALES reste en capitales", () => {
-    const fake = fakeFor("ADDRESS", "36 AV DU CAPITAINE GLARNER", 0, undefined, 42);
+    const fake = fakeFor("ADDRESS", "36 AV DU CAPITAINE VERMOND", 0, undefined, 42);
     expect(fake).toBe(fake.toUpperCase());
   });
 

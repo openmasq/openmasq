@@ -129,6 +129,3 @@ const sameMasking = (a: MaskerOptions, b: MaskerOptions): boolean =>
 const same = (a: readonly string[] | undefined, b: readonly string[] | undefined): boolean =>
   (a ?? []).length === (b ?? []).length && (a ?? []).every((v, i) => v === (b ?? [])[i]);
 
-/** The write policy a server's tools are gated by: its own, or the run's. */
-export const writesFor = (policy: McpPolicy, id: string, fallback: ServerPolicy["writes"]) =>
-  policy[id]?.writes ?? fallback;

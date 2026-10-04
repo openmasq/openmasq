@@ -15,7 +15,7 @@
  */
 
 /** `ST OUEN (93400)` / `93400 ST OUEN` / `ST OUEN 93400` → `{ town, code }`, else null. */
-export function splitPlace(value: string): { town: string; code: string } | null {
+function splitPlace(value: string): { town: string; code: string } | null {
   const v = value.trim();
   let m = /^(.+?)[\s,]*\((\d{4,6})\)$/u.exec(v) ?? /^(.+?)[\s,]+(\d{4,6})$/u.exec(v);
   if (m) return { town: m[1].trim(), code: m[2] };

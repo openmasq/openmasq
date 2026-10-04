@@ -25,6 +25,9 @@ vi.mock("electron", () => ({
 vi.mock("./egressProxy", () => ({ startEgressProxy: () => Promise.resolve({ port: 0, close() {} }) }));
 vi.mock("./wheels", () => ({ ALLOW_HOSTS: [], buildScript: (s: string) => s }));
 vi.mock("./runtime", () => ({ fontsDir: () => "/tmp/fonts", mplConfigDir: () => MPL }));
+// The document-font verdict, steered per test: `null` = absent or failed its sha256.
+const docFont = vi.hoisted(() => ({ dir: null as string | null }));
+vi.mock("../pdf/documentFont", () => ({ verifiedDocumentFontDir: () => docFont.dir }));
 
 import { jailAvailability, jailedCmd } from "./sandbox";
 import { winJailExe } from "./winJail";
@@ -95,6 +98,23 @@ describe("the win32 argv", () => {
     // the stdlib, the wheels and the fonts. One single concession, not four.
     expect(grantsOf("--allow-read")).toEqual([join("C:\\", "rt")]);
     expect(grantsOf("--allow-write")).toEqual(["C:\\scratch", MPL]);
+  });
+
+  it("adds EXACTLY the verified document-fonts dir, read-only, and nothing when it is absent", () => {
+    const grantsOf = (args: string[], flag: string): string[] =>
+      args.flatMap((a, i) => (a === flag ? [args[i + 1] as string] : []));
+    const FONTS = join("C:\\", "app", "resources", "document-fonts");
+    docFont.dir = FONTS;
+    try {
+      const { args } = build();
+      expect(grantsOf(args, "--allow-read")).toEqual([join("C:\\", "rt"), FONTS]);
+      // Never writable: the run reads the font, it never gets to replace it.
+      expect(grantsOf(args, "--allow-write")).toEqual(["C:\\scratch", MPL]);
+    } finally {
+      docFont.dir = null;
+    }
+    // Absent or unverified ⇒ the run uses the runtime's own font, under the root grant.
+    expect(grantsOf(build().args, "--allow-read")).toEqual([join("C:\\", "rt")]);
   });
 
   it("passes NO secret path — the deny-list is not the mechanism here", () => {

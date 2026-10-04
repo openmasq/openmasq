@@ -11,7 +11,7 @@ import { PROVIDERS, type ProviderId } from "@openmasq/llm";
  */
 /** The FACTS about a provider's key — they aren't translated, so they live here.
  *  The steps and the note, though, are copy: catalogue (`providerKeys`). */
-export interface ProviderKeyShape {
+interface ProviderKeyShape {
   /** The provider's OFFICIAL key page. */
   keyUrl: string;
   /** Input placeholder = the key's recognisable prefix. Absent when the key doesn't

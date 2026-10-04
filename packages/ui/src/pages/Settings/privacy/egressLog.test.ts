@@ -1,6 +1,11 @@
+import { getMessages } from "@openmasq/i18n";
 import { describe, it, expect } from "vitest";
 import type { EgressEntry } from "../../../host";
-import { filterEgress, groupEgress, sourceLabel, summarise } from "./egressLog";
+import { filterEgress, groupEgress as group, sourceLabel as label, summarise } from "./egressLog";
+
+const fr = getMessages("fr");
+const groupEgress = (rows: EgressEntry[]) => group(rows, fr);
+const sourceLabel = (source: string) => label(source, fr);
 
 const at = (n: number) => 1_700_000_000_000 + n * 1000;
 
@@ -81,5 +86,14 @@ describe("sourceLabel", () => {
 
   it("falls back to the raw source, not to a generic bucket — a new subsystem must still read as itself", () => {
     expect(sourceLabel("some-future-thing")).toBe("some-future-thing");
+  });
+});
+
+describe("in English", () => {
+  it("labels the sources and filters on the English label", () => {
+    const en = getMessages("en");
+    expect(label("link-preview", en)).toBe("Link preview");
+    expect(label("some-future-thing", en)).toBe("some-future-thing");
+    expect(filterEgress(group(rows, en), "agent browser").length).toBeGreaterThan(0);
   });
 });

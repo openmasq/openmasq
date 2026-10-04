@@ -76,17 +76,19 @@ export interface McpConnector {
    *  an ops prerequisite for prod, never a reason to limit capabilities). */
   scopes?: { managed: string[]; byo: string[] };
   /** `direct` + `byoOnly`: the connector is offered ONLY in "mes clés" mode — the UI
-   *  hides the quick "Connecter" (managed) action. No connector has carried it since
-   *  30/07/2026; the machinery stays for a future connector genuinely in that case. */
+   *  hides the quick "Connecter" (managed) action and main refuses the built-in mode.
+   *  Every Google connector carries it until Google verifies the app's client. */
   byoOnly?: boolean;
   /** WHY the app's own client can't cover this connector — fully (`byoOnly`) or in part.
-   *  Set it whenever `byoAdds` is set: the auth chip states this REASON instead of
-   *  promising a plain "1-clic, aucun secret". The two reasons are NOT interchangeable:
-   *  `casa` = a Google RESTRICTED scope pending the app's CASA assessment; `admin-consent`
+   *  Set it whenever `byoAdds` or `byoOnly` is set: the auth chip states this REASON instead
+   *  of promising a plain "1-clic, aucun secret". The reasons are NOT interchangeable:
+   *  `casa` = a Google RESTRICTED scope pending the app's CASA assessment;
+   *  `google-verification` = a sensitive Google scope pending the app's brand verification
+   *  (both temporary, ours to clear ⇒ « Bientôt disponible »); `admin-consent`
    *  = a scope a tenant ADMIN must grant. ⚠️ The second is not a reason to be `byoOnly`
    *  — see `adminConsent` below: an admin can approve the app's multi-tenant client itself.
    *  Reserve this for a connector whose BYO mode genuinely adds something. */
-  byoReason?: "casa" | "admin-consent";
+  byoReason?: "casa" | "google-verification" | "admin-consent";
   /**
    * The connector's scopes need the TENANT ADMINISTRATOR's approval — but NOT the
    * customer's own app registration. The app's Microsoft client is multi-tenant, so one
@@ -101,7 +103,9 @@ export interface McpConnector {
    */
   adminConsent?: boolean;
   /** What "Mes clés" unlocks that 1-clic cannot, user-facing FR, completing
-   *  "Pour …, connectez vos propres clés" (e.g. "lire vos emails"). */
+   *  "Pour …, connectez vos propres clés" (e.g. "lire vos emails"). Required on a PARTIAL
+   *  one-click (`byoReason` without `byoOnly`); a `byoOnly` connector needs none — keys
+   *  unlock all of it. */
   byoAdds?: string;
   /** The server exposes its many tools behind ONE CLI-style `exec {command}`
    *  meta-tool (PostHog). The app expands the high-value sub-tools DIRECTLY (the

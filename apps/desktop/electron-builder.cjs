@@ -19,15 +19,22 @@ const brand = require("../../packages/branding/branding.json");
  *
  * A partial DN is stronger than either alternative. `verifySignature` parses the configured
  * name and compares ONLY the keys it contains, so `CN=…, O=…` pins the organisation
- * strictly while surviving a reissue that changes L or C. Measured against the real subject
- * `CN=Numa Studio, O=Numa Studio, L=Paris, C=FR`: the full DN matches today but REJECTS
+ * strictly while surviving a reissue that changes L or C. Measured against the certificate's real subject
+ * (a full `CN, O, L, C` DN): the full DN matches today but REJECTS
  * every update the day the city changes; the bare CN matches with a warning and pins
  * nothing but the name; this matches strictly, before and after.
  *
  * The subject comes from the IDENTITY VALIDATION (the validated organisation), never from
  * the Azure account name — that one reaches no certificate and no user-facing dialog.
  */
-const WIN_PUBLISHER = "CN=Numa Studio, O=Numa Studio";
+const WIN_PUBLISHER = process.env.AZURE_CODESIGN_PUBLISHER || "";
+// The value lives OUTSIDE the tree (the release environment's secret, read by the signing
+// step only): the subject names a legal entity, which a public repository does not carry.
+// A SIGNED build without it would bake no `publisherName` and the installed base would stop
+// checking who signed its updates, so signing without it refuses to build (fail closed).
+if (process.env.AZURE_CLIENT_SECRET && process.env.AZURE_CODESIGN_ACCOUNT && !WIN_PUBLISHER) {
+  throw new Error("AZURE_CODESIGN_PUBLISHER is required to sign the Windows build (the certificate subject DN).");
+}
 
 module.exports = {
   appId: brand.desktopBundleId,
@@ -154,6 +161,10 @@ module.exports = {
     // docTR models (Latin-script OCR), self-exported from the official weights, sha256-
     // verified at bake time, loaded offline (`src/main/ocrAssets.ts` → OPENMASQ_DOCTR_MODEL_PATH).
     { from: "build/doctr-models", to: "doctr-models" },
+    // The document font (Inter, OFL + its licence), sha256-verified against the official
+    // google/fonts repo at a pinned commit by `scripts/bake-document-fonts.ts`, re-verified by
+    // main before use (`src/main/pdf/documentFont.ts`). Platform-neutral: read, never executed.
+    { from: "build/document-fonts", to: "document-fonts" },
   ],
 
   mac: {

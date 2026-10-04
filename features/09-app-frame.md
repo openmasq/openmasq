@@ -24,6 +24,11 @@ jargon.
 - [x] Right rail: browser tabs, **« Dossiers »** (granted folders as a tree + connected
       storage, only if there is something to browse), Aide and Avis —
       `packages/ui/src/containers/shell/RightRail.tsx`
+- [x] Its width (narrow / expanded) is remembered across launches; in Réglages, Mémoire,
+      Coffre and Compétences (no side panel) it keeps only its foot — update, Aide, Avis,
+      the Demandes bell — `packages/ui/src/containers/shell/RightRail.test.tsx`
+- [x] Every control it reveals on hover (a tab's cross, « Demander ») is revealed by the
+      keyboard too — `packages/ui/src/containers/shell/RightRail.test.tsx`
 - [x] 📱 Mobile replaces certain screens with its own — `packages/ui/src/containers/shell/mobile/`
 - [x] Every modal is a real dialog: focus enters it, Tab stays inside, Escape closes the
       topmost one only, and focus returns to the control that opened it —
@@ -54,14 +59,14 @@ to reveal first).
 
 - [x] Sign-in by magic link or Google — `packages/ui/src/pages/Login/`
 - [x] Redaction demonstration, replayable afterwards from **Aide** — `packages/ui/src/components/RedactionDemo/`
-- [x] Choice between a subscription CLI (Claude Code, Codex, Antigravity — the same opt-in switches as Réglages → Modèles, listed by `packages/ui/src/hooks/useAgentOptIns.ts`; each row carries the install / sign-in rows of `packages/ui/src/pages/Settings/models/AgentSetupRows.tsx`; **first and « conseillé » whenever the build can offer one**, and choosing the card switches a connected CLI on) ⇄ the built-in subscription ⇄ your own key (OpenRouter or another — the recommendation only when no CLI can be offered), optional — `packages/ui/src/pages/Onboarding/KeyChoice.tsx`
+- [x] Choice between a subscription CLI (Claude Code, Codex, Antigravity — the same opt-in switches as Réglages → Modèles, listed by `packages/ui/src/hooks/useAgentOptIns.ts`; each row carries the install / sign-in rows of `packages/ui/src/containers/agentSetup/AgentSetupRows.tsx`; **first and « conseillé » whenever the build can offer one**, and choosing the card switches a connected CLI on) ⇄ the built-in subscription ⇄ your own key (OpenRouter or another — the recommendation only when no CLI can be offered), optional — `packages/ui/src/pages/Onboarding/KeyChoice.tsx`
 - [x] A tickable procedure to obtain the chosen provider's key + an alert on paste if the key does not have that provider's shape — `packages/ui/src/pages/Onboarding/KeySteps.tsx`
 - [x] "Get a key for free" (OpenRouter) — OAuth, with no copy-paste; the key is born and stays in the main process — `apps/desktop/src/main/store/openrouterPkce.ts`
 - [x] Fine-tuning the categories from the welcome, without being forced to
 - [x] With the keyboard: focus enters the card and stays there, the rest of the app is inert — `packages/ui/src/hooks/useDialogFocus.ts`
 
 ### Help and feedback
-**Access**: the foot of the right rail → « Aide » and « Envoyer un feedback ».
+**Access**: the foot of the right rail, in every section → « Aide » and « Envoyer un feedback ».
 
 **What it makes possible.** A guide explaining the five sections, a feedback form, and the
 copyable detail of an error.

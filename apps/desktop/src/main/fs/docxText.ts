@@ -29,7 +29,7 @@ const PARA = /<w:p(?:\s[^>]*)?>[\s\S]*?<\/w:p>|<w:p(?:\s[^>]*)?\/>/g;
 const RUN_TEXT = /<w:t(\s[^>]*)?>([\s\S]*?)<\/w:t>|<w:t(?:\s[^>]*)?\/>/g;
 
 /** XML entities Word actually emits. Order matters: `&amp;` last on encode, first on decode. */
-export function decodeXml(s: string): string {
+function decodeXml(s: string): string {
   return s
     .replace(/&lt;/g, "<")
     .replace(/&gt;/g, ">")
@@ -37,7 +37,7 @@ export function decodeXml(s: string): string {
     .replace(/&apos;/g, "'")
     .replace(/&amp;/g, "&");
 }
-export function encodeXml(s: string): string {
+function encodeXml(s: string): string {
   return s
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")

@@ -36,8 +36,6 @@ export const nullable = <T>(c: Check<T>): Check<T | null> =>
   def(`${c.name}|null`, (v) => v === null || c.check(v));
 export const optional = <T>(c: Check<T>): Check<T | undefined> =>
   def(`${c.name}?`, (v) => v === undefined || c.check(v));
-export const oneOf = <T>(...cs: Check<T>[]): Check<T> =>
-  def(cs.map((c) => c.name).join("|"), (v) => cs.some((c) => c.check(v)));
 
 type Values<A extends readonly Check<unknown>[]> = {
   [K in keyof A]: A[K] extends Check<infer T> ? T : never;

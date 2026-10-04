@@ -25,6 +25,13 @@ export const SUF_LONG =
   "|field|fields|flat|flats|ford|forest|forge|fork|forks|fort|glen|glens|green|greens|inlet|key|keys|knoll" +
   "|knolls|lake|lakes|light|lights|loaf|lock|locks|lodge|mall|bypass|camp|canyon|cape|burg|burgs|bluff|bluffs" +
   "|bottom|branch|bridge|bend|beach|bayou|arcade|annex|viaduct|walks|ways";
+// The USPS ABBREVIATIONS a US address is actually written with (« 1820 Market St », « 12
+// Seaview Ct »), and the directionals around a street (« 6120 E Saguaro Vista Dr », « 512
+// Juniper St NW »). Two-letter words ON PURPOSE kept out of `SUF`: « St » is also Saint. They
+// are only ever the LAST word of a case-sensitive « number [dir] Capitalised-name abbr [dir] »
+// shape (`addresses/index.ts` shape D''), where « St Patrick » cannot sit.
+export const SUF_ABBR = "St|Dr|Ct|Ln|Pl|Ter|Cir|Ave|Blvd|Rd|Pkwy|Hwy|Sq|Trl|Wy";
+export const DIRECTIONAL = "N|S|E|W|NE|NW|SE|SW";
 // …the Germanic and NORDIC compounds. A compound may be hyphenated (« Vadim-Pohl-Ring »):
 // `addresses.ts` carries the hyphen in its name class, this list only the type words.
 export const DE =
@@ -65,7 +72,7 @@ export const W = `(?:${H}*(?:,${H}*)?\\r?\\n${H}*|(?:,|${H})+)`;
 // cuts at the "postal code + city", and there is no postal code here.
 // The guard is deliberately narrow: no street is called « … 2400 euros HT ». A number
 // followed by a currency or a tax mention is never a street name.
-export const MONEY_AHEAD = "(?![,\\s]*\\d[\\d  .,]*\\s*(?:€|EUR\\b|euros?\\b|HT\\b|TTC\\b))";
+const MONEY_AHEAD = "(?![,\\s]*\\d[\\d  .,]*\\s*(?:€|EUR\\b|euros?\\b|HT\\b|TTC\\b))";
 export const NAME =
   `(?:[\\p{L}0-9](?:(?![,\\s]+(?:[-–—][,\\s]*)?\\d{5}\\b)${MONEY_AHEAD}[\\p{L}0-9'’.\\- ]){1,38}[\\p{L}0-9.](?![\\p{L}0-9]))`;
 
@@ -80,7 +87,7 @@ export const NAME =
 // stayed TRUE, exactly the geographic incoherence this tail exists to
 // prevent, and a real address reconstructible down to one digit. This is the SAME class as
 // the street → postal-code join just above, which already admits the comma.
-export const CITY = "\\p{Lu}[\\p{L}'’.\\- ]{1,28}";
+const CITY = "\\p{Lu}[\\p{L}'’.\\- ]{1,28}";
 // ⚠️ `MONEY_AHEAD` HERE TOO, and for a reason that doesn't show up reading the line:
 // these forms are compiled with `giu`, and **under the `i` flag, `\\p{Lu}` matches
 // lowercase**. The "capitalised city" that `CITY` thinks it requires therefore requires nothing, and the
@@ -94,5 +101,5 @@ export const CITY = "\\p{Lu}[\\p{L}'’.\\- ]{1,28}";
 export const TAIL_CORE = `[,\\s]+(?:[-–—][,\\s]*)?${MONEY_AHEAD}(?:\\d{5}|\\d{4}-\\d{3}|\\d{4}\\s?[A-Z]{2}|\\d{4})[,\\s]+${CITY}`;
 export const TAIL_ZIPCITY = `(?:${TAIL_CORE})?`;
 // Trailing "City ST ZIP" (US), "City POSTCODE" (GB), "City PROV A1A 1A1" (CA).
-export const EN_POST = "\\d{5}(?:-\\d{4})?|[A-Z]\\d[A-Z]\\s?\\d[A-Z]\\d|[A-Z]{1,2}\\d[A-Z\\d]?\\s?\\d[A-Z]{2}";
+const EN_POST = "\\d{5}(?:-\\d{4})?|[A-Z]\\d[A-Z]\\s?\\d[A-Z]\\d|[A-Z]{1,2}\\d[A-Z\\d]?\\s?\\d[A-Z]{2}";
 export const TAIL_CITYZIP = `(?:[,\\s]+\\p{Lu}[\\p{L} ]{1,24}(?:,?\\s+[A-Z]{2})?\\s+(?:${EN_POST}))?`;

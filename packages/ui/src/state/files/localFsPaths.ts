@@ -36,6 +36,15 @@ export function dirOf(path: string): string {
   return cut > 0 ? path.slice(0, cut) : "";
 }
 
+/** Where a folder LIVES, for a list that shows its name: the parent, the user's home
+ *  shortened to `~` (`/Users/ana/Documents/Clients` → `~/Documents`). Display only —
+ *  the full path stays in the row's tooltip, and nothing here is sent anywhere. */
+export function displayParent(path: string): string {
+  const trimmed = path.replace(/(.)[/\\]+$/, "$1");
+  const parent = dirOf(trimmed) || sepOf(trimmed);
+  return parent.replace(/^(?:\/Users\/[^/]+|\/home\/[^/]+|[a-zA-Z]:\\Users\\[^\\]+)(?=$|[/\\])/, "~");
+}
+
 /** True when `child` is `root` or strictly beneath it — segment-aware, so `/a/bc` is NOT
  *  under `/a/b`. Mirrors main's `isWithin`; here it only picks a breadcrumb, never grants. */
 export function isWithin(root: string, child: string): boolean {
@@ -65,7 +74,7 @@ export function sortEntries(entries: readonly LocalFsEntry[]): LocalFsEntry[] {
 /** Hidden entries (dotfiles) are noise in a folder someone granted to work in — kept out
  *  unless the user asks for them, never silently dropped from a SEARCH (where an explicit
  *  query means they went looking). */
-export const isHidden = (e: LocalFsEntry): boolean => e.name.startsWith(".");
+const isHidden = (e: LocalFsEntry): boolean => e.name.startsWith(".");
 
 export function visibleEntries(
   entries: readonly LocalFsEntry[],

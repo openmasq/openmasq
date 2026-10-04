@@ -1,5 +1,7 @@
 import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import { useHost } from "../../host";
+import { useT } from "../../i18n";
+import { displayTitle } from "../../state/conversation/displayTitle";
 import type { Conversation } from "../../types";
 import { libKindOf } from "./libraryKinds";
 import type { LibFile } from "./libFile";
@@ -21,6 +23,7 @@ export function useLibraryFiles(
   enabled = true,
 ): { files: LibFile[] | null; setFiles: Dispatch<SetStateAction<LibFile[] | null>> } {
   const host = useHost();
+  const t = useT();
   const [files, setFiles] = useState<LibFile[] | null>(null);
   useEffect(() => {
     if (!enabled) return;
@@ -38,7 +41,7 @@ export function useLibraryFiles(
             metas.map((m) => ({
               ...m,
               conversationId: id,
-              conversationTitle: c.title || "Nouvelle conversation",
+              conversationTitle: displayTitle(c.title, t),
               kind: libKindOf(m.mime, m.name),
             })),
           )
@@ -57,6 +60,6 @@ export function useLibraryFiles(
     return () => {
       alive = false;
     };
-  }, [host, conversations, enabled]);
+  }, [host, conversations, enabled, t]);
   return { files, setFiles };
 }

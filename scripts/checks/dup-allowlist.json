@@ -20,7 +20,6 @@
   "packages/ui/src/pages/ChatWorkspace/BrowserPanel/useBrowserBounds.ts::* position it over `viewportRef`'s rectangle and keep it in sync.": "* position it over `viewportRef`'s rectangle and keep it in sync.",
   "packages/ui/src/pages/ChatWorkspace/writeConfirm.ts::* RENDERER mirror of the confirmation MODE (`standard` | `renforce`). The source of truth": "* RENDERER mirror of the confirmation MODE (`standard` | `renforce`). The source of truth",
   "packages/ui/src/pages/Settings/settingsIndex.ts::* Deliberately a hand-kept list of the settings worth FINDING, not a mirror of every": "* Deliberately a hand-kept list of the settings worth FINDING, not a mirror of every",
-  "packages/ui/src/send/attachmentLayers.ts::/** Mirror of the fold's per-document clip — an enormous OCR layer must not blow the": "/** Mirror of the fold's per-document clip — an enormous OCR layer must not blow the",
   "packages/ui/src/send/generatedFiles.ts::* (`pythonSeeds.ts`) — REAL names in, since the seeds must match what the de-redacted": "*  (`pythonSeeds.ts`) — REAL names in, since the seeds must match what the de-redacted",
   "packages/ui/src/send/pythonSeeds.ts::const MAX_SEED_BYTES = 25 * 1024 * 1024; // mirror of the sandbox's per-file cap": "const MAX_SEED_BYTES = 25 * 1024 * 1024; // mirror of the sandbox's per-file cap",
   "packages/ui/src/send/toolResult.ts::// Fail-safe mirror of the user-message path: the forced VALUES also ride": "// Fail-safe mirror of the user-message path: the forced VALUES also ride",

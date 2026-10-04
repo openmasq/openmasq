@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import { ModalShell } from "../../containers/modals/ModalShell";
 import { TrashIcon } from "../brand";
 import { useT } from "../../i18n";
@@ -13,6 +14,7 @@ export function ConfirmDialog({
   confirmLabel,
   cancelLabel,
   danger = true,
+  icon,
   onConfirm,
   onCancel,
 }: {
@@ -22,6 +24,8 @@ export function ConfirmDialog({
   confirmLabel?: string;
   cancelLabel?: string;
   danger?: boolean;
+  /** Absent ⇒ the trash glyph of a destructive action. */
+  icon?: ReactNode;
   onConfirm: () => void;
   onCancel: () => void;
 }) {
@@ -31,7 +35,7 @@ export function ConfirmDialog({
       onClose={onCancel}
       width="420px"
       title={title}
-      icon={<TrashIcon size={19} />}
+      icon={icon ?? <TrashIcon size={19} />}
       tone={danger ? "danger" : undefined}
     >
       <div className="confirm-body">

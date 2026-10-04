@@ -22,8 +22,10 @@ const ACCOUNT_RE =
 // "Identifiant fiscal", "Numéro fiscal de référence", "Référence fiscale", "Numéro
 // SPI", "tax id"). A `fiscal[e]` must be preceded by an id starter (numéro/n°/no/
 // identifiant/référence), so "année/politique fiscale" never matches.
+// ONE separator class between label and value: a « class* :? \s* » chain let two runs share
+// the same spaces, polynomial on a long run of tabs (CodeQL js/polynomial-redos).
 const FISCAL_RE =
-  /(?<![\p{L}])(?:(?:num[eé]ro|n[°ºo]|no|identifiant|r[eé]f[eé]rence)\.?\s*(?:d['’]identification\s+)?fiscal[e]?(?:\s+de\s+r[eé]f[eé]rence)?|num[eé]ro\s+spi|tax\s+id(?:entification)?(?:\s+number)?|fiscal\s+(?:number|id))\b[\s:：#.\-]*(?:n[°ºo]\.?\s*)?[:：]?\s*([0-9][0-9 .\-]{7,}[0-9])/giu;
+  /(?<![\p{L}])(?:(?:num[eé]ro|n[°ºo]|no|identifiant|r[eé]f[eé]rence)\.?\s*(?:d['’]identification\s+)?fiscal[e]?(?:\s+de\s+r[eé]f[eé]rence|\s+du\s+(?:d[eé]clarant|foyer|contribuable|titulaire))?|num[eé]ro\s+spi|tax\s+id(?:entification)?(?:\s+number)?|fiscal\s+(?:number|id))\b[\s:：#.\-]*(?:n[°ºo]\.?[\s:：#.\-]*)?([0-9][0-9 .\-]{7,}[0-9])/giu;
 
 // CUSTOMER-RELATIONSHIP identifiers. A « N° client », « numéro de dossier », « n° de
 // contrat/police/commande/facture », a PDL/PRM (electricity delivery point) or the legal

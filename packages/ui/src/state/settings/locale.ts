@@ -31,6 +31,35 @@ export function saveDeviceLocale(locale: Locale): void {
   } catch {
     /* localStorage unavailable — the in-memory language still drives the app */
   }
+  reportLocale(locale);
+}
+
+/**
+ * The HOST hears the language too, so what it draws itself (the desktop's native dialogs,
+ * context menu, OAuth pages) speaks it. One sink, installed by the platform at boot
+ * (`setHostLocaleSink`, wired to `host.app.setLocale`); absent, nothing is sent. Repeats
+ * are dropped, and a sink that throws never breaks a language change.
+ */
+type LocaleSink = (locale: Locale) => void;
+let sink: LocaleSink | null = null;
+let reported: Locale | null = null;
+
+/** Tell the host the language in use (on boot, on a change, on a synced setting). */
+export function reportLocale(locale: Locale): void {
+  if (!sink || locale === reported) return;
+  reported = locale;
+  try {
+    sink(locale);
+  } catch {
+    /* the host's language is a convenience; the UI's own is unaffected */
+  }
+}
+
+/** Install the platform's sink and report the current language to it right away. */
+export function setHostLocaleSink(next: LocaleSink | null): void {
+  sink = next;
+  reported = null;
+  if (next) reportLocale(initialLocale());
 }
 
 /** The HOST's language (browser / OS), resolved to a shipped locale, or `null`. */

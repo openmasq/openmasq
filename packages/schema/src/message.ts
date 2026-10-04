@@ -30,11 +30,14 @@ export interface Message {
    * member: their budget is admin-managed).
    * `credit_options` → a platform send blocked on credits on a free-tier account: take a
    * subscription, or use your own key for `provider`.
+   * `cli_signin` → the subscription CLI behind `provider` (`claude-cli`…) is signed out:
+   * run its own sign-in from the app, then regenerate.
    */
   errorAction?:
     | { kind: "missing_key"; provider: string; label?: string }
     | { kind: "upgrade_plan" }
-    | { kind: "credit_options"; provider: string; label?: string };
+    | { kind: "credit_options"; provider: string; label?: string }
+    | { kind: "cli_signin"; provider: string; label?: string };
   /** The tool the agentic loop is calling right now — drives the "Appel de l'outil…" indicator. */
   toolCall?: string;
   /** The provider's REMAINING request quota as of this turn — numbers only. Transient like
@@ -65,10 +68,14 @@ export interface Message {
    *  The model only ever saw the scrubbed version. */
   redactedSpans?: { value: string; kind: string }[];
   /** Files attached to this user message — shown as chips. The redacted file lives in the
-   *  `files` table; its text is folded into the model payload only, never into `content`. */
-  attachments?: { name: string; kind: string; mime?: string }[];
+   *  `files` table; its text is folded into the model payload only, never into `content`.
+   *  `clipped`: the wire carried only the document's first 50,000 characters — set on turns
+   *  sent under that FORMER cut only; a document is sent whole now, so it is never set again. */
+  attachments?: { name: string; kind: string; mime?: string; clipped?: boolean }[];
   /** The text actually sent to the model for this user turn: `content` plus the attached
-   *  files' text. Lets later turns re-include the document; absent when nothing was attached. */
+   *  files' text. Lets later turns re-include the document; absent when nothing was attached.
+   *  REAL values: its at-rest home is the encrypted host DB (desktop `messages.model_content`),
+   *  never the plaintext localStorage mirror (`stripVaultForLocal`). */
   modelContent?: string;
   /**
    * The WORKING SCRIPT of a turn whose `run_python` succeeded, in WIRE form (vault fakes
@@ -126,6 +133,10 @@ export interface Message {
   /** The AI redaction model was meant to run on this message but failed, so free-form PII
    *  may be unmasked. Human-readable warning shown under the message. */
   redactionFailed?: string;
+  /** Names of documents (real file names, the `attachments` at-rest class) an OLDER turn
+   *  carried and that THIS turn's history window no longer sent to the model. Stamped on
+   *  the assistant turn at send time; display only, never read back into a payload. */
+  droppedDocs?: string[];
   /** A turn's tool calls went wrong, and WHOSE fault it was — each kind needs a different
    *  move from the user. */
   toolStruggle?: {

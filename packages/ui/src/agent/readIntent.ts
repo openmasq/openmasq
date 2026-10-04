@@ -197,10 +197,3 @@ export function asksConsultNotAct(text: string | undefined | null): boolean {
   return CONSULT.test(text);
 }
 
-/** What the model receives instead of the result: the instruction, not an error. */
-export const CONSULT_NOT_ACT_STEER =
-  "Action REFUSÉE : l'utilisateur a demandé de CONSULTER, pas de MODIFIER. Rien n'a été " +
-  "créé, modifié ni supprimé. Utilise les outils de LECTURE pour aller chercher " +
-  "l'information demandée et réponds dans la conversation. Si tu penses qu'une écriture " +
-  "est nécessaire, PROPOSE-la en une phrase et attends que l'utilisateur la demande " +
-  "explicitement (« crée-le », « ajoute-le »). N'invente jamais de données à écrire.";

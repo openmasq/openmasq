@@ -1,5 +1,5 @@
 import { Btn } from "../McpBtn";
-import type { McpConnector } from "@openmasq/catalog/mcp";
+import { mcpAuthShape, type McpConnector } from "@openmasq/catalog/mcp";
 import { BRAND } from "@openmasq/branding";
 
 import { useT } from "../../../../i18n";
@@ -34,6 +34,10 @@ export function McpDirectBody({
         // org-wide nature is the point — it is what makes this a five-minute approval
         // rather than an integration project.
         <p className="mcp-modal-note">{t.mcpTab.adminConsent(BRAND.name)}</p>
+      )}
+      {mcpAuthShape(connector).variant === "comingSoon" && (
+        // The chip says « Bientôt disponible »; the modal says what to do meanwhile.
+        <p className="mcp-modal-note">{t.mcpTab.comingSoonNote(BRAND.name)}</p>
       )}
       <div className="mcp-modal-actions">
         {connector.byoOnly ? (

@@ -6,6 +6,7 @@ import { useOpenSkill } from "../../../skills/skillOpen";
 import { useAddProposedSkill, useIsProposedSkillAdded } from "../../../suggestions/useAddProposedSkill";
 import type { AskTarget, Skill } from "../../../types";
 import { useChatGates } from "../chatGates";
+import { useT } from "../../../i18n";
 import type { ChatViewProps, IntentTag } from "./types";
 
 /**
@@ -21,6 +22,7 @@ export function useIntentChips(p: ChatViewProps) {
   const [activeTag, setActiveTag] = useState<IntentTag | null>(null);
   const [activeTarget, setActiveTarget] = useState<AskTarget | null>(null);
   const openSkill = useOpenSkill();
+  const t = useT();
   const skills = useChatSelector((s) => s.skills, shallowEqual);
   const markSkillUsed = useChatSelector((s) => s.markSkillUsed);
   // Adopting what the model just produced (`SkillCard`) — the routing lives in the suggestion domain.
@@ -44,18 +46,25 @@ export function useIntentChips(p: ChatViewProps) {
     setActiveTarget(null);
     onSkillConsumed?.();
   }, [pendingSkill]);
-  useEffect(() => {
-    if (!pendingTarget) return;
-    setActiveTarget(pendingTarget);
+  // A target replaces the other intents — whether the shell handed it over or the
+  // composer's « + » → Dossier just granted it.
+  const stageTarget = (target: AskTarget) => {
+    setActiveTarget(target);
     setActiveTag(null);
     setActiveSkill(null);
+  };
+  useEffect(() => {
+    if (!pendingTarget) return;
+    stageTarget(pendingTarget);
     onTargetConsumed?.();
   }, [pendingTarget]);
 
   const drivesTools = !!activeSkill?.servers?.length;
   const skillTag: IntentTag | null = activeSkill
     ? {
-        label: `${drivesTools ? "Routine" : "Compétence"} : ${activeSkill.name}`,
+        label: drivesTools
+          ? t.composer.intent.routine(activeSkill.name)
+          : t.composer.intent.skill(activeSkill.name),
         tone: drivesTools ? "violet" : "sky",
         preview: skillLaunchText(activeSkill),
         servers: drivesTools ? skillServers(activeSkill) : undefined,
@@ -96,6 +105,7 @@ export function useIntentChips(p: ChatViewProps) {
     setActiveTag,
     tag: skillTag ?? targetTag ?? activeTag,
     handlePickSkill,
+    stageTarget,
     addProposedSkill,
     isProposedSkillAdded,
     clearTag,

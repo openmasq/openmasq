@@ -1,4 +1,6 @@
-import type { ExtractedBytes, ExtractedFile, OcrProgress } from "../../host";
+import type { Messages } from "@openmasq/i18n";
+import { MAX_FILE_BYTES } from "@openmasq/redact";
+import type { ExtractedBytes, ExtractedFile, ExtractStream, OcrProgress } from "../../host";
 import type { DeferredFile } from "../../state/files/deferredFile";
 
 /**
@@ -23,14 +25,19 @@ export interface ExtractDroppedDeps {
     name: string,
     mime?: string,
     onOcrProgress?: (p: OcrProgress) => void,
+    onStream?: (ev: ExtractStream) => void,
+    job?: string,
   ): Promise<ExtractedBytes>;
   toBase64(bytes: Uint8Array): string;
+  /** The copy a failed or refused file shows. */
+  t: Messages;
 }
 
-/** Refuse a file too large to carry through the IPC as base64 before reading it into
- *  memory. The cap is generous for a document and stops a dropped disk image from
- *  hanging the renderer on `arrayBuffer()`. */
-export const MAX_DROP_BYTES = 64 * 1024 * 1024;
+/** Refuse a file before reading it into memory when main would refuse it anyway: the
+ *  SAME cap as the extraction's pre-parse gate (`MAX_FILE_BYTES`, imported — rule 9), so a
+ *  dropped disk image never hangs the renderer on `arrayBuffer()` and both routes agree. */
+const MAX_DROP_BYTES = MAX_FILE_BYTES;
+const MB = Math.round(MAX_FILE_BYTES / (1024 * 1024));
 
 /**
  * A dropped file in the shell's DEFERRED form (`DeferredFile`): the chip appears
@@ -43,10 +50,18 @@ export function deferDroppedFile(file: File, deps: ExtractDroppedDeps): Deferred
   return {
     name: file.name,
     ...(file.type ? { mime: file.type } : {}),
-    load: (onOcrProgress) =>
-      extractOne(file, deps, (p) => {
-        if (p.name === file.name) onOcrProgress?.({ done: p.page, total: p.pages });
-      }),
+    // The stream needs no name filter: the preload scopes it to this one call.
+    load: (onOcrProgress, onStream, onBytes, job) =>
+      extractOne(
+        file,
+        deps,
+        (p) => {
+          if (p.name === file.name) onOcrProgress?.({ done: p.page, total: p.pages, queued: p.queued });
+        },
+        onStream,
+        onBytes,
+        job,
+      ),
   };
 }
 
@@ -61,16 +76,19 @@ async function extractOne(
   file: File,
   deps: ExtractDroppedDeps,
   onOcrProgress?: (p: OcrProgress) => void,
+  onStream?: (ev: ExtractStream) => void,
+  onBytes?: (data: string) => void,
+  job?: string,
 ): Promise<ExtractedFile> {
   const base: ExtractedFile = { name: file.name, kind: file.type || "", text: "", chars: 0 };
   if (file.size > MAX_DROP_BYTES) {
-    return { ...base, error: "fichier trop volumineux" };
+    return { ...base, error: deps.t.documents.refused.fileTooLarge(MB), blocked: true };
   }
   let data: string;
   try {
     data = deps.toBase64(new Uint8Array(await file.arrayBuffer()));
   } catch (e) {
-    return { ...base, error: e instanceof Error ? e.message : "lecture impossible" };
+    return { ...base, error: e instanceof Error ? e.message : deps.t.composer.attachments.extractFailed };
   }
   // ⚠️ `data` rides ALONG with the text, and that is not incidental: `redactAndSave` uses
   // the in-memory bytes INSTEAD of `path` when present (`host/files.ts`), which is the
@@ -78,8 +96,9 @@ async function extractOne(
   // stored, previewed, or sent to a vision model as redacted images. A drop has no usable
   // path by design (see `dropIntake.ts`), so the bytes are the ONLY way it gets those.
   const carried: ExtractedFile = { ...base, data, ...(file.type ? { mime: file.type } : {}) };
+  onBytes?.(data);
   try {
-    const r = await deps.extractBytes(data, file.name, file.type || undefined, onOcrProgress);
+    const r = await deps.extractBytes(data, file.name, file.type || undefined, onOcrProgress, onStream, job);
     // ⚠️ A REFUSAL travels first, and it travels WITHOUT the bytes. `blocked` is the
     // pre-parse safety gate's verdict (`@openmasq/redact` `guardUpload`: oversize, a
     // magic-byte/extension contradiction, a decompression bomb) — not "extraction
@@ -89,17 +108,18 @@ async function extractOne(
     // is right when a parser merely could not read them (below); it is exactly wrong
     // when the answer was "do not parse this".
     if (r.blocked) {
-      return { ...base, error: r.error ?? "fichier refusé", blocked: true };
+      return { ...base, error: r.error ?? deps.t.composer.attachments.fileRefused, blocked: true };
     }
+    // FAIL CLOSED: a result carrying an error keeps NO text (nor any text-bearing layer).
+    // A partial read is a document read in part, and a document is never sent in part:
+    // the chip is in error, nothing of it is sendable. The bytes stay (preview, re-attach).
+    if (r.error) return { ...carried, error: r.error };
     // EVERYTHING else the bytes route returns travels with the file: `words` is what
     // lets the aperçu paint the REDACTED image (boxes) instead of the original.
     return {
       ...carried,
       text: r.text,
       chars: r.text.length,
-      // A PARTIAL failure (some text, plus a reason) kept its text and lost its reason,
-      // so the chip said nothing was wrong. It rides along now.
-      ...(r.error ? { error: r.error } : {}),
       ...(r.words ? { words: r.words } : {}),
       ...(r.ocrText ? { ocrText: r.ocrText } : {}),
       ...(r.ocr ? { ocr: r.ocr } : {}),
@@ -108,6 +128,6 @@ async function extractOne(
   } catch (e) {
     // Extraction failed, but the BYTES are still good — keep them so the file can be
     // stored and previewed even when no text could be pulled out of it.
-    return { ...carried, error: e instanceof Error ? e.message : "extraction échouée" };
+    return { ...carried, error: e instanceof Error ? e.message : deps.t.composer.attachments.extractFailed };
   }
 }

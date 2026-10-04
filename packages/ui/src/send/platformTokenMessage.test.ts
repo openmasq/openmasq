@@ -2,6 +2,9 @@ import { afterEach, describe, expect, it } from "vitest";
 import { configurePlatformAccess } from "./platformAccess";
 import { platformTokenFailure } from "./platformTokenMessage";
 import { BRAND } from "@openmasq/branding";
+import { getMessages } from "@openmasq/i18n";
+
+const fr = getMessages("fr");
 
 const none = { ok: false, reason: "none" } as const;
 const err = { ok: false, reason: "error" } as const;
@@ -14,7 +17,7 @@ describe("platformTokenFailure — the copy states only what is TRUE", () => {
 
   it("by default (nothing sold), a signed-out send on ANY known tier says account + reconnect, no CTA", () => {
     for (const personalSub of [paying, free]) {
-      const out = platformTokenFailure(none, { freeModel: false, personalSub });
+      const out = platformTokenFailure(none, { freeModel: false, personalSub, t: fr });
       expect(out.text).toMatch(new RegExp(`compte ${BRAND.name}`));
       expect(out.text).toMatch(/Reconnectez-vous/);
       expect(out.text).not.toMatch(/abonnement/i);
@@ -28,7 +31,7 @@ describe("platformTokenFailure — the copy states only what is TRUE", () => {
     for (const tok of [timeout, err]) {
       for (const personalSub of [paying, free, null]) {
         for (const freeModel of [true, false]) {
-          const out = platformTokenFailure(tok, { freeModel, personalSub });
+          const out = platformTokenFailure(tok, { freeModel, personalSub, t: fr });
           expect(out.text).toMatch(/ne répond pas/);
           expect(out.text).not.toMatch(/abonnement|Reconnectez/);
           expect(out.action).toBeUndefined();
@@ -39,7 +42,7 @@ describe("platformTokenFailure — the copy states only what is TRUE", () => {
 
   it("signed out + a KNOWN paying tier: reconnect, never « prenez un abonnement »", () => {
     configurePlatformAccess({ served: true, sold: true });
-    const out = platformTokenFailure(none, { freeModel: false, personalSub: paying });
+    const out = platformTokenFailure(none, { freeModel: false, personalSub: paying, t: fr });
     expect(out.text).toMatch(new RegExp(`abonnement ${BRAND.name} couvre ce modèle`));
     expect(out.text).toMatch(/Reconnectez-vous/);
     expect(out.action).toBeUndefined();
@@ -47,9 +50,9 @@ describe("platformTokenFailure — the copy states only what is TRUE", () => {
 
   it("signed out on a FREE model: account only, no subscription pitch", () => {
     // Even with no cached sub — a gratuit never needs a plan.
-    const out = platformTokenFailure(none, { freeModel: true, personalSub: null });
+    const out = platformTokenFailure(none, { freeModel: true, personalSub: null, t: fr });
     expect(out.text).toMatch(/gratuit/);
-    expect(out.text).not.toMatch(/prenez un abonnement/);
+    expect(out.text).not.toMatch(/prenez un abonnement/i);
     expect(out.action).toBeUndefined();
   });
 
@@ -58,17 +61,24 @@ describe("platformTokenFailure — the copy states only what is TRUE", () => {
     // AND supabase has settled to "no session", so a subscriber's retry landed here and
     // was told « Abonnement requis ». Absence of evidence is not a free tier.
     for (const personalSub of [null, undefined]) {
-      const out = platformTokenFailure(none, { freeModel: false, personalSub });
+      const out = platformTokenFailure(none, { freeModel: false, personalSub, t: fr });
       expect(out.text).toMatch(/Reconnectez-vous/);
-      expect(out.text).not.toMatch(new RegExp(`abonnement ${BRAND.name}\\.|prenez un abonnement`));
+      expect(out.text).not.toMatch(new RegExp(`abonnement ${BRAND.name}\\.|prenez un abonnement`, "i"));
       expect(out.action).toBeUndefined();
     }
   });
 
   it("signed out on a KNOWN free tier: the subscription pitch + CTA — the one true case (a build that SELLS)", () => {
     configurePlatformAccess({ served: true, sold: true });
-    const out = platformTokenFailure(none, { freeModel: false, personalSub: free });
-    expect(out.text).toMatch(/prenez un abonnement/);
+    const out = platformTokenFailure(none, { freeModel: false, personalSub: free, t: fr });
+    expect(out.text).toMatch(/prenez un abonnement/i);
     expect(out.action).toEqual({ kind: "upgrade_plan" });
+  });
+
+  it("speaks the UI language", () => {
+    const out = platformTokenFailure(timeout, { freeModel: false, personalSub: null, t: getMessages("en") });
+    expect(out.text).toBe(
+      `The ${BRAND.name} sign-in server is not responding. Nothing was sent. Check your connection, then try again.`,
+    );
   });
 });

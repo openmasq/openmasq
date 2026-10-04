@@ -38,7 +38,7 @@ function isLoopbackHost(host: string): boolean {
  * `embed` can PIN the connection to them — closing the DNS-rebinding TOCTOU the raw `fetch`
  * left open (a public host re-resolving to an internal IP between the check and the POST).
  */
-export async function assertEmbeddingsEndpoint(baseUrl: string): Promise<string[] | null> {
+async function assertEmbeddingsEndpoint(baseUrl: string): Promise<string[] | null> {
   let u: URL;
   try {
     u = new URL(baseUrl);

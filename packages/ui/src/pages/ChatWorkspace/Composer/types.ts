@@ -1,5 +1,6 @@
 import type { ExtractedFile } from "../../../host";
 import type { PdfReplacement } from "../../../containers/modals/viewers/pdf/pdfReplacements";
+import type { PartialMask } from "@openmasq/redact/pdf-redact";
 import type { UnavailableReason } from "../../../send/modelAvailability";
 import type { Conversation, Skill } from "../../../types";
 import type { RedactLevelApi } from "../ComposerRedactMenu";
@@ -12,10 +13,23 @@ export type Attachment = ExtractedFile & {
   extracting?: boolean;
   /** OCR page progress while `extracting`; absent ⇒ the chip's bar stays indeterminate. */
   extractProgress?: { done: number; total: number };
-  /** Redaction is running for this file. */
+  /** Waiting its turn in the extraction queue (files run one at a time): files ahead. */
+  extractQueued?: number;
+  /** Redaction is running for this file — or waiting its turn (`maskQueued`). */
   redacting?: boolean;
-  /** Chunk progress of a large document's redaction. */
-  redactProgress?: { done: number; total: number };
+  /** Waiting its turn in the masking queue (one run at a time, `state/files/maskQueue.ts`):
+   *  runs ahead of it. Absent once its own run started. */
+  maskQueued?: number;
+  /** Chunk progress of a large document's redaction; `etaMs` = time left, MEASURED on this
+   *  run's own pace once a chunk is done (absent before: the size estimate stands in). */
+  redactProgress?: { done: number; total: number; etaMs?: number };
+  /** What is masked SO FAR, for the progressive preview ONLY (`PartialMask`): never a map
+   *  the send or the library may use — that is `replacements`, set when the run ends. */
+  maskedSoFar?: PartialMask;
+  /** A PDF still being READ (or masked after it): its pages (unreadable thumbnails, read or
+   *  not) and what its masking — started during the read (`readingMask.ts`) — has done so far:
+   *  DISPLAY ONLY, never a map the send uses (that is `replacements`, set when the run ends). */
+  reading?: ReadingState;
   redactError?: string;
   /** Engine + model that produced `replacements`; a later engine switch offers a re-run. */
   redactEngineSig?: string;
@@ -24,6 +38,20 @@ export type Attachment = ExtractedFile & {
   /** REAL values the user chose to un-redact in the preview → SENT IN CLEAR. */
   reveal?: string[];
 };
+
+/** A PDF being read, as its preview shows it (`readingMask.ts`). */
+export interface ReadingState {
+  /** Pages the document has (0 until the first event). */
+  total: number;
+  /** Per page (index = page − 1): a `data:image/png` thumbnail too small to read. */
+  thumbs: (string | undefined)[];
+  /** Per page: its reading is over. */
+  read: (boolean | undefined)[];
+  /** What the masking has done so far (PROVISIONAL: a value found later may still occur in
+   *  what is covered), and the final text of the pages streamed so far — memory only, like
+   *  `text`. Absent: nothing masked yet, or the early masking stopped (fail closed). */
+  mask?: PartialMask & { pageTexts: string[] };
+}
 
 /** The chip above the input for the intent staged on the next send. */
 export interface ComposerTagInfo {

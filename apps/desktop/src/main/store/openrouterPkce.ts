@@ -4,6 +4,8 @@ import { safeOpenExternal } from "../net/safeOpen";
 import { setKey } from "./keys";
 import type { ProviderId } from "@openmasq/llm";
 import { BRAND } from "@openmasq/branding";
+import { mainMessages } from "../i18n";
+import { escapeHtml } from "../pdf/pdfSkeleton";
 
 /**
  * "Connect my OpenRouter account" — OAuth PKCE, run ENTIRELY in main: the key is BORN here
@@ -100,11 +102,13 @@ export function hasPendingFlow(now = Date.now()): boolean {
   return true;
 }
 
-/** Static, param-free pages (NEVER an echo of the request — no reflection surface). */
-const PAGE_OK =
-  `<!doctype html><meta charset="utf-8"><title>${BRAND.name}</title><body style="font-family:sans-serif;padding:2rem">Autorisation reçue — vous pouvez fermer cet onglet et revenir dans ${BRAND.name}.</body>`;
-const PAGE_MISS =
-  `<!doctype html><meta charset="utf-8"><title>${BRAND.name}</title><body style="font-family:sans-serif;padding:2rem">Autorisation annulée ou incomplète — revenez dans ${BRAND.name} pour réessayer.</body>`;
+/** Static, param-free pages (NEVER an echo of the request — no reflection surface): only
+ *  the brand and the catalogue's words, escaped, in main's language. */
+function page(ok: boolean): string {
+  const t = mainMessages().desktopMain.oauth;
+  const text = ok ? t.openRouterOk(BRAND.name) : t.openRouterMiss(BRAND.name);
+  return `<!doctype html><meta charset="utf-8"><title>${escapeHtml(BRAND.name)}</title><body style="font-family:sans-serif;padding:2rem">${escapeHtml(text)}</body>`;
+}
 
 /**
  * Start the flow: mint a pair, open a single-use LOOPBACK listener, send the browser to
@@ -150,7 +154,7 @@ export function beginOpenRouterConnect(): Promise<boolean> {
       const code = (u.searchParams.get("code") ?? "").trim();
       const live = !!code && pending?.verifier === verifier && hasPendingFlow();
       res.writeHead(200, { "Content-Type": "text/html; charset=utf-8", Connection: "close" });
-      res.end(live ? PAGE_OK : PAGE_MISS);
+      res.end(page(live));
       if (!live) return;
       // Consume the flow FIRST (single-use), then exchange — like the deep-link leg.
       const flow = pending!;

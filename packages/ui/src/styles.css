@@ -100,6 +100,7 @@
 @import "./styles/viewers/spreadsheet.css";
 @import "./styles/viewers/prose.css";
 @import "./styles/viewers/pdfViewer.css";
+@import "./styles/viewers/pdfStrip.css";
 @import "./styles/composer/wrap.css";
 @import "./styles/composer/hueMap.css";
 @import "./styles/composer/draft.css";
@@ -138,6 +139,7 @@
 @import "./styles/markdown/artifact.css";
 @import "./styles/markdown/syntax.css";
 @import "./styles/composer/attachments.css";
+@import "./styles/composer/attachGlow.css";
 @import "./styles/theme/lightKit.css";
 @import "./styles/theme/spadeOverrides.css";
 @import "./styles/theme/spadeDark.css";

@@ -12,22 +12,22 @@ export const privacyLevels = {
   // level is — the one below the default.
   standard: {
     label: "Light",
-    desc: "For web search and connected tools — protects less than the default.",
-    short: () => "The bare minimum: emails, phone numbers, bank cards, IBANs, identifiers and keys.",
-    tradeoff: "Names, handles, dates, addresses, places and companies stay readable by the model.",
+    desc: "Protects less than the default level. For web search and connected tools.",
+    short: () => "The minimum: emails, phone numbers, card numbers, IBANs, ID numbers and keys.",
+    tradeoff: "Names, usernames, dates, addresses, places and companies stay readable by the model.",
   },
   renforce: {
-    label: "Reinforced",
-    desc: "For writing, emails and everyday exchanges — the default level.",
-    short: () => "Adds the people's and company names, handles, dates of birth, addresses and places you mention.",
-    tradeoff: "An age or a distance computed on a masked value may be off — the composer flags it.",
+    label: "Enhanced",
+    desc: "The default level. For writing, emails and everyday work.",
+    short: () => "Adds names of people and companies, usernames, dates of birth, addresses and places you mention.",
+    tradeoff: "An age or a distance calculated from a masked value may be off. The message box warns you.",
   },
   strict: {
     label: "Strict",
-    desc: "For documents to analyse.",
+    desc: "For analyzing documents.",
     short: (brand) => `Everything ${brand} can detect, without exception.`,
     tradeoff:
-      "The model reasons on fictitious values: calculations and answers about the real world may be wrong.",
+      "The model works with substitutes, so calculations and real-world answers may be wrong.",
   },
 } satisfies Messages["privacyLevels"];
 
@@ -39,8 +39,8 @@ export const redactTypes = {
   company: "Company",
   address: "Address",
   city: "City",
-  id: "Identifier",
-  card: "Bank card",
+  id: "ID number",
+  card: "Card number",
   iban: "IBAN",
   ip: "IP address",
   path: "File path",
@@ -49,10 +49,10 @@ export const redactTypes = {
 } satisfies Messages["redactTypes"];
 
 export const webNav = {
-  ariaLabel: "Web browsing — protection level for this search",
+  ariaLabel: "Web browsing: protection level for this search",
   eyebrow: "Web browsing",
   thisMessageOnly: "This message only.",
-  keepMasking: "Keep the masking",
-  title: (level) => `Search the web at the ${level} level?`,
-  rest: "Everything else stays masked, and your query leaves with the real value either way.",
+  keepMasking: "Keep masking",
+  title: (level) => `Search the web with ${level} protection?`,
+  rest: "Everything else stays masked for the model. Your search query is sent with real values either way.",
 } satisfies Messages["webNav"];

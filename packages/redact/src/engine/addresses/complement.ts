@@ -26,7 +26,10 @@ const KEYWORD =
 /** A chunk: the keyword + its short value, which stops at the comma or end of
  *  line. The value stays bounded (≤ 30 characters) — beyond that we're no longer in a complement
  *  but in a sentence. */
-const CHUNK = `(?:${KEYWORD})\\.?[^\\S\\r\\n]+[\\p{L}\\p{N}][\\p{L}\\p{N}'’\\-. ]{0,29}`;
+// The keyword STARTS a word: « r[ée]s » (« Rés. ») otherwise matched the end of « copropriétai-
+// res » and vaulted « res de la Résidence ». `complement.test.ts`.
+const KW = `(?<![\\p{L}\\p{N}])(?:${KEYWORD})`;
+const CHUNK = `${KW}\\.?[^\\S\\r\\n]+[\\p{L}\\p{N}][\\p{L}\\p{N}'’\\-. ]{0,29}`;
 
 /** A CHAIN of chunks glued to what follows: « Résidence X, appartement Y, ». */
 const TRAILING_CHAIN = new RegExp(`(?:${CHUNK})(?:[^\\S\\r\\n]*,[^\\S\\r\\n]*(?:${CHUNK}))*[^\\S\\r\\n]*,?[^\\S\\r\\n]*$`, "iu");
@@ -48,7 +51,7 @@ const TRAILING_CHAIN = new RegExp(`(?:${CHUNK})(?:[^\\S\\r\\n]*,[^\\S\\r\\n]*(?:
  * the rent. Over-redacting is a product failure (the precision bar in `CLAUDE.md`): we
  * prefer to miss a trailing « bâtiment C », a form the BEFORE side already covers.
  */
-const TRAIL_CHUNK = `(?:${KEYWORD})\\.?[^\\S\\r\\n]+[\\p{L}\\p{N}]{1,10}`;
+const TRAIL_CHUNK = `${KW}\\.?[^\\S\\r\\n]+[\\p{L}\\p{N}]{1,10}`;
 // ⚠️ ONE line wrap is tolerated BEFORE the chunk, and only one: an address block
 // wraps (« …, 92600, Asnières,\nappartement A02 » — measured on the broker persona, where the
 // complement was going out IN CLEAR for this reason alone). It's the same trade-off as the `W`

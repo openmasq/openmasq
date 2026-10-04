@@ -7,40 +7,34 @@ import type { Messages } from "../messages";
 export const conversation = {
   greeting: { morning: "Good morning", afternoon: "Good afternoon", evening: "Good evening" },
   starters: {
-    noSetup: "With nothing to set up",
-    withServices: "With your services",
-    orConnect: "Or connect",
-    seeOthers: "See the others",
     cardTip: (category, prompt) => `${category} — ${prompt}`,
     cardAria: (category, prompt) => `${category}: ${prompt}`,
-    connectTip: (connector, prompt) => `Connect ${connector} — ${prompt}`,
-    dismiss: "Stop suggesting",
+    dismiss: "Don't show again",
+    withServices: "With your services",
     cats: {
-      write: "Writing",
-      search: "Search",
+      "follow-up": "Client follow-up",
+      "contract-review": "Legal",
+      "hr-review": "HR",
       memory: "Memory",
-      analyse: "Analysis",
-      "mail-triage": "Mailbox",
-      "files-find": "My folders",
-      "day-brief": "Calendar",
       "chat-catchup": "Messages",
-      "pr-review": "Code",
+      "notes-find": "Notes",
+      "files-find": "Files",
     },
     prompts: {
-      write: (domain) => `Write a thank-you email to julien@${domain}.`,
-      search: () => "What's in the news today?",
+      "follow-up": (domain) =>
+        `Write a polite reminder to Camille Salvi (camille.salvi@${domain}): her invoice F-2026-114 for €4,820 has been unpaid for 30 days. Remind her of our IBAN FR76 3000 6000 0112 3456 7890 189.`,
+      "contract-review": () =>
+        "Flag the risky clauses in this excerpt: \"Lucane SAS, SIREN 732 829 320, 12 rue des Tanneurs, Lyon, represented by Marc Wulff, commits for 36 months with no early termination; any amount due bears interest at 15% a year.\"",
+      "hr-review": () =>
+        "Summarize this review in three actions: \"Annual review of Julien Moreau, born 03/14/1988, reachable at +33 6 12 34 56 78. His manager Sophie Bernard proposes a 6% raise and a training course in March.\"",
       memory: () =>
         "Remember that on the Horizon project, my client Camille Salvi (Atelier Lucane) approves the mock-ups and Marc Wulff handles invoicing.",
-      analyse: () => "Plot a chart of this year's 5 best-performing ETFs.",
-      "mail-triage": () =>
-        "Sort my unread emails from this week: which ones really need a reply from me, and which can wait?",
-      "files-find": () =>
-        "Find the latest quote I received in my folders, and pull out the amount and the key dates.",
-      "day-brief": () =>
-        "Prepare my day tomorrow: my meetings, with whom, and what I should have read before each one.",
-      "chat-catchup": () =>
-        "Summarise what I missed this week in my channels, and list what is waiting for a reply from me.",
-      "pr-review": () => "List the pull requests waiting for my review, and summarise what each one changes.",
+      "chat-catchup": (_d, service) =>
+        `Summarize what I missed this week on ${service}, and list what is waiting for a reply from me.`,
+      "notes-find": (_d, service) =>
+        `Find the notes from my last project meeting in ${service}, and list the decisions made.`,
+      "files-find": (_d, service) =>
+        `Find the latest quote I received in ${service}, and pull out the amount and the key dates.`,
     },
   },
 
@@ -54,7 +48,7 @@ export const conversation = {
     embedded: "Built-in browser",
     unavailable: "The agent browser is not available on this platform.",
     loading: "Loading the agent browser…",
-    offlineTitle: "The browser is not connected.",
+    offlineTitle: "The browser is off.",
     offlineSub: (brand) =>
       `Turn it on to browse the web here, and to let ${brand} search it for you.`,
     activating: "Turning on…",
@@ -65,26 +59,26 @@ export const conversation = {
     reload: "Reload",
     urlPlaceholder: "Search or type an address",
     urlAria: "Address or search",
-    closeBrowser: "Close the browser",
+    closeBrowser: "Close browser",
     close: "Close",
   },
 
-  resizePanel: "Resize the panel",
-  suspendedTitle: "Access suspended by your organisation",
-  suspendedBody: "Sending is blocked. Contact your organisation's administrator.",
+  resizePanel: "Resize panel",
+  suspendedTitle: "Access suspended by your organization",
+  suspendedBody: "Sending is blocked. Contact your organization's administrator.",
   docPrep: {
-    analysing: "Analysing the document…",
-    redacting: "Redacting the document…",
+    analysing: "Analyzing the document…",
+    redacting: "Masking the document…",
     page: (page, total) => ` · page ${page} / ${total}`,
     pages: (total) => ` · ${total} page${total > 1 ? "s" : ""}`,
     ofCount: (idx, count) => ` (${idx}/${count})`,
   },
-  chooseFolder: "Choose the folder",
-  folderPickFailed: "could not pick a folder",
-  folderGrantFailed: "the authorisation failed",
+  chooseFolder: "Choose folder",
+  folderPickFailed: "folder selection failed",
+  folderGrantFailed: "authorization failed",
   slashRemember: {
-    label: "Remember in memory",
-    desc: "Inserts “Remember that…” — the durable fact is noted in Memory, locally.",
+    label: "Remember",
+    desc: "Inserts “Remember that…”. The fact is saved to Memory, on this device.",
   },
   opening: "Opening…",
   memoryToast: "Noted in memory",
@@ -92,36 +86,36 @@ export const conversation = {
 
   writeConfirm: {
     targetTip: (server, tool) => `${server} · ${tool}`,
-    alsoOtherChats: "In my other conversations too (until the app closes)",
+    alsoOtherChats: "Also in my other conversations (until I quit the app)",
   },
 
   skillTag: {
-    show: "See the instruction sent to the model",
-    hide: "Hide the instruction sent",
-    promptEyebrow: "Instruction sent to the model",
+    show: "Show the prompt sent to the model",
+    hide: "Hide prompt",
+    promptEyebrow: "Prompt sent to the model",
     edit: "Edit",
-    unavailable: "The instruction is unavailable for this message.",
+    unavailable: "Prompt unavailable for this message.",
   },
 
   memory: {
     usedTip:
-      "Memories injected with this message, redacted like the rest — click to open Memory",
+      "Memory cards included with this message, masked like the rest. Click to open Memory.",
     used: (labels) => `Memory used — ${labels}`,
     skippedTip:
-      "These memories matched but did not go out with this message — click to open the card",
+      "These cards matched but were not sent with this message. Click to open the card.",
     skipped: (parts) => `Memory: ${parts}`,
     homographs: (labels, count) =>
-      `${labels} not injected — the name alone is too common, write it in full${count > 1 ? "" : ""}`,
-    budget: (n) => `${n} card${n > 1 ? "s" : ""} left out for lack of room`,
-    pendingTip: "Extraction under way — the result will appear here",
+      `${labels} not included: the name alone is too common. Write it in full.${count > 1 ? "" : ""}`,
+    budget: (n) => `${n} card${n > 1 ? "s" : ""} left out: not enough room`,
+    pendingTip: "Extracting. The result will appear here.",
     pending: "Saving to memory…",
     failedTip:
       "Nothing could be saved to memory. Ask “remember…” again to retry.",
-    failed: "Saving to memory failed — nothing was noted, try again",
-    notedTip: "Local memory (the Memory page) — an explicit ask to remember",
+    failed: "Saving to memory failed. Nothing was saved. Try again.",
+    notedTip: "Saved to Memory on this device, because you asked",
     preferenceSaved: "Preference saved to memory",
-    nothingDurable: "Nothing durable to keep in memory",
-    undone: "Memory removed",
+    nothingDurable: "Nothing to remember here",
+    undone: "Removed from memory",
     noted: (facts, profile, updatedSuffix) =>
       `${facts === 1 ? "1 fact noted" : `${facts} facts noted`}${profile ? " + profile" : ""}${updatedSuffix} in memory`,
     updatedSuffix: (n) => ` · ${n === 1 ? "1 card updated" : `${n} cards updated`}`,
@@ -137,20 +131,44 @@ export const conversation = {
     feedback: "Give feedback on this reply",
   },
 
+  replyNotice: {
+    failed: "Sending failed. Open the conversation to try again.",
+    ready: (model) => `Reply ready · ${model}`,
+    readyPlain: "Reply ready.",
+  },
+
   bubble: {
     openAttachment: (name) => `Open ${name}`,
     plotTip: "Generating a chart (run_python)",
     plot: "Chart",
-    redactionFailedTip: "The redaction model failed for this message",
-    redactedTip: "Replaced by placeholders before the model saw it, restored in its reply",
+    redactionFailedTip: "The masking model failed for this message",
+    redactedTip: "Replaced with a substitute before reaching the model, restored in its reply",
     protectedCount: (n) => `${n} protected`,
     protectedSee: "see",
     autoRoutedTip:
       "Auto mode: the model for this reply was chosen automatically, based on the task.",
     quotaTip: "This model's provider quota",
     reasoning: "Reasoning",
-    imageWithheld: "Image withheld — it would carry a masked value",
+    imageWithheld: "Image withheld: it may contain a masked value",
     imageWithheldLoad: "Load",
+    showAll: "Show all",
+    showLess: "Show less",
+  },
+
+  docs: {
+    filesCount: (n) => `${n} file${n > 1 ? "s" : ""}`,
+    showFiles: "Show the files",
+    generatedBy: (brand) => `Made by ${brand}`,
+    clippedTag: "cut",
+    clipped: (name, max) => `Only the first ${max} characters of ${name} were sent to the model.`,
+    others: (n) => `${n} other${n > 1 ? "s" : ""}`,
+    weight: (pct, model) =>
+      `The documents in this conversation take up about ${pct}% of ${model}'s context window. Every question sends them again.`,
+    weightOver: (model) =>
+      `The documents in this conversation no longer fit ${model}'s context window: the oldest aren't sent anymore.`,
+    dropped: (names) =>
+      `The model can no longer see ${names}: the conversation outgrew its context window.`,
+    roomHint: "To keep room, pick a model with a larger window or start a new conversation.",
   },
 
   trace: {
@@ -181,40 +199,41 @@ export const conversation = {
     realValue: "real value",
     seenByModel: "seen by the model",
     seenByModelTip: "Value seen by the model",
-    realValueTip: "Real value — leaves in the clear if you leave it in the clear",
-    orgForced: "Enforced by the organisation",
+    realValueTip: "Real value. Sent unmasked only if you unmask it.",
+    orgForced: "Enforced by your organization",
     scopeSend: "this send",
     scopeConversation: "this conversation",
     scopeMessage: "this message",
-    leaveClear: (scope) => `Leave in the clear · ${scope}`,
-    leaveClearKind: (scope) => `Leave the category in the clear · ${scope}`,
-    leaveClearTip: "Reversible: the value leaves as-is for the model, the mask comes back with one click",
+    leaveClear: (scope) => `Unmask · ${scope}`,
+    leaveClearKind: (scope) => `Unmask category · ${scope}`,
+    leaveClearTip: "Reversible: the model receives the real value. Mask it again in one click.",
     reMask: (scope) => `Mask again · ${scope}`,
-    reMaskKind: (scope) => `Mask the category again · ${scope}`,
+    reMaskKind: (scope) => `Mask category again · ${scope}`,
     reMaskTip: "Mask this value again",
-    remove: (scope) => `Remove the masking · ${scope}`,
-    removeTip: "Definitive: no marker left — the value stays visible and leaves in the clear",
-    reportTip: "Opens “Your feedback”, prefilled — never paste the real value into it",
+    remove: (scope) => `Remove masking · ${scope}`,
+    removeTip: "Permanent: this value is no longer masked and is sent as is.",
+    reportTip: "Opens “Your feedback”, prefilled. Never paste the real value into it.",
     report: "Report a mistake",
-    sheetLabel: "Redaction",
+    sheetLabel: "Masking",
   },
 
   struggle: {
+    thisModel: "This model",
     failedTip: (tool) => (tool ? `A tool call did not go through: ${tool}` : "A tool call did not go through"),
     unknownTool: (connector, action) =>
-      `${connector} cannot do “${action}” — that action does not exist in the connector.`,
-    ownKeysHint: "Some of them only turn on with your own access keys.",
+      `${connector} has no “${action}” action.`,
+    ownKeysHint: "Some actions require your own access keys.",
     ownKeysHintWithPath:
-      "Open its card in Settings → Connectors: some of them only turn on with your own access keys.",
+      "Open it in Settings → Connectors: some actions require your own access keys.",
     connectorError: (connector, action) =>
-      `${connector} refused the action “${action}”. The model is not at fault: changing it would change nothing. Most often, access to the account has expired —`,
+      `${connector} refused the action “${action}”. Switching models won't help. Most often, access to the account has expired:`,
     reconnect: "reconnect it, then ask again.",
     reconnectWithPath: "reconnect it in Settings → Connectors, then ask again.",
     noToolUsed: (who) =>
-      `${who} answered without using your connectors. A model more comfortable with tools (Claude, for instance) uses them better: switch model under the message, then ask again.`,
+      `${who} answered without using your connectors. Models with stronger tool support (Claude, for example) use them more reliably: switch models below the message, then ask again.`,
     badCall: (who, action) =>
-      `${who} could not phrase the action “${action}”. A model more comfortable with tools (Claude, for instance) usually manages: switch model under the message.`,
-    reconnectTip: (connector) => `Open the ${connector} card to reconnect the account`,
+      `${who} could not form a valid request for “${action}”. Models with stronger tool support (Claude, for example) usually can: switch models below the message.`,
+    reconnectTip: (connector) => `Open ${connector} settings to reconnect the account`,
     reconnectCta: "Reconnect",
   },
 } satisfies Messages["conversation"];

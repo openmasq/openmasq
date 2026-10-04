@@ -48,7 +48,7 @@ export function skillSuggestions(t: Messages): SkillSuggestion[] {
 
 /** How many templates the modal offers at once — enough to cover the usual
  *  needs, few enough that the strip stays a hint and not a second page. */
-export const SKILL_SUGGESTION_LIMIT = 6;
+const SKILL_SUGGESTION_LIMIT = 6;
 
 /** The templates to offer beside `existing` (the user's own compétences). */
 export function suggestedSkills(

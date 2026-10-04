@@ -20,6 +20,22 @@ let emit: ReportEvent = () => {};
 /** The version downloaded this session: the only one `quitAndInstall` can install. */
 let downloadedVersion: string | null = null;
 
+/** What this session already reported. electron-updater re-emits `update-downloaded` on
+ *  every periodic check once the file is cached, which counted ONE download every 15 min. */
+const reported = new Set<string>();
+const once = (key: string): boolean => (reported.has(key) ? false : (reported.add(key), true));
+
+/** Why the automatic install is holding a staged build back (`autoInstall.ts`). */
+export type InstallDeferReason = "in_use" | "busy_main" | "busy_renderer" | "no_answer";
+
+/** Report a deferral ONCE per version and reason: the funnel shows WHY a downloaded build
+ *  waits (a focused window, a turn, a draft) instead of an unexplained gap. */
+export function trackInstallDeferred(reason: InstallDeferReason): void {
+  const version = downloadedVersion ?? UNKNOWN;
+  if (!once(`deferred:${version}:${reason}`)) return;
+  emit({ name: "update_install_deferred", channel: getConfig().channel, version, reason });
+}
+
 /** A placeholder, so an event with no version still counts in the funnel. */
 const UNKNOWN = "unknown";
 
@@ -83,6 +99,7 @@ export function setupUpdateTracking(report?: ReportEvent): void {
   });
   autoUpdater.on("update-downloaded", (info) => {
     downloadedVersion = info?.version ?? UNKNOWN;
+    if (!once(`downloaded:${downloadedVersion}`)) return;
     emit({ name: "update_downloaded", channel: getConfig().channel, version: downloadedVersion });
   });
   setTimeout(flushLastSession, RENDERER_READY_MS).unref?.();

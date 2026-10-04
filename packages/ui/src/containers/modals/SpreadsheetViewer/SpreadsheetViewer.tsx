@@ -156,7 +156,7 @@ export function SpreadsheetViewer({
               key={s.name}
               className={`fv-sheet-tab ${i === active ? "on" : ""}${redactedSheets.has(i) ? " has-redaction" : ""}`}
               onClick={() => setActive(i)}
-              title={redactedSheets.has(i) ? `${s.name} — contient des données redacted` : s.name}
+              title={redactedSheets.has(i) ? t.runtime.files.sheetHasMasked(s.name) : s.name}
             >
               {redactedSheets.has(i) && <span className="fv-sheet-dot" />}
               {s.name}
@@ -239,12 +239,12 @@ export function SpreadsheetViewer({
       {cutRow != null && (
         <div className="fv-sheet-note fv-cut-note">
           {cutRow > 0
-            ? `Envoi tronqué : seules les lignes 1 à ${cutRow} partent au modèle — les lignes grisées ne quittent jamais la machine (et n'ont donc pas besoin d'être redacted).`
-            : "Envoi tronqué : ce fichier dépasse la limite d'envoi, aucune ligne ne part au modèle."}
+            ? t.runtime.files.sheetCutRows(cutRow)
+            : t.runtime.files.sheetCutAll}
         </div>
       )}
       {sheet.truncated && (
-        <div className="fv-sheet-note">Aperçu tronqué ({MAX_ROWS} lignes × {MAX_COLS} colonnes max).</div>
+        <div className="fv-sheet-note">{t.runtime.files.sheetPreviewCut(MAX_ROWS, MAX_COLS)}</div>
       )}
     </div>
   );

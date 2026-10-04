@@ -37,11 +37,11 @@ async function loadOrt(): Promise<any> {
   try {
     mod = await import("onnxruntime-node");
   } catch {
-    throw new Error("moteur OCR docTR indisponible (onnxruntime-node manquant)");
+    throw new Error("OCR engine docTR unavailable (onnxruntime-node missing)");
   }
   const ort = mod?.InferenceSession ? mod : (mod?.default ?? mod);
   if (!ort?.InferenceSession?.create) {
-    throw new Error("moteur OCR docTR incompatible (onnxruntime-node)");
+    throw new Error("OCR engine docTR incompatible (onnxruntime-node)");
   }
   return ort;
 }
@@ -51,11 +51,11 @@ async function loadCanvas(): Promise<any> {
   try {
     mod = await import("@napi-rs/canvas");
   } catch {
-    throw new Error("moteur de rendu indisponible (composant natif manquant)");
+    throw new Error("PDF rendering engine unavailable (native component missing)");
   }
   const resolved = typeof mod?.createCanvas === "function" ? mod : (mod?.default ?? mod);
   if (typeof resolved?.createCanvas !== "function" || typeof resolved?.loadImage !== "function") {
-    throw new Error("moteur de rendu incompatible sur cet appareil");
+    throw new Error("PDF rendering engine incompatible on this device");
   }
   return resolved;
 }
@@ -98,11 +98,11 @@ async function readVerified(dir: string, file: string, pins: Record<string, stri
     const got = `sha256-${createHash("sha256").update(bytes).digest("hex")}`;
     const want = pin.startsWith("sha256-") ? pin : `sha256-${pin}`;
     if (got !== want) {
-      throw new Error(`intégrité du modèle docTR invalide (${file})`);
+      throw new Error(`docTR model integrity check failed (${file})`);
     }
   } else if (process.env.OPENMASQ_DOCTR_REQUIRE_PIN === "1") {
     // Packaged builds set this so an UNPINNED model is rejected (defence in depth).
-    throw new Error(`modèle docTR non épinglé (${file}) — refusé`);
+    throw new Error(`docTR model not pinned (${file}) — refused`);
   }
   return bytes;
 }
@@ -118,7 +118,7 @@ async function getSessions(): Promise<Sessions> {
   if (sessionsPromise) return sessionsPromise;
   sessionsPromise = (async () => {
     const dir = doctrModelDir();
-    if (!dir) throw new Error("répertoire des modèles docTR non configuré");
+    if (!dir) throw new Error("docTR models directory not configured");
     const [ort, canvas] = await Promise.all([loadOrt(), loadCanvas()]);
     const pins = await loadIntegrity(dir);
     const opts = sessionOptions();
@@ -174,7 +174,3 @@ export const doctrEngine: OcrEngine = {
   },
 };
 
-/** Reset the cached sessions (tests / a model-path change). */
-export function resetDoctrSessions(): void {
-  sessionsPromise = null;
-}

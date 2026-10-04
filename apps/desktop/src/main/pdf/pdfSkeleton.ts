@@ -8,6 +8,7 @@
  * tag/attribute DENYLIST over the HTML is deliberately NOT used (fail-open theatre).
  */
 import { BRAND } from "@openmasq/branding";
+import { DOCUMENT_FONT } from "./documentFontSpec";
 
 
 /** Scheme the print document is served over, from memory, by the render session ONLY. */
@@ -18,8 +19,8 @@ export const PDF_DOC_URL = `${PDF_SCHEME}://doc/index.html`;
 /** Caps on the renderer-supplied payload (a compromised renderer must not force a huge
  *  allocation). A document is a few tens of kB. */
 export const MAX_DOC_HTML_BYTES = 1_500_000;
-export const MAX_DOC_CSS_BYTES = 200_000;
-export const MAX_DOC_TITLE_CHARS = 300;
+const MAX_DOC_CSS_BYTES = 200_000;
+const MAX_DOC_TITLE_CHARS = 300;
 /** Hard budget for load + print; on timeout the window is destroyed, no partial PDF. */
 export const PDF_RENDER_TIMEOUT_MS = 20_000;
 
@@ -97,12 +98,12 @@ export function validatePdfRequest(payload: unknown): PdfRenderRequest {
   };
 }
 
-/** The bundled brand font as a `data:` URI (no network in the print session). Empty when
- *  absent: the stack falls back to a system sans. */
+/** The pinned document font (Inter, `documentFontSpec.ts`) as a `data:` URI (no network in
+ *  the print session). Empty when absent or unverified: the stack falls back to a system sans. */
 export function pdfFontFaceCss(fontBase64: string | undefined): string {
   if (!fontBase64) return "";
-  // A variable font: ONE file gives every real weight.
-  return `@font-face{font-family:${BRAND.name};src:url(data:font/ttf;base64,${fontBase64}) format("truetype");font-weight:300 700;font-style:normal;font-display:block}`;
+  // A variable font: ONE file gives every real weight (Inter's wght axis spans 100–900).
+  return `@font-face{font-family:"${DOCUMENT_FONT.family}";src:url(data:font/ttf;base64,${fontBase64}) format("truetype");font-weight:100 900;font-style:normal;font-display:block}`;
 }
 
 /** Chromium's footer runs in its OWN frame with inline-only styling: the API's shape, not

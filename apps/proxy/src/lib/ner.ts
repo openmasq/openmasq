@@ -12,13 +12,13 @@ import { detectLocalNer, verifyWeights, type Detection, type WeightEntry } from 
 import { createNerPredict, NER_WEIGHTS_SHA256, type NerPredict } from "@openmasq/redact/ner";
 
 /** Bundle folder name under the models dir — the same as the desktop's `NER_MODEL_ID`. */
-export const NER_MODEL_ID = `${BRAND.hfOrg}/ner-multilingual`;
+const NER_MODEL_ID = `${BRAND.hfOrg}/ner-multilingual`;
 
 export type DetectLocal = (text: string) => Promise<Detection[]>;
 
 /** Where a dev checkout keeps the baked models: `apps/desktop/build/ner-models` — four
  *  levels up from this file (`lib/` → `src|dist/` → `proxy/` → `apps/`), the same in `dist/`. */
-export function devNerDir(): string {
+function devNerDir(): string {
   const here = fileURLToPath(import.meta.url);
   return resolve(here, "..", "..", "..", "..", "desktop", "build", "ner-models");
 }
@@ -57,13 +57,7 @@ export async function loadNer(dir: string): Promise<DetectLocal> {
     allowLocalModels: true,
   });
   return (text) =>
-    detectLocalNer(text, predict, {
-      chunkSize: 1000,
-      chunkOverlap: 100,
-      // Re-throw: `detectLocalNer` otherwise swallows a post-load inference failure to `[]`,
-      // which would forward the text with names in clear — the exact fail-open rule 7 forbids.
-      onError: (err) => {
-        throw err instanceof Error ? err : new Error(String(err));
-      },
-    });
+    // A post-load inference failure REJECTS (never a quiet `[]`): the masking pass reports it
+    // as `modelError` and the proxy refuses to forward the text (rule 7, fail closed).
+    detectLocalNer(text, predict, { chunkSize: 1000, chunkOverlap: 100 });
 }

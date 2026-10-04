@@ -50,6 +50,54 @@ kept in the French they were sent in, for the reason given above.
 
 ---
 
+## 0.14.0 — 2026-10-03
+> Every document is masked from the first page to the last, and you can watch it happen.
+
+### What's new
+- **Whole documents** — a document is masked and sent in full; one too large to mask is refused with its size.
+- **Live PDF preview** — the real pages appear as they are read and masked, with a page strip and arrow keys.
+- **Fast long pastes** — pasting a long document no longer freezes the app.
+
+### Improvements & fixes
+- Scanned PDFs are read in full, and PDFs with a logo or stamp are read faster.
+- A file still being read, or one that can't be read, is never left out of a message without a word.
+- A message too long for the selected model is refused before anything is sent.
+- Conversations keep their attached documents after the app restarts.
+- Files are masked one at a time, keep going across conversations and stop when removed.
+- Long messages fold, and a notice says when documents fill the model's context.
+
+## 0.13.0 — 2026-10-02
+> Masked file paths keep their meaning, and an expired Claude Code or Codex session reconnects in one click.
+
+### What's new
+- **Paths masked like sentences** — only the names, companies and numbers in a file path are replaced; the rest stays readable.
+- **Reconnect your subscription** — an expired Claude Code or Codex session shows a clear message and a sign-in button.
+- **Modern document fonts** — Word files use Aptos and PDFs use Inter.
+
+### Improvements & fixes
+- The app's English is clearer and uses one word throughout: mask.
+- Values from an attached document keep their category and color in the conversation.
+- OneDrive can now receive a file from the conversation.
+- A downloaded update also announces itself with a system notification.
+- Google connectors are coming soon; for now they work only with your own Google keys.
+- Connector names and record IDs stay readable, so the assistant can use your tools.
+
+## 0.12.0 — 2026-10-02
+> Case, claim and bar numbers are masked, and each connector can keep its own masking level.
+
+### What's new
+- **A masking level per connector** — set one connected tool apart from your overall level; the Privacy screen lists the exceptions.
+- **Case and bar numbers masked** — a case, docket, claim, policy or matter number and a bar number are masked after their keyword.
+- **Open a document while it is being read** — the preview opens at once, shows the page being read, then the masked document.
+
+### Improvements & fixes
+- The PDF preview shows every page of the document.
+- Documents attached together are read one at a time, and each is ready as soon as it is read.
+- USCIS receipt, A-number, I-94, DoD ID and Medicaid numbers are masked.
+- US street addresses are recognized as written, with USPS abbreviations and directions.
+- The on-device detection model is half the size and close to twice as fast.
+- File paths stay readable unless you turn on their switch or use the Strict level.
+
 ## 0.11.2 — 2026-09-19
 > A value you mask by hand on a document is masked for the whole conversation.
 

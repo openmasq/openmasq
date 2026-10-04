@@ -1,7 +1,8 @@
-import { DEFAULT_LOCALE, getMessages } from "@openmasq/i18n";
+import type { Messages } from "@openmasq/i18n";
 import { PROVIDERS, type ProviderId } from "@openmasq/llm";
 import { ModelBlockedByOrgError, CreditsExhaustedError } from "../state/errors";
-import { modelUnavailableReason } from "./modelAvailability";
+import { SUBSCRIPTION_CLI_IN_APP_LOGIN, subscriptionCliOfProvider } from "@openmasq/llm";
+import { modelUnavailableReason, type CliReadiness } from "./modelAvailability";
 import { includedWith, platformAccessServed, subscriptionsSold } from "./platformAccess";
 import type { OrgProfileInfo, CreditBalance, BillingSubscription } from "../host";
 import type { Message } from "../types";
@@ -37,11 +38,13 @@ export interface PreflightInput {
   localEndpointReachable?: boolean | null;
   /** Is the `claude-cli` provider ready (setting enabled + CLI detected)? Passed
    *  as-is to `modelUnavailableReason` — only `true` opens it (fail-closed). */
-  claudeCliReady?: boolean | null;
+  claudeCliReady?: CliReadiness;
   /** Same for `codex-cli`. */
-  codexCliReady?: boolean | null;
+  codexCliReady?: CliReadiness;
   /** Same for `antigravity-cli`. */
-  antigravityCliReady?: boolean | null;
+  antigravityCliReady?: CliReadiness;
+  /** The UI language of the failure text. */
+  t: Messages;
 }
 
 /**
@@ -57,18 +60,20 @@ export interface PreflightInput {
  * This function owns only the MESSAGE + CTA for each reason.
  */
 export function preflightError(p: PreflightInput): PreflightFailure | null {
+  const { t } = p;
+  const label = PROVIDERS[p.provider].label;
   // Org governance. A suspended member can't send (the backend already 403s their
   // org calls; fail closed here too). And a member cannot send with a model their org
   // disabled — the picker hides it, but a conversation pinned to a now-blocked model
   // must FAIL CLOSED (shown inline so the reason sticks).
   if (p.orgProfile?.status === "suspended") {
-    return { text: "Votre accès a été suspendu par votre organisation — l'envoi est bloqué." };
+    return { text: t.runtime.send.suspended };
   }
   // ALLOW-list: the model must appear in what the organization has opened up. A model
   // absent from the list is refused — including a model that joined the catalog after
   // the policy was written, which the old deny-list would have let through.
   if (p.orgProfile && !(p.orgProfile.allowedModelIds ?? []).includes(p.model.id)) {
-    return { text: new ModelBlockedByOrgError(p.model.id, p.model.label).message };
+    return { text: new ModelBlockedByOrgError(p.model.id, p.model.label, t).message };
   }
   // Is the model usable at all? Same decision the pickers grey out with.
   const reason = modelUnavailableReason({
@@ -95,13 +100,13 @@ export function preflightError(p: PreflightInput): PreflightFailure | null {
   if (reason === "free_mode_only") {
     return {
       // With nothing to sell (`subscriptionsSold`, the default), the only way out is the key.
+      // The SAME sentence the picker's tooltip shows (`availability`, rule 9).
       text: subscriptionsSold()
-        ? `L'accès gratuit de ${BRAND.name} sert Laguna et Nemotron. Pour ce modèle, prenez un ` +
-          "abonnement, ou renseignez votre propre clé."
-        : `Votre compte ${BRAND.name} inclut Laguna et Nemotron. Pour ce modèle, renseignez votre propre clé.`,
+        ? t.availability.freeModeSold(BRAND.name, label)
+        : t.availability.freeModeUnsold(BRAND.name, label),
       action: p.hasBilling
-        ? { kind: "credit_options", provider: p.provider, label: PROVIDERS[p.provider].label }
-        : { kind: "missing_key", provider: p.provider, label: PROVIDERS[p.provider].label },
+        ? { kind: "credit_options", provider: p.provider, label }
+        : { kind: "missing_key", provider: p.provider, label },
     };
   }
 
@@ -117,11 +122,11 @@ export function preflightError(p: PreflightInput): PreflightFailure | null {
     if (!p.orgProfile && p.hasBilling) {
       const paying = (p.personalSub?.tier ?? "free") !== "free";
       if (paying) {
-        return { text: "Ce modèle est indisponible pour le moment. Réessayez plus tard." };
+        return { text: t.runtime.send.paidUnavailable };
       }
       return {
-        text: new CreditsExhaustedError(true).message,
-        action: { kind: "credit_options", provider: p.provider, label: PROVIDERS[p.provider].label },
+        text: new CreditsExhaustedError(true, t).message,
+        action: { kind: "credit_options", provider: p.provider, label },
       };
     }
     const personalCreditsBlocked = !p.orgProfile && (p.personalCredits?.blocked ?? false);
@@ -131,8 +136,8 @@ export function preflightError(p: PreflightInput): PreflightFailure | null {
     // provider's key modal then regenerates in place, existing plumbing; the subscription
     // option stays the admin's call, so no upsell card here.
     return {
-      text: new CreditsExhaustedError(personalCreditsBlocked).message,
-      action: { kind: "missing_key", provider: p.provider, label: PROVIDERS[p.provider].label },
+      text: new CreditsExhaustedError(personalCreditsBlocked, t).message,
+      action: { kind: "missing_key", provider: p.provider, label },
     };
   }
 
@@ -145,9 +150,9 @@ export function preflightError(p: PreflightInput): PreflightFailure | null {
       // Same rule as the picker's chip: the « abonnement » way out is named only if
       // this build has a hosted service (`platformAccess.ts`).
       text:
-        `Clé manquante pour ${PROVIDERS[p.provider].label}. Renseignez-la pour envoyer` +
-        (platformAccessServed() ? ` — ou choisissez un modèle inclus ${includedWith(BRAND.name, getMessages(DEFAULT_LOCALE))}.` : "."),
-      action: { kind: "missing_key", provider: p.provider, label: PROVIDERS[p.provider].label },
+        t.availability.noKeyTitle(label) +
+        (platformAccessServed() ? t.availability.noKeyOrIncluded(includedWith(BRAND.name, t)) : "."),
+      action: { kind: "missing_key", provider: p.provider, label },
     };
   }
 
@@ -155,29 +160,32 @@ export function preflightError(p: PreflightInput): PreflightFailure | null {
     // Conversation pinned on a CLI provider (`claude-cli`/`codex-cli`/
     // `antigravity-cli`) while
     // the CLI has disappeared or the setting was switched off: the repair path, named.
+    return { text: t.availability.cliUnavailable(label) };
+  }
+
+  if (reason === "cli_signed_out") {
+    // The CLI's own status said signed out: refused BEFORE any spawn, with the same
+    // sign-in the failed turn would offer (none for a CLI the app cannot sign in).
+    const cli = subscriptionCliOfProvider(p.provider);
     return {
-      text:
-        `Ce modèle passe par la CLI ${PROVIDERS[p.provider].label}, introuvable ou ` +
-        "désactivée sur cette machine. Installez-la et connectez-la, puis activez-la " +
-        "dans Réglages → Modèles — ou choisissez un autre modèle.",
+      text: t.availability.cliSignedOutTitle(label),
+      ...(cli && SUBSCRIPTION_CLI_IN_APP_LOGIN[cli]
+        ? { action: { kind: "cli_signin" as const, provider: p.provider, label } }
+        : {}),
     };
   }
 
   if (reason === "no_endpoint") {
     // Self-hosted model with no endpoint set. Sending would silently fall back to a
     // default localhost port the user never chose, so fail closed with the real reason.
-    return {
-      // The exact PATH stays: it's a setting you don't stumble on by chance.
-      text: "Adresse manquante pour ce modèle local. Ajoutez-la dans Réglages → Modèles.",
-    };
+    // The exact PATH stays: it's a setting you don't stumble on by chance.
+    return { text: t.availability.noEndpointTitle };
   }
 
   if (reason === "endpoint_unreachable") {
     // Endpoint set but the local server didn't answer the reachability probe — almost
     // always "not started". Blocked here too so the picker's grey and the gate agree.
-    return {
-      text: "Votre serveur local (Ollama, LM Studio…) ne répond pas. Vérifiez qu'il est démarré, puis réessayez.",
-    };
+    return { text: t.availability.endpointUnreachableTitle };
   }
 
   return null;

@@ -66,10 +66,3 @@ export function asksDraftNotSend(text: string | undefined | null): boolean {
   return DRAFT_VERB.test(text) && !SEND_VERB.test(text);
 }
 
-/** What the model receives instead of the send result: the instruction, not an error. */
-export const DRAFT_NOT_SEND_STEER =
-  "Envoi REFUSÉ : l'utilisateur a demandé de RÉDIGER, pas d'ENVOYER. L'e-mail n'est PAS " +
-  "parti. Présente le texte rédigé dans la conversation (bloc document) et laisse " +
-  "l'utilisateur décider de l'envoyer. Ne rappelle aucun outil d'envoi sans une demande " +
-  "explicite (« envoie », « transmets »).";
-

@@ -2,6 +2,7 @@ import { clipboard } from "electron";
 import { openAuthWindow } from "../authWindow";
 import { connectSignal } from "../server/connectCancel";
 import { BRAND } from "@openmasq/branding";
+import { mainMessages } from "../../i18n";
 
 /**
  * GitHub OAuth **device flow** — the desktop-direct login for the GitHub connector.
@@ -60,6 +61,10 @@ const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
  *  removes the question. The rendering is byte-for-byte the same. */
 function bannerScript(code: string): string {
   const c = JSON.stringify(code);
+  // The words are injected as JS string LITERALS too (`JSON.stringify`), then set as text nodes.
+  const t = mainMessages().desktopMain.oauth;
+  const lead = JSON.stringify(`${t.githubCodeCopied(BRAND.name)} `);
+  const hint = JSON.stringify(` ${t.githubPasteHint}`);
   return `(function(){try{
     var CODE=${c};
     var inp=document.querySelector('input#user_code,input[name="user_code"],input[name="user-code"],input[autocomplete="one-time-code"]');
@@ -70,9 +75,9 @@ function bannerScript(code: string): string {
     var s=document.createElement('span');
     s.style.cssText='font:700 17px ui-monospace,SFMono-Regular,monospace;letter-spacing:2px;margin:0 6px;vertical-align:middle';
     s.textContent=CODE;
-    b.appendChild(document.createTextNode('Code ${BRAND.name} (copié) : '));
+    b.appendChild(document.createTextNode(${lead}));
     b.appendChild(s);
-    b.appendChild(document.createTextNode(' — collez-le (⌘V / Ctrl+V) puis autorisez l’accès.'));
+    b.appendChild(document.createTextNode(${hint}));
     document.body.appendChild(b);document.body.style.paddingTop='50px';
   }catch(e){}})();`;
 }
@@ -95,7 +100,8 @@ export async function githubDeviceLogin(opts: {
   // in-app (dedicated window) rather than the system browser.
   clipboard.writeText(dc.user_code);
   const win = openAuthWindow(dc.verification_uri_complete || dc.verification_uri);
-  win.setTitle(`Connecter ${opts.serverName} — code ${dc.user_code}`);
+  const t = mainMessages().desktopMain.oauth;
+  win.setTitle(t.githubWindowTitle(opts.serverName, dc.user_code));
   const inject = () => {
     win.webContents.executeJavaScript(bannerScript(dc.user_code)).catch(() => {});
   };
@@ -121,9 +127,9 @@ export async function githubDeviceLogin(opts: {
     const deadline = Date.now() + dc.expires_in * 1000;
     let interval = Math.max(5, dc.interval || 5);
     while (Date.now() < deadline) {
-      if (cancelled) throw new Error("Connexion annulée");
+      if (cancelled) throw new Error(t.cancelled);
       await sleep(interval * 1000);
-      if (cancelled) throw new Error("Connexion annulée");
+      if (cancelled) throw new Error(t.cancelled);
       const tok = await postJson<TokenResponse>(TOKEN_URL, {
         client_id: opts.clientId,
         device_code: dc.device_code,
@@ -135,11 +141,11 @@ export async function githubDeviceLogin(opts: {
         interval = tok.interval ?? interval + 5;
         continue;
       }
-      if (tok.error === "access_denied") throw new Error("Accès refusé sur GitHub");
+      if (tok.error === "access_denied") throw new Error(t.githubDenied);
       // expired_token / unsupported_grant_type / anything else → stop.
-      throw new Error("La connexion GitHub a expiré — réessayez");
+      throw new Error(t.githubExpired);
     }
-    throw new Error("La connexion GitHub a expiré — réessayez");
+    throw new Error(t.githubExpired);
   } finally {
     if (!win.isDestroyed()) win.close();
   }

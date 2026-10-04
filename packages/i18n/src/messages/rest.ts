@@ -92,6 +92,12 @@ export interface ModelPickerMessages {
   price: string;
   simpleView: string;
   simpleViewTip: string;
+  /** The group header of a provider sold through the account or a CLI subscription. */
+  groupIncludedSub: (brand: string) => string;
+  groupIncludedAccount: (brand: string) => string;
+  groupClaudeCli: string;
+  groupCodexCli: string;
+  groupAntigravityCli: string;
   manage: string;
   none: string;
   models: string;
@@ -232,6 +238,7 @@ export interface LeavesMessages {
     seeAll: string;
     editorAria: string;
     seePrompt: string;
+    clickToEdit: string;
   };
   openInPanel: (name: string) => string;
   loadingImage: (name: string) => string;

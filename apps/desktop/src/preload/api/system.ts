@@ -140,6 +140,9 @@ export const app = {
    *  without main keeping a colour table. `false` when not `#rrggbb`: main refuses it. */
   setWindowTone: (tone: string): Promise<boolean> =>
     ipcRenderer.invoke("window:set-tone", tone),
+  /** The interface language, so main's native dialogs speak it. `false` when main refuses
+   *  a value that is not one of the catalogue's locales. */
+  setLocale: (locale: string): Promise<boolean> => ipcRenderer.invoke("app:set-locale", locale),
 };
 
 /** Auto-update controls. `pin` forces an exact build. */
@@ -178,7 +181,7 @@ export const updates = {
 
 /** The resolved environment, as main hands it back. The types live HERE (the preload is
  *  the contract, and depends only on `electron`). */
-export type EnvName = "production" | "staging" | "custom";
+type EnvName = "production" | "staging" | "custom";
 
 /** The SELF-HOSTED stack entered by the user: public addresses and a PUBLISHABLE key. */
 export interface CustomStack {

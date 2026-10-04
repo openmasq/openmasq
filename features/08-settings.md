@@ -78,7 +78,7 @@ nothing becomes unreachable, only less cluttered.
       (Claude Code, Codex — a pinned, sha256-verified download of the official build that
       then places itself; never Antigravity) and **sign it in from the app** (the CLI's own
       sign-in relayed: the page to open, the code to type or to paste), then « connectée :
-      e-mail · offre » — `packages/ui/src/pages/Settings/models/AgentSetupRows.tsx`,
+      e-mail · offre » — `packages/ui/src/containers/agentSetup/AgentSetupRows.tsx`,
       `apps/desktop/src/main/subscription/install/`
 - [x] Réglages → Confidentialité → either stat card of the privacy report opens the
       **by-type breakdown** (your messages, or everything ever masked) —
@@ -242,6 +242,10 @@ stuck with a version that breaks your use.
       at the next launch — `UpdateReadyModal`,
       `packages/ui/src/containers/modals/UpdateReadyModal.test.tsx`,
       `packages/ui/src/containers/shell/hooks/useUpdateReady.test.tsx`
+- [x] **…and by a system notification when the window is not in front** (minimized, hidden,
+      another app focused): « <app> <version> est prête — Redémarrez l'app pour l'installer »,
+      once per version; a click brings the window back to the announcement, it installs
+      nothing — `apps/desktop/src/main/updates/notifyDownloaded.test.ts`
 - [x] **Updating is always automatic — no setting turns it off.** Checking and downloading
       happen on their own; installation waits for a click on "Install and restart", the next
       close of the app — or a moment of inattention (next bullet). The switch that existed

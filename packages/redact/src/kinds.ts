@@ -186,7 +186,7 @@ export function redactionCategory(typeOrCategory: string): RedactionCategory {
  * (`GettyImages-…-<hash>.jpg`), the exact noise the url gate suppresses; it is also
  * OFF by default. `dob`/dates stay suppressible too (`/2026/07/23/` paths).
  */
-export const CREDENTIAL_KINDS: ReadonlySet<RedactionCategory> = new Set<RedactionCategory>([
+const CREDENTIAL_KINDS: ReadonlySet<RedactionCategory> = new Set<RedactionCategory>([
   "secret",
   "card",
   "iban",

@@ -17,13 +17,12 @@ export const DIRECT: McpConnector[] = [
     directAuth: "device",
     scopes: { managed: ["repo", "read:user"], byo: ["repo", "read:user"] },
   },
-  // ⚠️ Product decision 30/07/2026: Google's RESTRICTED scopes (gmail.readonly,
-  // drive.readonly) are now also requested on the app's client — 1-clic
-  // capabilities = 100% of BYO capabilities (`managed` ≡ `byo` on every Google
-  // connector). CASA is NOT a gate in the code: it's OPS's prerequisite to
-  // publish the client in prod (annual security audit + Google verification). Until
-  // then, the client runs under Google's "app in testing" regime (warning
-  // screen, capped testers, time-limited refresh tokens).
+  // ⚠️ Every Google connector is BYO-ONLY until Google verifies the app's own client:
+  // CASA for the RESTRICTED scopes (gmail.readonly, drive.readonly → `byoReason: "casa"`),
+  // brand verification for the sensitive ones (`"google-verification"`). Until then the
+  // UI says « Bientôt disponible » and offers only « Vos clés » (a developer's own Google
+  // client), and main refuses the built-in mode. The day it clears: put the `managed`
+  // scopes back HERE and in `@openmasq/connectors` (`scopesParity.test.ts`), drop the flags.
   {
     // Loopback + PKCE ("Desktop app" Google client, incremental consent).
     id: "google-calendar",
@@ -34,13 +33,15 @@ export const DIRECT: McpConnector[] = [
     transport: "direct",
     hosts: ["calendar.google.com"],
     directAuth: "pkce",
+    byoOnly: true,
+    byoReason: "google-verification",
     scopes: {
       // `calendar.events` and NOT `auth/calendar`: the two exposed tools (list,
       // create an event) only need events — the full scope adds
       // ACLs, settings, and calendar deletion, which no tool uses.
       // Minimization = what the Google consent screen and the CASA audit check
       // first. A connection from BEFORE keeps its old scope until reconnection.
-      managed: ["https://www.googleapis.com/auth/calendar.events"],
+      managed: [],
       byo: ["https://www.googleapis.com/auth/calendar.events"],
     },
   },
@@ -58,11 +59,10 @@ export const DIRECT: McpConnector[] = [
     transport: "direct",
     hosts: ["mail.google.com"],
     directAuth: "pkce",
+    byoOnly: true,
+    byoReason: "casa",
     scopes: {
-      managed: [
-        "https://www.googleapis.com/auth/gmail.readonly",
-        "https://www.googleapis.com/auth/gmail.send",
-      ],
+      managed: [],
       byo: [
         "https://www.googleapis.com/auth/gmail.readonly",
         "https://www.googleapis.com/auth/gmail.send",
@@ -79,11 +79,13 @@ export const DIRECT: McpConnector[] = [
     transport: "direct",
     hosts: ["drive.google.com"],
     directAuth: "pkce",
+    byoOnly: true,
+    byoReason: "casa",
     scopes: {
       // + `drive.file` (NOT sensitive): writing without widening the restricted surface —
       // the app only creates/touches ITS OWN files. Parity with the in-house OAuth
       // (`@openmasq/connectors` drive.ts) held by `scopesParity.test.ts`.
-      managed: ["https://www.googleapis.com/auth/drive.readonly", "https://www.googleapis.com/auth/drive.file"],
+      managed: [],
       byo: ["https://www.googleapis.com/auth/drive.readonly", "https://www.googleapis.com/auth/drive.file"],
     },
   },
@@ -98,8 +100,10 @@ export const DIRECT: McpConnector[] = [
     transport: "direct",
     hosts: ["docs.google.com"],
     directAuth: "pkce",
+    byoOnly: true,
+    byoReason: "google-verification",
     scopes: {
-      managed: ["https://www.googleapis.com/auth/documents"],
+      managed: [],
       byo: ["https://www.googleapis.com/auth/documents"],
     },
   },
@@ -114,8 +118,10 @@ export const DIRECT: McpConnector[] = [
     transport: "direct",
     hosts: ["docs.google.com"],
     directAuth: "pkce",
+    byoOnly: true,
+    byoReason: "google-verification",
     scopes: {
-      managed: ["https://www.googleapis.com/auth/spreadsheets"],
+      managed: [],
       byo: ["https://www.googleapis.com/auth/spreadsheets"],
     },
   },
@@ -129,8 +135,10 @@ export const DIRECT: McpConnector[] = [
     tone: "amber",
     transport: "direct",
     directAuth: "pkce",
+    byoOnly: true,
+    byoReason: "google-verification",
     scopes: {
-      managed: ["https://www.googleapis.com/auth/tasks"],
+      managed: [],
       byo: ["https://www.googleapis.com/auth/tasks"],
     },
   },
@@ -145,8 +153,10 @@ export const DIRECT: McpConnector[] = [
     transport: "direct",
     hosts: ["analytics.google.com"],
     directAuth: "pkce",
+    byoOnly: true,
+    byoReason: "google-verification",
     scopes: {
-      managed: ["https://www.googleapis.com/auth/analytics.readonly"],
+      managed: [],
       byo: ["https://www.googleapis.com/auth/analytics.readonly"],
     },
   },
@@ -165,8 +175,8 @@ export const DIRECT: McpConnector[] = [
     scopes: { managed: ["Mail.Read", "Mail.Send"], byo: ["Mail.Read", "Mail.Send"] },
   },
   {
-    // OneDrive (personal drive). `Files.Read` is delegated (no admin consent) →
-    // 1-clic; byo widens to `Files.Read.All`.
+    // OneDrive (personal drive). `Files.ReadWrite` is delegated (no admin consent) →
+    // 1-clic; byo widens to `Files.ReadWrite.All`. Write = `upload_file` (creates only).
     id: "microsoft-onedrive",
     name: "OneDrive",
     desc: "Rechercher et lire vos fichiers OneDrive",
@@ -176,7 +186,7 @@ export const DIRECT: McpConnector[] = [
     transport: "direct",
     hosts: ["onedrive.live.com", "1drv.ms"],
     directAuth: "microsoft",
-    scopes: { managed: ["Files.Read"], byo: ["Files.Read.All"] },
+    scopes: { managed: ["Files.ReadWrite"], byo: ["Files.ReadWrite.All"] },
   },
   {
     // SharePoint — `Sites.Read.All`/`Files.Read.All` need ADMIN CONSENT. That is NOT the

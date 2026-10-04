@@ -120,7 +120,7 @@
   position: absolute;
   top: -2px;
   right: -2px;
-  display: none;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   width: 16px;
@@ -133,10 +133,19 @@
   cursor: pointer;
   font-size: 11px;
   line-height: 1;
+  /* Hidden by opacity, not `display: none`: a hidden-by-display button is no tab stop,
+     so closing a tab was mouse-only. `pointer-events` keeps the invisible cross from
+     catching a click aimed at the tile. */
+  opacity: 0;
+  pointer-events: none;
 }
-.right-rail-tab:hover .right-rail-x { display: inline-flex; }
-/* The foot: the panel commands (when a panel is open) then « Aide » + « Envoyer un
-   avis », pinned to the column's bottom. The spacer is what pushes them down — the
+.right-rail-tab:hover .right-rail-x,
+.right-rail-tab:focus-within .right-rail-x {
+  opacity: 1;
+  pointer-events: auto;
+}
+/* The foot: the update, then « Aide » + « Envoyer un avis », pinned to the column's
+   bottom. The spacer is what pushes them down — the
    column has no other flexible element. The expanded (labelled) form is in
    `rail-list.css`, beside the rest of that width state. */
 .right-rail-spacer {

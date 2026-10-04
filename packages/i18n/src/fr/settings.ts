@@ -11,7 +11,7 @@ export const settings = {
   appearance: {
     title: "Apparence",
     darkModeLabel: "Mode sombre",
-    darkModeHint: "Passe l'application en couleurs sombres.",
+    darkModeHint: "Utiliser un thème sombre.",
   },
   tabs: {
     account: {
@@ -23,13 +23,13 @@ export const settings = {
     privacy: {
       label: "Confidentialité",
       title: "Confidentialité",
-      sub: (brand) => `Ce que ${brand} protège avant qu'un modèle ne le reçoive.`,
-      kw: "masquage confidentialite privacy protection categories regles niveau standard strict sur mesure jetons pseudonymes rapport donnees protegees",
+      sub: (brand) => `Ce que ${brand} masque avant tout envoi à un modèle.`,
+      kw: "masquage confidentialite privacy protection categories regles niveau allege renforce strict light enhanced sur mesure marqueurs substituts pseudonymes rapport donnees protegees",
     },
     models: {
       label: "Modèles",
       title: "Liste de modèles",
-      sub: () => "Les modèles que vos accès ouvrent — plus un modèle local sur votre machine.",
+      sub: () => "Les modèles disponibles avec vos clés API ou votre offre, et un modèle qui tourne sur votre ordinateur.",
       kw: "modele defaut gpt claude gemini mistral deepseek llm fournisseur provider cle api local ollama lm studio adresse localhost",
     },
     mcp: {
@@ -47,7 +47,7 @@ export const settings = {
     audit: {
       label: "Journal",
       title: "Journal d'audit",
-      sub: () => "L'historique du masquage, filtrable et recherchable.",
+      sub: () => "L'historique de ce qui a été masqué, avec recherche et filtres.",
       kw: "log historique sécurité traçabilité rédaction masquage export",
     },
     usage: {
@@ -71,7 +71,7 @@ export const settings = {
     versions: {
       label: "Versions",
       title: "Versions",
-      sub: () => "Les canaux de version et les notes de mise à jour.",
+      sub: () => "Les canaux de version et les notes de version.",
       kw: "changelog mise a jour update beta stable release notes canal nouveautés",
     },
   },
@@ -100,14 +100,14 @@ export const settings = {
     linkPreviews: { label: "Aperçus de liens", kw: "lien preview vignette apercu url ip" },
     protectionLevel: {
       label: "Niveau de protection",
-      kw: "niveau standard strict sur mesure categories regles masquage",
+      kw: "niveau allege renforce strict light enhanced sur mesure categories regles masquage",
     },
     showTokens: {
-      label: "Afficher des jetons plutôt que des pseudonymes",
-      kw: "jetons pseudonymes person1 iban affichage",
+      label: "Afficher des marqueurs ([PERSON1]) plutôt que des substituts",
+      kw: "marqueurs substituts jetons pseudonymes person1 iban affichage",
     },
     modelSeesTokens: {
-      label: "Le modèle ne voit que des jetons",
+      label: "Le modèle ne voit que des marqueurs",
       kw: "jetons marqueurs pseudonymes modèle anonymisation person1 envoi",
     },
     memoryAuto: {
@@ -115,7 +115,7 @@ export const settings = {
       kw: "memoire fiches extraction automatique silencieuse retenir a revoir notes",
     },
     localModel: {
-      label: "Modèle sur votre ordinateur",
+      label: "Modèle local",
       kw: "local ollama lm studio localhost adresse openai compatible identifiant modele liste reseau lan",
     },
     favouriteModels: {
@@ -136,7 +136,7 @@ export const settings = {
     },
     writeConfirm: {
       label: "Confirmation des actions",
-      kw: "confirmation ecriture write gate renforce outils agent",
+      kw: "confirmation confirmer chaque action ecriture write gate renforce outils agent",
     },
     browserSecurity: {
       label: "Sécurité du navigateur agent",

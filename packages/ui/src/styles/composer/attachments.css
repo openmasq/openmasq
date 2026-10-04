@@ -5,6 +5,26 @@
   gap: 6px;
   padding: 0 0 8px;
 }
+/* Many staged files (`AttachmentChips/summary.ts`): a summary line, then the chips in a
+   bounded area that scrolls, so a 30-file batch never pushes the input off screen. */
+.attach-summary {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 0 2px 6px;
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+.attach-summary .attach-remove-all {
+  flex-shrink: 0;
+}
+.attach-chips.is-bounded {
+  max-height: 7.5rem;
+  overflow-y: auto;
+  margin-bottom: 8px;
+  padding-bottom: 0;
+}
 .attach-chip {
   position: relative;
   overflow: hidden;

@@ -17,7 +17,7 @@ import { localServerId } from "../../../state/conversation/mcpIds";
  * servers) so the Settings tab can grid + search + open them uniformly. Pure
  * (no host calls): `buildMcpItems` merges the catalogs with the LIVE server state.
  */
-export type McpItemKind = "remote" | "direct" | "local" | "browser";
+type McpItemKind = "remote" | "direct" | "local" | "browser";
 
 /** The single controllable-browser connector (not multi-account). Its id + display
  *  metadata live in `@openmasq/catalog/mcp` (`transport:"builtin"`) — re-exported
@@ -78,7 +78,7 @@ export interface McpItem {
 /** A custom endpoint may legitimately carry its API key in the query string (the
  *  catalog's own Exa pattern, `?exaApiKey=…`), so the raw URL is a secret — never render
  *  it. The card and the modal show this instead. */
-export function displayUrl(url: string): string {
+function displayUrl(url: string): string {
   try {
     const u = new URL(url);
     return `${u.origin}${u.pathname}${u.search ? "?…" : ""}`;

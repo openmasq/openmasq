@@ -1,3 +1,4 @@
+import { displayTitle } from "../../state/conversation/displayTitle";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { findModel } from "@openmasq/llm";
@@ -8,6 +9,7 @@ import { CONV_TITLE_MAX } from "../../state/conversation/renameConversation";
 import { usePopover } from "../../hooks/usePopover";
 import { useT } from "../../i18n";
 import { relTime } from "../../hooks/conversationGroups";
+import { useStagedBusy } from "../../state/files/stagedActivity";
 
 /**
  * One conversation in the sidebar list, with its hover actions.
@@ -69,6 +71,8 @@ export function ConvRow({
   };
 
   const hasActions = !!onRename || !!onAskDelete;
+  // Files staged here are still being read or masked — visible from any other conversation.
+  const preparing = useStagedBusy(conv.id);
 
   return (
     // A row is an OPTION of the sidebar's `role="listbox"` (`Sidebar`'s `.conv-list`),
@@ -92,6 +96,9 @@ export function ConvRow({
       }}
     >
       {model && <ModelLogo provider={model.provider} modelId={model.id} size={15} />}
+      {preparing && (
+        <span className="conv-prep" role="status" aria-label={t.chat.preparingFiles} title={t.chat.preparingFiles} />
+      )}
       {editing ? (
         <input
           ref={inputRef}
@@ -112,7 +119,7 @@ export function ConvRow({
         />
       ) : (
         <span className="conv-title flex-min">
-          <span className="om-sweep">{conv.title || t.chrome.untitledConversation}</span>
+          <span className="om-sweep">{displayTitle(conv.title, t)}</span>
         </span>
       )}
       {!editing && <span className="conv-time">{relTime(conv.updatedAt, t)}</span>}

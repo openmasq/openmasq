@@ -54,6 +54,21 @@ export function luhnDigits(d: string): boolean {
   return sum % 10 === 0;
 }
 
+/**
+ * A run that is an identifier FOLLOWED by another number, not a card: a PAN is printed whole or
+ * in short groups, so a space-separated run whose FIRST group holds 13+ digits is a complete
+ * value (a SIRET, a PAN) plus the next number. « SIRET 73282932000074 42 Avenue … » reads 16
+ * digits that pass Luhn by chance; taken as a card, the span swallowed the house number and the
+ * address it began was never substituted. Refusing it lets `longestValidPrefix` (`redact.ts`)
+ * keep the identifier alone. FIRST group only, on purpose: the engine retries PREFIXES, never
+ * suffixes, so refusing « 42 <PAN> » would leave the PAN in clear. Spaces only: a dash or a line
+ * wrap inside a value stays the card rule's own tolerance.
+ */
+export function isIdBesideNumber(match: string): boolean {
+  const groups = match.trim().split(/[ \u00A0\u202F]+/);
+  return groups.length > 1 && (groups[0].match(/\d/g)?.length ?? 0) >= 13;
+}
+
 /** Credit-card PAN: 13–19 digits confirmed by Luhn. */
 export function luhn(match: string): boolean {
   const d = match.replace(/\D/g, "");

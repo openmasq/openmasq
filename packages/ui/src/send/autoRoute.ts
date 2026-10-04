@@ -7,7 +7,7 @@ import {
 } from "@openmasq/llm";
 import type { OrgProfileInfo, CreditBalance, BillingSubscription } from "../host";
 import { hardTaskAsk, lightTaskAsk } from "./autoTaskIntent";
-import { modelUnavailableReason } from "./modelAvailability";
+import { modelUnavailableReason, type CliReadiness } from "./modelAvailability";
 import { resolveEffectivePlatform } from "./routing";
 import { subscriptionsSold } from "./platformAccess";
 
@@ -69,9 +69,9 @@ export interface AutoRouteAvailability {
   personalSub?: BillingSubscription | null;
   openaiCompatBaseUrl: string;
   localEndpointReachable?: boolean | null;
-  claudeCliReady?: boolean | null;
-  codexCliReady?: boolean | null;
-  antigravityCliReady?: boolean | null;
+  claudeCliReady?: CliReadiness;
+  codexCliReady?: CliReadiness;
+  antigravityCliReady?: CliReadiness;
 }
 
 export interface AutoRouteResult {
@@ -129,7 +129,7 @@ const METERED_PENALTY: Record<AutoTaskClass, number> = { expert: 0, standard: 2,
 
 /** How this model's send would be billed, with the same inputs as the real
  *  routing (`resolveEffectivePlatform`) — never recomputed differently (rule 9). */
-export function autoBillingFor(m: ModelInfo, a: AutoRouteAvailability): AutoBilling {
+function autoBillingFor(m: ModelInfo, a: AutoRouteAvailability): AutoBilling {
   if (isFreeModel(m.id)) return "free";
   return resolveEffectivePlatform(m.provider, m.id, a.billingMode, a.keyConfigured)
     ? "metered"

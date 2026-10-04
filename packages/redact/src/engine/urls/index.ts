@@ -1,3 +1,4 @@
+import { positionsOf } from "../../positions";
 /**
  * URL detection for the `url` redaction GATE (`RedactionCategory "url"`).
  *
@@ -13,7 +14,7 @@
 
 // Unambiguous URLs: scheme URLs, protocol-relative `//host/…`, `www.…`. These span
 // the WHOLE url, so any image filename / query token inside is covered automatically.
-export const STRICT_URL = new RegExp(
+const STRICT_URL = new RegExp(
   [
     String.raw`\b(?:https?|ftp|wss?):\/\/[^\s"'<>()\[\]]+`,
     String.raw`(?<![\w.])\/\/[a-z0-9][^\s"'<>()\[\]]+`,
@@ -188,15 +189,43 @@ export function occursOutsideUrl(
   spans: ReadonlyArray<readonly [number, number]>,
 ): boolean {
   if (!value) return true;
-  let from = 0;
-  for (;;) {
-    const i = text.indexOf(value, from);
-    if (i < 0) return false; // no (remaining) occurrence sat clear of a URL
-    const end = i + value.length;
+  for (const i of positionsOf(text, value)) {
     // OVERLAP (not strict containment): a detector can over-match and swallow a word
     // adjoining the URL (FILE_RE joins "et 1783…​.jpeg"), so any overlap with a URL
     // span means this occurrence is URL-contaminated. Clear of every span ⇒ keep it.
-    if (!spans.some(([s, e]) => i < e && end > s)) return true;
-    from = i + 1;
+    if (!overlapsAny(spans, i, i + value.length)) return true;
   }
+  return false; // no occurrence sat clear of a URL
+}
+
+/** Spans sorted by start, with the running maximum of their ends — built once per spans
+ *  array (a long text has hundreds of e-mail spans, asked for every occurrence of every
+ *  candidate). */
+type SpanIndex = { starts: number[]; maxEnd: number[] };
+const spanIndexes = new WeakMap<ReadonlyArray<readonly [number, number]>, SpanIndex>();
+
+/** Does `[i, end)` overlap any span? The same answer as `spans.some(([s, e]) => i < e && end > s)`:
+ *  among the spans starting before `end`, one overlaps iff the largest end exceeds `i`. */
+function overlapsAny(spans: ReadonlyArray<readonly [number, number]>, i: number, end: number): boolean {
+  if (spans.length < 16) return spans.some(([s, e]) => i < e && end > s);
+  let idx = spanIndexes.get(spans);
+  if (!idx) {
+    const sorted = [...spans].sort((a, b) => a[0] - b[0]);
+    const maxEnd: number[] = [];
+    for (const [, e] of sorted) maxEnd.push(Math.max(e, maxEnd[maxEnd.length - 1] ?? -Infinity));
+    idx = { starts: sorted.map(([s]) => s), maxEnd };
+    spanIndexes.set(spans, idx);
+  }
+  // Last span whose start is < end.
+  let lo = 0;
+  let hi = idx.starts.length - 1;
+  let k = -1;
+  while (lo <= hi) {
+    const mid = (lo + hi) >> 1;
+    if ((idx.starts[mid] as number) < end) {
+      k = mid;
+      lo = mid + 1;
+    } else hi = mid - 1;
+  }
+  return k >= 0 && (idx.maxEnd[k] as number) > i;
 }

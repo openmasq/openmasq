@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { friendlyError } from "./loginErrors";
+import { getMessages } from "@openmasq/i18n";
+import { friendlyError as friendly } from "./loginErrors";
+
+const friendlyError = (e: unknown) => friendly(e, getMessages("fr"));
 
 /**
  * What these cases pin: the login screen never leaves someone stuck
@@ -37,5 +40,9 @@ describe("friendlyError — ce que l'écran de connexion montre d'un refus", () 
     for (const raw of ["", "Failed to fetch", "Email rate limit exceeded"]) {
       expect(friendlyError(raw)).not.toMatch(/\b(ta|tu|ton)\b|réessaie\b|Vérifie\b|Patiente\b/);
     }
+  });
+
+  it("speaks the UI language", () => {
+    expect(friendly("Failed to fetch", getMessages("en"))).toBe("Network unavailable. Check your connection and try again.");
   });
 });

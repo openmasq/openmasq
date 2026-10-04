@@ -22,7 +22,7 @@ export function whyDown(err: unknown, id = ""): string {
   return msg;
 }
 
-export interface UpstreamEvents {
+interface UpstreamEvents {
   /** A server connected, with how many tools it advertised. */
   onUp?: (id: string, tools: number) => void;
   /** A server refused to connect, or died later. `why` names the server, never a secret. */

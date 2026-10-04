@@ -8,6 +8,7 @@ import { mcpDisconnect } from "./registry";
 import { infoFor } from "./info";
 import type { McpServerInfo } from "./types";
 import type { CredMode } from "../credMode";
+import { mainMessages } from "../../i18n";
 
 /** Connect a freshly-minted account instance, then DEDUPE: if it resolves to an
  *  already-connected account, drop the new instance and return the existing one
@@ -17,7 +18,7 @@ async function connectNewAccount(connectorId: string, instanceId: string): Promi
   const dup = await duplicateInstance(connectorId, instanceId);
   if (dup) {
     await mcpRemove(instanceId);
-    return { ...infoFor(dup), error: "Ce compte est déjà connecté." };
+    return { ...infoFor(dup), error: mainMessages().desktopMain.mcp.accountAlreadyConnected };
   }
   return info;
 }

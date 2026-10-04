@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { humanToolLabel } from "./humanToolLabel";
+import { getMessages } from "@openmasq/i18n";
+import { humanToolLabel as label } from "./humanToolLabel";
+
+const fr = getMessages("fr");
+const en = getMessages("en");
+const humanToolLabel = (server: string, tool: string) => label(server, tool, fr);
 
 describe("humanToolLabel", () => {
   it("names the browser's gestures in user language (the reported « browser_navigate »)", () => {
@@ -55,7 +60,7 @@ describe("humanToolLabel", () => {
     expect(humanToolLabel("python", "run_python")).toBe("Analyse et génération de fichiers");
     expect(humanToolLabel("web", "web_fetch_many")).toBe("Lecture de pages web");
     expect(humanToolLabel("mcp", "load_tools")).toBe("Choix des outils");
-    expect(humanToolLabel("mcp", "suggest_integrations")).toBe("Recherche d'une intégration");
+    expect(humanToolLabel("mcp", "suggest_integrations")).toBe("Recherche d'un connecteur");
     expect(humanToolLabel("mcp", "memory_search")).toBe("Recherche dans la mémoire");
   });
 
@@ -70,5 +75,14 @@ describe("humanToolLabel", () => {
     expect(humanToolLabel("acme", "frobnicate_all_things")).toBe("frobnicate all things");
     // Everything stripped away → the full name rather than an empty row.
     expect(humanToolLabel("stripe", "stripe_api")).toBe("stripe api");
+  });
+
+  it("speaks the UI language: the same tables, in English", () => {
+    expect(label("linear", "list_issues", en)).toBe("Read · issues");
+    expect(label("gmail", "send_email", en)).toBe("Send · email");
+    expect(label("browser", "browser_navigate", en)).toBe("Open page");
+    expect(label("stripe", "stripe_api_details", en)).toBe("Details");
+    expect(label("mcp", "suggest_integrations", en)).toBe("Finding a connector");
+    expect(label("acme", "frobnicate_all_things", en)).toBe("frobnicate all things");
   });
 });

@@ -1,6 +1,16 @@
 import { readFileSync } from "node:fs";
 import { describe, it, expect } from "vitest";
-import { DOC_BG, DOC_GRID, DOC_INK, DOC_LIME, DOC_MUTED, DOC_STRIPE } from "./documentTheme";
+import {
+  DOC_BG,
+  DOC_FONT_OFFICE,
+  DOC_FONT_OFFICE_FALLBACK,
+  DOC_FONT_PRINT,
+  DOC_GRID,
+  DOC_INK,
+  DOC_LIME,
+  DOC_MUTED,
+  DOC_STRIPE,
+} from "./documentTheme";
 
 /**
  * The app generates deliverables through two typesetters: the HTML→PDF path (this package)
@@ -37,5 +47,29 @@ describe("document charter — one palette across both typesetters", () => {
     expect(DOC_BG).toBe(pythonHex("BG"));
     expect(DOC_GRID).toBe(pythonHex("GRID"));
     expect(DOC_STRIPE).toBe(pythonHex("STRIPE"));
+  });
+});
+
+// The PDF face is embedded by the desktop's print window from a pinned file; its @font-face
+// family is declared in the pin's own module, which this package cannot import.
+const FONT_SPEC = readFileSync(
+  new URL("../../../../../apps/desktop/src/main/pdf/documentFontSpec.ts", import.meta.url),
+  "utf8",
+);
+
+function pythonStr(name: string): string {
+  const m = new RegExp(`${name}\\s*=\\s*"([^"]+)"`).exec(PREAMBLE);
+  if (!m) throw new Error(`${name} introuvable dans preamble/shared.ts`);
+  return m[1] as string;
+}
+
+describe("document typefaces — one choice across every typesetter", () => {
+  it("the print CSS names the family the desktop embeds", () => {
+    expect(/family:\s*"([^"]+)"/.exec(FONT_SPEC)?.[1]).toBe(DOC_FONT_PRINT);
+  });
+
+  it("the sandbox's Word/PowerPoint helpers use the same face and substitute as the DOCX export", () => {
+    expect(pythonStr("_KV_OFFICE_FONT")).toBe(DOC_FONT_OFFICE);
+    expect(pythonStr("_KV_OFFICE_FONT_ALT")).toBe(DOC_FONT_OFFICE_FALLBACK);
   });
 });

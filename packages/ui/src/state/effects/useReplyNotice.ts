@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react";
 import type { Conversation, Settings } from "../../types";
 import type { Host } from "../../host";
 import { findModelAny } from "../../prompt/models";
+import { useT } from "../../i18n";
 import { noticeText, pendingReplyIds, repliesToAnnounce } from "../conversation/replyNotice";
 
 /**
@@ -31,6 +32,10 @@ export function useReplyNotice(p: {
   // The "in-progress" set from the previous tick. A ref, not state: comparing it must
   // not trigger the render that recomputes it.
   const pendingRef = useRef<Set<string>>(new Set());
+  // Read at notify time: a language switch must not re-run the transition watch.
+  const t = useT();
+  const tRef = useRef(t);
+  tRef.current = t;
   // System focus, read via event rather than an on-the-fly `document.hasFocus()`:
   // the transition arrives in an effect, so AFTER the render, and the one-off call
   // sometimes reads before the browser has handed focus back to the window.
@@ -71,7 +76,7 @@ export function useReplyNotice(p: {
     for (const n of notices) {
       const conv = conversations.find((c) => c.id === n.id);
       const label = conv?.modelId ? findModelAny(conv.modelId)?.label : undefined;
-      const { title, body } = noticeText(n, label);
+      const { title, body } = noticeText(n, tRef.current, label);
       host.notify?.reply({ conversationId: n.id, title, body });
     }
   }, [conversations, activeId, on, host]);

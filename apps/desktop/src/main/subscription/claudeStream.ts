@@ -25,7 +25,7 @@ export type ClaudeAction =
   | { kind: "reasoning"; delta: string }
   | { kind: "rateLimit"; status: string; resetsAt?: number; windowType?: string }
   | { kind: "done"; usage?: TokenUsage; finish: StreamFinish }
-  | { kind: "error"; message: string };
+  | { kind: "error"; message: string; auth?: boolean };
 
 function isRecord(v: unknown): v is Record<string, unknown> {
   return typeof v === "object" && v !== null && !Array.isArray(v);
@@ -84,14 +84,16 @@ export function interpretClaudeEvent(event: unknown, sawDelta: boolean): ClaudeA
     return null;
   }
 
+  // A lost session arrives as an `assistant` turn whose TEXT is the CLI's complaint
+  // (« Invalid API key · Please run /login ») and whose `error` names the cause. Read as the
+  // safety net below, that complaint would stream into the bubble as if the model had said it.
+  if (type === "assistant" && event.error === "authentication_failed") {
+    return { kind: "error", message: assistantText(event.message) || "authentication_failed", auth: true };
+  }
+
   // Safety net: the full turn, useful ONLY if no delta was passed.
   if (type === "assistant" && !sawDelta && isRecord(event.message)) {
-    const content = event.message.content;
-    if (!Array.isArray(content)) return null;
-    const text = content
-      .filter((b): b is Record<string, unknown> => isRecord(b) && b.type === "text")
-      .map((b) => (typeof b.text === "string" ? b.text : ""))
-      .join("");
+    const text = assistantText(event.message);
     return text ? { kind: "text", delta: text } : null;
   }
 
@@ -131,6 +133,15 @@ export function interpretClaudeEvent(event: unknown, sawDelta: boolean): ClaudeA
   }
 
   return null;
+}
+
+/** The text blocks of an `assistant` event's message, joined. */
+function assistantText(message: unknown): string {
+  if (!isRecord(message) || !Array.isArray(message.content)) return "";
+  return message.content
+    .filter((b): b is Record<string, unknown> => isRecord(b) && b.type === "text")
+    .map((b) => (typeof b.text === "string" ? b.text : ""))
+    .join("");
 }
 
 /**

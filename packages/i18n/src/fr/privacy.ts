@@ -12,25 +12,25 @@ export const privacyLevels = {
   // level is — the one below the default.
   standard: {
     label: "Allégé",
-    desc: "Pour la recherche web et les outils connectés — protège moins que le défaut.",
+    desc: "Protège moins que le niveau par défaut. Pour la recherche web et les outils connectés.",
     short: () =>
-      "Le strict minimum : e-mails, téléphones, cartes bancaires, IBAN, identifiants et clés.",
+      "Le minimum : e-mails, téléphones, numéros de carte, IBAN, numéros d'identification et clés.",
     tradeoff: "Noms, pseudos, dates, adresses, lieux et entreprises restent lisibles par le modèle.",
   },
   renforce: {
     label: "Renforcé",
-    desc: "Pour la rédaction, les e-mails et les échanges courants — le niveau par défaut.",
+    desc: "Le niveau par défaut. Pour la rédaction, les e-mails et le travail courant.",
     short: () =>
       "Ajoute les noms de personnes et d'entreprises, les pseudos, les dates de naissance, adresses et lieux que vous citez.",
     tradeoff:
-      "Un âge ou une distance calculés sur une valeur masquée peuvent être décalés — le composeur le signale.",
+      "Un âge ou une distance calculés sur une valeur masquée peuvent être faux. La zone de saisie vous le signale.",
   },
   strict: {
     label: "Strict",
-    desc: "Pour les documents à analyser.",
+    desc: "Pour analyser des documents.",
     short: (brand) => `La totalité de ce que ${brand} sait détecter, sans exception.`,
     tradeoff:
-      "Le modèle raisonne sur des valeurs fictives : calculs et réponses sur le monde réel peuvent être faux.",
+      "Le modèle travaille sur des substituts : les calculs et les réponses sur le monde réel peuvent être faux.",
   },
 } satisfies Messages["privacyLevels"];
 
@@ -42,8 +42,8 @@ export const redactTypes = {
   company: "Entreprise",
   address: "Adresse",
   city: "Ville",
-  id: "Identifiant",
-  card: "Carte bancaire",
+  id: "Numéro d'identification",
+  card: "Numéro de carte",
   iban: "IBAN",
   ip: "Adresse IP",
   path: "Chemin de fichier",
@@ -52,10 +52,10 @@ export const redactTypes = {
 } satisfies Messages["redactTypes"];
 
 export const webNav = {
-  ariaLabel: "Navigation web — niveau de protection pour cette recherche",
+  ariaLabel: "Navigation web : niveau de protection pour cette recherche",
   eyebrow: "Navigation web",
   thisMessageOnly: "Ce message seulement.",
   keepMasking: "Garder le masquage",
-  title: (level) => `Chercher sur le web au niveau ${level} ?`,
-  rest: "Tout le reste demeure masqué, et votre requête part de toute façon avec la vraie valeur.",
+  title: (level) => `Chercher sur le web avec la protection ${level} ?`,
+  rest: "Tout le reste est toujours masqué pour le modèle. Votre requête de recherche est de toute façon envoyée avec les vraies valeurs.",
 } satisfies Messages["webNav"];

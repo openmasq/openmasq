@@ -1,7 +1,6 @@
 import { SpreadsheetViewer } from "../SpreadsheetViewer";
 import type { PdfReplacement } from "./pdf/pdfReplacements";
 
-import { useT } from "../../../i18n";
 /**
  * A spreadsheet, in the preview's TWO readings — and it stays a spreadsheet in both.
  *
@@ -24,8 +23,6 @@ export function AttachmentSheetView({
   replacements,
   revealed,
   onReveal,
-  cutRow,
-  wireCut,
 }: {
   bytes: Uint8Array;
   csv: boolean;
@@ -34,31 +31,17 @@ export function AttachmentSheetView({
   replacements?: PdfReplacement[];
   revealed?: ReadonlySet<string>;
   onReveal?: (real: string) => void;
-  /** First grid row (0-based) the SEND CUT drops — rows from here on never leave the
-   *  machine and are shown dimmed with a note (CSV/TSV, exact mapping). Null ⇒ no cut. */
-  cutRow?: number | null;
-  /** XLSX fallback: the annotated text exceeds the send cap but the grid rows can't be
-   *  mapped exactly (multi-sheet, blank-row skips) — show the generic note only. */
-  wireCut?: boolean;
 }) {
-  const t = useT();
   if (!redacted) return <SpreadsheetViewer bytes={bytes} csv={csv} />;
+  // The whole sheet: a document is sent whole, no row is left behind.
   return (
-    <>
-      <SpreadsheetViewer
-        bytes={bytes}
-        csv={csv}
-        replacements={replacements}
-        revealed={revealed}
-        onReveal={onReveal}
-        renderFake
-        cutRow={cutRow}
-      />
-      {wireCut && (
-        <div className="fv-sheet-note fv-cut-note">
-          {t.viewers.sheetCut}
-        </div>
-      )}
-    </>
+    <SpreadsheetViewer
+      bytes={bytes}
+      csv={csv}
+      replacements={replacements}
+      revealed={revealed}
+      onReveal={onReveal}
+      renderFake
+    />
   );
 }

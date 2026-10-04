@@ -1,3 +1,4 @@
+import type { Messages } from "@openmasq/i18n";
 import type { EgressEntry } from "../../../host";
 
 /**
@@ -27,31 +28,17 @@ export interface EgressGroup {
   lastRefusalReason?: string;
 }
 
-/** French labels for the `source` values main writes. An unknown source falls back to
- *  itself rather than to "autre": a new subsystem should read as ITSELF in the journal,
- *  even before someone remembers to name it here. */
-const SOURCE_LABELS: Record<string, string> = {
-  browser: "Navigateur piloté",
-  "browser-favicon": "Navigateur piloté",
-  connector: "Connecteur",
-  "mcp-connect": "Connexion d'un connecteur",
-  "tool-result-fetch": "Téléchargement depuis un outil",
-  "fetch-url": "Téléchargement depuis un outil",
-  "link-preview": "Aperçu de lien",
-  "web-fetch-many": "Lecture de pages web",
-  "model-catalogue": "Catalogue de modèles",
-  embeddings: "Index sémantique",
-  "safe-fetch": "Téléchargement",
-  unknown: "Non attribué",
-};
-
-export function sourceLabel(source: string): string {
-  return SOURCE_LABELS[source] ?? source;
+/** The label (UI language) of a `source` value main writes. An unknown source falls back
+ *  to itself rather than to "other": a new subsystem should read as ITSELF in the journal,
+ *  even before someone remembers to name it in the catalogue (`t.runtime.misc.egressSources`). */
+export function sourceLabel(source: string, t: Messages): string {
+  const labels = t.runtime.misc.egressSources;
+  return Object.hasOwn(labels, source) ? labels[source as keyof typeof labels] : source;
 }
 
 /** Group by origin, newest group first. Input is expected newest-first (the host returns
  *  it that way); the function does not rely on it beyond `lastAt`, which it maximises. */
-export function groupEgress(entries: EgressEntry[]): EgressGroup[] {
+export function groupEgress(entries: EgressEntry[], t: Messages): EgressGroup[] {
   const byOrigin = new Map<string, EgressGroup>();
   for (const e of entries) {
     let g = byOrigin.get(e.origin);
@@ -74,7 +61,7 @@ export function groupEgress(entries: EgressEntry[]): EgressGroup[] {
       if (e.at >= g.lastAt && e.reason) g.lastRefusalReason = e.reason;
     }
     if (e.at > g.lastAt) g.lastAt = e.at;
-    const label = sourceLabel(e.source);
+    const label = sourceLabel(e.source, t);
     if (!g.sources.includes(label)) g.sources.push(label);
   }
   return [...byOrigin.values()].sort((a, b) => b.lastAt - a.lastAt);

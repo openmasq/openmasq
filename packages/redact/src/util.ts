@@ -1,3 +1,5 @@
+import { positionsOf } from "./positions";
+
 /** Upper-case the first character, leaving the rest untouched. */
 export const capitalize = (s: string): string =>
   s ? s.charAt(0).toUpperCase() + s.slice(1) : s;
@@ -173,15 +175,24 @@ export function entityVariantRegex(value: string): RegExp | null {
  * redact the actual text. Falls back to an exact match when lowercasing would
  * shift indices (rare unicode), so the slices never misalign.
  */
+// The lowercased haystack of the LAST input: every candidate of one pass searches the same
+// text, and re-lowercasing a 200k-character paste per candidate dominated the send.
+let lowerOf: { input: string; hay: string } | null = null;
+
 export function caseInsensitiveOccurrences(input: string, value: string): string[] {
-  const hay = input.toLowerCase();
+  if (lowerOf?.input !== input) lowerOf = { input, hay: input.toLowerCase() };
+  const hay = lowerOf.hay;
   const needle = value.toLowerCase();
   if (hay.length !== input.length || needle.length !== value.length) {
     return input.includes(value) ? [value] : [];
   }
   const out: string[] = [];
   const seen = new Set<string>();
-  for (let i = hay.indexOf(needle); i !== -1; i = hay.indexOf(needle, i + needle.length)) {
+  let next = 0;
+  for (const i of positionsOf(hay, needle)) {
+    // Non-overlapping, left to right: the next occurrence counted starts past this one.
+    if (i < next) continue;
+    next = i + needle.length;
     const actual = input.slice(i, i + value.length);
     // Only WHOLE-WORD occurrences ("us" must not match inside "plus"). EXEMPT CJK: written
     // WITHOUT spaces, every CJK entity is "glued" to its neighbours and has no subword

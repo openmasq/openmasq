@@ -27,6 +27,10 @@ them.
 - [x] Remote (OAuth/DCR), on-device direct, local, added by you
 - [x] OAuth sign-in in the system browser (the only place an SSO works)
 - [x] Several accounts per connector, labelled
+- [x] **Google connectors (Gmail, Drive, Agenda, Docs, Sheets, Tasks, Analytics) read
+      « Bientôt disponible »** while Google reviews the app: still listed, one-click hidden
+      (and refused by main), connectable with your own Google keys — `packages/catalog/src/mcp/connectors/direct.ts`,
+      `packages/catalog/src/mcp/authTag.test.ts`
 - [x] « Ajouter un connecteur », unverified, in its own section — the toolbar button beside
       the search field opens the name / URL / key form, behind a risk acknowledgement —
       `packages/ui/src/pages/Settings/mcp/McpCustomModal.tsx`
@@ -45,6 +49,15 @@ them.
 - [x] « Mes clés » inside a connector's modal: your own OAuth client id / secret for that
       service, with the per-provider checklist — `packages/ui/src/pages/Settings/byo/ByoKeysModal.tsx`
 - [x] **Every call leaves in the clear and comes back redacted**
+- [x] **An integration's product name is never masked**, at any level, strict included —
+      « OneDrive » (and « One Drive »), « Slack », « Notion », « Google Drive », whether connected
+      or not; a company name alone (« Microsoft ») stays maskable, and a Coffre term wins —
+      `packages/ui/src/send/integrationKeep.ts`
+- [x] **The item ids a direct connector lists** (« · id:… » in OneDrive, Drive, SharePoint, Slack,
+      Tasks results) **stay real**: faked as API tokens, they came back as a 404 — and so do the
+      record ids (UUIDs under a JSON id key) of any catalogue connector, Notion's pages included;
+      never under a secret-named key, never for a server you added yourself — same file,
+      `packages/ui/src/send/integrationKeep.test.ts`
 - [x] Enter an API key when the service asks for one — `packages/ui/src/containers/modals/ApiKeyModal.tsx`
 
 ### Local folders (the Filesystem connector)
@@ -70,11 +83,14 @@ granting one's home directory. A removal takes effect immediately, not at the ne
 - [x] Sub-folders included, symbolic links resolved and refused if they lead out
 - [x] Secret stores stay forbidden even inside a granted folder
 - [x] Browse them **without leaving the conversation**: right rail → « Dossiers », an
-      expandable tree; a file opens in the shared side panel —
+      expandable tree; a file opens in the shared side panel; « Demander » on a folder,
+      the granted one included; a folder that can't be read says why under its row —
       `packages/ui/src/containers/shell/folders/FolderTreePanel.tsx`
 - [x] **Add a folder** from that same rail, or from the composer's « + » → « Dossier »
       (native picker; the grants already in place are kept — one gesture, two doors) —
-      `packages/ui/src/hooks/useGrantFolder.ts`
+      `packages/ui/src/hooks/useGrantFolder.ts`. From the composer, the picked folder
+      (even one already granted) becomes the message's **target chip**, like « Demander »;
+      a refusal shows in the attachment warning
 - [x] **« Demander »** on hovering a folder (or clicking a cloud entry): the **open**
       conversation (a new one only when none is open — the same rule as the browser's
       « Demander à propos de cette page ») receives the target as a **tag** — folder/file
@@ -84,9 +100,15 @@ granting one's home directory. A removal takes effect immediately, not at the ne
       state — `packages/catalog/src/mcp/registry.ts`
 - [x] **Google Drive, OneDrive and Dropbox browse as a tree**, like the machine's folders —
       read-only, the token never leaves the privileged process —
-      `apps/desktop/src/main/cloudfs/`
+      `apps/desktop/src/main/cloudfs/`; a OneDrive account with no OneDrive space yet says so
+      (open OneDrive once, or check the licence) instead of a bare 404 — in the panel AND to
+      the model, which tells the user rather than retrying — `cloudfs.test.ts`
 - [x] The model can **list a folder** on Drive/OneDrive, not only search it —
       `packages/connectors/src/files.ts`
+- [x] The model can **drop a file on OneDrive** — a conversation document, a file it generated,
+      or text it writes — after the write confirmation; it creates, never overwrites (a
+      same-named file is renamed), 4 MB max. A connection made read-only before asks to be
+      reconnected — `packages/connectors/src/microsoft/onedriveUpload.ts`
 - [x] Dropbox goes through **its own MCP server's listing**, tool name allow-listed and the
       response read back fail-closed — a server that returns no usable list keeps its status
       line rather than a dead chevron — `apps/desktop/src/main/cloudfs/mcpBrowse/`
@@ -121,7 +143,7 @@ leaves once. Going from reinforced to standard confirms itself on the system win
 a weakening cannot come from anywhere but you.
 
 - [x] **Standard** mode: one card per conversation after a web search, plus the uncapped floors
-- [x] **Reinforced** mode: every write confirms, the risky ones on a system window
+- [x] **Confirm every action** mode (« Confirmer chaque action »): every write confirms, the risky ones on a system window
 - [x] The card says **which real values** are leaving, not merely "a write"
 - [x] « Autoriser » is remembered per tool and per conversation
 - [x] Going from reinforced to standard confirms itself on the system window

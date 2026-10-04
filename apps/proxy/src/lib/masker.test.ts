@@ -127,3 +127,27 @@ describe("masker", () => {
     }
   });
 });
+
+describe("masker — a failing model detector", () => {
+  // The on-device model loads fine, then fails on one request (onnxruntime error, OOM). The
+  // engine carries on with the rules and reports `modelError`; the masker must refuse that
+  // text — rejected here, a 502 from the JSON error handler — never return it to be forwarded.
+  it("rejects the text instead of returning a rules-only mask", async () => {
+    const failing = async (): Promise<never> => {
+      throw new Error("inference OOM");
+    };
+    const m = createMasker({ ...base, level: "renforce", detectLocal: failing });
+    await expect(m.mask("Écrire à Jean Morvan, jean.morvan@example.org", {}, "fake")).rejects.toThrow(
+      "inference OOM",
+    );
+  });
+
+  it("the engine's own NER entry rejects the same way, with no onError wired", async () => {
+    const { detectLocalNer } = await import("@openmasq/redact");
+    const predict = () => {
+      throw new Error("onnxruntime: session run failed");
+    };
+    const m = createMasker({ ...base, level: "renforce", detectLocal: (t) => detectLocalNer(t, predict) });
+    await expect(m.mask("Écrire à Jean Morvan", {}, "fake")).rejects.toThrow("session run failed");
+  });
+});

@@ -19,17 +19,22 @@ import { join } from "node:path";
 import { detectLocalNer, type Detection } from "@openmasq/redact";
 import { createNerPredict, type NerPredict } from "@openmasq/redact/ner";
 import { NER_MODEL_ID, NER_WEIGHTS_SHA256 } from "./model";
+import { cancelRuns } from "./cancelRuns";
 import { verifyWeights, type WeightEntry } from "@openmasq/redact";
 
 // `process.parentPort` is injected by Electron in a utilityProcess child; @types/node
 // doesn't know it, so type the minimal surface we use.
 interface ParentPort {
-  on(ev: "message", cb: (e: { data: Req }) => void): void;
+  on(ev: "message", cb: (e: { data: Req | Cancel }) => void): void;
   postMessage(msg: Res): void;
 }
 interface Req {
   id: number;
   text: string;
+}
+/** The client abandoned run `cancel` (a superseded preview): stop at the next chunk. */
+interface Cancel {
+  cancel: number;
 }
 type Res =
   | { id: number; ok: true; detections: Detection[] }
@@ -87,30 +92,32 @@ async function loadPredict(): Promise<NerPredict> {
   });
 }
 
+// Runs the client cancelled (a superseded preview): stopped at their next chunk.
+const runs = cancelRuns();
+
 parentPort.on("message", (e) => {
+  if ("cancel" in e.data) {
+    runs.cancel(e.data.cancel);
+    return;
+  }
   const { id, text } = e.data;
+  runs.start(id);
   void (async () => {
     try {
-      const p = await getPredict();
+      const p = runs.guard(id, await getPredict());
       // Bigger windows than the 250-char default (a small window splits a record and hurts
       // detection); ~1000 chars ≈ 300-400 tokens stays under the model's ~512 cap with context.
-      // `onError` RE-THROWS (audit M1): `detectLocalNer` otherwise SWALLOWS a POST-load
-      // inference failure (an onnxruntime runtime error / OOM on one chunk) to `[]`, and
-      // without an onError the worker would post `ok:true, detections:[]` — a silent
-      // fail-OPEN that ships regex-only coverage. Re-throwing propagates it to the outer
-      // catch → `ok:false` → the renderer fails CLOSED (blocks the send / masks the result).
-      const detections = await detectLocalNer(text, p, {
-        chunkSize: 1000,
-        chunkOverlap: 100,
-        onError: (err) => {
-          throw err instanceof Error ? err : new Error(String(err));
-        },
-      });
+      // `detectLocalNer` REJECTS on a post-load inference failure (an onnxruntime runtime
+      // error / OOM on one chunk): it reaches the outer catch → `ok:false` → the renderer
+      // fails CLOSED (blocks the send / masks the result). Never `ok:true` with `[]`.
+      const detections = await detectLocalNer(text, p, { chunkSize: 1000, chunkOverlap: 100 });
       parentPort.postMessage({ id, ok: true, detections });
     } catch (err) {
       // A load/integrity/inference failure comes back as ok:false so the parent REJECTS and the
       // renderer fails CLOSED — never a silent [] that would leak un-redacted PII.
       parentPort.postMessage({ id, ok: false, error: err instanceof Error ? err.message : String(err) });
+    } finally {
+      runs.end(id);
     }
   })();
 });

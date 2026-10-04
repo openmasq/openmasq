@@ -3,6 +3,7 @@ import { connected, routes } from "../mcp/server/registry";
 import { directFetchJson } from "../mcp/connectors";
 import { isFolderListTool, mcpBrowseList } from "./mcpBrowse";
 import { CLOUD_PROVIDERS, MCP_BROWSABLE, type CloudEntry } from "./providers";
+import { mainMessages } from "../i18n";
 
 /**
  * Browse a connected storage (Google Drive, OneDrive, Dropbox) from the UI.
@@ -75,7 +76,7 @@ export async function cloudList(
   // Start from the source list: it already carries both checks (it's a
   // known storage, it's connected). An id not in it reaches no URL.
   const source = cloudSources().find((s) => s.id === instanceId);
-  if (!source) throw new Error("Ce stockage n'est pas connecté.");
+  if (!source) throw new Error(mainMessages().desktopMain.folders.cloudNotConnected);
   const provider = CLOUD_PROVIDERS[source.connectorId];
   if (!provider) {
     // Remote server: its own listing tool. `connected` already served as a guard
@@ -83,6 +84,23 @@ export async function cloudList(
     const conn = connected.get(source.id)!;
     return { entries: await mcpBrowseList(conn, folderId) };
   }
-  const body = await directFetchJson<unknown>(source.id, provider.childrenUrl(folderId));
-  return { entries: provider.parse(body) };
+  try {
+    const body = await directFetchJson<unknown>(source.id, provider.childrenUrl(folderId));
+    return { entries: provider.parse(body) };
+  } catch (e) {
+    throw cloudListError(e, source.connectorId, folderId);
+  }
+}
+
+/**
+ * A 404 on the OneDrive ROOT is not a missing folder: Graph answers it when the account has
+ * no OneDrive provisioned yet (a work account without the licence, or one that never opened
+ * OneDrive). Said as what to do, instead of a bare « Upstream request failed (404) ».
+ * Anything else passes through unchanged. `cloudfs.test.ts`.
+ */
+export function cloudListError(e: unknown, connectorId: string, folderId: string | null): unknown {
+  const status = (e as { status?: unknown } | null)?.status;
+  if (connectorId === "microsoft-onedrive" && folderId === null && status === 404)
+    return new Error(mainMessages().desktopMain.folders.onedriveNotProvisioned);
+  return e;
 }

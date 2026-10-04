@@ -23,6 +23,10 @@ function redactionConfigJson(conv: DbConversation): string | null {
   return Object.keys(cfg).length ? JSON.stringify(cfg) : null;
 }
 
+/** Conversation columns a SKELETON save must not overwrite with null (the salt rides
+ *  `redaction_config`; the others are state only this DB holds). */
+const RESUME_COLUMNS = ["redaction_config", "context_summary", "turn_checkpoint", "file_redactions"] as const;
+
 export async function dbSaveConversation(conv: DbConversation): Promise<void> {
   const client = getClient();
   if (!client) return;
@@ -58,13 +62,13 @@ export async function dbSaveConversation(conv: DbConversation): Promise<void> {
 
   const stmts: { sql: string; args: any[] }[] = [
     {
-      // In skeleton mode, redaction_config keeps the STORED value when the incoming
-      // value is null (COALESCE) — same signal, same protection as for messages.
-      sql: `INSERT INTO conversations (id, title, model_id, created_at, updated_at, redaction_config)
-            VALUES (?, ?, ?, ?, ?, ?)
+      // In skeleton mode, `RESUME_COLUMNS` keep the STORED value when the incoming value is
+      // null (COALESCE) — same signal, same protection as for messages.
+      sql: `INSERT INTO conversations (id, title, model_id, created_at, updated_at, redaction_config, context_summary, turn_checkpoint, file_redactions)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET title=excluded.title, model_id=excluded.model_id,
               updated_at=excluded.updated_at,
-              redaction_config=${skeleton ? "COALESCE(excluded.redaction_config, conversations.redaction_config)" : "excluded.redaction_config"}`,
+              ${RESUME_COLUMNS.map((col) => `${col}=${skeleton ? `COALESCE(excluded.${col}, conversations.${col})` : `excluded.${col}`}`).join(",\n              ")}`,
       args: [
         conv.id,
         conv.title,
@@ -72,6 +76,9 @@ export async function dbSaveConversation(conv: DbConversation): Promise<void> {
         conv.createdAt,
         conv.updatedAt,
         redactionConfigJson(conv),
+        conv.contextSummary ? JSON.stringify(conv.contextSummary) : null,
+        conv.turnCheckpoint ? JSON.stringify(conv.turnCheckpoint) : null,
+        conv.fileRedactions?.length ? JSON.stringify(conv.fileRedactions) : null,
       ],
     },
   ];
@@ -91,13 +98,14 @@ export async function dbSaveConversation(conv: DbConversation): Promise<void> {
         }
       : { sql: "DELETE FROM messages WHERE conversation_id = ?", args: [conv.id] },
     ...conv.messages.map((m, i) => ({
-      sql: `INSERT INTO messages (id, conversation_id, role, content, redactions, error, error_text, ord, created_at, updated_at, attachments, usage, model, auto_routed, tool_struggle, tool_calls, incomplete, competence, reasoning)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      sql: `INSERT INTO messages (id, conversation_id, role, content, redactions, error, error_text, ord, created_at, updated_at, attachments, usage, model, auto_routed, tool_struggle, tool_calls, incomplete, competence, reasoning, dropped_docs, model_content)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             ON CONFLICT(id) DO UPDATE SET role=excluded.role, content=excluded.content,
               redactions=excluded.redactions, error=excluded.error, error_text=excluded.error_text, ord=excluded.ord,
               updated_at=excluded.updated_at, attachments=excluded.attachments, usage=excluded.usage,
               model=excluded.model, auto_routed=excluded.auto_routed, tool_struggle=excluded.tool_struggle, tool_calls=excluded.tool_calls,
-              incomplete=excluded.incomplete, competence=excluded.competence, reasoning=excluded.reasoning`,
+              incomplete=excluded.incomplete, competence=excluded.competence, reasoning=excluded.reasoning,
+              dropped_docs=excluded.dropped_docs, model_content=excluded.model_content`,
       args: [
         m.id,
         conv.id,
@@ -120,6 +128,9 @@ export async function dbSaveConversation(conv: DbConversation): Promise<void> {
         m.incomplete || m.pending ? 1 : 0,
         m.competence ? JSON.stringify(m.competence) : null,
         m.reasoning || null,
+        m.droppedDocs?.length ? JSON.stringify(m.droppedDocs) : null,
+        // The turn's model payload: REAL values, so here (encrypted) and never in localStorage.
+        m.modelContent ?? null,
       ],
     })),
     { sql: "DELETE FROM redactions WHERE conversation_id = ?", args: [conv.id] },

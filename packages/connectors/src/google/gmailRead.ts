@@ -190,15 +190,13 @@ export const gmailConnector: Connector = {
   id: "gmail",
   name: "Gmail",
   auth: "pkce",
-  // 30/07/2026: 1-clic (managed) now ALSO requests the RESTRICTED scope
-  // `gmail.readonly` — 1-clic capabilities ≡ byo (CASA is an ops prerequisite, not a
-  // code gate). `run.ts` always filters by GRANTED scope: an earlier 1-clic
-  // connection only offers `send_email` until it is reconnected.
+  // `run.ts` always filters by GRANTED scope: an earlier connection that only granted
+  // `gmail.send` only offers `send_email` until it is reconnected.
+  // One-click OFF until Google verifies the app's client (CASA for the restricted
+  // scopes): BYO only for now — main refuses the built-in mode (`byoOnly`).
+  byoOnly: true,
   scopes: {
-    managed: [
-      "https://www.googleapis.com/auth/gmail.readonly",
-      "https://www.googleapis.com/auth/gmail.send",
-    ],
+    managed: [],
     byo: [
       "https://www.googleapis.com/auth/gmail.readonly",
       "https://www.googleapis.com/auth/gmail.send",

@@ -4,8 +4,17 @@
 import { chmodSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { SUBSCRIPTION_CLI_IN_APP_LOGIN } from "@openmasq/llm";
 import { describe, expect, it } from "vitest";
-import { parseClaudeStatus, parseCodexStatus, parseLoginOutput, readLoginStatus, startLogin, stripAnsi } from "./login";
+import {
+  loginSupported,
+  parseClaudeStatus,
+  parseCodexStatus,
+  parseLoginOutput,
+  readLoginStatus,
+  startLogin,
+  stripAnsi,
+} from "./login";
 
 const ESC = String.fromCharCode(27);
 
@@ -80,5 +89,15 @@ describe("startLogin", () => {
     const session = startLogin("codex", bin, dir, (e) => events.push(e.kind === "url" ? e.url : e.kind));
     expect(await session!.done).toEqual({ ok: true });
     expect(events).toEqual(["https://auth.openai.com/oauth/authorize?x=1", "done"]);
+  });
+});
+
+// The interface offers « Se reconnecter » from `SUBSCRIPTION_CLI_IN_APP_LOGIN`; main runs the
+// sign-in from its argv table. Two answers to one question, held equal here.
+describe("loginSupported ↔ SUBSCRIPTION_CLI_IN_APP_LOGIN", () => {
+  it("agree for every CLI", () => {
+    for (const [cli, inApp] of Object.entries(SUBSCRIPTION_CLI_IN_APP_LOGIN)) {
+      expect(loginSupported(cli as keyof typeof SUBSCRIPTION_CLI_IN_APP_LOGIN)).toBe(inApp);
+    }
   });
 });

@@ -3,6 +3,7 @@ import type { ChatMessage, LlmAttachment } from "@openmasq/llm";
 import type { McpAgentParams, WriteConfirmInfo } from "../../agent/mcpAgent";
 import type { BillingSubscription, CreditBalance, Host, OrgProfileInfo } from "../../host";
 import type { AskTarget, Conversation, RedactCategoryKey, Settings } from "../../types";
+import type { CliReadiness } from "../modelAvailability";
 import type { ReviewWire } from "../redactionPreview";
 
 /**
@@ -29,10 +30,10 @@ export interface SendMessageDeps {
   personalCreditsRef: React.MutableRefObject<CreditBalance | null>;
   keepListRef: React.MutableRefObject<string[]>;
   localEndpointReachableRef: React.MutableRefObject<boolean | null>;
-  /** `claude-cli` ready (setting ON + CLI detected) — a ref so the send reads the live value. */
-  claudeCliReadyRef: React.MutableRefObject<boolean | null>;
-  codexCliReadyRef: React.MutableRefObject<boolean | null>;
-  antigravityCliReadyRef: React.MutableRefObject<boolean | null>;
+  /** `claude-cli` ready (setting ON + CLI detected + not KNOWN signed out) — read live by the send. */
+  claudeCliReadyRef: { readonly current: CliReadiness };
+  codexCliReadyRef: { readonly current: CliReadiness };
+  antigravityCliReadyRef: { readonly current: CliReadiness };
   /** Interface-language catalogue: failure phrases persisted on the bubble, tool-summary instruction. */
   t: Messages;
 }
@@ -50,7 +51,7 @@ export interface SendOptions {
    * at send instead of re-detecting the document. Only passed when the file's redaction is
    * complete and engine/category-current; absent docs fall back to fresh detection.
    */
-  docReplacements?: Record<string, { real: string; fake: string; tone?: string }[]>;
+  docReplacements?: Record<string, { real: string; fake: string; tone?: string; kind?: string }[]>;
   /** Values the user kept in clear via the composer chips: never redacted this send (case-insensitive). */
   keepValues?: string[];
   /** Manual redactions from the composer selection menu, for a send before the conversation exists. */

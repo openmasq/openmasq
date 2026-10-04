@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { detectLocalNer } from "./detect";
 import { CharacterChunker, dedupe, type NerPredict, type LocalSpan } from "./chunker";
 import { nerLabelToCategory } from "./labels";
+import { pseudonymize } from "../model/pseudonymize";
 
 /** Build a fake NER that reports every occurrence of `needle` with `label`. */
 function predictOf(needle: string, label: string, score = 0.9): NerPredict {
@@ -101,16 +102,31 @@ describe("detectLocalNer", () => {
     ]);
   });
 
-  it("never throws — a failing predict degrades to []", async () => {
+  it("a failing predict REJECTS — an empty list only ever means nothing was found", async () => {
     const boom: NerPredict = () => {
       throw new Error("weights not loaded");
     };
-    let captured = "";
-    const found = await detectLocalNer("Jean Morvan", boom, {
-      onError: (e) => (captured = e instanceof Error ? e.message : String(e)),
+    let observed = "";
+    await expect(
+      detectLocalNer("Jean Morvan", boom, {
+        onError: (e) => (observed = e instanceof Error ? e.message : String(e)),
+      }),
+    ).rejects.toThrow("weights not loaded");
+    expect(observed).toBe("weights not loaded"); // `onError` observes, it cannot absorb
+    await expect(detectLocalNer("Jean Morvan", boom)).rejects.toThrow("weights not loaded");
+  });
+
+  it("with NO onError, pseudonymize still reports the failure as modelError", async () => {
+    const boom: NerPredict = () => {
+      throw new Error("inference OOM");
+    };
+    const res = await pseudonymize("Écrire à Jean Morvan, jean.morvan@example.org", {
+      vault: {},
+      detectLocal: (t) => detectLocalNer(t, boom),
     });
-    expect(found).toEqual([]);
-    expect(captured).toBe("weights not loaded");
+    expect(res.modelError).toBe("inference OOM");
+    // The rules still ran: the caller decides, but on a signal, never on a silent [].
+    expect(res.text).not.toContain("jean.morvan@example.org");
   });
 
   it("re-offsets spans across chunk boundaries into original coordinates", async () => {

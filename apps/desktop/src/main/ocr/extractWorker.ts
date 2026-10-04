@@ -6,10 +6,12 @@
 // Same mechanism as `../ner/worker.ts`: fork via `utilityProcess` (no RunAsNode
 // fuse), MINIMAL env (only the OCR asset paths — never a secret), and
 // **never a log of the extracted text** (that's REAL PII) — the only outgoing messages
-// are progress (numbers) and the structured result handed back to the parent.
+// are progress (numbers), the preview stream when asked (pages, thumbnails) and the
+// structured result, all handed back to the parent.
 import { createRequire } from "node:module";
 import { pathToFileURL } from "node:url";
-import { extractText, extractBytes, type ExtractedFile } from "@openmasq/redact/documents";
+import { extractText, extractBytes, type ExtractedFile, type ExtractStream, type PageEvent } from "@openmasq/redact/documents";
+import { DEFAULT_LOCALE, getMessages, isLocale } from "@openmasq/i18n";
 
 // ⚠️ pdf.js (legacy) under utilityProcess: since `process.versions.electron` is set, it does
 // NOT believe it's in Node and REQUIRES `GlobalWorkerOptions.workerSrc` instead of auto-loading
@@ -52,10 +54,12 @@ interface ParentPort {
   postMessage(msg: Res): void;
 }
 type Req =
-  | { id: number; kind: "path"; path: string; ocrAllPages?: boolean }
-  | { id: number; kind: "bytes"; data: string; name: string; mime?: string; ocrAllPages?: boolean };
+  | { id: number; kind: "path"; path: string; locale?: string; stream?: boolean }
+  | { id: number; kind: "bytes"; data: string; name: string; mime?: string; locale?: string; stream?: boolean };
 type Res =
   | { id: number; progress: { done: number; pages: number } }
+  | { id: number; page: PageEvent }
+  | { id: number; thumb: { n: number; total: number; png: string } }
   | { id: number; ok: true; file: ExtractedFile }
   | { id: number; ok: false; error: string };
 const parentPort = (process as unknown as { parentPort: ParentPort }).parentPort;
@@ -70,14 +74,31 @@ parentPort.on("message", (e) => {
         /* progress is display only — never a reason to fail */
       }
     };
+    // The preview stream (`@openmasq/redact` `pageStream.ts`), only when the parent asked: a
+    // page's text goes where the result would have gone anyway (the parent), never to a log.
+    const post = (msg: Res) => {
+      try {
+        parentPort.postMessage(msg);
+      } catch {
+        /* display only */
+      }
+    };
+    const stream: ExtractStream | undefined = req.stream
+      ? {
+          onPage: (page) => post({ id: req.id, page }),
+          onThumb: ({ n, total, png }) => post({ id: req.id, thumb: { n, total, png: Buffer.from(png).toString("base64") } }),
+        }
+      : undefined;
     try {
       await pdfjsReady; // pdf.js's workerSrc is pinned before any getDocument
+      // The unread-page markers in the user's language (a catalogue locale, else the default).
+      const markers = getMessages(isLocale(req.locale) ? req.locale : DEFAULT_LOCALE).documents.markers;
       // Both entry points are BEST-EFFORT on the redact side (an unreadable file returns
       // `{error}` without throwing); the catch only covers the unexpected (a parser OOM…).
       const file =
         req.kind === "path"
-          ? await extractText(req.path, onProgress, req.ocrAllPages)
-          : await extractBytes(Buffer.from(req.data, "base64"), req.name, req.mime, onProgress, req.ocrAllPages);
+          ? await extractText(req.path, onProgress, markers, stream)
+          : await extractBytes(Buffer.from(req.data, "base64"), req.name, req.mime, onProgress, markers, stream);
       parentPort.postMessage({ id: req.id, ok: true, file });
     } catch (err) {
       // A pinning failure makes EVERY PDF unreadable: say so HERE, with the error, rather

@@ -141,7 +141,7 @@ describe("SpreadsheetViewer — la coupe d'envoi est visible, jamais mensongère
     }
     // The note says what the grey-out means — doesn't leave ≠ left in clear.
     expect(el.querySelector(".fv-cut-note")?.textContent).toContain("lignes 1 à 10");
-    expect(el.querySelector(".fv-cut-note")?.textContent).toContain("ne quittent jamais la machine");
+    expect(el.querySelector(".fv-cut-note")?.textContent).toContain("Les lignes grisées ne sont pas envoyées");
   });
 
   it("sans coupe (`cutRow` absent) : aucune ligne grisée, aucune note", async () => {

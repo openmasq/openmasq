@@ -16,6 +16,8 @@
  * it — because we cannot see the tenant's policy from here.
  */
 import { BRAND } from "@openmasq/branding";
+import type { Messages } from "@openmasq/i18n";
+import { mainMessages } from "../../i18n";
 
 /** Where an administrator approves the app for their whole tenant. `organizations`, not a
  *  tenant id: we do not know the tenant (the refusal can arrive before any account is
@@ -69,15 +71,13 @@ export interface MicrosoftAuthFailure {
 export function microsoftAuthFailure(
   raw: string | undefined | null,
   ctx: { clientId: string; redirectUri: string },
+  t: Messages["desktopMain"]["oauth"] = mainMessages().desktopMain.oauth,
 ): MicrosoftAuthFailure {
   if (!needsAdminConsent(raw)) {
-    return { message: `Connexion Microsoft refusée${raw ? ` : ${raw}` : ""}.` };
+    return { message: t.microsoftRefused(raw ?? "") };
   }
   return {
-    message:
-      `Votre organisation demande l'approbation d'un administrateur pour connecter ${BRAND.name}. ` +
-      "Transmettez-lui le lien ci-dessous : une seule approbation vaut pour tous les comptes " +
-      "de l'organisation, et la connexion se fera ensuite en un clic.",
+    message: t.microsoftAdminConsent(BRAND.name),
     adminConsentUrl: adminConsentUrl(ctx.clientId, ctx.redirectUri),
   };
 }

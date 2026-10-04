@@ -61,12 +61,12 @@ export const modelCatalogA: Record<string, Messages["modelCatalog"]["models"][st
     bestFor: "Raisonnement textuel économique",
   },
   "claude-fable-5": {
-    strengths: ["Le plus capable de la gamme Claude", "Écriture et code d'excellence"],
+    strengths: ["Le plus capable de la gamme Claude", "Excellent en rédaction et en code"],
     weaknesses: ["Le plus cher"],
     bestFor: "Rédaction premium, code, raisonnement long",
   },
   "claude-opus-4-8": {
-    strengths: ["Flagship agentique et code", "Très fiable sur les longues tâches"],
+    strengths: ["Modèle phare pour les agents et le code", "Très fiable sur les longues tâches"],
     weaknesses: ["Coûteux, plus lent que Sonnet"],
     bestFor: "Agents, gros projets de code, analyse",
   },
@@ -86,18 +86,18 @@ export const modelCatalogA: Record<string, Messages["modelCatalog"]["models"][st
     bestFor: "Utiliser votre abonnement Claude existant",
   },
   "claude-cli-fable": {
-    strengths: ["Le plus intelligent de l'abonnement", "Compris dans votre abonnement Claude"],
-    weaknesses: ["Texte seul", "Selon l'offre (absent du plan Pro)"],
+    strengths: ["Le plus capable de votre offre", "Compris dans votre abonnement Claude"],
+    weaknesses: ["Texte seul", "Non inclus dans l'offre Pro"],
     bestFor: "Les tâches qui demandent le meilleur modèle",
   },
   "claude-cli-sonnet": {
     strengths: ["Équilibre capacité/vitesse", "Compris dans votre abonnement Claude"],
     weaknesses: ["Texte seul"],
-    bestFor: "Le choix par défaut de l'abonnement",
+    bestFor: "Le choix par défaut de votre offre",
   },
   "claude-cli-opus": {
-    strengths: ["Le plus capable de l'abonnement", "Compris dans votre abonnement Claude"],
-    weaknesses: ["Texte seul", "Selon l'offre (absent du plan Pro)"],
+    strengths: ["Le plus capable de votre offre", "Compris dans votre abonnement Claude"],
+    weaknesses: ["Texte seul", "Non inclus dans l'offre Pro"],
     bestFor: "Les tâches les plus dures",
   },
   "codex-cli": {
@@ -109,10 +109,10 @@ export const modelCatalogA: Record<string, Messages["modelCatalog"]["models"][st
     strengths: ["Compris dans votre abonnement Google", "Aucune clé API à gérer"],
     weaknesses: [
       "Texte seul",
-      "Sans les connecteurs de l'app",
+      "Ne peut pas utiliser les connecteurs",
       "Nécessite la CLI Antigravity installée et connectée",
     ],
-    bestFor: "Utiliser votre abonnement Antigravity existant",
+    bestFor: "Utiliser votre abonnement Google existant",
   },
   "claude-cli-haiku": {
     strengths: ["Très rapide", "Compris dans votre abonnement Claude"],
@@ -121,12 +121,12 @@ export const modelCatalogA: Record<string, Messages["modelCatalog"]["models"][st
   },
   "claude-haiku-4-5": {
     strengths: ["Très rapide", "Multimodal, bon marché"],
-    weaknesses: ["Contexte 200K (vs 1M)", "Raisonnement moyen"],
+    weaknesses: ["Contexte plus petit (200K)", "Raisonnement moyen"],
     bestFor: "Réponses rapides, volume, multimodal léger",
   },
   "gemini-3.1-pro-preview": {
-    strengths: ["Flagship Gemini, 1M tokens", "Multimodal fort"],
-    weaknesses: ["Version preview", "Moins spécialisé code que les GPT/Claude"],
+    strengths: ["Modèle phare Gemini, 1M tokens", "Multimodal fort"],
+    weaknesses: ["Version préliminaire", "Moins spécialisé en code que GPT/Claude"],
     bestFor: "Analyse multimodale, très grands documents",
   },
   "gemini-3.5-flash": {
@@ -140,7 +140,7 @@ export const modelCatalogA: Record<string, Messages["modelCatalog"]["models"][st
     bestFor: "Extraction/résumé sur gros volumes",
   },
   "gemini-2.5-pro": {
-    strengths: ["Flagship de la génération précédente"],
+    strengths: ["Modèle phare de la génération précédente"],
     weaknesses: ["Génération précédente"],
     bestFor: "Analyse multimodale et long contexte",
   },

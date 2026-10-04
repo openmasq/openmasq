@@ -1,3 +1,4 @@
+import { BRAND } from "@openmasq/branding";
 import type { Messages } from "@openmasq/i18n";
 import type { UpdateStatus } from "../../../../host";
 
@@ -5,18 +6,20 @@ import type { UpdateStatus } from "../../../../host";
 // UpdatesSection.tsx to keep it under the 300-LOC cap (rule 1) — and because
 // these are logic, not presentation (root rule: functionality lives in `.ts`).
 
-/** Human update weight, e.g. "596 Mo" / "1,4 Go" — shown so the user knows the download size. */
-export function fmtSize(bytes?: number): string {
+/** Human update weight in the locale's units and decimal mark — "596 Mo" / "1,4 Go",
+ *  "596 MB" / "1.4 GB" — shown so the user knows the download size. */
+export function fmtSize(bytes: number | undefined, t: Messages): string {
   if (!bytes || bytes <= 0) return "";
+  const intl = t.common.intlTag;
   return bytes >= 1e9
-    ? `${(bytes / 1e9).toFixed(1).replace(".", ",")} Go`
-    : `${Math.round(bytes / 1e6)} Mo`;
+    ? t.runtime.misc.gigabytes((bytes / 1e9).toLocaleString(intl, { minimumFractionDigits: 1, maximumFractionDigits: 1 }))
+    : t.runtime.misc.megabytes(Math.round(bytes / 1e6).toLocaleString(intl));
 }
 
 /** The live status line under the installed-build card: what the updater is doing
  *  right now, plus the tone class that colours it. */
 export function statusLine(status: UpdateStatus, t: Messages): { text: string; tone: string } {
-  const size = fmtSize(status.sizeBytes);
+  const size = fmtSize(status.sizeBytes, t);
   const withSize = (s: string) => (size ? t.versionsTab.status.withSize(s, size) : s);
   switch (status.state) {
     case "checking":
@@ -39,12 +42,38 @@ export function statusLine(status: UpdateStatus, t: Messages): { text: string; t
     case "not-available":
       return { text: t.versionsTab.status.notAvailable, tone: "text-muted" };
     case "error":
-      // Already-humanised message from main (no raw ditto/pkzip dump). A disk-space
-      // error carries `code:"no_space"` — render it with a warning tone.
+      // A disk-space error carries `code:"no_space"` — render it with a warning tone.
       return {
-        text: status.message ?? t.versionsTab.status.unknownError,
+        text: updateErrorText(status, t),
         tone: status.code === "no_space" ? "text-[var(--amber-600)]" : "text-[var(--red-500)]",
       };
+  }
+}
+
+/** The line for a failed update, in the user's language, chosen by the stable `code` main
+ *  sends (`apps/desktop/src/main/updates/disk.ts`). An unknown code falls back to main's
+ *  own message, never to a raw dump. A feed 5xx (`download-5xx`) is the SERVER's fault:
+ *  telling the user to check their connection would send them after the wrong cause. */
+export function updateErrorText(status: Pick<UpdateStatus, "code" | "message">, t: Messages): string {
+  const e = t.versionsTab.status.errors;
+  const code = status.code ?? "";
+  if (/^download-5\d\d$/.test(code)) return e.server;
+  if (code === "download" || /^download-\d{3}$/.test(code)) return e.download;
+  switch (code) {
+    case "no_space":
+      return e.noSpace;
+    case "read_only_volume":
+      return e.readOnlyVolume(BRAND.name);
+    case "app_running":
+      return e.appRunning(BRAND.name);
+    case "signature":
+      return e.signature;
+    case "network":
+      return e.network;
+    case "generic":
+      return e.generic;
+    default:
+      return status.message ?? t.versionsTab.status.unknownError;
   }
 }
 

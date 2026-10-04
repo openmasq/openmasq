@@ -10,110 +10,110 @@ export const guide = {
   protection: {
     title: (brand) => `Ce que ${brand} fait pour vous`,
     lead:
-      (brand) => `Vous écrivez normalement. Avant que votre message ne parte, ${brand} repère les données sensibles — noms, e-mails, téléphones, adresses, numéros de compte — et les remplace par de fausses valeurs. Le modèle ne travaille que sur ces fausses valeurs ; vous, vous continuez de voir les vraies, dans votre message comme dans la réponse. C'est ce remplacement qu'on appelle le masquage, comme les passages noircis d'un document officiel.`,
+      (brand) => `Vous écrivez normalement. Avant l'envoi de votre message, ${brand} repère les données sensibles (noms, e-mails, téléphones, adresses, numéros de compte) et les remplace par des valeurs de substitution. Le modèle ne voit que ces substituts. Vous voyez les vraies valeurs, dans votre message comme dans la réponse. C'est le masquage : contrairement à un passage noirci, le modèle reçoit un texte complet et cohérent.`,
     points: [
-      () => "Le repérage s'exécute sur votre machine, avant tout envoi — rien ne part pour être analysé.",
-      () => "Sous chaque message envoyé, une petite mention indique combien d'éléments ont été protégés.",
-      () => "Vous gardez la main : cliquez un mot surligné pour le laisser en clair, ou sélectionnez-en un autre pour le masquer.",
-      () => "Les personnalités publiques et les grandes marques restent en clair : elles n'identifient pas votre dossier. Le niveau Strict les masque aussi ; les pays, eux, ne sont jamais masqués.",
-      () => "Une conversation sans donnée personnelle est normale : rien n'est remplacé, le compteur reste à zéro — la protection était bien là, elle n'a simplement rien trouvé à faire.",
-      () => "Un nom de code ou un surnom qu'aucun détecteur ne peut deviner s'ajoute au Coffre : il sera masqué partout, dans chaque conversation.",
+      () => "Le repérage s'exécute sur votre appareil, avant tout envoi. Rien n'est envoyé pour être analysé.",
+      () => "Sous chaque message envoyé, une courte mention indique combien d'éléments ont été masqués.",
+      () => "Cliquez sur un mot surligné pour le démasquer, ou sélectionnez un autre passage pour le masquer.",
+      () => "Les personnalités publiques et les grandes marques ne sont pas masquées : elles n'identifient ni votre client ni votre dossier. Le niveau Strict les masque aussi. Les pays ne sont jamais masqués.",
+      () => "Si une conversation ne contient aucune donnée sensible, rien n'est remplacé et le compteur affiche zéro.",
+      () => "Ajoutez au Coffre les noms de code ou surnoms que la détection ne peut pas reconnaître. Ils sont masqués dans chaque conversation.",
     ],
   },
   firstMessage: {
     title: () => "Votre premier message",
     lead:
-      (brand) => `Il n'y a rien à configurer. Un modèle gratuit est déjà sélectionné et fonctionne avec votre compte ${brand} : écrivez, envoyez. Les exemples proposés sur l'écran d'accueil partent en un clic si vous voulez juste voir à quoi ça ressemble.`,
+      (brand) => `Un modèle gratuit est déjà sélectionné et fonctionne avec votre compte ${brand}. Écrivez un message et envoyez-le, ou cliquez sur un exemple de l'écran d'accueil.`,
     points: [
-      () => "Le nom du modèle est sous la zone de saisie — cliquez-le pour en changer.",
-      (brand) => `Certains modèles demandent votre propre clé : ${brand} vous le dit au moment de l'envoi, et vous propose de la renseigner.`,
-      () => "Tapez / dans la zone de message pour retrouver vos compétences, vos routines et « retiens que… ».",
+      () => "Le nom du modèle est sous la zone de saisie. Cliquez dessus pour changer de modèle.",
+      (brand) => `Certains modèles demandent votre propre clé. ${brand} vous le signale à l'envoi et vous propose d'en ajouter une.`,
+      () => "Tapez / dans la zone de message pour vos compétences, vos routines et « retiens que… ».",
     ],
   },
   models: {
     title: () => "Modèles inclus, ou votre clé",
     lead:
-      (brand) => `Il y a deux façons d'atteindre un modèle, et vous pouvez les mélanger. Les modèles inclus s'utilisent avec votre compte ${brand}, sans rien payer ni configurer — un modèle gratuit est le point de départ. Les autres passent par votre propre clé chez le fournisseur.`,
+      (brand) => `Vous pouvez accéder à un modèle de deux façons, et les combiner. Les modèles inclus fonctionnent avec votre compte ${brand}, sans rien configurer. Un modèle gratuit est sélectionné au départ. Les autres modèles utilisent votre propre clé chez le fournisseur.`,
     terms: [
       {
         term: () => "Gratuit",
         def: (brand) =>
-          `Inclus avec votre compte ${brand}, sans clé. L'usage est limité : le débit et la disponibilité dépendent du fournisseur.`,
+          `Inclus avec votre compte ${brand}, sans clé. L'usage est limité : la vitesse et la disponibilité dépendent du fournisseur.`,
       },
       {
         term: (brand) => `Inclus avec votre compte ${brand}`,
         def: (brand) =>
-          `Les modèles que ${brand} fournit — hébergés en France pour la plupart — sans aucune clé à gérer.`,
+          `Les modèles fournis par ${brand}, hébergés en France pour la plupart. Aucune clé à gérer.`,
       },
       {
         term: () => "Avec votre propre clé",
         def: () =>
-          `Vous branchez votre clé OpenAI, Anthropic, Mistral… : c'est votre fournisseur qui vous facture. La protection est exactement la même.`,
+          `Vous ajoutez votre clé OpenAI, Anthropic, Mistral…, et votre fournisseur vous facture. Le masquage fonctionne de la même façon.`,
       },
     ],
     points: [
-      () => "Dans le sélecteur, un modèle que vous ne pouvez pas encore utiliser porte une pastille — cliquez-la, elle explique quoi faire.",
-      (brand) => `Rien n'est jamais envoyé avant : si un modèle vous est inaccessible, ${brand} refuse l'envoi et vous propose les deux issues sous le message.`,
-      () => "Vos clés restent chiffrées sur cette machine, et ne sont jamais transmises au modèle.",
+      () => "Dans le sélecteur de modèle, une pastille signale les modèles que vous ne pouvez pas encore utiliser. Cliquez dessus pour savoir quoi faire.",
+      (brand) => `Si vous ne pouvez pas encore utiliser un modèle, rien n'est envoyé : ${brand} bloque le message et affiche vos deux options en dessous.`,
+      () => "Vos clés restent chiffrées sur cet appareil et ne sont jamais envoyées au modèle.",
     ],
   },
   sections: {
-    title: () => "Retrouver vos affaires",
+    title: () => "Se repérer dans l'app",
     lead:
-      () => "La barre de gauche mène aux six endroits de l'app. Survolez une icône pour son nom ; cliquez le logo, en haut, pour déplier la barre.",
+      () => "La barre de gauche mène à chaque section de l'app. Survolez une icône pour voir son nom. Cliquez sur le logo, en haut, pour déplier la barre.",
   },
   words: {
-    title: (brand) => `Les mots de ${brand}`,
+    title: (brand) => `Glossaire ${brand}`,
     lead:
-      () => "Quelques termes reviennent souvent dans l'app. Les voici, une fois pour toutes.",
+      () => "Les termes utilisés dans l'app, et ce que chacun désigne précisément.",
     terms: [
       {
         term: () => "Masquer",
         def: () =>
-          "Remplacer une donnée sensible par une fausse valeur avant l'envoi — et rétablir la vraie à l'arrivée.",
+          "Remplacer une donnée sensible par une valeur de substitution avant l'envoi, puis rétablir la vraie valeur dans la réponse.",
       },
       {
-        term: () => "Le coffre",
+        term: () => "Coffre",
         def: () =>
-          "Vos mots à masquer systématiquement, quel que soit le modèle et quelle que soit la conversation.",
+          "Les termes toujours masqués, dans chaque conversation et avec chaque modèle.",
       },
       {
-        term: () => "La mémoire",
+        term: () => "Mémoire",
         def: (brand) =>
-          `Ce que ${brand} retient d'une conversation à l'autre pour ne pas vous faire répéter.`,
+          `Ce que ${brand} retient d'une conversation à l'autre, pour que vous n'ayez pas à vous répéter.`,
       },
       {
-        term: () => "Une compétence",
+        term: () => "Compétence",
         def: () => "Une instruction que vous réutilisez telle quelle dans vos conversations.",
       },
       {
-        term: () => "Une routine",
-        def: () => "Une compétence qui met vos services connectés au travail.",
+        term: () => "Routine",
+        def: () => "Une compétence qui exécute des actions dans vos services connectés.",
       },
       {
-        term: () => "Un connecteur",
+        term: () => "Connecteur",
         def: () =>
-          "Un service que vous branchez — agenda, e-mails, fichiers — pour que le modèle puisse s'en servir, avec votre accord à chaque action qui écrit.",
+          "Un service que vous connectez (agenda, e-mails, fichiers) pour que le modèle puisse s'en servir. Toute action qui écrit des données demande votre accord.",
       },
     ],
   },
   data: {
     title: () => "Où vont vos données",
     lead:
-      () => "Vos conversations, vos fichiers, votre coffre et votre mémoire restent sur votre machine, chiffrés. Ce qui part vers un modèle, ce sont vos messages une fois masqués — et rien d'autre.",
+      () => "Vos conversations, vos fichiers, votre Coffre et votre mémoire restent sur votre appareil, chiffrés. Seuls vos messages masqués sont envoyés à un modèle.",
     points: [
-      () => "La mémoire ne passe par aucun serveur pour « se souvenir » : elle est locale, et repart masquée à chaque envoi.",
-      () => "Le bouclier, en bas de la barre de gauche, ouvre le rapport de confidentialité : tout ce qui a été protégé, catégorie par catégorie.",
+      () => "La mémoire est stockée sur votre appareil, pas sur un serveur. Elle est masquée chaque fois qu'elle est envoyée à un modèle.",
+      () => "L'icône bouclier, en bas de la barre de gauche, ouvre le rapport de confidentialité : tout ce qui a été masqué, par catégorie.",
       () => "Les statistiques d'usage sont anonymes, ne contiennent jamais vos messages, et se refusent dans Réglages.",
     ],
   },
   releases: {
     title: () => "Nouveautés",
     lead:
-      (brand) => `Ce qui a changé dans ${brand}, version par version, la plus récente en premier. C'est la même liste que celle envoyée par mail à chaque sortie — elle est ici pour ne pas avoir à la chercher.`,
+      (brand) => `Ce qui a changé dans ${brand}, version par version, la plus récente en premier. C'est la même liste que celle envoyée par e-mail à chaque version.`,
     points: [
-      (brand) => `Lire cette page n'envoie rien : ${brand} demande la liste des nouveautés, jamais l'inverse.`,
-      () => "Pour savoir quelle version tourne sur cette machine, ou en installer une autre : Réglages → Avancé → Versions.",
+      (brand) => `Ouvrir cette page ne fait que télécharger la liste des nouveautés. ${brand} n'envoie rien de vos conversations.`,
+      () => "Pour voir la version installée, ou en installer une autre : Réglages → Avancé → Versions.",
     ],
   },
 } satisfies Messages["guide"];

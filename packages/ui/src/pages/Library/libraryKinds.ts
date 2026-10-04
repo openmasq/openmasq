@@ -27,7 +27,7 @@ export function libKindOf(mime: string, name: string): LibKind {
 export type LibTab = "all" | LibKind;
 
 /** The category tabs, in the design's order — the WORDS come from the catalogue. */
-export const LIB_TAB_IDS: readonly ("all" | LibKind)[] = ["all", "image", "document", "sheet", "audio"];
+const LIB_TAB_IDS: readonly ("all" | LibKind)[] = ["all", "image", "document", "sheet", "audio"];
 
 export function libTabs(t: Messages): { id: "all" | LibKind; label: string }[] {
   return LIB_TAB_IDS.map((id) => ({ id, label: t.lists.libraryTabs[id] }));

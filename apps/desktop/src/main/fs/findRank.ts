@@ -41,7 +41,7 @@ export function fold(text: string): string {
 
 /** Split on anything that is not a letter or a digit (a filename separates on
  *  `_ - . space` and camel boundaries are not worth the false splits). */
-export function splitWords(text: string): string[] {
+function splitWords(text: string): string[] {
   return fold(text).split(/[^\p{L}\p{N}]+/u).filter(Boolean);
 }
 

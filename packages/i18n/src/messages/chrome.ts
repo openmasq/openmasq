@@ -84,6 +84,8 @@ export interface ChatMessages {
   renameConversation: string;
   /** The spinning pill of a tab whose reply is arriving. */
   generating: string;
+  /** The mark of a conversation whose staged files are still being read or masked. */
+  preparingFiles: string;
   closeTab: string;
   /** Tabs scrolled out of view: the tooltip explains, the read label counts. */
   hiddenTabsTip: (count: number) => string;
@@ -156,6 +158,9 @@ export interface ComposerMessages {
   redacting: string;
   redactingAria: string;
   redacted: string;
+  /** The same busy morph while a staged file is still being READ: the send waits for it. */
+  reading: string;
+  readingAria: string;
 
   /** The DETECTION chips under the input — each toggles « masqué ⇄ en clair ». The
    *  toggle's VERBS come from `conversation.mark` (the one lexicon), scoped « cet envoi ». */
@@ -174,12 +179,25 @@ export interface ComposerMessages {
     collapse: string;
   };
 
+  /** The intent chip above the input: its label and its hover peek's footer. */
+  intent: {
+    skill: (name: string) => string;
+    routine: (name: string) => string;
+    sentWith: string;
+    clickToEdit: string;
+  };
+
+  /** Why an answer may be off when masked values carry its meaning (a hint, never a block). */
+  utilityRisk: { age: string; world: string; geo: string };
+
   /** The LONG draft, folded into a card: it is edited in a modal. */
   longText: {
     openTip: string;
     /** Numbers go through `Intl` INSIDE the catalogue — each language knows its own. */
     summary: (chars: number, lines: number) => string;
     edit: string;
+    /** Right after a paste folded the draft, Cmd/Ctrl+Z restores the previous draft. */
+    undoTip: string;
   };
 
   /** The long-text editing modal. */
@@ -202,9 +220,19 @@ export interface ComposerMessages {
     /** Tooltip while the file is being masked. */
     redacting: string;
     stateReading: string;
+    /** Waiting its turn in the extraction queue, `ahead` files before it. */
+    stateQueued: (ahead: number) => string;
+    /** Read, and waiting its turn to be masked (one file at a time), `ahead` before it. */
+    stateMaskQueued: (ahead: number) => string;
     stateReadingPage: (page: number, total: number) => string;
     stateMasking: string;
     stateMaskingPct: (pct: number) => string;
+    /** A LONG document's masking (`maskPlan` « long »): the percentage and the minutes left. */
+    stateMaskingLong: (pct: number, minutes: number) => string;
+    /** The tooltip and the pending preview of a long document's masking. */
+    maskingLong: (minutes: number) => string;
+    /** Refused before masking: past `MAX_MASK_CHARS`, never masked in part. */
+    tooLongToMask: (pages: number) => string;
     stateRedo: string;
     /** « 3 valeurs » — the unit matters on a chip that small (the glyph is drawn). */
     stateReady: (count: number) => string;
@@ -217,6 +245,19 @@ export interface ComposerMessages {
     reRedact: string;
     reRedactTip: string;
     remove: string;
+    /** Many staged files: one summary line above a bounded list. */
+    summaryFiles: (count: number) => string;
+    summaryReading: (count: number) => string;
+    summaryMasking: (count: number) => string;
+    summaryUnreadable: (count: number) => string;
+    removeAll: string;
+    removeAllConfirm: (count: number) => string;
+    /** The extraction failed: the chip's tooltip says it. */
+    extractFailed: string;
+    /** A re-read of every page failed; the text read before is kept. */
+    rereadFailed: string;
+    /** The file was refused before parsing (an archive the gate refuses). */
+    fileRefused: string;
   };
 
   /** The file DROP onto the window. */

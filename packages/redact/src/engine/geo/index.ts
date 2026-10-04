@@ -31,7 +31,6 @@ const STREET_HEAD =
   /^\s*(?:\d{1,4}\s*(?:bis|ter|[a-d])?[\s,]+)?(?:rue|avenue|boulevard|chemin|impasse|all[ée]e|place|cours|quai|route|square|passage|sentier|voie|street|road|lane|drive|strasse|stra\u00dfe|calle|avenida|via|viale|corso|rua)(?:[\s,.]|$)/iu;
 
 export * from "./types";
-export { FR_PLACES } from "./places.fr";
 
 /** ISO2 → real places (city + real postal + admin region). FR keyed explicitly so
  *  the region-aware FR path (frGeo) can find it; the rest spread from their region. */
@@ -53,7 +52,7 @@ function streets(country: ISO2): string[] {
 }
 
 /** Address-line layout per country (default = French "num street, POSTAL City"). */
-export const FORMATTERS: Record<ISO2, AddressFormatter> = {
+const FORMATTERS: Record<ISO2, AddressFormatter> = {
   FR: (n, s, p) => `${n} ${s}, ${p.postal} ${p.city}`,
   LU: (n, s, p) => `${n} ${s}, ${p.postal} ${p.city}`,
   BE: (n, s, p) => `${s} ${n}, ${p.postal} ${p.city}`,
@@ -83,7 +82,7 @@ function extractPostal(value: string): string | undefined {
 
 /** Guess a country from a POSTAL shape — distinctive shapes only. A bare 5-digit is
  *  ambiguous (FR/DE/ES/IT/US) → undefined, left to the detector's country hint. */
-export function guessCountryFromPostal(postal?: string): ISO2 | undefined {
+function guessCountryFromPostal(postal?: string): ISO2 | undefined {
   if (!postal) return undefined;
   const p = postal.trim();
   if (/^[A-Z]{1,2}\d[A-Z\d]?\s?\d[A-Z]{2}$/i.test(p)) return "GB";
@@ -125,7 +124,7 @@ export function resolveCountry(value: string, country?: string): ISO2 | null {
 /** Pick a real place of `country`, avoiding the user's own. For FR, pick one in a
  *  DIFFERENT region than the original, so the fake doesn't disclose the real region
  *  (a Breton address must NOT stay Breton). Deterministic on `h`. */
-export function pickPlaceForCountry(country: ISO2, h: number, realPostal?: string, realCity?: string): GeoPlace {
+function pickPlaceForCountry(country: ISO2, h: number, realPostal?: string, realCity?: string): GeoPlace {
   const pool = PLACES_BY_COUNTRY[country] ?? FR_PLACES;
   const differs = (p: GeoPlace) =>
     (!realPostal || p.postal !== realPostal) &&
@@ -196,7 +195,7 @@ export function fakeGeo(category: string, value: string, h: number, country?: st
         realPostal !== undefined || /\d\s+\p{Lu}[\p{L}'’.-]*\s*$/u.test(value);
       // The fake WEARS the original's dress, or the substitution is visible at a glance
       // (the SACEM-statement report): the STREET segment mirrors the original street's
-      // casing (« 36 AV DU CAPITAINE GLARNER » must not become lowercase « rue des
+      // casing (« 36 AV DU CAPITAINE VERMOND » must not become lowercase « rue des
       // Lilas »), the street↔postal SEPARATOR is reused (« … - 92528 » keeps its dash
       // instead of the formatter's comma), the CITY mirrors the original city's casing,
       // and a trailing CEDEX (+ its office number) is carried over verbatim.

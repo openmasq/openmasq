@@ -1,3 +1,5 @@
+import { CONTACT_LABEL_WORDS } from "../labels/terms";
+
 // Where an address ENDS — the sole subject of this file, split out of `addresses.ts` to
 // keep it under the cap AND because the labeled field « Adresse : … » needs the
 // SAME cut (rule 9: a second implementation would drift).
@@ -30,9 +32,38 @@ const ADDR_END = new RegExp(
   `(?:\\d{5}|\\d{4}-\\d{3}|\\d{4}\\s?[A-Z]{2}|\\d{4})[,\\s]+(?:${CITY_RUN})`,
   "u",
 );
+// …and a street NAME (permissive, up to 38 chars of letters and spaces, `shapes.ts`) runs on
+// into the sentence that follows when nothing punctuates it: « 12 rue des Lilas depuis 2019
+// avec sa femme » vaulted the whole clause and the model never read it. Two signals end it —
+// a word that opens a continuation and is never part of a street name (lowercase only, so a
+// « rue du Matin » is untouched; « et »/« and » left out, they live in real names), and a
+// contact label starting the next field (« … Moulin Messagerie : »).
+const PROSE_WORDS = [
+  "depuis", "avec", "demain", "hier", "aujourd'hui", "matin", "soir", "pour", "sont", "est",
+  "était", "sera", "où", "qui", "que", "quand", "mais", "donc", "car", "puis", "ensuite",
+  "après", "avant", "pendant", "dès", "convoqu[ée]e?s?", "situ[ée]e?s?",
+  "since", "with", "tomorrow", "yesterday", "today", "for", "is", "are", "was", "where",
+  "which", "who", "when", "but", "then", "after", "before", "during",
+].join("|");
+const PROSE_START = new RegExp(`[\\s,]+(?:${PROSE_WORDS})(?![\\p{L}'’])`, "u");
+const LABEL_START = new RegExp(
+  `[\\s,]+(?:${CONTACT_LABEL_WORDS.map((w) => w[0].toUpperCase() + w.slice(1)).join("|")})(?![\\p{L}])`,
+  "u",
+);
+/** Cuts a street name where the sentence or the next field begins (see above). */
+export function trimProseTail(v: string): string {
+  const cut = [PROSE_START.exec(v), LABEL_START.exec(v)].filter((m) => m && m.index > 0);
+  return cut.length ? v.slice(0, Math.min(...cut.map((m) => m!.index))) : v;
+}
+
 /** Cuts at the END of the address. Exported because the labeled field « Adresse : … » has the
  *  same need (its capture goes to the end of the LINE) and a 2nd implementation would drift. */
+// A match at position 0 is the HOUSE NUMBER, never a postal code: « 3301 McKinney Ave » read
+// as « 3301 » + city « Mc… » and was cut to « 3301 Mc », the street itself left in clear.
+const ADDR_END_ALL = new RegExp(ADDR_END.source, "gu");
 export function trimAddressTail(v: string): string {
-  const m = ADDR_END.exec(v);
-  return m ? v.slice(0, m.index + m[0].length) : v;
+  for (const m of v.matchAll(ADDR_END_ALL)) {
+    if (m.index > 0) return v.slice(0, m.index + m[0].length);
+  }
+  return v;
 }

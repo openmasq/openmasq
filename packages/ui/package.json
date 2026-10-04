@@ -55,6 +55,7 @@
     "remark-gfm": "^4.0.0",
     "remark-math": "^6.0.0",
     "rxjs": "^7.8.2",
+    "simple-icons": "^16.24.1",
     "xlsx": "workspace:*"
   },
   "peerDependencies": {

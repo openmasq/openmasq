@@ -7,10 +7,10 @@ import type { MemoryUiApi } from "../../../memory/memoryUi";
 import { useT } from "../../../i18n";
 
 /** A deep-link request: an id plus a nonce, so asking for the SAME id twice re-opens it. */
-export type DeepLink = { id: string; n: number } | null;
+type DeepLink = { id: string; n: number } | null;
 
 /** A Settings deep-link also carries the connector it went there to connect. */
-export type SettingsRequest = {
+type SettingsRequest = {
   id: string;
   n: number;
   connectorId?: string;

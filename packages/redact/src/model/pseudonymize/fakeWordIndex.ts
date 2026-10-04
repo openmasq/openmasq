@@ -64,17 +64,33 @@ function distinctiveWords(s: string): string[] {
  *  reals share that word too. Without this half, the anchor and the index contradicted
  *  each other: the anchored city clashed on EVERY attempt (it no longer varies),
  *  60 failures, and the second address fell back to the "redacted" placeholder. */
-function samePlace(a: string, b: string): boolean {
-  const [fa, fb] = [fold(a), fold(b)];
-  if (fa.includes(fb) || fb.includes(fa)) return true;
-  const city = (s: string) => s.match(/\b\d{4,5}\s+(\p{L}[\p{L}\s'’-]{1,40})$/u)?.[1]?.trim();
-  const [ca, cb] = [city(fa), city(fb)];
-  return ca !== undefined && ca === cb;
+type PlaceKey = { folded: string; glued: string; city: string | undefined };
+function placeKey(s: string): PlaceKey {
+  const folded = fold(s);
+  return {
+    folded,
+    glued: folded.replace(/[\s_.-]+/g, ""),
+    city: folded.match(/\b\d{4,5}\s+(\p{L}[\p{L}\s'’-]{1,40})$/u)?.[1]?.trim(),
+  };
+}
+function samePlace(a: PlaceKey, b: PlaceKey): boolean {
+  if (a.folded.includes(b.folded) || b.folded.includes(a.folded)) return true;
+  // The same value in another separator layout (« Acme_Corp » in a file name, « Acme Corp »
+  // in prose) is ONE identity sharing one recased fake, not two.
+  if (a.glued === b.glued) return true;
+  return a.city !== undefined && a.city === b.city;
 }
 
 export class FakeWordIndex {
   /** distinctive fake word → the REAL values it already stands (in part) for. */
   private wordToReals = new Map<string, Set<string>>();
+  /** A real's place key, computed once: `clashes` compares it on every mint attempt. */
+  private keys = new Map<string, PlaceKey>();
+  private keyOf(s: string): PlaceKey {
+    let k = this.keys.get(s);
+    if (!k) this.keys.set(s, (k = placeKey(s)));
+    return k;
+  }
 
   add(fake: string, real: string): void {
     for (const w of distinctiveWords(fake)) {
@@ -91,7 +107,8 @@ export class FakeWordIndex {
     for (const w of distinctiveWords(candidate)) {
       const reals = this.wordToReals.get(w);
       if (!reals) continue;
-      for (const r of reals) if (!samePlace(r, real)) return true;
+      const mine = this.keyOf(real);
+      for (const r of reals) if (!samePlace(this.keyOf(r), mine)) return true;
     }
     return false;
   }

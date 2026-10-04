@@ -1,6 +1,5 @@
 import type { RedactionRule } from "../../types";
 import {
-  luhn,
   ibanValid,
   siret,
   latLong,
@@ -9,9 +8,7 @@ import {
   isReservedIp,
   isIsin,
   deconfuseOcrDigits,
-  isEpochMs,
   isDateTimeRun,
-  luhnDigits,
 } from "../validators";
 import { ssnValid } from "../validators/validators.identifiers";
 import { isValidIntlPhone } from "../phones";
@@ -21,6 +18,7 @@ import { FRANCE_RULES } from "./rules.france";
 import { UK_RULES } from "./rules.uk";
 import { GLOBAL_RULES } from "./rules.global";
 import { FULLWIDTH_RULES } from "./rules.fullwidth";
+import { CARD_RULES } from "./rules.card";
 import { DB_URI_RULE, URL_CREDS_RULE } from "./rules.connection";
 import { EMAIL_RULES } from "./rules.email";
 import { isCodeTerm, isIntegrityHash, isLowEntropyRun, isNumericLiteral } from "./codeTerms";
@@ -28,6 +26,7 @@ import { ENV_SECRET_RULES } from "./rules.envSecrets";
 import { CRYPTO_RULES } from "./rules.crypto";
 import { TOKEN_RULES } from "./rules.tokens";
 import { IDENTIFIER_RULES } from "./rules.identifiers";
+import { REFERENCE_RULES } from "./rules.references";
 import { HEALTH_RULES } from "./rules.health";
 import { USERNAME_RULES } from "./rules.username";
 import { WRAP, SP, gate, maxOneWrap } from "./rules.international.util";
@@ -39,15 +38,27 @@ import { WRAP, SP, gate, maxOneWrap } from "./rules.international.util";
 // home/system root with a look-behind that skips the path part of a URL; Windows uses a
 // drive letter or a UNC share (a share path names an internal server).
 const PATH_SEG = `[^\\s/\\\\:,;"'\`<>|?*]+(?:[ \\t]+[A-Z0-9][^\\s/\\\\:,;"'\`<>|?*]*)*`;
+const FILE_EXT =
+  "pdf|docx?|xlsx?|pptx?|csv|tsv|txt|rtf|odt|ods|odp|pages|numbers|key|md|epub|mobi" +
+  "|png|jpe?g|gif|bmp|tiff?|webp|heic|svg|psd|eps|zip|rar|7z|tar|gz|tgz|dmg|pkg" +
+  "|mp3|wav|flac|aac|m4a|mp4|mov|avi|mkv|webm";
+// A segment the PATH ITSELF closes may also hold lowercase words (« Harlan v. Whitcombe/ »,
+// « Deposition of Ellen Prusik.pdf »): followed by a separator, or ended by a curated
+// extension. Never across a word that is itself a file name (`a.pdf backup/` is two paths)
+// and at most 12 words; the open last segment keeps the narrow form above, so prose after a
+// path is never swallowed. `../../__cases__/pathNames.test.ts`.
+const PATH_CH = `[^\\s/\\\\:,;"'\`<>|?*]`;
+const PATH_WIDE = `(?:(?!${PATH_CH}*\\.(?:${FILE_EXT})[ \\t])${PATH_CH}+[ \\t]+){0,11}${PATH_CH}+`;
+const PATH_SEG_ANY = `(?:${PATH_WIDE}(?=[\\\\/])|${PATH_WIDE}\\.(?:${FILE_EXT})\\b|${PATH_SEG})`;
 const PATH_ROOTS =
   "Users|home|root|Volumes|private|var|tmp|opt|srv|mnt|media|etc|usr|bin|sbin|Applications|Library|System|Network|Desktop|Documents|Downloads|data|workspace";
 const PATH_RE = new RegExp(
-  `[A-Za-z]:\\\\(?:${PATH_SEG}[\\\\/]?)+` + // Windows drive path: C:\Users\…
+  `[A-Za-z]:\\\\(?:${PATH_SEG_ANY}[\\\\/]?)+` + // Windows drive path: C:\Users\…
     "|" +
     // Windows UNC share: \\srv-fichiers\compta\2026.
-    `\\\\\\\\${PATH_SEG}(?:[\\\\/]${PATH_SEG})+` +
+    `\\\\\\\\${PATH_SEG}(?:[\\\\/]${PATH_SEG_ANY})+` +
     "|" +
-    `(?<![\\w:/\\\\])(?:~|/(?:${PATH_ROOTS}))(?:/${PATH_SEG})+`, // POSIX ~/… or /Users/…
+    `(?<![\\w:/\\\\])(?:~|/(?:${PATH_ROOTS}))(?:/${PATH_SEG_ANY})+`, // POSIX ~/… or /Users/…
   "g",
 );
 
@@ -63,10 +74,6 @@ const PATH_RE = new RegExp(
 const FC = "\\wÀ-ÖØ-öø-ÿ";
 const FILE_SEG_LOOSE = `[${FC}][${FC}()-]*(?:[ \\t]+[A-Z0-9À-ÖØ-Þ(][${FC}()-]*)*`;
 const FILE_SEG_ANCHORED = `(?:[A-Z0-9À-ÖØ-Þ][${FC}()-]*(?:[ \\t]+[A-Z0-9À-ÖØ-Þ(][${FC}()-]*)*|[${FC}][${FC}()-]*)`;
-const FILE_EXT =
-  "pdf|docx?|xlsx?|pptx?|csv|tsv|txt|rtf|odt|ods|odp|pages|numbers|key|md|epub|mobi" +
-  "|png|jpe?g|gif|bmp|tiff?|webp|heic|svg|psd|eps|zip|rar|7z|tar|gz|tgz|dmg|pkg" +
-  "|mp3|wav|flac|aac|m4a|mp4|mov|avi|mkv|webm";
 const FILE_RE = new RegExp(
   `(?<![${FC}:/\\\\.])(?:` +
     // Rooted or explicitly-relative (`/x`, `./x`, `~/x`) — a path context.
@@ -147,6 +154,7 @@ export const RULES: RedactionRule[] = [
   // Health data (blood group / MRN / ICD-10 diagnosis code) — all context-gated, so
   // an ordinary "A+", "F32" or bare number never false-positives. See rules.health.ts.
   ...HEALTH_RULES,
+  ...REFERENCE_RULES,
   // Pseudo / handle (`@drovaksinatra`) → category "username" (OFF by default). A bare
   // leading-`@` handle, excluding emails / npm scopes / CSS at-rules. See rules.username.ts.
   ...USERNAME_RULES,
@@ -167,57 +175,7 @@ export const RULES: RedactionRule[] = [
   ...FULLWIDTH_RULES,
   // Financial + official ids, checksum-validated. BEFORE phone so a 16-digit PAN is not
   // split. Separators tolerate ONE mid-value line wrap (`WRAP` + the `maxOneWrap` guard).
-  {
-    // 13–19 digits confirmed by Luhn. Separators are what documents emit: 1-2 spaces (a
-    // PDF column gap), the typographic dashes Word substitutes, a hyphenated line break.
-    type: "card",
-    // ⚠️ `(?:${WRAP})?`, never `${WRAP}?` — WRAP ends in `*`, so a bare `?` turns it LAZY
-    // and the dash then REQUIRES a newline.
-    // The digit class admits the OCR confusables O/o INSIDE only (a scan renders a PAN as
-    // « 5453 O112 … »); the second Luhn reading over `deconfuseOcrDigits` plus ≥10 real
-    // digits make that safe. First and last chars are real digits, or the pattern becomes
-    // startable on the trailing o of a word and its failed match CONSUMES the real card.
-    // The two lookarounds keep the rule OUT of a longer hexadecimal identifier: a dash-group
-    // carrying a hex LETTER is a UUID continuing, a dashed PAN is digits all the way.
-    pattern: new RegExp(
-      String.raw`(?<![0-9a-f]-)\b\d(?:(?:${SP}{1,2}|[-–—](?:${WRAP})?|${WRAP})?[0-9Oo]){11,17}(?:${SP}{1,2}|[-–—](?:${WRAP})?|${WRAP})?\d\b(?!-[0-9a-f]*[a-f])`,
-      "g",
-    ),
-    // `!isEpochMs` before Luhn: a 13-digit epoch-ms timestamp passes Luhn one time in ten.
-    validate: (m) =>
-      maxOneWrap(m) &&
-      !isEpochMs(m) &&
-      (luhn(m) || ((m.match(/\d/g)?.length ?? 0) >= 10 && luhn(deconfuseOcrDigits(m)))),
-  },
-  {
-    // SHORT Maestro: 12 digits, the only length under 13 a network issues. Any 12-digit
-    // run passes Luhn one time in ten, so TWO anchors: the Maestro IIN prefix AND Luhn.
-    // After the 13-19 rule so a longer run keeps priority.
-    type: "card",
-    pattern: new RegExp(
-      String.raw`\b(?:5018|5020|5038|5893|6304|6759|676[123])(?:(?:${SP}{1,2}|[-–—](?:${WRAP})?|${WRAP})?\d){8}\b`,
-      "g",
-    ),
-    // `luhn()` carries the 13-19 floor; the regex fixes the length, only the checksum is needed.
-    validate: (m) => {
-      const d = m.replace(/\D/g, "");
-      return maxOneWrap(m) && d.length === 12 && luhnDigits(d);
-    },
-  },
-  {
-    // 12 digits WITHOUT a Maestro IIN: only under an explicit card label — the context
-    // replaces the prefix as the second anchor, Luhn stays the first (same logic as SSN).
-    // gate()'s HEAD blocks « postcard ».
-    type: "card",
-    pattern: gate(
-      String.raw`(?:credit|debit)\s+card|card|carte(?:\s+(?:bancaire|bleue|de\s+cr[ée]dit))?|kreditkarte|tarjeta|carta`,
-      String.raw`\d(?:(?:${SP}{1,2})?\d){11}\b`,
-    ),
-    validate: (m) => {
-      const d = m.replace(/\D/g, "");
-      return d.length === 12 && luhnDigits(d);
-    },
-  },
+  ...CARD_RULES,
   {
     // Country(2) + check(2) + 10–30 alnum, confirmed by ISO 7064 mod-97, in ANY case
     // ("FR76", "fr76", "Fr76"): the 1/97 checksum is the precision gate, not the casing.
@@ -256,7 +214,7 @@ export const RULES: RedactionRule[] = [
   {
     type: "bic",
     pattern:
-      /(?<=\b(?:code\s+)?(?:[Bb][Ii][Cc]|[Ss][Ww][Ii][Ff][Tt])(?:\s*\/\s*(?:[Bb][Ii][Cc]|[Ss][Ww][Ii][Ff][Tt]))?\b[\s:.=/,;"'«»()[\]-]*(?:[a-zà-ÿ]+[\s:.=/,;"'«»()[\]-]+){0,4})[A-Z]{6}[A-Z0-9]{2}(?:[A-Z0-9]{3})?\b/g,
+      /(?=[A-Z])(?<=\b(?:code\s+)?(?:[Bb][Ii][Cc]|[Ss][Ww][Ii][Ff][Tt])(?:\s*\/\s*(?:[Bb][Ii][Cc]|[Ss][Ww][Ii][Ff][Tt]))?\b[\s:.=/,;"'«»()[\]-]*(?:[a-zà-ÿ]+[\s:.=/,;"'«»()[\]-]+){0,4})[A-Z]{6}[A-Z0-9]{2}(?:[A-Z0-9]{3})?\b/g,
   },
   // GPS coordinates "lat, long" — 4+ decimals + valid geographic range.
   {

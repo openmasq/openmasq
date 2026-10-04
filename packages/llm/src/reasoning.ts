@@ -99,8 +99,9 @@ export function anthropicThinkingFields(
   };
 }
 
-/** Anthropic requires an explicit output cap; 4096 is our long-standing default. */
-const DEFAULT_MAX_TOKENS = 4096;
+/** Anthropic requires an explicit output cap; 4096 is our long-standing default. Also the
+ *  room the app keeps for a reply when it decides a message fits a window (`contextFit.ts`). */
+export const DEFAULT_MAX_TOKENS = 4096;
 /** …and the room a thinking turn needs on top of it (thinking + answer share the cap). */
 const THINKING_MAX_TOKENS = 16000;
 

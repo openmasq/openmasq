@@ -175,19 +175,18 @@ describe("ROUTINE_LIST", () => {
     expect(suggestedRoutines([], fr).map((s) => s.id)).toContain("revue-boite-mail");
   });
 
-  it("the default strip is FULLY launchable in one click (30/07/2026: no gated template left)", () => {
-    // Since 1-click covers 100% of Google's capabilities, no template
-    // requires "vos clés" anymore. The historic rule (at most ONE gated template, marked)
-    // re-applies itself on its own if a gated connector comes back into the catalogue.
+  it("a template needing « vos clés » SAYS so — never a silent dead end", () => {
+    // Google is keys-only while it reviews the app: its templates stay offered (ticking
+    // Gmail must still answer with the Gmail routine), each one marked by `ownKeysNeeded`.
     const gated = suggestedRoutines([], fr).filter((s) => ownKeysNeeded(s, fr).length > 0);
-    expect(gated).toEqual([]);
+    for (const s of gated) expect(ownKeysNeeded(s, fr)[0].title, s.id).toMatch(/clés/i);
   });
 
-  it("« Préparer ma journée » stays CASA-free — no Gmail read hiding in the agenda routine", () => {
+  it("« Préparer ma journée » stays agenda-only — no Gmail read hiding in it", () => {
     const journee = ROUTINE_LIST.find((s) => s.id === "preparer-journee")!;
     expect(journee.servers).toEqual(["google-calendar"]);
-    expect(ownKeysNeeded(journee, fr)).toEqual([]);
   });
+
 
   it("has unique ids and names, and every template names at least one connector", () => {
     expect(new Set(ROUTINE_LIST.map((s) => s.id)).size).toBe(ROUTINE_LIST.length);
@@ -310,12 +309,12 @@ describe("genericRoutineFor", () => {
     expect(g.desc).toContain(findConnector("microsoft-outlook")!.desc.slice(1));
   });
 
-  it("hérite du catalogue : plus AUCUN connecteur marqué « vos clés » depuis le 30/07/2026", () => {
-    // The mark is DERIVED (`byoOnly`/`byoAdds`) and the catalogue no longer carries any —
-    // 1-click covers 100% of Google's capabilities, and SharePoint/Teams are
-    // `adminConsent` (a different mechanism). It relights on its own if a
-    // gated connector comes back; the "is DERIVED" test below pins the derivation.
-    for (const id of ["google-drive", "gmail", "microsoft-sharepoint", "slack"])
+  it("hérite du catalogue : Google marqué « vos clés », les autres non", () => {
+    // The mark is DERIVED (`byoOnly`/`byoAdds`): Google is keys-only while it reviews the
+    // app; SharePoint/Teams are `adminConsent` (a different mechanism), Slack is one-click.
+    for (const id of ["google-drive", "gmail"])
+      expect(ownKeysNeeded(genericRoutineFor(id, fr)!, fr).length, id).toBe(1);
+    for (const id of ["microsoft-sharepoint", "slack"])
       expect(ownKeysNeeded(genericRoutineFor(id, fr)!, fr), id).toEqual([]);
   });
 
@@ -327,17 +326,13 @@ describe("genericRoutineFor", () => {
 describe("ownKeysNeeded — « il faut vos propres clés pour ça »", () => {
   const byId = (id: string) => ROUTINE_LIST.find((s) => s.id === id)!;
 
-  it("Gmail et Drive ne sont PLUS gated — le 1-clic couvre lecture + envoi (30/07/2026)", () => {
-    // This was the day predicted by the "is DERIVED" test below: the marks
-    // disappeared on their own once `byoAdds`/`byoOnly` were removed from the catalogue.
-    expect(ownKeysNeeded(byId("revue-boite-mail"), fr)).toEqual([]);
-    expect(ownKeysNeeded(byId("point-client"), fr)).toEqual([]);
+  it("Gmail est marqué « vos clés » tant que Google vérifie l'app", () => {
+    expect(ownKeysNeeded(byId("revue-boite-mail"), fr).map((n) => n.service)).toContain("Gmail");
   });
 
   it("says nothing for a one-click template", () => {
     for (const id of [
       "comparer-offres",
-      "preparer-journee",
       "point-hebdo-slack",
       "recherche-notion",
     ])

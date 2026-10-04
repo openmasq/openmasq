@@ -1,10 +1,13 @@
+import { getMessages } from "@openmasq/i18n";
 import { describe, it, expect, vi } from "vitest";
-import { MAX_DROP_BYTES, extractDroppedFiles, deferDroppedFile } from "./extractDropped";
+import { MAX_FILE_BYTES } from "@openmasq/redact";
+import { extractDroppedFiles, deferDroppedFile } from "./extractDropped";
 import type { OcrProgress } from "../../host";
 
 const deps = (over: Partial<Parameters<typeof extractDroppedFiles>[1]> = {}) => ({
   extractBytes: vi.fn(async (_d: string, name: string) => ({ text: `texte de ${name}` })),
   toBase64: () => "BASE64",
+  t: getMessages("fr"),
   ...over,
 });
 
@@ -20,7 +23,7 @@ describe("extractDroppedFiles — bytes, never a path", () => {
     // picker may do. The bytes are already the renderer's, so nothing new is granted.
     const d = deps();
     const out = await extractDroppedFiles([f("contrat.pdf", "application/pdf")], d);
-    expect(d.extractBytes).toHaveBeenCalledWith("BASE64", "contrat.pdf", "application/pdf", undefined);
+    expect(d.extractBytes).toHaveBeenCalledWith("BASE64", "contrat.pdf", "application/pdf", undefined, undefined, undefined);
     expect(out).toEqual([
       {
         name: "contrat.pdf",
@@ -56,7 +59,7 @@ describe("extractDroppedFiles — bytes, never a path", () => {
   it("passes NO mime rather than an empty one when the drop carries none", async () => {
     const d = deps();
     await extractDroppedFiles([f("notes")], d);
-    expect(d.extractBytes).toHaveBeenCalledWith("BASE64", "notes", undefined, undefined);
+    expect(d.extractBytes).toHaveBeenCalledWith("BASE64", "notes", undefined, undefined, undefined, undefined);
   });
 
   it("fails PER FILE — a corrupt one must not throw away the others", async () => {
@@ -71,11 +74,15 @@ describe("extractDroppedFiles — bytes, never a path", () => {
     expect(out.map((x) => x.text)).toEqual(["ok", "", "ok"]);
   });
 
-  it("refuses an oversized file BEFORE reading it into memory", async () => {
+  it("refuses an oversized file BEFORE reading it into memory — at main's own cap, limit stated", async () => {
     const d = deps();
-    const out = await extractDroppedFiles([f("image.dmg", "", MAX_DROP_BYTES + 1)], d);
-    expect(out[0]!.error).toBe("fichier trop volumineux");
+    const out = await extractDroppedFiles([f("image.dmg", "", MAX_FILE_BYTES + 1)], d);
+    expect(out[0]!.error).toBe("Fichier trop volumineux (50 Mo maximum). Découpez-le en plusieurs parties.");
+    expect(out[0]!.blocked).toBe(true);
     expect(d.extractBytes).not.toHaveBeenCalled();
+    // The SAME constant as the pre-parse gate: a file main accepts is never refused here.
+    const ok = await extractDroppedFiles([f("ok.txt", "", MAX_FILE_BYTES)], deps());
+    expect(ok[0]!.blocked).toBeUndefined();
   });
 
   it("handles an empty drop", async () => {
@@ -136,14 +143,22 @@ describe("un fichier REFUSÉ par la garde ne s'attache pas avec ses octets", () 
     expect(out[0]!.data).toBe("BASE64");
   });
 
-  it("une extraction PARTIELLE garde son texte ET sa raison", async () => {
-    // `error` était jeté avec `blocked` : la puce ne disait rien alors qu'une couche
-    // manquait.
+  it("une extraction en ERREUR ne garde AUCUN texte : jamais un document envoyé en partie", async () => {
+    // Fail closed: a partial read (text + a reason) is in error, not sendable — its text
+    // and every text-bearing layer are dropped; the reason and the bytes stay.
     const d = deps({
-      extractBytes: vi.fn(async () => ({ text: "page 1", error: "OCR indisponible" })),
+      extractBytes: vi.fn(async () => ({
+        text: "page 1",
+        error: "OCR indisponible",
+        ocrText: "page 1",
+        words: [{ text: "page", x0: 0, y0: 0, x1: 1, y1: 1 }],
+      })),
     });
     const out = await extractDroppedFiles([f("scan.pdf")], d);
-    expect(out[0]!.text).toBe("page 1");
+    expect(out[0]!.text).toBe("");
+    expect(out[0]!.chars).toBe(0);
+    expect(out[0]!.ocrText).toBeUndefined();
+    expect(out[0]!.words).toBeUndefined();
     expect(out[0]!.error).toBe("OCR indisponible");
     expect(out[0]!.data).toBe("BASE64");
   });
@@ -168,5 +183,13 @@ describe("deferDroppedFile — la forme différée du drop", () => {
     const out = await df.load((p) => ticks.push(p));
     expect(out.text).toBe("ok");
     expect(ticks).toEqual([{ done: 2, total: 3 }]);
+  });
+});
+
+describe("deferDroppedFile — the chip's id rides along, so removing it cancels THIS read", () => {
+  it("hands the job id to the bytes extraction", async () => {
+    const extractBytes = vi.fn(async () => ({ text: "x" }));
+    await deferDroppedFile(f("scan.pdf", "application/pdf"), deps({ extractBytes })).load(undefined, undefined, undefined, "chipX");
+    expect((extractBytes.mock.calls.at(-1) as unknown[])?.[5]).toBe("chipX");
   });
 });

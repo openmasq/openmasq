@@ -44,7 +44,7 @@ export const DESKTOP_EVENTS = {
   redaction_forced: ["kind", "source"],
   tool_loop_summary: [
     "provider", "model", "turns", "toolCalls", "ms",
-    "routerOffered", "routerTotal", "loadToolsUnknown", "navClear", "navEscalated", "outcome", "reason",
+    "routerOffered", "routerTotal", "routerMs", "loadToolsUnknown", "navClear", "navEscalated", "outcome", "reason",
     // ⚠️ `loopId` was missing HERE while the vocabulary declares it — the walk stripped it
     // WITHOUT A WORD and a laborious session's summary no longer joined its own
     // tool_called/tool_error (audit 13/08). `sanitize.parity.test.ts` now makes this class
@@ -63,5 +63,6 @@ export const DESKTOP_EVENTS = {
   update_check: ["channel", "result", "found_version"],
   update_downloaded: ["channel", "version"],
   update_install: ["channel", "version"],
+  update_install_deferred: ["channel", "version", "reason"],
   update_installed: ["channel", "from", "to"],
 } as const;

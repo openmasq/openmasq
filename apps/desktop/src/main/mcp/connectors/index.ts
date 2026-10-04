@@ -9,14 +9,11 @@ import { slackLogin } from "./oauthSlack";
 import { directAccountIdentity, accountKeyHash } from "../accountIdentity";
 import { effectiveScopes } from "./scopes";
 import { scopesForMode } from "../credMode";
+import { mainMessages } from "../../i18n";
 
-/** Desktop-direct connectors: OAuth on-device + tools in-process, NO broker. Dispatches
- *  the login by the connector's `auth` style and refreshes an expiring token. */
-
-/** True when `id` is a known desktop-direct connector (`@openmasq/connectors`). */
-export function hasDirectConnector(id: string): boolean {
-  return !!getConnector(id);
-}
+/** The connect-time errors a PERSON reads, in main's language. (The token-path errors in
+ *  `freshToken`/`connectorConnect` below are addressed to the MODEL and stay as they are.) */
+const copy = () => mainMessages().desktopMain.mcp;
 
 /** Google connectors share ONE "Desktop app" client (scopes per connector). Same predicate
  *  as `credGroupOf`. */
@@ -49,14 +46,12 @@ function connectorIdOf(spec: ServerSpec): string {
 
 function resolveClientId(spec: ServerSpec): string {
   if (spec.credMode === "byo") {
-    if (!spec.clientId) throw new Error("Client id manquant (mode « mes clés »)");
+    if (!spec.clientId) throw new Error(copy().missingClientId);
     return spec.clientId;
   }
   const id = builtinClientId(connectorIdOf(spec));
   if (!id) {
-    throw new Error(
-      "Clés intégrées non configurées pour ce connecteur — utilisez « mes clés » ou réessayez plus tard.",
-    );
+    throw new Error(copy().builtinKeysMissing);
   }
   return id;
 }
@@ -65,7 +60,7 @@ function resolveClientId(spec: ServerSpec): string {
 function resolveGoogleCreds(spec: ServerSpec): { clientId: string; clientSecret: string } {
   const clientId = resolveClientId(spec);
   const clientSecret = spec.credMode === "byo" ? spec.clientSecret : builtinClientSecret(connectorIdOf(spec));
-  if (!clientSecret) throw new Error("Client secret Google manquant");
+  if (!clientSecret) throw new Error(copy().missingGoogleSecret);
   return { clientId, clientSecret };
 }
 
@@ -74,7 +69,7 @@ function resolveGoogleCreds(spec: ServerSpec): { clientId: string; clientSecret:
 async function login(spec: ServerSpec, connector: Connector): Promise<void> {
   // A BYO-only connector needs a RESTRICTED scope the app's own client cannot request.
   if (connector.byoOnly && spec.credMode !== "byo") {
-    throw new Error("Ce connecteur nécessite vos propres clés (« Mes clés »).");
+    throw new Error(copy().byoRequired);
   }
   const scopes = scopesForMode(connector.scopes, spec.credMode);
   if (connector.auth === "device") {
@@ -198,9 +193,9 @@ export async function connectorConnect(
  */
 export async function directFetchJson<T>(specId: string, url: string): Promise<T> {
   const spec = getServer(specId);
-  if (!spec) throw new Error(`Connecteur inconnu : ${specId}`);
+  if (!spec) throw new Error(copy().unknownConnector(specId));
   const connectorId = connectorIdOf(spec);
   const connector = getConnector(connectorId);
-  if (!connector) throw new Error(`Connecteur inconnu : ${connectorId}`);
+  if (!connector) throw new Error(copy().unknownConnector(connectorId));
   return bearerFetchJson(await freshToken(spec, connector))<T>(url);
 }

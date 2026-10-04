@@ -7,7 +7,12 @@ vi.mock("electron", () => ({ app: { getPath: () => "/tmp" } }));
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 
-import { humanizeUpdateError, totalUpdateSize, APPLY_SPACE_FACTOR } from "./disk";
+import { getMessages } from "@openmasq/i18n";
+import { humanizeUpdateError as humanize, sizeGB, totalUpdateSize, APPLY_SPACE_FACTOR } from "./disk";
+
+// The assertions below read the FRENCH wording; the codes are language-independent.
+const fr = getMessages("fr").desktopMain.updates.errors;
+const humanizeUpdateError = (err: unknown) => humanize(err, fr);
 
 describe("humanizeUpdateError — failure taxonomy (drives the PostHog code)", () => {
   const code = (msg: string): string => humanizeUpdateError(new Error(msg)).code;
@@ -29,6 +34,16 @@ describe("humanizeUpdateError — failure taxonomy (drives the PostHog code)", (
   it("keeps the HTTP status in a download code", () => {
     expect(code("HttpError: 503 status code")).toBe("download-503");
     expect(code("signature verification failed after download")).toBe("signature");
+  });
+
+  // builder-util-runtime's HttpError for a feed 5xx: the message opens on the bare status
+  // and the body, no "HttpError"/"status" word — only `statusCode` says what happened.
+  it("reads the status an HttpError carries, not only its text", () => {
+    const err = Object.assign(new Error('500 \n"method: GET url: https://updates.example.invalid Data: {"error":"internal_error"}"'), {
+      statusCode: 500,
+    });
+    expect(humanizeUpdateError(err).code).toBe("download-500");
+    expect(humanizeUpdateError(err).message).not.toMatch(/connexion/);
   });
 
   it("always returns a user-safe FR message (never a raw dump)", () => {
@@ -123,5 +138,20 @@ describe("humanizeUpdateError — un réseau qui lâche reste un réseau qui lâ
     expect(code).toBe("read_only_volume");
     expect(message).toMatch(/Applications/);
     expect(message).not.toMatch(/[Rr]éessayez plus tard/); // especially NOT the generic advice
+  });
+});
+
+describe("humanizeUpdateError — the same code, the user's language", () => {
+  it("words the code in English or French, never changes it", () => {
+    const err = new Error("ditto: No space left on device");
+    const en = humanize(err, getMessages("en").desktopMain.updates.errors);
+    expect(en).toEqual({ code: "no_space", message: getMessages("en").desktopMain.updates.errors.noSpace });
+    expect(en.message).toMatch(/disk space/);
+    expect(humanizeUpdateError(err).message).toMatch(/Espace disque/);
+  });
+
+  it("formats a size with the locale's decimal mark and unit", () => {
+    expect(sizeGB(1.44e9, "fr", getMessages("fr"))).toBe("1,4 Go");
+    expect(sizeGB(1.44e9, "en", getMessages("en"))).toBe("1.4 GB");
   });
 });

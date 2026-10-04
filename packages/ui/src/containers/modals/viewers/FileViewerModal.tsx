@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { ModalShell } from "../ModalShell";
 import { useHost } from "../../../host";
-import { useAskAction, ASK_LABEL } from "./useAskAction";
+import { useAskAction, askLabel } from "./useAskAction";
 import { ShieldIcon, IconButton, XIcon, DownloadIcon, MessageIcon } from "../../../components/brand";
 import { FileViewerBody, type LoadedFile } from "./FileViewerBody";
 import { Switch } from "../../../components/brand";
@@ -178,7 +178,7 @@ export function FileViewerModal({
             disabled={ask.state === "pending"}
             aria-busy={ask.state === "pending"}
           >
-            <MessageIcon size={14} /> {ASK_LABEL[ask.state]}
+            <MessageIcon size={14} /> {askLabel(ask.state, t)}
           </button>
         )}
         {openExternal && (

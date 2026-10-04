@@ -183,6 +183,19 @@ describe("makeConnectorConnection — a failure the user can act on", () => {
     expect(text.text).not.toMatch(/reconnecter/i);
   });
 
+  it("Microsoft Graph : le CODE d'erreur remonte (sans le message libre) — un « (404) » nu n'explique rien", async () => {
+    stubFetch(404, JSON.stringify({ error: { code: "itemNotFound", message: "Item for Camille not found" } }));
+    const c = makeConnectorConnection({
+      id: "google-calendar",
+      connector: conn(),
+      getToken: async () => "tok",
+      grantedScopes: [],
+    });
+    const text = (await c.callTool(call())).content[0] as { text: string };
+    expect(text.text).toContain("Upstream request failed (404): itemNotFound");
+    expect(text.text).not.toContain("Camille");
+  });
+
   it("keeps the provider's explanation in `detail` — and OUT of what the model reads", async () => {
     // `content` is the only thing handed to the model, so free upstream text (a
     // prompt-injection surface, and possibly a real value) must never land there.

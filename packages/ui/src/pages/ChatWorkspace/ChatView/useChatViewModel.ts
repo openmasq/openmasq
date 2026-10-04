@@ -48,15 +48,16 @@ export function useChatViewModel(p: ChatViewProps): ChatViewModel {
 
   const { redactPolicy, redactLevel } = useRedactPolicy(p);
   const att = useAttachments(p);
-  const intake = useAttachmentIntake(p, att, redactPolicy);
-  const forced = useForcedRedactions(p, att.setAttachments);
   const intents = useIntentChips(p);
+  const intake = useAttachmentIntake(p, att, redactPolicy, intents.stageTarget);
+  const forced = useForcedRedactions(p, att.setAttachments);
   const view = useConversationView(p, t, intents.memoryOpen);
   const scroll = useScrollFollow(p, view.messages);
   const sel = useSelectionActions(p, { scrollRef: scroll.scrollRef, input, handleInput, setActiveTag: intents.setActiveTag, t });
   const gates = usePendingGates(p, view.activeStreaming);
   const keys = useKeyRetry(p);
-  const send = useSendPipeline(p, { input, clearInput, activeStreaming: view.activeStreaming, att, forced, intents, gates });
+  const modelId = p.conversation?.modelId ?? view.defaultModelId;
+  const send = useSendPipeline(p, { input, clearInput, activeStreaming: view.activeStreaming, att, forced, intents, gates, modelId });
 
   return {
     p,

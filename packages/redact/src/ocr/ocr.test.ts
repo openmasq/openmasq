@@ -58,7 +58,7 @@ describe("ocrPdf", () => {
   beforeEach(() => createCanvas.mockClear());
 
   it("rasterises each page, OCRs it, and joins the text (+ reports engine/timing)", async () => {
-    const { text, meta } = await ocrPdf(new Uint8Array([0]), "eng", 2);
+    const { text, meta } = await ocrPdf(new Uint8Array([0]), "eng");
     expect(createCanvas).toHaveBeenCalledTimes(2);
     expect(text).toContain("amelie.brivet@example.com");
     expect(meta.engine).toBe("tesseract"); // no docTR bundled in the test env
@@ -66,10 +66,21 @@ describe("ocrPdf", () => {
     expect(typeof meta.ms).toBe("number");
   });
 
-  it("caps pages and notes the un-OCR'd remainder", async () => {
-    const { text } = await ocrPdf(new Uint8Array([0]), "eng", 1);
+  // A PDF is read WHOLE: no cap, no « more pages » marker. The only pages left out are
+  // the ones the caller names as complete in their text layer (`layers/ocrSkip.ts`).
+  it("reads every page by default, and only the named pages when given a list", async () => {
+    const all = await ocrPdf(new Uint8Array([0]), "eng");
+    expect(createCanvas).toHaveBeenCalledTimes(2);
+    expect(all.text).not.toContain("not OCR'd");
+    createCanvas.mockClear();
+    const ticks: [number, number][] = [];
+    const one = await ocrPdf(new Uint8Array([0]), "eng", [2], (d, n) => ticks.push([d, n]));
     expect(createCanvas).toHaveBeenCalledTimes(1);
-    expect(text).toContain("non océrisée");
+    expect(one.meta).toMatchObject({ pages: 1, pagesTotal: 2 });
+    // The skipped page keeps its PLACE in the geometry (indexed by page).
+    expect(one.layout).toHaveLength(2);
+    expect(one.layout[0]).toMatchObject({ text: "", words: [] });
+    expect(ticks).toEqual([[0, 1], [1, 1]]);
   });
 
   // The canvas is sized from the page's OWN geometry: at a fixed scale 2, a page the FILE
@@ -78,9 +89,9 @@ describe("ocrPdf", () => {
   it("SAUTE une page démesurée au lieu d'allouer sa toile (28800×28800)", async () => {
     // 28 800 pt is the PDF format's own maximum: 830 Mpx at 1:1, 3.3 Gpx at scale 2.
     doc.getPage.mockImplementation(async () => pageOfSize(28800, 28800) as never);
-    const { text, layout } = await ocrPdf(new Uint8Array([0]), "eng", 2);
+    const { text, layout } = await ocrPdf(new Uint8Array([0]), "eng");
     expect(createCanvas).not.toHaveBeenCalled(); // aucune toile n'est jamais demandée
-    expect(text).toContain("dimensions excessives");
+    expect(text).toContain("dimensions too large");
     // La page garde sa PLACE dans la géométrie — l'index de page ne glisse pas.
     expect(layout).toHaveLength(2);
     expect(layout[0].words).toEqual([]);
@@ -91,7 +102,7 @@ describe("ocrPdf", () => {
     // 4000×3000 : hors plafond à l'échelle 2, dedans une fois rabaissée — la page est
     // bien océrisée, simplement moins finement.
     doc.getPage.mockImplementation(async () => pageOfSize(4000, 3000) as never);
-    const { text } = await ocrPdf(new Uint8Array([0]), "eng", 1);
+    const { text } = await ocrPdf(new Uint8Array([0]), "eng", [1]);
     expect(createCanvas).toHaveBeenCalledTimes(1);
     const [w, h] = createCanvas.mock.calls[0] as unknown as [number, number];
     expect(w * h).toBeLessThanOrEqual(40_000_000 + w + h); // le plafond, aux arrondis près

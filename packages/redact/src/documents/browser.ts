@@ -16,13 +16,18 @@ import {
   type ExtractedFile,
   type RedactedDocument,
 } from "./core";
-import { MAX_PDF_PAGES, rasterScale } from "./safety/guard";
+import { DEFAULT_OCR_MARKERS, type OcrMarkers } from "./ocrMarkers";
+import { pdfPagesRefusal, rasterScale } from "./safety/guard";
 import { reconstructPageText } from "./serialize/pdfLayout";
 
 export { SUPPORTED_EXTENSIONS, OCR_LANGS, OCR_TRAINEDDATA_SHA256, hybridLayerText, spatialFieldLines } from "./core";
 // Send-cut → grid-row mapping for the preview grid (same parser/serializer as extraction).
 export { delimitedGrid, annotatedCutRow } from "./core";
-export type { ExtractedFile, RedactedDocument, TextLayerPage, OcrLayerPage, LayerGeometry } from "./core";
+export type { ExtractedFile, RedactedDocument, TextLayerPage, OcrLayerPage, LayerGeometry, OcrMarkers } from "./core";
+// The preview stream of a PDF being read: the renderer assembles the pages as the extractor joins them.
+export { pageOffsets, streamedPrefix, STREAM_MAX_PAGES, THUMB_MAX_WIDTH_PX, PAGE_BREAK } from "./core";
+export type { ExtractStreamEvent, PageEvent } from "./core";
+export type { DocumentErrorCode, DocumentErrorParams } from "./core";
 
 export interface BrowserExtractConfig {
   /** URL of the bundled pdf.js worker (Vite `?url` / chrome.runtime.getURL). */
@@ -30,6 +35,8 @@ export interface BrowserExtractConfig {
   /** OCR one image's bytes → text. Injected by the consumer (e.g. tesseract.js
    *  wired to bundled MV3 assets). Absent → images / scanned PDFs return an error. */
   ocr?: (bytes: Uint8Array) => Promise<string>;
+  /** Wording of the skipped-page markers; absent ⇒ `DEFAULT_OCR_MARKERS` (English). */
+  ocrMarkers?: OcrMarkers;
 }
 
 let cfg: BrowserExtractConfig = {};
@@ -53,8 +60,13 @@ async function pdfText(bytes: Uint8Array): Promise<string> {
   const lib = await pdfjs();
   const doc = await lib.getDocument({ data: bytes, isEvalSupported: false }).promise;
   const out: string[] = [];
-  const pages = Math.min(doc.numPages, MAX_PDF_PAGES); // cap: a huge page count can't hang extraction
-  for (let i = 1; i <= pages; i++) {
+  // Past the cap the PDF is REFUSED, never read up to it (`pdfPagesRefusal`).
+  const tooMany = pdfPagesRefusal(doc.numPages);
+  if (tooMany) {
+    await doc.destroy?.();
+    throw tooMany;
+  }
+  for (let i = 1; i <= doc.numPages; i++) {
     const page = await doc.getPage(i);
     const tc = await page.getTextContent();
     // Approach A (geometric): rebuild reading order + columns from item.transform
@@ -67,25 +79,27 @@ async function pdfText(bytes: Uint8Array): Promise<string> {
 }
 
 async function ocrImage(bytes: Uint8Array): Promise<string> {
-  if (!cfg.ocr) throw new Error("OCR non configuré (tesseract non chargé)");
+  if (!cfg.ocr) throw new Error("OCR not configured (tesseract not loaded)");
   return (await cfg.ocr(bytes)).trim();
 }
 
-/** Rasterise each page to PNG (pdf.js + OffscreenCanvas) then OCR it via `cfg.ocr`.
- *  ⚠️ The 2nd parameter is the progress callback of the `ExtractDeps.ocrPdf` contract —
- *  a positional `maxPages` here would receive the FUNCTION (Math.min(n, fn) = NaN, loop
- *  skipped, OCR silently empty). */
-const OCR_PDF_MAX_PAGES = 10;
+/** Rasterise each page to read to PNG (pdf.js + OffscreenCanvas) then OCR it via `cfg.ocr`.
+ *  Every page unless `only` names them (1-based) — never a cap: this binding reports no
+ *  `needsOcr`, so the core always passes `undefined` here and the whole document is read.
+ *  ⚠️ The 2nd parameter is the progress callback of the `ExtractDeps.ocrPdf` contract. */
 async function ocrPdf(
   bytes: Uint8Array,
   onProgress?: (done: number, pages: number) => void,
-  maxPages: number = OCR_PDF_MAX_PAGES,
+  only?: readonly number[],
+  markers: OcrMarkers = cfg.ocrMarkers ?? DEFAULT_OCR_MARKERS,
 ): Promise<{ text: string; meta: { engine: string; ms: number; pages: number; pagesTotal: number } }> {
   const t0 = Date.now();
-  if (!cfg.ocr) throw new Error("OCR non configuré (tesseract non chargé)");
+  if (!cfg.ocr) throw new Error("OCR not configured (tesseract not loaded)");
   const lib = await pdfjs();
   const doc = await lib.getDocument({ data: bytes, isEvalSupported: false }).promise;
-  const pages = Math.min(doc.numPages, maxPages);
+  const total: number = doc.numPages;
+  const toRead = only ? new Set(only) : null;
+  const pages = toRead ? [...toRead].filter((n) => n >= 1 && n <= total).length : total;
   const tick = (done: number) => {
     try {
       onProgress?.(done, pages);
@@ -95,7 +109,12 @@ async function ocrPdf(
   };
   tick(0);
   const out: string[] = [];
-  for (let i = 1; i <= pages; i++) {
+  let done = 0;
+  for (let i = 1; i <= total; i++) {
+    if (toRead && !toRead.has(i)) {
+      out.push("");
+      continue;
+    }
     const page = await doc.getPage(i);
     // Same ceiling as the Node rasteriser (`../ocr/pdf.ts`, which states it in full): the
     // canvas is sized from geometry the FILE chooses, so a scale fixed at 2 lets an
@@ -103,8 +122,8 @@ async function ocrPdf(
     const base = page.getViewport({ scale: 1 });
     const scale = rasterScale(base.width, base.height, 2);
     if (scale === null) {
-      out.push(`[… page ${i} non océrisée : dimensions excessives]`);
-      tick(i);
+      out.push(markers.pageTooLarge(i));
+      tick(++done);
       page.cleanup?.();
       continue;
     }
@@ -118,18 +137,14 @@ async function ocrPdf(
     const blob = await canvas.convertToBlob();
     const png = new Uint8Array(await blob.arrayBuffer());
     out.push((await cfg.ocr(png)).trim());
-    tick(i);
+    tick(++done);
     page.cleanup?.();
   }
   await doc.destroy?.();
-  if (doc.numPages > pages) {
-    out.push(`[… ${doc.numPages - pages} page(s) supplémentaire(s) non océrisée(s)]`);
-  }
-  // Minimal meta (the browser doesn't have the docTR router): just enough for the
-  // chip to say « N/M pages read » here too.
+  // Minimal meta (the browser doesn't have the docTR router).
   return {
     text: out.join(PAGE_BREAK).trim(),
-    meta: { engine: "tesseract", ms: Date.now() - t0, pages, pagesTotal: doc.numPages },
+    meta: { engine: "tesseract", ms: Date.now() - t0, pages, pagesTotal: total },
   };
 }
 

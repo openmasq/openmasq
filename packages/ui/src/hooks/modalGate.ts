@@ -8,7 +8,7 @@
 
 /** Any blocking modal / overlay: `ModalShell`'s scrim, the auth scrim, or any element
  *  flagged as a dialog. Kept in sync across the two visibility owners. */
-export const MODAL_SELECTOR = ".modal-scrim, .auth-scrim, [aria-modal='true'], [role='dialog']";
+const MODAL_SELECTOR = ".modal-scrim, .auth-scrim, [aria-modal='true'], [role='dialog']";
 
 /** True when at least one blocking modal is mounted in the document. */
 export const isModalOpen = (): boolean =>

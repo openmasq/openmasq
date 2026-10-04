@@ -13,6 +13,9 @@ export interface ConvTab {
   /** The conversation is generating a reply — show a spinner in place of the logo
    *  (like a browser tab loading), so a busy thread is visible from any other tab. */
   busy?: boolean;
+  /** Its staged files are still being read or masked (`state/files/stagedActivity.ts`):
+   *  a quieter spinner, so a long masking is visible from any other tab. */
+  preparing?: boolean;
   /** Kit tab KINDS: a browser or file tab in the same strip (globe/file icon, tinted
    *  marker). Absent = a chat conversation. Non-chat tabs carry the FULL ref as `id`
    *  and are not draggable (their lifecycle isn't the conversation DnD's). */
@@ -147,6 +150,8 @@ export function ConvTabs({
               <span className="conv-tab-ico">
                 {tab.busy ? (
                   <span className="conv-tab-spin" aria-label={t.chat.generating} role="status" />
+                ) : tab.preparing ? (
+                  <span className="conv-tab-spin is-prep" aria-label={t.chat.preparingFiles} role="status" />
                 ) : tab.kind === "browser" ? (
                   <BrowserIcon size={15} />
                 ) : tab.kind === "file" ? (

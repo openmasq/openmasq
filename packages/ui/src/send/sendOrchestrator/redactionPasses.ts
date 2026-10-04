@@ -47,17 +47,26 @@ export async function runRedactionPasses(
   const { host, settings } = d;
   const { vault, engineCtx, useLocal, useAiDetect, detectLocalFn, recordKinds } = r;
   const notoriety = { commercial: r.commercialNotoriety, people: r.peopleNotoriety };
-  const detect = (block: string, extra: { forced?: typeof r.forcedList; secrets?: string[]; numbers: boolean }) =>
-    raceRedactionWork(
+  // A pass that timed out or was stopped is ABANDONED for real once the race has settled: its
+  // NER run is cancelled in the worker, so a retry does not queue behind a stale one. The race
+  // keeps its own verdict (timeout / stop) — the send stays blocked either way.
+  const detect = (block: string, extra: { forced?: typeof r.forcedList; secrets?: string[]; numbers: boolean }) => {
+    const abandon = new AbortController();
+    return raceRedactionWork(
       pseudonymize(block, {
         vault,
         reFakeExisting: true,
-        detectLocal: useLocal ? detectLocalFn : undefined,
+        detectLocal: useLocal && detectLocalFn ? (t) => detectLocalFn(t, abandon.signal) : undefined,
         ...extra,
         ...engineCtx,
+        signal: abandon.signal,
       }),
       { signal: sendAbort.signal, timeoutMs: redactTimeoutMs(block) },
-    );
+    ).catch((e: unknown) => {
+      abandon.abort();
+      throw e;
+    });
+  };
 
   // MÉMOIRE: selected client-side on REAL values, re-redacted through this conversation's
   // engine+vault+salt; its entities ride `forced` so the injection is protected even under
@@ -167,7 +176,7 @@ export async function runRedactionPasses(
   // The `wire` log entry always goes out (a « Votre avis » report embeds it); only the
   // console trace is behind the developer toggle. Its id receives the token cost later.
   const wireDebugId = logWireMessage(
-    { model: ctx.model.id, text: userWire.text, vault, kinds: r.convKinds, convId },
+    { model: ctx.model.id, text: userWire.text, vault, kinds: { ...r.convKinds, ...r.extraKinds }, convId },
     { toConsole: !!settings.debugLog },
   );
 
@@ -175,7 +184,7 @@ export async function runRedactionPasses(
   const turnKinds: Record<string, string> = { ...r.convKinds, ...r.extraKinds };
   for (const sp of redactedSpans) turnKinds[sp.value] = sp.kind;
   const redactionFailed =
-    useAiDetect && userWire.modelError ? describeRedactFailure(userWire.modelError, settings.redactEngine) : undefined;
+    useAiDetect && userWire.modelError ? describeRedactFailure(userWire.modelError, d.t, settings.redactEngine) : undefined;
 
   return { userWire, redactedSpans, turnKinds, redactionFailed, wireDebugId, memSel, memoryWire };
 }

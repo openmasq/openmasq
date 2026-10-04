@@ -19,10 +19,12 @@
 // contradiction, a header that declares an absurd size). Anything merely
 // unrecognised is allowed through — the parser is the one that ultimately
 // validates the bytes, and false rejections would break odd-but-valid files.
-// All messages are user-facing FR (the codebase's convention), path-free.
+// Every refusal carries a stable CODE (`../errors.ts`) and a FR fallback text, path-free;
+// a caller with a catalogue words the code in the user's language.
 
 /** Hard ceiling on any single upload. Bytes past this never reach a parser. */
 import { IMAGE_FAMILIES, sniff, type SniffFamily, type Sniffed, u16le, u32le } from "./sniff";
+import { DocumentError, type DocumentFailure } from "../errors";
 
 // Re-exported: the guard stays the one door to sniffing (split out for the LOC cap).
 export { sniff, type SniffFamily, type Sniffed };
@@ -42,8 +44,29 @@ export const MAX_ZIP_TOTAL_BYTES = 300 * 1024 * 1024; // 300 MiB
 export const MAX_ZIP_RATIO = 250;
 /** Entry-count cap — a "flat" bomb hides size behind millions of tiny members. */
 export const MAX_ZIP_ENTRIES = 10_000;
-/** Page cap for PDF TEXT extraction (OCR is capped separately, lower). */
-export const MAX_PDF_PAGES = 500;
+/** Page cap for PDF TEXT extraction (OCR is capped separately, lower). A PDF past it is
+ *  REFUSED whole ({@link pdfPagesRefusal}), never read up to the cap: a silently missing
+ *  tail is a document the person believes masked and sent in full. Set well above what
+ *  `MAX_MASK_CHARS` lets through on dense pages, so the character limit decides for a
+ *  real document and this only stops a page-count bomb. */
+export const MAX_PDF_PAGES = 2_000;
+
+/** The refusal a PDF with more than {@link MAX_PDF_PAGES} pages gets — thrown by the
+ *  text-layer reader before it reads any page. */
+export function pdfPagesRefusal(pages: number): DocumentError | null {
+  if (pages <= MAX_PDF_PAGES) return null;
+  return new DocumentError(
+    "pdf_too_many_pages",
+    `PDF too long (${pages} pages, ${MAX_PDF_PAGES} maximum). Split it into several parts.`,
+    { pages, max: MAX_PDF_PAGES },
+  );
+}
+
+/** The oversize refusal, ONE wording for the byte gate and the on-disk size check. */
+export function fileTooLargeRefusal(): DocumentFailure {
+  const mb = Math.round(MAX_FILE_BYTES / (1024 * 1024));
+  return { code: "file_too_large", params: { mb }, message: `File too large (${mb} MB maximum). Split it into several parts.` };
+}
 
 /**
  * The scale to rasterise a page at: `desired`, or as much less as it takes for
@@ -105,6 +128,11 @@ function allowedFamilies(ext: string): ReadonlySet<SniffFamily> | null {
  * doors (rule 9: import it, never re-derive it).
  */
 export function checkZipBomb(b: Uint8Array): string | null {
+  return zipBombRefusal(b)?.message ?? null;
+}
+
+/** {@link checkZipBomb} with its code: the same decision, one implementation. */
+function zipBombRefusal(b: Uint8Array): DocumentFailure | null {
   // Find the End Of Central Directory record (sig 0x06054b50), scanning back
   // from the tail (it sits within the last 64KiB + 22-byte fixed record).
   const min = Math.max(0, b.length - (0xffff + 22));
@@ -117,7 +145,8 @@ export function checkZipBomb(b: Uint8Array): string | null {
   }
   if (eocd < 0) return null; // not a well-formed ZIP → let the parser deal with it
   const entries = u16le(b, eocd + 10);
-  if (entries > MAX_ZIP_ENTRIES) return `Fichier compressé suspect (${entries} entrées) — refusé.`;
+  if (entries > MAX_ZIP_ENTRIES)
+    return { code: "zip_entries", params: { entries }, message: `Suspicious compressed file (${entries} entries) — refused.` };
   let cd = u32le(b, eocd + 16); // central-directory offset
   let totalUncompressed = 0;
   let totalCompressed = 0;
@@ -132,7 +161,10 @@ export function checkZipBomb(b: Uint8Array): string | null {
     totalCompressed += comp;
     totalUncompressed += uncomp;
     if (totalUncompressed > MAX_ZIP_TOTAL_BYTES) {
-      return `Fichier compressé trop volumineux une fois décompressé — refusé (protection anti-bombe).`;
+      return {
+        code: "zip_too_large",
+        message: `Compressed file too large once decompressed — refused (zip-bomb protection).`,
+      };
     }
     const nameLen = u16le(b, cd + 28);
     const extraLen = u16le(b, cd + 30);
@@ -144,7 +176,7 @@ export function checkZipBomb(b: Uint8Array): string | null {
     totalUncompressed / totalCompressed > MAX_ZIP_RATIO &&
     totalUncompressed > 10 * 1024 * 1024
   ) {
-    return `Ratio de compression anormal — fichier refusé (protection anti-bombe).`;
+    return { code: "zip_ratio", message: `Abnormal compression ratio — file refused (zip-bomb protection).` };
   }
   return null;
 }
@@ -155,20 +187,22 @@ export function checkZipBomb(b: Uint8Array): string | null {
  * resolved from the name or MIME by the caller.
  */
 export function guardUpload(bytes: Uint8Array, ext: string): string | null {
-  if (bytes.length > MAX_FILE_BYTES) {
-    const mb = Math.round(MAX_FILE_BYTES / (1024 * 1024));
-    return `Fichier trop volumineux (max ${mb} Mo).`;
-  }
+  return guardUploadRefusal(bytes, ext)?.message ?? null;
+}
+
+/** {@link guardUpload} with the refusal's code and numbers: the same decision. */
+export function guardUploadRefusal(bytes: Uint8Array, ext: string): DocumentFailure | null {
+  if (bytes.length > MAX_FILE_BYTES) return fileTooLargeRefusal();
 
   const allowed = allowedFamilies(ext);
   if (allowed === null) return null; // text/unknown ext — nothing binary to check
 
   const s = sniff(bytes);
   // An executable posing as a document is always hostile.
-  if (s.family === "exe") return `Type de fichier non autorisé (contenu exécutable).`;
+  if (s.family === "exe") return { code: "executable", message: `File type not allowed (executable content).` };
   // A positive, incompatible type contradiction (e.g. a ".pdf" that is a ZIP).
   if (s.family !== "unknown" && !allowed.has(s.family)) {
-    return `Le contenu du fichier ne correspond pas à son extension — refusé.`;
+    return { code: "type_mismatch", message: `The file's content does not match its extension — refused.` };
   }
   // Image "pixel flood": tiny header, enormous declared canvas.
   if (
@@ -177,7 +211,11 @@ export function guardUpload(bytes: Uint8Array, ext: string): string | null {
     s.height &&
     s.width * s.height > MAX_IMAGE_PIXELS
   ) {
-    return `Image aux dimensions excessives (${s.width}×${s.height}) — refusée.`;
+    return {
+      code: "image_too_large",
+      params: { width: s.width, height: s.height },
+      message: `Image dimensions too large (${s.width}×${s.height}) — refused.`,
+    };
   }
   // FAIL CLOSED for the two families whose size is not a fixed field: a TIFF whose first
   // IFD we cannot read, or a WebP whose chunk we do not recognise, is an image whose
@@ -185,11 +223,11 @@ export function guardUpload(bytes: Uint8Array, ext: string): string | null {
   // conservative "unrecognised passes" policy above is about a file's TYPE; once the type
   // says image, an unreadable SIZE is a positive danger signal, not an absence of one.
   if ((s.family === "tiff" || s.family === "webp") && !(s.width && s.height)) {
-    return `Image illisible (dimensions introuvables) — refusée.`;
+    return { code: "image_unreadable", message: `Unreadable image (dimensions not found) — refused.` };
   }
   // ZIP-container bomb (Office formats).
   if (s.family === "zip") {
-    const bomb = checkZipBomb(bytes);
+    const bomb = zipBombRefusal(bytes);
     if (bomb) return bomb;
   }
   return null;

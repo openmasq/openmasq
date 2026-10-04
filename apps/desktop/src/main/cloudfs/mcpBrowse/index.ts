@@ -2,6 +2,7 @@ import type { McpConnection, McpToolResult } from "@openmasq/mcp";
 import { sortRemote, type RemoteEntry } from "@openmasq/connectors";
 import { listToolFor, } from "./listTool";
 import { asRecord, describeShape, parseToolList, } from "./read";
+import { mainMessages } from "../../i18n";
 
 /**
  * Browse a storage whose call we do NOT write — a remote MCP server
@@ -89,7 +90,7 @@ export async function mcpBrowseList(
     const args: Record<string, string> = { [listTool.folderArg]: folder };
     if (cursor && listTool.cursorArg) args[listTool.cursorArg] = cursor;
     const res = await conn.callTool({ name: listTool.tool, arguments: args });
-    if (res.isError) throw new Error("Ce dossier n'a pas pu être listé.");
+    if (res.isError) throw new Error(mainMessages().desktopMain.folders.folderNotListed);
     const texts = textsOf(res.content);
     const parsed = parseToolList(texts);
     // The footprint accompanies the refusal: without it, nobody can know WHAT is missing.

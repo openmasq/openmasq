@@ -105,10 +105,6 @@ export function noteForVersion(
   return latestPerVersion(notes).find((n) => baseVersion(n.version) === key);
 }
 
-// The six highlight-palette hues, cycled per highlight bullet (the brand's signature
-// redaction-marker colours). Maps to the `--hl-*` tokens via the `.rn-dot-<tone>` class.
-export const HL_TONES = ["pink", "amber", "sky", "lime", "mint", "violet"] as const;
-
 /**
  * "2026-07-11T…" → « 11 juillet 2026 » / "11 July 2026"; non-ISO or `null` rendered as-is.
  *
@@ -147,7 +143,7 @@ export function splitHighlight(s: string): { title: string; body?: string } {
 // bullet — every existing note — falls into "Nouveautés", so flat notes render
 // exactly as before while an authored note gets the design's colour groups.
 
-export type HighlightGroupKey = "feat" | "imp" | "fix";
+type HighlightGroupKey = "feat" | "imp" | "fix";
 
 export interface HighlightGroup {
   key: HighlightGroupKey;

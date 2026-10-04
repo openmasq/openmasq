@@ -13,7 +13,6 @@ import { BRAND } from "@openmasq/branding";
 // The one live DB handle. `setDbUser` is the ONLY thing that opens/closes it, so
 // per-account isolation stays in one place; `getClient()` is null when no DB is open.
 let client: Client | null = null;
-let dbFile = "";
 let currentUid: string | null = null;
 let encryptedAtRest = false;
 
@@ -24,9 +23,6 @@ export function getClient(): Client | null {
 export function isDbConfigured(): boolean {
   return !!client;
 }
-export function databasePath(): string {
-  return dbFile;
-}
 
 /** FALSE means the bytes on disk are CLEARTEXT (dev, or the packaged fallback without a
  *  keychain). A caller whose data may only live in an ENCRYPTED store asks (`debugLog.ts`). */
@@ -35,7 +31,6 @@ export function isDbEncrypted(): boolean {
 }
 
 async function openDb(file: string): Promise<void> {
-  dbFile = file;
   // A pre-existing plaintext DB is migrated to encrypted ONCE (backup + verify); a
   // migration that can't complete falls back to plaintext, never a lockout.
   const key = dbEncryptionKey();
@@ -67,7 +62,6 @@ export async function setDbUser(userId: string | null): Promise<void> {
     /* ignore a close error — we drop the handle regardless */
   }
   client = null;
-  dbFile = "";
   encryptedAtRest = false;
   currentUid = userId;
   if (!userId) return; // signed out → no local DB

@@ -1,134 +1,121 @@
-# @openmasq/mcp-broker — MCP broker
+# @openmasq/mcp-broker
 
-<sub>**English** · [Français](#openmasqmcp-broker--le-broker-mcp) · [openmasq.com](https://openmasq.com)</sub>
+[Français](README.fr.md)
 
-An Express MCP **broker**: it hosts a Streamable-HTTP **MCP server per platform**
-(Gmail, Slack, GitHub, + a credential-free **demo**) and is its own **OAuth 2.1
-Authorization Server** that **federates** to each provider's login. The desktop
-app connects to one URL per platform and authenticates through the broker — the
-"Anthropic-held credentials / Composio" model — so the user never registers a
-cloud OAuth app or runs a local server. The provider access token stays inside
-the broker; only tool output is returned (and the desktop then redacts it).
+**A local MCP server that signs in to Gmail, Slack and GitHub for you and keeps their tokens.**
+
+The broker is an Express server. It hosts one Streamable HTTP MCP server per platform (Gmail,
+Slack, GitHub, and a demo that needs no credentials) and is its own OAuth 2.1 authorization
+server, which federates to each provider's login. An MCP client connects to one URL per
+platform and signs in through the broker. The provider's access token stays in the broker:
+the client only receives tool output. It listens on `127.0.0.1` only.
 
 ```
-desktop ──OAuth(DCR+PKCE)──▶ broker ──federates──▶ Google/Slack/GitHub login
-desktop ──Bearer brokerToken──▶ broker /<platform>/mcp ──provider API──▶ tools
+client ──OAuth (DCR + PKCE)──▶ broker ──federates──▶ Google / Slack / GitHub login
+client ──Bearer broker token──▶ broker /<platform>/mcp ──provider API──▶ tools
 ```
 
-## Run
+## Quick start
+
+Requires Node.js 20 or later.
 
 ```bash
-pnpm --filter @openmasq/mcp-broker dev      # tsx watch (http://localhost:8787)
+pnpm --filter @openmasq/mcp-broker smoke    # end-to-end demo flow, no credentials
+pnpm --filter @openmasq/mcp-broker dev      # tsx watch, http://localhost:8787
 pnpm --filter @openmasq/mcp-broker build    # tsc → dist/
-pnpm --filter @openmasq/mcp-broker start     # node dist/index.js
-pnpm --filter @openmasq/mcp-broker smoke     # end-to-end demo flow, no creds
+pnpm --filter @openmasq/mcp-broker start    # node dist/index.js
 ```
 
-Copy `.env.example` → `.env`. The **demo** platform needs nothing. Real platforms
-activate only when their `*_CLIENT_ID` / `*_CLIENT_SECRET` are set; create the
-OAuth app with redirect URI `${PUBLIC_URL}/oauth/callback/<platform>`:
+`smoke` registers a client, runs the authorization and the token exchange by hand, checks that
+a replayed PKCE verifier is refused, then calls a demo tool through a real MCP client. The pure
+OAuth units (PKCE, redirect URIs, store, at-rest crypto) run under the root `pnpm test`.
 
-| Platform | Env | Where |
+## Configuration
+
+The broker reads its settings from environment variables, in [`src/config.ts`](src/config.ts)
+only. It does not load a `.env` file.
+
+| Variable | Default | Description |
 |---|---|---|
-| Gmail | `GMAIL_CLIENT_ID/SECRET` | Google Cloud console (scope `gmail.readonly`) |
-| Slack | `SLACK_CLIENT_ID/SECRET` | api.slack.com/apps |
-| GitHub | `GITHUB_CLIENT_ID/SECRET` | github.com/settings/developers |
+| `PORT` | `8787` | Listening port, on `127.0.0.1` |
+| `PUBLIC_URL` | `http://localhost:8787` | Issuer and base of every redirect URI |
+| `BROKER_DATA_DIR` | empty | Folder for the encrypted token file. Empty keeps everything in memory. |
+| `BROKER_ENCRYPTION_KEY` | empty | 32-byte key, hex or base64. Empty generates a key file next to the data. |
+| `GMAIL_CLIENT_ID`, `GMAIL_CLIENT_SECRET` | empty | Enables Gmail |
+| `SLACK_CLIENT_ID`, `SLACK_CLIENT_SECRET` | empty | Enables Slack |
+| `GITHUB_CLIENT_ID`, `GITHUB_CLIENT_SECRET` | empty | Enables GitHub |
+| `BROKER_FORCE_LISTEN` | empty | Listen even when the file is not the entry point (set by the desktop) |
+
+## Platforms
+
+The demo platform is always on. A real platform turns on when its `*_CLIENT_ID` is set. Create
+the OAuth app with the redirect URI `${PUBLIC_URL}/oauth/callback/<platform>`.
+
+| Platform | Scopes | Tools | OAuth app |
+|---|---|---|---|
+| `demo` | none | `list_recent_senders`, `echo` (canned data) | none |
+| `gmail` | `gmail.readonly` | `search_messages`, `list_recent_senders` | Google Cloud console |
+| `slack` | `channels:read`, `search:read` | `list_channels`, `search_messages` | api.slack.com/apps |
+| `github` | `repo`, `read:user` | `list_repos`, `list_issues` | github.com/settings/developers |
+
+> [!NOTE]
+> The client secret is optional. Without one, the broker acts as a public client and adds its
+> own PKCE on the provider leg. A secret shipped with a desktop app is not truly secret, which
+> is the usual posture for native apps (RFC 8252).
 
 ## Endpoints
 
-- `GET /platforms` — available platforms + their `mcpUrl`.
-- `GET /healthz`.
-- `GET /.well-known/oauth-authorization-server` — AS metadata (RFC 8414).
-- `GET /:platform/.well-known/oauth-protected-resource` — resource metadata (RFC 9728).
-- `POST /oauth/register` — Dynamic Client Registration (RFC 7591).
-- `GET /oauth/authorize` · `GET /oauth/callback/:platform` · `POST /oauth/token`.
-- `GET|POST|DELETE /:platform/mcp` — the MCP endpoint (Bearer broker token).
+| Route | Purpose |
+|---|---|
+| `GET /healthz` | Liveness |
+| `GET /platforms` | Enabled platforms, each with its `mcpUrl` |
+| `GET /.well-known/oauth-authorization-server` | Authorization server metadata (RFC 8414) |
+| `GET /:platform/.well-known/oauth-protected-resource` | Protected resource metadata (RFC 9728) |
+| `POST /oauth/register` | Dynamic client registration (RFC 7591) |
+| `GET /oauth/authorize` | Starts the login. The demo consents at once; real platforms redirect to the provider. |
+| `GET /oauth/callback/:platform` | Provider callback: exchanges the code, keeps the provider tokens |
+| `POST /oauth/token` | `authorization_code` and `refresh_token` grants |
+| `GET`, `POST`, `DELETE /:platform/mcp` | The MCP endpoint, behind a broker bearer token |
 
-## Connect from the desktop app
+A request to `/:platform/mcp` without a valid token gets a `401` whose `WWW-Authenticate`
+header points at the resource metadata, so an MCP client can discover the broker and start the
+OAuth flow. Each request builds a fresh, stateless MCP server bound to that token.
 
-Settings → MCP → add an HTTP server with URL `http://localhost:8787/demo/mcp`
-(or `/gmail/mcp`, …). The desktop's existing OAuth connector flow discovers the
-broker AS, registers, runs PKCE, and connects — then conversations can call the
-broker's tools with full redaction.
+## With the desktop app
+
+The desktop app starts the broker as a sidecar
+([`apps/desktop/src/main/broker.ts`](../desktop/src/main/broker.ts)) when it finds a build at
+`apps/mcp-broker/dist/index.js`, so run `build` first. It picks a free loopback port, sets
+`BROKER_DATA_DIR` to `<userData>/broker`, waits for `/healthz`, and exposes the URL and the
+platforms over IPC (`mcp:broker`).
+
+> [!IMPORTANT]
+> The sidecar receives an allow-listed environment
+> ([`apps/desktop/src/main/childEnv.ts`](../desktop/src/main/childEnv.ts)): `*_CLIENT_ID`
+> variables from your shell do not reach it, so it only exposes the demo platform. The app's
+> own Google and Microsoft connectors run in-process with on-device OAuth and do not use the
+> broker. The custom connector form in **Settings → Connectors** accepts only public `https://`
+> addresses, so the local broker cannot be added there.
 
 ## Security
 
-PKCE **S256 required**; loopback redirect URIs matched ignoring port (RFC 8252),
-all others exact; auth codes single-use with a 60 s TTL; broker tokens are
-256-bit crypto-random with a TTL; provider creds come only from env and are never
-logged; upstream tokens never leave the broker; `/oauth/token` is rate-limited.
+| Property | Behaviour |
+|---|---|
+| **PKCE** | `S256` only. A missing challenge or `plain` is refused. |
+| **Redirect URIs** | Loopback URIs (`127.0.0.1`, `::1`, `localhost`) match ignoring the port (RFC 8252). Any other URI is compared character for character. |
+| **Authorization codes** | Single use, valid 60 s. |
+| **Broker tokens** | 256-bit random, valid 1 hour. A refresh token is single use and rotates on every refresh. |
+| **Provider tokens** | Never sent to the client. Provider error bodies are not forwarded: tools see a status and a short reason. |
+| **Provider credentials** | Read from the environment in `src/config.ts` only, never logged. |
+| **At rest** | Clients and tokens saved in `tokens.enc`, AES-256-GCM. The key is `BROKER_ENCRYPTION_KEY` or a `key` file written with mode 0600. Pending logins and codes stay in memory. |
+| **Rate limit** | `/oauth/token`: 30 requests per minute per IP. |
+| **Network** | Listens on `127.0.0.1`. CORS is open so browser MCP clients can reach it; every MCP route needs a bearer token. |
 
-> Scope/simplifications: an encrypted local snapshot under `BROKER_DATA_DIR` (in-memory when it is unset); a hosted deployment would swap it for a shared encrypted store; the
-> Authorization Server is hand-rolled to satisfy the MCP SDK client (not a full
-> general-purpose AS); refresh of **upstream** provider tokens is stored but not
-> auto-refreshed on expiry yet. See `CLAUDE.md`.
+> [!WARNING]
+> Current limits: provider tokens are not refreshed automatically when they expire. The
+> authorization server is written for the MCP SDK client, not as a general-purpose one. The
+> key file sits next to the data it protects, so it guards against backups and casual reads,
+> not against someone with access to your account. On Windows, mode 0600 is not enforced: pass
+> `BROKER_ENCRYPTION_KEY` there. A hosted deployment would need a shared encrypted store.
 
----
-
-# @openmasq/mcp-broker — le broker MCP
-
-Un **broker** MCP en Express : il héberge un **serveur MCP Streamable-HTTP par plateforme**
-(Gmail, Slack, GitHub, plus une **démo** sans identifiants) et est son propre **serveur
-d'autorisation OAuth 2.1**, qui **fédère** vers la connexion de chaque fournisseur.
-L'application de bureau se connecte à une URL par plateforme et s'authentifie à travers le
-broker — le modèle « identifiants détenus par l'éditeur / Composio » — de sorte que
-l'utilisateur n'enregistre jamais d'application OAuth dans un cloud ni ne fait tourner de
-serveur local. Le jeton d'accès du fournisseur reste dans le broker ; seule la sortie des
-outils est renvoyée (et le bureau la masque ensuite).
-
-```
-bureau ──OAuth(DCR+PKCE)──▶ broker ──fédère──▶ connexion Google/Slack/GitHub
-bureau ──Bearer brokerToken──▶ broker /<plateforme>/mcp ──API du fournisseur──▶ outils
-```
-
-## Lancer
-
-```bash
-pnpm --filter @openmasq/mcp-broker dev      # tsx watch (http://localhost:8787)
-pnpm --filter @openmasq/mcp-broker build    # tsc → dist/
-pnpm --filter @openmasq/mcp-broker start     # node dist/index.js
-pnpm --filter @openmasq/mcp-broker smoke     # parcours de démo de bout en bout, sans identifiants
-```
-
-Copiez `.env.example` vers `.env`. La plateforme **demo** n'a besoin de rien. Les vraies
-plateformes ne s'activent que si leurs `*_CLIENT_ID` / `*_CLIENT_SECRET` sont posés ; créez
-l'application OAuth avec l'URI de redirection `${PUBLIC_URL}/oauth/callback/<plateforme>` :
-
-| Plateforme | Variables | Où |
-|---|---|---|
-| Gmail | `GMAIL_CLIENT_ID/SECRET` | console Google Cloud (portée `gmail.readonly`) |
-| Slack | `SLACK_CLIENT_ID/SECRET` | api.slack.com/apps |
-| GitHub | `GITHUB_CLIENT_ID/SECRET` | github.com/settings/developers |
-
-## Points d'accès
-
-- `GET /platforms` — les plateformes disponibles et leur `mcpUrl`.
-- `GET /healthz`.
-- `GET /.well-known/oauth-authorization-server` — métadonnées du serveur d'autorisation (RFC 8414).
-- `GET /:platform/.well-known/oauth-protected-resource` — métadonnées de la ressource (RFC 9728).
-- `POST /oauth/register` — enregistrement dynamique de client (RFC 7591).
-- `GET /oauth/authorize` · `GET /oauth/callback/:platform` · `POST /oauth/token`.
-- `GET|POST|DELETE /:platform/mcp` — le point d'accès MCP (jeton broker en Bearer).
-
-## S'y connecter depuis l'application de bureau
-
-Réglages → MCP → ajoutez un serveur HTTP d'URL `http://localhost:8787/demo/mcp` (ou
-`/gmail/mcp`, …). Le parcours de connecteur OAuth existant du bureau découvre le serveur
-d'autorisation du broker, s'enregistre, exécute PKCE et se connecte — les conversations
-peuvent ensuite appeler les outils du broker avec le masquage complet.
-
-## Sécurité
-
-PKCE **S256 obligatoire** ; les URI de redirection en loopback sont comparées en ignorant le
-port (RFC 8252), toutes les autres à l'identique ; les codes d'autorisation sont à usage
-unique avec une durée de vie de 60 s ; les jetons du broker sont aléatoires
-cryptographiquement sur 256 bits, avec une durée de vie ; les identifiants de fournisseur ne
-viennent que de l'environnement et ne sont jamais journalisés ; les jetons amont ne quittent
-jamais le broker ; `/oauth/token` est limité en débit.
-
-> Portée et simplifications : un instantané local chiffré sous `BROKER_DATA_DIR` (en mémoire
-> quand elle n'est pas posée) ; un déploiement hébergé l'échangerait contre un stockage
-> chiffré partagé ; le serveur d'autorisation est écrit à la main pour satisfaire le client du
-> SDK MCP (ce n'est pas un serveur d'autorisation généraliste complet) ; le rafraîchissement
-> des jetons **amont** des fournisseurs est stocké mais pas encore automatique à l'expiration.
-> Voir `CLAUDE.md`.
+Contributors: [`CLAUDE.md`](CLAUDE.md) maps the source and the OAuth flow.

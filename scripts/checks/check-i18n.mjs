@@ -13,13 +13,15 @@
 //
 // Scope: the UI chrome of `packages/ui/src` and the shared catalogs (`packages/catalog/src`,
 // `packages/llm/src`). Excluded: tests (never displayed), `evals/**` (never rendered),
-// `agent/**` and `prompt/**` (prose addressed to the MODEL, which follows the conversation's
-// language), and `packages/catalog/src/mcp/connectors/**` (a connector's `desc` is read by
-// the model, not only by the UI — frozen in French). Widening = a glob here + a new baseline.
+// `prompt/**` and the `agent/` files LISTED as model prose in `i18nScope.mjs` (prose addressed
+// to the MODEL follows the conversation's language; every other agent/ file is UI and is
+// covered), and `packages/catalog/src/mcp/connectors/**` (a connector's `desc` is read by the
+// model, not only by the UI — frozen in French). Widening = a glob here + a new baseline.
 import { execSync } from "node:child_process";
 import { readFileSync, writeFileSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import { inI18nScope } from "./i18nScope.mjs";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const root = join(here, "../..");
@@ -67,26 +69,13 @@ function isCopy(v) {
   return true;
 }
 
-/** Zones EXCLUDED from the scope (see the header). */
-const EXCLUDE = [
-  /\.(test|spec)\.tsx?$/,
-  /\/evals\//,
-  /\/agent\//,
-  /\/prompt\//,
-  /^packages\/emails\/i18n\//,
-  /^packages\/emails\/scripts\//,
-  // The model REGISTRY: `label` there is a PROPER noun ("GPT-5.5", "Claude Opus"),
-  // and its provider `desc` names brands — nothing to translate, everything would be noise.
-  /^packages\/llm\/src\/models\//,
-];
-
 function coveredFiles() {
   const out = execSync(
     "git ls-files 'packages/ui/src/**/*.ts' 'packages/ui/src/**/*.tsx' " +
       "'packages/catalog/src/**/*.ts' 'packages/llm/src/**/*.ts'",
     { cwd: root, encoding: "utf8", maxBuffer: 64 * 1024 * 1024 },
   );
-  return out.split("\n").filter((f) => f && !EXCLUDE.some((re) => re.test(f)));
+  return out.split("\n").filter((f) => f && inI18nScope(f));
 }
 
 /** A PROXY for "hard-coded French copy strings" in a file. Strips line and

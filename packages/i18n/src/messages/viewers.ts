@@ -13,6 +13,26 @@ export interface ViewersMessages {
   close: string;
   closeTip: string;
   loadingFile: string;
+  /** Opened while the file is still being read / masked: what the wait is for. */
+  pendingNote: string;
+  /** The progressive preview while masking: what is shown is masked, and may gain masks. */
+  partialNote: string;
+  /** Where the part not yet masked would be — never its text. */
+  partialRest: (pct: number) => string;
+  /** A PDF opened while it is read or masked: the page strip, and the tile a page shows
+   *  (its blurred thumbnail, never legible) until it is masked. */
+  reading: {
+    pagesLabel: string;
+    pageMasked: (n: number) => string;
+    pageRead: (n: number) => string;
+    pageCurrent: (n: number) => string;
+    pageWaiting: (n: number) => string;
+    tileRead: (n: number) => string;
+    tileCurrent: (n: number) => string;
+    tileWaiting: (n: number) => string;
+    /** Masked, but its values cannot be drawn on the page yet (a scan's boxes come at the end). */
+    tileHeld: (n: number) => string;
+  };
   extracted: (chars: string, status: string) => string;
   staleTip: string;
   staleChip: string;
@@ -34,6 +54,10 @@ export interface ViewersMessages {
   redactedToggle: string;
   /** The default storage caption, and the note line over the masked ⇄ original views. */
   storedLocally: string;
+  /** « Demander » on an opened file: idle, preparing, failed. */
+  askIdle: string;
+  askPending: string;
+  askFailed: string;
   maskedNote: (labels: string) => string;
   maskedNoteNoLabels: string;
   originalNote: string;
@@ -61,12 +85,17 @@ export interface ViewersMessages {
     zoomOut: string;
     zoomIn: string;
     fitWidth: string;
+    /** Above a document still being masked: what a page shown means, and what may change. */
+    provisional: string;
+    goToPage: (n: number) => string;
     haloOn: string;
     haloOff: string;
     showHalo: string;
     hideHalo: string;
     imageZones: (pages: string) => string;
     imagePages: (count: number) => string;
+    /** Whole pages read from the image, and no outlined zone to explain. */
+    imageOnlyNote: (count: number) => string;
   };
   /** The preview's subtitle: what the redaction did to THIS document. */
   summary: {
@@ -78,6 +107,4 @@ export interface ViewersMessages {
     protected: (count: number) => string;
     byKind: (count: number, kind: string) => string;
   };
-  /** The spreadsheet: what the send truncates. */
-  sheetCut: string;
 }

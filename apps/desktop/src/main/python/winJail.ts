@@ -1,6 +1,7 @@
 import { app } from "electron";
 import { dirname, join } from "node:path";
 import { mplConfigDir } from "./runtime";
+import { verifiedDocumentFontDir } from "../pdf/documentFont";
 import { BRAND } from "@openmasq/branding";
 
 /**
@@ -52,6 +53,9 @@ export function winJailCmd(
       // is the root — and the stdlib, the wheels and the brand fonts (`<root>/fonts`) all
       // sit under it. One grant, not four.
       "--allow-read", dirname(dirname(pythonBin)),
+      // The app's document font (Inter), when it verifies: the ONE grant outside the runtime,
+      // READ-only, the directory holding that font and its licence and nothing else.
+      ...documentFontGrant(),
       // The per-run scratch (main.py, figures/, out/, tmp/) and the PERSISTENT matplotlib
       // cache, which a run may legitimately refresh.
       "--allow-write", scratch,
@@ -61,4 +65,11 @@ export function winJailCmd(
       "--", pythonBin, mainPy,
     ],
   };
+}
+
+/** `--allow-read <document-fonts>` when the sandbox is pointed there (`sandboxFontDir`), else
+ *  nothing: the run then reads the runtime's own font, already under the root grant. */
+function documentFontGrant(): string[] {
+  const dir = verifiedDocumentFontDir();
+  return dir ? ["--allow-read", dir] : [];
 }

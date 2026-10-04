@@ -3,6 +3,7 @@ import type { PseudonymizeOptions } from "@openmasq/redact";
 import { vaultTermsToForced } from "./vaultTerms";
 import { connectedUrlHosts } from "./redactKeep";
 import type { VaultTerm } from "../types";
+import { integrationProductNames } from "./integrationKeep";
 
 /**
  * The engine options CORE for a send — built ONCE in `sendMessage`, passed
@@ -152,10 +153,18 @@ export function sendKeepList(
   forced: readonly ForcedItem[] = [],
 ): string[] {
   const forcedLower = new Set(forced.map((f) => f.value?.toLowerCase()).filter(Boolean));
-  const autoKeep = forcedLower.size
-    ? connectedKeep.filter((k) => !forcedLower.has(k.toLowerCase()))
-    : connectedKeep;
-  return [...autoKeep, ...(conv.revealedValues ?? []), ...(keepValues ?? [])];
+  // Every integration's PRODUCT name joins the automatic entries (`integrationKeep.ts`):
+  // same Coffre-wins rule below.
+  const auto = [...connectedKeep, ...integrationProductNames()];
+  const autoKeep = forcedLower.size ? auto.filter((k) => !forcedLower.has(k.toLowerCase())) : auto;
+  // Case-insensitive dedupe, first spelling wins (the engine's match is case-insensitive).
+  const seen = new Set<string>();
+  return [...autoKeep, ...(conv.revealedValues ?? []), ...(keepValues ?? [])].filter((k) => {
+    const lc = k.toLowerCase();
+    if (seen.has(lc)) return false;
+    seen.add(lc);
+    return true;
+  });
 }
 
 /** The user-FORCED manual redactions: the global COFFRE ⊕ the conversation's persisted set

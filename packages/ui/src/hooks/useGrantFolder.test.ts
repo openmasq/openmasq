@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import type { McpServerInfo } from "../host";
-import { grantPickedFolder, type GrantHost } from "./useGrantFolder";
+import { grantedFolderTarget, grantPickedFolder, type GrantHost } from "./useGrantFolder";
 
 /**
  * The folder grant has ONE home now (the rail's « + » and the composer's « + » →
@@ -46,7 +46,7 @@ describe("grantPickedFolder", () => {
 
   it("connecteur absent : installé AVEC le dossier accordé, puis connecté", async () => {
     const { mcp, calls } = fakeMcp([], "/Users/me/Dossier");
-    expect(await grantPickedFolder(mcp, [])).toEqual({ granted: true });
+    expect(await grantPickedFolder(mcp, [])).toEqual({ granted: true, path: "/Users/me/Dossier" });
     expect(calls).toEqual([
       "pickDir",
       'addStdio:filesystem:{"root":["/Users/me/Dossier"]}',
@@ -56,23 +56,39 @@ describe("grantPickedFolder", () => {
 
   it("connecteur présent : setDirs reçoit les racines DÉJÀ accordées plus la nouvelle", async () => {
     const { mcp, calls } = fakeMcp([info({ params: { root: ["/a"] } })], "/b");
-    expect(await grantPickedFolder(mcp, [])).toEqual({ granted: true });
+    expect(await grantPickedFolder(mcp, [])).toEqual({ granted: true, path: "/b" });
     expect(calls).toEqual(["pickDir", "setDirs:local-filesystem:root:/a,/b"]);
   });
 
   it("connecteur enregistré mais éteint : reconnecté avant setDirs", async () => {
     const { mcp, calls } = fakeMcp([info({ connected: false, params: { root: ["/a"] } })], "/b");
-    expect(await grantPickedFolder(mcp, [])).toEqual({ granted: true });
+    expect(await grantPickedFolder(mcp, [])).toEqual({ granted: true, path: "/b" });
     expect(calls).toEqual(["pickDir", "connect:local-filesystem", "setDirs:local-filesystem:root:/a,/b"]);
   });
 
   it("un dossier déjà accordé n'est pas ré-envoyé ; un refus de l'hôte remonte en erreur", async () => {
     const { mcp, calls } = fakeMcp([info({ params: { root: ["/a"] } })], "/a");
-    expect(await grantPickedFolder(mcp, [])).toEqual({ granted: false });
+    expect(await grantPickedFolder(mcp, [])).toEqual({ granted: false, path: "/a" });
     expect(calls).toEqual(["pickDir"]);
 
     const refusing = fakeMcp([info({ params: { root: [] } })], "/secret");
     (refusing.mcp.setDirs as ReturnType<typeof vi.fn>).mockResolvedValueOnce(info({ error: "refusé" }));
     expect(await grantPickedFolder(refusing.mcp, [])).toEqual({ granted: false, error: "refusé" });
+  });
+});
+
+describe("grantedFolderTarget", () => {
+  // The composer's « + » → Dossier showed NOTHING after the picker: the outcome must
+  // become a visible chip, including for a folder that was already granted.
+  it("un dossier accordé — ou déjà accordé — devient la cible du message", () => {
+    const chip = { kind: "folder", name: "Dossier", path: "/Users/me/Dossier" };
+    expect(grantedFolderTarget({ granted: true, path: "/Users/me/Dossier" })).toEqual(chip);
+    expect(grantedFolderTarget({ granted: false, path: "/Users/me/Dossier" })).toEqual(chip);
+  });
+
+  it("annulé ou refusé : aucune cible", () => {
+    expect(grantedFolderTarget(undefined)).toBeNull();
+    expect(grantedFolderTarget({ granted: false })).toBeNull();
+    expect(grantedFolderTarget({ granted: false, error: "refusé" })).toBeNull();
   });
 });

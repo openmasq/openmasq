@@ -5,45 +5,43 @@
 import type { Messages } from "../messages";
 
 export const conversation = {
-  greeting: { morning: "Bonjour", afternoon: "Bon après-midi", evening: "Bonsoir" },
+  greeting: { morning: "Bonjour", afternoon: "Bonjour", evening: "Bonsoir" },
   starters: {
-    noSetup: "Sans rien configurer",
-    withServices: "Avec vos services",
-    orConnect: "Ou connectez",
-    seeOthers: "Voir les autres",
     cardTip: (category, prompt) => `${category} — ${prompt}`,
     cardAria: (category, prompt) => `${category} : ${prompt}`,
-    connectTip: (connector, prompt) => `Connecter ${connector} — ${prompt}`,
-    dismiss: "Ne plus proposer",
+    dismiss: "Ne plus afficher",
+    withServices: "Avec vos services",
     cats: {
-      write: "Rédaction",
-      search: "Recherche",
+      "follow-up": "Relance client",
+      "contract-review": "Juridique",
+      "hr-review": "RH",
       memory: "Mémoire",
-      analyse: "Analyse",
-      "mail-triage": "Boîte mail",
-      "files-find": "Mes dossiers",
-      "day-brief": "Agenda",
       "chat-catchup": "Messages",
-      "pr-review": "Code",
+      "notes-find": "Notes",
+      "files-find": "Fichiers",
     },
     prompts: {
-      write: (domain) => `Rédige un email de remerciement à julien@${domain}.`,
-      search: () => "Quelle actualité en France aujourd'hui ?",
+      // DEMONSTRATORS of the one thing the app does: each carries invented personal data
+      // (names, an e-mail, a valid IBAN / SIREN / phone shape) that lights up as masked
+      // BEFORE it leaves, and comes back in clear in the reply. A plain chat prompt
+      // (« l'actualité du jour ») showed nothing a generic assistant doesn't.
+      "follow-up": (domain) =>
+        `Rédige une relance courtoise à Camille Salvi (camille.salvi@${domain}) : sa facture F-2026-114 de 4 820 € est impayée depuis 30 jours. Rappelle-lui notre IBAN FR76 3000 6000 0112 3456 7890 189.`,
+      "contract-review": () =>
+        "Repère les clauses à risque dans cet extrait : « La société Lucane SAS, SIREN 732 829 320, 12 rue des Tanneurs à Lyon, représentée par Marc Wulff, s'engage pour 36 mois sans résiliation anticipée ; toute somme due porte intérêt à 15 % l'an. »",
+      "hr-review": () =>
+        "Résume ce compte rendu en trois actions : « Entretien annuel de Julien Moreau, né le 14/03/1988, joignable au 06 12 34 56 78. Sa manager Sophie Bernard propose une hausse de 6 % et une formation en mars. »",
       // A DEMONSTRATOR, not a memo: named people + a named company (the redaction lights up
       // before the user's eyes BEFORE it goes out) AND several entity-linked facts (cards get
       // born, the « N faits notés » caption clicks through to the Mémoire graph).
       memory: () =>
         "Retiens que sur le projet Horizon, ma cliente Camille Salvi (Atelier Lucane) valide les maquettes et que Marc Wulff gère la facturation.",
-      analyse: () => "Trace un graphique des 5 ETF éligibles au PEA les plus performants de l'année.",
-      "mail-triage": () =>
-        "Trie mes e-mails non lus de la semaine : lesquels attendent vraiment une réponse de moi, et lesquels peuvent attendre ?",
-      "files-find": () =>
-        "Retrouve dans mes dossiers le dernier devis que j'ai reçu, et sors-en le montant et les dates clés.",
-      "day-brief": () =>
-        "Prépare ma journée de demain : mes rendez-vous, avec qui, et ce que je dois avoir lu avant chacun.",
-      "chat-catchup": () =>
-        "Résume ce que j'ai raté cette semaine dans mes canaux, et liste ce qui attend une réponse de ma part.",
-      "pr-review": () => "Liste les pull requests qui attendent ma revue, et résume ce que chacune change.",
+      "chat-catchup": (_d, service) =>
+        `Résume ce que j'ai raté cette semaine sur ${service}, et liste ce qui attend une réponse de ma part.`,
+      "notes-find": (_d, service) =>
+        `Retrouve dans ${service} les notes de ma dernière réunion de projet, et liste les décisions prises.`,
+      "files-find": (_d, service) =>
+        `Retrouve dans ${service} le dernier devis que j'ai reçu, et sors-en le montant et les dates clés.`,
     },
   },
 
@@ -57,7 +55,7 @@ export const conversation = {
     embedded: "Navigateur intégré",
     unavailable: "Navigateur agent indisponible sur cette plateforme.",
     loading: "Chargement du navigateur agent…",
-    offlineTitle: "Le navigateur n'est pas connecté.",
+    offlineTitle: "Le navigateur est désactivé.",
     offlineSub: (brand) =>
       `Activez-le pour consulter le web ici, et laisser ${brand} y chercher pour vous.`,
     activating: "Activation…",
@@ -83,11 +81,11 @@ export const conversation = {
     ofCount: (idx, count) => ` (${idx}/${count})`,
   },
   chooseFolder: "Choisir le dossier",
-  folderPickFailed: "sélection impossible",
+  folderPickFailed: "échec de la sélection",
   folderGrantFailed: "échec de l'autorisation",
   slashRemember: {
-    label: "Retenir en mémoire",
-    desc: "Insère « Retiens que… » — le fait durable sera noté dans la Mémoire, localement.",
+    label: "Retenir",
+    desc: "Insère « Retiens que… ». Le fait est enregistré dans la Mémoire, sur cet appareil.",
   },
   opening: "Ouverture…",
   memoryToast: "Noté en mémoire",
@@ -99,32 +97,32 @@ export const conversation = {
   },
 
   skillTag: {
-    show: "Voir l'instruction envoyée au modèle",
-    hide: "Masquer l'instruction envoyée",
-    promptEyebrow: "Instruction envoyée au modèle",
+    show: "Voir la consigne envoyée au modèle",
+    hide: "Cacher la consigne",
+    promptEyebrow: "Consigne envoyée au modèle",
     edit: "Éditer",
-    unavailable: "Instruction indisponible pour ce message.",
+    unavailable: "Consigne indisponible pour ce message.",
   },
 
   memory: {
     usedTip:
-      "Souvenirs injectés avec cet envoi, masqués comme le reste — cliquez pour ouvrir la Mémoire",
+      "Fiches de mémoire jointes à cet envoi, masquées comme le reste. Cliquez pour ouvrir la Mémoire.",
     used: (labels) => `Mémoire utilisée — ${labels}`,
     skippedTip:
-      "Ces souvenirs correspondaient mais ne sont pas partis avec cet envoi — cliquez pour ouvrir la fiche",
+      "Ces fiches correspondaient mais n'ont pas été envoyées avec ce message. Cliquez pour ouvrir la fiche.",
     skipped: (parts) => `Mémoire : ${parts}`,
     homographs: (labels, count) =>
-      `${labels} non injectée${count > 1 ? "s" : ""} — nom trop courant seul, écrivez-le en entier`,
-    budget: (n) => `${n} fiche${n > 1 ? "s" : ""} écartée${n > 1 ? "s" : ""} faute de place`,
-    pendingTip: "Extraction en cours — le résultat s'affichera ici",
+      `${labels} non incluse${count > 1 ? "s" : ""} : le nom seul est trop courant. Écrivez-le en entier.`,
+    budget: (n) => `${n} fiche${n > 1 ? "s" : ""} écartée${n > 1 ? "s" : ""} : pas assez de place`,
+    pendingTip: "Extraction en cours. Le résultat s'affichera ici.",
     pending: "Mise en mémoire…",
     failedTip:
       "Mise en mémoire impossible : rien n'a été enregistré. Redemandez « retiens… » pour réessayer.",
-    failed: "Mise en mémoire échouée — rien n'a été noté, réessayez",
-    notedTip: "Mémoire locale (page Mémoire) — demande explicite de retenir",
+    failed: "Échec de la mise en mémoire. Rien n'a été enregistré. Réessayez.",
+    notedTip: "Enregistré dans la Mémoire de cet appareil, à votre demande",
     preferenceSaved: "Préférence enregistrée en mémoire",
-    nothingDurable: "Rien de durable à retenir en mémoire",
-    undone: "Souvenir retiré de la mémoire",
+    nothingDurable: "Rien à retenir ici",
+    undone: "Retiré de la mémoire",
     noted: (facts, profile, updatedSuffix) =>
       `${facts === 1 ? "1 fait noté" : `${facts} faits notés`}${profile ? " + profil" : ""}${updatedSuffix} en mémoire`,
     updatedSuffix: (n) => ` · ${n === 1 ? "1 fiche mise à jour" : `${n} fiches mises à jour`}`,
@@ -140,21 +138,45 @@ export const conversation = {
     feedback: "Donner un avis sur cette réponse",
   },
 
+  replyNotice: {
+    failed: "L'envoi a échoué. Ouvrez la conversation pour réessayer.",
+    ready: (model) => `Réponse prête · ${model}`,
+    readyPlain: "Réponse prête.",
+  },
+
   bubble: {
     openAttachment: (name) => `Consulter ${name}`,
     plotTip: "Génération d'un graphique (run_python)",
     plot: "Graphique",
     redactionFailedTip: "Le modèle de masquage a échoué pour ce message",
     redactedTip:
-      "Remplacé par des marqueurs avant que le modèle ne le voie, restauré dans sa réponse",
+      "Remplacé par une valeur de substitution avant d'atteindre le modèle, restauré dans sa réponse",
     protectedCount: (n) => `${n} protégé${n === 1 ? "" : "s"}`,
     protectedSee: "voir",
     autoRoutedTip:
       "Mode Auto : le modèle de cette réponse a été choisi automatiquement selon la tâche.",
     quotaTip: "Quota du fournisseur de ce modèle",
     reasoning: "Réflexion",
-    imageWithheld: "Image retenue — elle contiendrait une valeur masquée",
+    imageWithheld: "Image retenue : elle peut contenir une valeur masquée",
     imageWithheldLoad: "Charger",
+    showAll: "Afficher tout",
+    showLess: "Réduire",
+  },
+
+  docs: {
+    filesCount: (n) => `${n} fichier${n > 1 ? "s" : ""}`,
+    showFiles: "Afficher les fichiers",
+    generatedBy: (brand) => `Généré par ${brand}`,
+    clippedTag: "tronqué",
+    clipped: (name, max) => `Seuls les ${max} premiers caractères de ${name} ont été envoyés au modèle.`,
+    others: (n) => `${n} autre${n > 1 ? "s" : ""}`,
+    weight: (pct, model) =>
+      `Les documents de cette conversation occupent environ ${pct} % de la fenêtre de ${model}. Chaque question les renvoie au modèle.`,
+    weightOver: (model) =>
+      `Les documents de cette conversation dépassent la fenêtre de ${model} : les plus anciens ne lui sont plus envoyés.`,
+    dropped: (names, n) =>
+      `${names} ${n > 1 ? "ne sont plus visibles" : "n'est plus visible"} par le modèle : la conversation dépasse sa fenêtre de contexte.`,
+    roomHint: "Pour garder de la place, choisissez un modèle à plus grande fenêtre ou ouvrez une nouvelle conversation.",
   },
 
   trace: {
@@ -185,40 +207,41 @@ export const conversation = {
     realValue: "valeur réelle",
     seenByModel: "vu par le modèle",
     seenByModelTip: "Valeur vue par le modèle",
-    realValueTip: "Valeur réelle — partira en clair si vous la laissez en clair",
+    realValueTip: "Valeur réelle. Envoyée non masquée seulement si vous la démasquez.",
     orgForced: "Imposé par l'organisation",
     scopeSend: "cet envoi",
     scopeConversation: "cette conversation",
     scopeMessage: "ce message",
-    leaveClear: (scope) => `Laisser en clair · ${scope}`,
-    leaveClearKind: (scope) => `Laisser la catégorie en clair · ${scope}`,
-    leaveClearTip: "Réversible : la valeur part telle quelle au modèle, le masquage revient d'un clic",
+    leaveClear: (scope) => `Démasquer · ${scope}`,
+    leaveClearKind: (scope) => `Démasquer la catégorie · ${scope}`,
+    leaveClearTip: "Réversible : le modèle reçoit la valeur réelle. Remasquez-la en un clic.",
     reMask: (scope) => `Remasquer · ${scope}`,
     reMaskKind: (scope) => `Remasquer la catégorie · ${scope}`,
     reMaskTip: "Masquer à nouveau cette valeur",
     remove: (scope) => `Retirer le masquage · ${scope}`,
-    removeTip: "Définitif : plus aucun marqueur — la valeur restera visible et partira en clair",
-    reportTip: "Ouvre « Votre avis » prérempli — n'y collez jamais la valeur réelle",
+    removeTip: "Définitif : cette valeur n'est plus masquée et est envoyée telle quelle.",
+    reportTip: "Ouvre « Votre avis » prérempli. N'y collez jamais la valeur réelle.",
     report: "Signaler une erreur",
     sheetLabel: "Masquage",
   },
 
   struggle: {
+    thisModel: "Ce modèle",
     failedTip: (tool) => (tool ? `Un appel d'outil n'a pas abouti : ${tool}` : "Un appel d'outil n'a pas abouti"),
     unknownTool: (connector, action) =>
-      `${connector} ne sait pas faire « ${action} » — cette action n'existe pas dans le connecteur.`,
-    ownKeysHint: "Certaines ne s'activent qu'avec vos propres clés d'accès.",
+      `${connector} n'a pas d'action « ${action} ».`,
+    ownKeysHint: "Certaines actions nécessitent vos propres clés d'accès.",
     ownKeysHintWithPath:
-      "Ouvrez sa fiche dans Réglages → Connecteurs : certaines ne s'activent qu'avec vos propres clés d'accès.",
+      "Ouvrez-le dans Réglages → Connecteurs : certaines actions nécessitent vos propres clés d'accès.",
     connectorError: (connector, action) =>
-      `${connector} a refusé l'action « ${action} ». Le modèle n'y est pour rien : en changer ne changerait rien. Le plus souvent, l'accès au compte a expiré —`,
+      `${connector} a refusé l'action « ${action} ». Changer de modèle ne résoudra rien. Le plus souvent, l'accès au compte a expiré :`,
     reconnect: "reconnectez-le, puis relancez votre demande.",
     reconnectWithPath: "reconnectez-le dans Réglages → Connecteurs, puis relancez votre demande.",
     noToolUsed: (who) =>
-      `${who} a répondu sans se servir de vos connecteurs. Un modèle plus à l'aise avec les outils (Claude, par exemple) s'en sert mieux : changez de modèle sous le message, puis relancez.`,
+      `${who} a répondu sans utiliser vos connecteurs. Les modèles qui gèrent mieux les outils (Claude, par exemple) s'en servent plus fiablement : changez de modèle sous le message, puis relancez.`,
     badCall: (who, action) =>
-      `${who} n'a pas réussi à formuler l'action « ${action} ». Un modèle plus à l'aise avec les outils (Claude, par exemple) y parvient souvent : changez de modèle sous le message.`,
-    reconnectTip: (connector) => `Ouvrir la fiche ${connector} pour reconnecter le compte`,
+      `${who} n'a pas pu formuler une requête valide pour « ${action} ». Les modèles qui gèrent mieux les outils (Claude, par exemple) y parviennent souvent : changez de modèle sous le message.`,
+    reconnectTip: (connector) => `Ouvrir les réglages de ${connector} pour reconnecter le compte`,
     reconnectCta: "Reconnecter",
   },
 } satisfies Messages["conversation"];

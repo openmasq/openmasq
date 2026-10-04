@@ -64,24 +64,21 @@ describe("mcp catalog", () => {
     expect(findConnector("gmail-read")).toBeUndefined();
     const gmail = findConnector("gmail");
     expect(gmail?.transport).toBe("direct");
-    expect(gmail?.byoOnly).toBeFalsy();
-    // 30/07/2026: 1-click capabilities = 100% of byo — read + send in BOTH modes.
-    const full = [
+    // Read + send, in « Vos clés » mode only while Google reviews the app's client.
+    expect(gmail?.scopes?.byo).toEqual([
       "https://www.googleapis.com/auth/gmail.readonly",
       "https://www.googleapis.com/auth/gmail.send",
-    ];
-    expect(gmail?.scopes?.managed).toEqual(full);
-    expect(gmail?.scopes?.byo).toEqual(full);
+    ]);
   });
 
-  it("les connecteurs Google offrent 100 % de leurs capacités en 1-clic (managed ≡ byo)", () => {
-    // Product decision 30/07/2026: no Google scope is reserved for byo anymore — CASA is
-    // an ops prerequisite (client verification), never a gate in the code.
+  it("les connecteurs Google sont « Vos clés » seulement, tant que Google vérifie l'app", () => {
+    // No one-click scope requested at all (main refuses the built-in mode), every
+    // capability still reachable with a developer's own Google client.
     for (const id of ["gmail", "google-calendar", "google-drive", "google-docs", "google-sheets", "google-tasks", "google-analytics"]) {
       const c = findConnector(id);
-      expect(c?.byoOnly, id).toBeFalsy();
-      expect(c?.scopes?.managed, id).toEqual(c?.scopes?.byo);
-      expect((c?.scopes?.managed ?? []).length, id).toBeGreaterThan(0);
+      expect(c?.byoOnly, id).toBe(true);
+      expect(c?.scopes?.managed, id).toEqual([]);
+      expect((c?.scopes?.byo ?? []).length, id).toBeGreaterThan(0);
     }
   });
 

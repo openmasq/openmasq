@@ -21,12 +21,14 @@ import { NUMBER_RE, isBareYear } from "./numbers";
 import { redactionCategory, URL_EXEMPT_KINDS } from "../../kinds";
 import { gatherCandidates } from "./gather";
 import { buildExistingFakeGuard, buildAvoidGuard, expandVariants } from "./guards";
-import { filterCandidates, deNest, dropUnanchoredProseGeo, disabledValueSpans } from "./filter";
+import { filterCandidates, deNest, dropUnanchoredProseGeo, disabledValueSpans, type FilterCtx } from "./filter";
+import { planPathEntities } from "./pathEntities";
 import { splitLineCrossing } from "./lineSplit";
 import { allocateEntities } from "./allocate";
 import { allocateTokens } from "./allocateTokens";
 import { replayForModel } from "./replay";
 import type { PseudonymizeOptions } from "./options";
+import { reconcileMatches } from "./postcondition";
 
 export type { PseudonymizeOptions };
 
@@ -63,6 +65,8 @@ export async function pseudonymize(
 
   // Phase 1 — gather candidates (model + rules + deterministic detectors + forced/secrets).
   const { candidates, modelError } = await gatherCandidates(input, options);
+  // A stale caller stops here, before the synchronous phases (seconds on a long text).
+  options.signal?.throwIfAborted();
 
   // Tokenising bare numbers into n1/n2 is opt-in (default off).
   const tokenizeNumbers = options.numbers === true;
@@ -104,7 +108,7 @@ export async function pseudonymize(
   // The disabled zones are computed from the SAME candidate list (variants included), so a
   // fragment of a released value is recognised whichever detector named it.
   const zones = disabledValueSpans(candidates, input, disabled);
-  const kept = filterCandidates(candidates, {
+  const filterCtx: FilterCtx = {
     keep,
     unrevealable,
     reFakeExisting: options.reFakeExisting,
@@ -119,7 +123,8 @@ export async function pseudonymize(
       people: options.peopleNotoriety !== false,
     },
     input,
-  });
+  };
+  const kept = filterCandidates(candidates, filterCtx);
   // Prose geo (REGION/DEPARTMENT): redacted only if personal data
   // is present (another surviving candidate, or a vault already seeded) — see
   // `dropUnanchoredProseGeo`. A general-geography question goes out in clear.
@@ -156,7 +161,18 @@ export async function pseudonymize(
     return undefined;
   };
 
-  const entityCandidates = deNested;
+  // What each PATH holds, read like prose (`pathEntities.ts`): its entities join the
+  // candidates AHEAD of the paths, a path where nothing identifying was found stays as is.
+  const pathPlan = options.mode === "token" ? undefined : await planPathEntities(deNested, kept, options,
+    (c, doc) => deNest(filterCandidates(c, { ...filterCtx, input: doc, urlSpans: null, emailSpans: null, disabledSpans: null, releasedValues: undefined }), doc));
+  const entityCandidates = pathPlan
+    ? [
+        ...pathPlan.extra,
+        // Every other entity BEFORE any path: a path reads its entities' fakes from the vault.
+        ...deNested.filter((c) => redactionCategory(c.category) !== "path"),
+        ...deNested.filter((c) => redactionCategory(c.category) === "path" && !pathPlan.unchanged.has(c.value)),
+      ]
+    : deNested;
 
   // Phase 3 — allocate a reversible substitute per entity (mutates the vault, fail-closed).
   // Two allocators, one single contract (« reported ⇒ vaulted ⇒ substituted », checked below):
@@ -172,7 +188,7 @@ export async function pseudonymize(
       vault, reverse, taken, entityValues, entityCanon, record, input, geoFakes, geoAnchors,
       resolveFakeCI, resolveEntityFakeCI, collidesAvoid, salt: options.salt ?? 0,
       convKey: keyFromHex(options.key),
-      notorietyCommercial: options.commercialNotoriety === true,
+      notorietyCommercial: options.commercialNotoriety === true, pathPlan,
     });
   }
 
@@ -209,7 +225,10 @@ export async function pseudonymize(
 
   // Apply every mapping in one safe pass — minus what must not take part in it
   // (`exclusions.ts` says which, and why a path SEGMENT is among them).
+  const kindOf = new Map<string, string>(Object.entries(options.kinds ?? {}));
+  for (const m of matches) if (m.value && m.category) kindOf.set(m.value, m.category);
   const exclude = forwardExclusions(vault, {
+    kindOf,
     numbers: tokenizeNumbers,
     disabledKinds: options.disabledKinds,
     kinds: options.kinds,
@@ -219,8 +238,6 @@ export async function pseudonymize(
   // A vaulted value must not rewrite the INSIDE of a URL — see `urlOccurrenceGuard`. The
   // kind comes from the caller's map ⊕ THIS pass's own matches (a value vaulted a moment
   // ago is in neither). No proven kind ⇒ EXEMPT, i.e. substituted: unknown fails CLOSED.
-  const kindOf = new Map<string, string>(Object.entries(options.kinds ?? {}));
-  for (const m of matches) if (m.value && m.category) kindOf.set(m.value, m.category);
   const urlGuard = urlSpans
     ? urlOccurrenceGuard(urlSpans, (value) => {
         const k = kindOf.get(value);
@@ -231,45 +248,11 @@ export async function pseudonymize(
   // this text runs too (history, summary, memory), so a value masked here is masked there.
   const text = replayForModel(input, vault, { exclude, urlGuard, mode: options.mode });
 
-  // POSTCONDITION — "reported ⇒ vaulted ⇒ substituted". `matches` is what the UI
-  // shows as redacted, what `redactedSpans` persists and what the privacy report
-  // counts; it is built while gathering, BEFORE we know what actually got applied.
-  // The two could silently disagree, and a match that claims a redaction which
-  // never happened is worse than no match at all: the user is told a value is
-  // protected while it sits on the wire. Reconcile here, at the single exit.
-  //
-  // Two different situations, deliberately handled differently:
-  //  - the token is in `exclude` ⇒ the user turned that category off (or kept the
-  //    value in clear). Not substituting is CORRECT, so this is not an error —
-  //    but it is not a redaction either: drop the claim.
-  //  - the token is missing from the vault ⇒ the value is UNREVERSIBLE (nothing to
-  //    restore the reply with) and was never substituted. That is a real defect,
-  //    so it fails CLOSED via `modelError`, which the send path turns into a
-  //    refusal rather than a downgrade.
-  // "To verify": re-attach the surviving candidates' `uncertain` flag to the matches
-  // by entity key (the allocators don't thread it — the value is the join). Done on the
-  // POST-filter list, so a span the filter dropped can't flag anything, and a span
-  // corroborated in `gather` was already cleared. Word-level ALIASES of a name don't
-  // inherit the flag — the audit styles the whole-value span the user actually sees.
+  // POSTCONDITION — "reported ⇒ vaulted ⇒ substituted", reconciled at the single exit
+  // (`postcondition.ts` says which mismatch is dropped, accepted, or fails CLOSED).
   const uncertainKeys = new Set(
     deNested.filter((c) => c.uncertain).map((c) => entityKey(c.value)),
   );
-
-  const applied: RedactionMatch[] = [];
-  let unreversible = false;
-  for (const m of matches) {
-    if (vault[m.placeholder] !== m.value) {
-      unreversible = true;
-      continue;
-    }
-    if (exclude.has(m.placeholder)) continue;
-    applied.push(uncertainKeys.has(entityKey(m.value)) ? { ...m, uncertain: true } : m);
-  }
-  return {
-    text,
-    matches: applied,
-    modelError:
-      modelError ??
-      (unreversible ? "redaction postcondition failed: a reported match was not vaulted" : undefined),
-  };
+  const { applied, error } = reconcileMatches(matches, { vault, exclude, text, uncertainKeys });
+  return { text, matches: applied, modelError: modelError ?? error };
 }

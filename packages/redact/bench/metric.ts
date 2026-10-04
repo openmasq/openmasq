@@ -37,16 +37,16 @@ const NAMEISH = new Set(["NAME", "CITY", "ORG"]);
  */
 const RECALL_EXEMPT = new Set(["CONTEXT"]);
 
-export function tokens(s: string): string[] {
+function tokens(s: string): string[] {
   return (s || "")
     .toLowerCase()
     .split(/[\s\-_/.,]+/)
     .filter((t) => t.length >= 2 || /\d/.test(t));
 }
-export function norm(s: string): string {
+function norm(s: string): string {
   return (s || "").toLowerCase().replace(/[\s\-_/.,]/g, "");
 }
-export function isCjk(s: string): boolean {
+function isCjk(s: string): boolean {
   return /[぀-ヿ㐀-鿿가-힯]/.test(s);
 }
 
@@ -82,7 +82,7 @@ function atTokenStart(hay: string, needle: string): boolean {
  * What the edge rule REFUSES, and this is deliberate: « MrPaul » does not overlap « Paul VASSEUR »
  * — the honorific is glued to the first name, so the span is wrong even if the entity is right.
  */
-export function overlapsTruth(detected: string, truth: readonly string[]): boolean {
+function overlapsTruth(detected: string, truth: readonly string[]): boolean {
   if (!detected.trim()) return false;
   const truthTokens = new Set(truth.flatMap(tokens));
   if (tokens(detected).some((t) => truthTokens.has(t))) return true;

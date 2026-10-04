@@ -9,7 +9,7 @@
  * name, consumed only by the prefetch (`isConfidentReadOnly`).
  */
 
-export { READ_VERB, WRITE_VERB, DESTRUCTIVE_VERB, COMPOUND_WRITE } from "@openmasq/catalog/mcp";
+export { READ_VERB, DESTRUCTIVE_VERB, COMPOUND_WRITE } from "@openmasq/catalog/mcp";
 
 /**
  * The BARE name stripped of the VENDOR name when it repeats it — `notion__notion-fetch` →

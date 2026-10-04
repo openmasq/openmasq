@@ -1,6 +1,10 @@
+import type { Messages } from "@openmasq/i18n";
 import type { Attachment } from "./Composer";
 import type { ExtractedFile } from "../../host";
 import type { DeferredFile } from "../../state/files/deferredFile";
+import { extractProgressPatch } from "./attachmentPending";
+import type { ReadingSession } from "./readingMask";
+import { isExtractionCancelled } from "../../state/files/extractCancel";
 
 /** What `ChatView` knows how to do and this module doesn't: setting, fixing, chaining. */
 export interface DeferredAttachDeps {
@@ -12,6 +16,11 @@ export interface DeferredAttachDeps {
   countMatches(text: string): number;
   /** OCR log + start of redaction, once the content is there. */
   onExtracted(file: ExtractedFile, attachment: Attachment): void;
+  /** The copy a failed chip shows. */
+  t: Messages;
+  /** The masking of the file started while it is read (`readingMask.ts`). Absent ⇒
+   *  the file is masked once read, and the pending preview keeps its plain loader. */
+  reading?(cid: string): ReadingSession;
   /** A chip identifier. Injected by the TEST only, to be deterministic. */
   newCid?(): string;
 }
@@ -48,20 +57,28 @@ export async function stageDeferredFile(
   const ph = placeholderFor(d, deps.newCid?.() ?? Math.random().toString(36).slice(2));
   deps.stage([ph], forConvId);
   let file: ExtractedFile;
+  const reading = deps.reading?.(ph.cid);
   try {
     // OCR progress fixes the chip page by page; a source that emits none
     // leaves the bar indeterminate (the parameter is ignored harmlessly).
-    file = await d.load((p) => deps.patch(ph.cid, { extractProgress: p }, forConvId));
+    // `ph.cid` is the job id: removing the chip cancels THIS read (`useAttachments.ts`).
+    file = await d.load((p) => deps.patch(ph.cid, extractProgressPatch(p), forConvId), reading?.push, reading?.bytes, ph.cid);
   } catch {
-    deps.patch(ph.cid, { extracting: false, error: "extraction échouée" }, forConvId);
+    reading?.end(false);
+    if (isExtractionCancelled(ph.cid)) return;
+    deps.patch(ph.cid, { extracting: false, error: deps.t.composer.attachments.extractFailed }, forConvId);
     return;
   }
+  // Removed while read: the chip is gone, its result is dropped (never masked).
+  if (isExtractionCancelled(ph.cid)) return reading?.end(false);
+  // A read that failed or found nothing drops what it streamed: only a whole text is content.
+  reading?.end(!file.error && !!file.text.trim());
   const redactPreview = deps.countMatches(file.text);
   deps.patch(
     ph.cid,
     // `extracting` drops and `redacting` takes over in the SAME patch: two
     // patches left the chip in a stateless frame, which reads as a failure.
-    { ...file, extracting: false, extractProgress: undefined, redactPreview, redacting: !!file.text.trim() },
+    { ...file, extracting: false, extractProgress: undefined, extractQueued: undefined, redactPreview, redacting: !!file.text.trim() },
     forConvId,
   );
   deps.onExtracted(file, { ...ph, ...file, redactPreview });

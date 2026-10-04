@@ -1,6 +1,7 @@
 import { useState } from "react";
 import type { McpCatalogEntry } from "../../../host";
 import { Btn } from "./McpBtn";
+import { McpDirList } from "./McpDirList";
 
 import { useT } from "../../../i18n";
 /**
@@ -51,30 +52,16 @@ export function McpGrantedDirs({
         const dirs = params?.[p.key] ?? [];
         const busy = busyKey === p.key;
         return (
-          <div key={p.key} className="mcp-param">
-            <div className="mcp-rownote">{p.label}</div>
-            {dirs.map((d) => (
-              <div key={d} className="flex items-center gap-2">
-                <code className="mcp-cmd flex-min">{d}</code>
-                <button
-                  type="button"
-                  className="opacity-60 hover:opacity-100"
-                  onClick={() =>
-                    apply(
-                      p.key,
-                      dirs.filter((x) => x !== d),
-                    )
-                  }
-                  // A required folder can't be removed if it's the last one: the host
-                  // would refuse, so don't bother offering the gesture.
-                  disabled={busy || (!!p.required && dirs.length === 1)}
-                  aria-label={t.mcpTab.removeDir(d)}
-                  title={p.required && dirs.length === 1 ? t.mcpTab.atLeastOneDir : t.mcpTab.remove}
-                >
-                  ✕
-                </button>
-              </div>
-            ))}
+          <div key={p.key} className="mcp-dirs">
+            <div className="mcp-dirs-label">{p.label}</div>
+            <McpDirList
+              dirs={dirs}
+              onRemove={(d) => apply(p.key, dirs.filter((x) => x !== d))}
+              // A required folder can't be removed if it's the last one: the host
+              // would refuse, so don't bother offering the gesture.
+              removeDisabled={busy || (!!p.required && dirs.length === 1)}
+              removeTitle={p.required && dirs.length === 1 ? t.mcpTab.atLeastOneDir : undefined}
+            />
             <Btn
               label={busy ? t.mcpTab.updating : t.mcpTab.addDir}
               onClick={async () => {

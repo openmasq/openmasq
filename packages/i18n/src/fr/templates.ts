@@ -8,7 +8,7 @@ export const templates = {
   routines: {
     "comparer-offres": {
       name: "Comparer des offres en ligne",
-      desc: "Le navigateur va lire les sites et compare pour vous. Aucun compte requis.",
+      desc: "Le navigateur lit les sites et compare pour vous. Aucun compte requis.",
       prompt: `Sur {site 1} et {site 2}, trouve {ce que je cherche}.
 
 1. Un tableau comparatif : prix, disponibilité, conditions.
@@ -28,7 +28,7 @@ Lis seulement : ne remplis aucun formulaire et ne te connecte à aucun compte.`,
     },
     "compte-rendu-reunions": {
       name: "Compte rendu de mes réunions",
-      desc: "Décisions et actions tirées des transcriptions de la semaine.",
+      desc: "Décisions et actions tirées des transcriptions de vos réunions.",
       prompt: `Reprends mes réunions depuis {date}.
 
 1. Pour chacune : le sujet, les participants, et les décisions prises.
@@ -104,7 +104,7 @@ Consultation seule : ne crée, ne rembourse et n'annule rien.`,
     },
     "veille-sujet": {
       name: "Veille sur un sujet",
-      desc: "Cherche le web et rend une synthèse sourcée.",
+      desc: "Cherche sur le web et rend une synthèse sourcée.",
       prompt: `Fais une veille sur {sujet} pour les {nombre} derniers jours.
 
 1. Les faits nouveaux, avec la source et la date de chacun.
@@ -194,8 +194,7 @@ Code :
 - Les clauses inhabituelles ou à risque, et pourquoi.
 - Les points à faire préciser avant signature.
 
-C'est une lecture, pas un conseil juridique : dis clairement ce qui mérite
-l'avis d'un professionnel.
+Signale clairement les points qui demandent un examen juridique approfondi.
 
 Contrat :
 `,
@@ -255,7 +254,7 @@ Texte :
   },
   generic: {
     name: (service) => `Faire le point sur ${service}`,
-    desc: (what) => `Une routine de départ : ${what}`,
+    desc: (what) => `Routine suggérée : ${what}`,
     prompt: (service) => `Fais le point sur {ce qui m'intéresse} dans ${service}.
 
 1. Ce que tu trouves, du plus pertinent au moins pertinent, avec sa date.

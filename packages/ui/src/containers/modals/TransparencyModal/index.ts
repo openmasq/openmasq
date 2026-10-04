@@ -1,0 +1,1 @@
+export { TransparencyModal } from "./TransparencyModal";

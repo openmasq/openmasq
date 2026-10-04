@@ -8,9 +8,11 @@
  * return a silent empty stream, which would read as « the model didn't answer ».
  */
 import { spawn } from "node:child_process";
-import type { StreamDone, StreamFinish, TokenUsage } from "@openmasq/llm";
+import { cliAuthWire, type StreamDone, type StreamFinish, type TokenUsage } from "@openmasq/llm";
 import { minimalChildEnv } from "../childEnv";
+import { cliAuthFailureLine } from "./authFailure";
 import { NdjsonLineBuffer } from "./claudeStream";
+import type { SubscriptionCliId } from "./resolveCli";
 
 /** What an interpreter surfaces. Everything else in the stream is deliberately ignored. */
 export type CliAction =
@@ -19,25 +21,51 @@ export type CliAction =
   | { kind: "reasoning"; delta: string }
   | { kind: "rateLimit"; status: string; resetsAt?: number; windowType?: string }
   | { kind: "done"; usage?: TokenUsage; finish: StreamFinish }
-  | { kind: "error"; message: string };
+  /** `auth`: the CLI said so STRUCTURALLY (claude's `error: "authentication_failed"`) —
+   *  otherwise the text alone is read (`authFailure.ts`). */
+  | { kind: "error"; message: string; auth?: boolean };
 
 function raise(err: Error): never {
   throw err;
 }
 
-/** Error carrying the CLI's error output, so the caller can translate it. */
+/** Error carrying the CLI's error output, so the caller can translate it. `code:
+ *  "cli_auth"` = the CLI's OWN session is missing or expired: the message then leads with
+ *  the wire code (`cliAuthWire`), which is all that crosses to the renderer. */
 export class SubscriptionCliError extends Error {
   constructor(
     message: string,
     readonly stderrTail: string,
     readonly exitCode: number | null,
+    readonly code?: "cli_auth",
   ) {
     super(message);
     this.name = "SubscriptionCliError";
   }
 }
 
+/**
+ * The failure of a turn, TYPED when it is a lost session. `evidence` is what is read for
+ * it: the CLI's own error message, or its stderr on a non-zero exit. Anything else keeps
+ * its message untouched — a quota, a refusal or a crash never becomes « sign in again ».
+ */
+export function cliFailure(
+  cli: SubscriptionCliId,
+  message: string,
+  evidence: string,
+  stderrTail: string,
+  exitCode: number | null,
+  structuredAuth = false,
+): SubscriptionCliError {
+  const line = cliAuthFailureLine(cli, evidence) ?? (structuredAuth ? evidence : null);
+  return line === null
+    ? new SubscriptionCliError(message, stderrTail, exitCode)
+    : new SubscriptionCliError(cliAuthWire(cli, line), stderrTail, exitCode, "cli_auth");
+}
+
 export interface CliProcessOptions {
+  /** Which CLI this is — what its failures are read against (`authFailure.ts`). */
+  cli: SubscriptionCliId;
   binPath: string;
   args: string[];
   /** DEDICATED, neutral working directory — never a user folder. */
@@ -107,7 +135,7 @@ export async function* streamCliProcess(
         done = { usage: action.usage, finish: action.finish };
         break;
       case "error":
-        failure = new SubscriptionCliError(action.message, stderrTail, null);
+        failure = cliFailure(opts.cli, action.message, action.message, stderrTail, null, action.auth);
         break;
       case "session":
         break;
@@ -163,11 +191,7 @@ export async function* streamCliProcess(
 
     if (opts.signal?.aborted) return { finish: "cut" };
     if (code !== 0 && !done) {
-      throw new SubscriptionCliError(
-        `La CLI s'est arrêtée avec le code ${code ?? "inconnu"}.`,
-        stderrTail,
-        code,
-      );
+      throw cliFailure(opts.cli, `La CLI s'est arrêtée avec le code ${code ?? "inconnu"}.`, stderrTail, stderrTail, code);
     }
     // Clean exit but no `result`: the stream was cut, the response is truncated.
     return done ?? { finish: "cut" };

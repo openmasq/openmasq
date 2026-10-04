@@ -17,14 +17,14 @@ import { scoreCorpus, pct, type BenchCase } from "./metric";
  * detector is stubbed to propose every stay-clear term it finds in the text, which is a
  * faithful, and deliberately harsher, model of what a real NER does to these documents.
  */
-export const detectVault = async (text: string): Promise<string[]> => {
+const detectVault = async (text: string): Promise<string[]> => {
   const vault: Record<string, string> = {};
   await pseudonymize(text, { vault });
   return Object.values(vault);
 };
 
 /** A detector that tags every stay-clear term present in the text as an ORG. */
-export const proposingDetector =
+const proposingDetector =
   (vocabulary: readonly string[]) =>
   (text: string) =>
   async (): Promise<string> =>

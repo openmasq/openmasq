@@ -32,7 +32,7 @@ const EMPTY: EnvUrls = { backend: "", admin: "", supabaseUrl: "", supabaseAnonKe
 /** An environment's addresses — baked for production/staging, entered for custom.
  *  A `custom` with no stack is EMPTY, never a fallback to production: that would be
  *  precisely talking to a backend the user hasn't chosen. */
-export function envUrls(name: EnvName, custom: CustomStack | null): EnvUrls {
+function envUrls(name: EnvName, custom: CustomStack | null): EnvUrls {
   if (isBuiltEnvName(name)) return ENVIRONMENTS[name];
   return custom ? customEnvUrls(custom) : EMPTY;
 }

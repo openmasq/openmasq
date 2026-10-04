@@ -81,24 +81,32 @@ export function RailRow({
   onClose: () => void;
 }) {
   const t = useT();
+  // Two SIBLING buttons, never one inside the other: a nested control has no tab stop
+  // and no keyboard activation, so the cross was mouse-only.
   return (
-    <button type="button" className={`rr-item${on ? " on" : ""}`} title={label} onClick={onSelect}>
-      <span className={`rr-item-tile${drive ? " driving" : ""}`}>
-        {tile}
-        {drive && <span className="rail-drive" aria-hidden="true" />}
-      </span>
-      <span className="rr-item-label">{label}</span>
-      <span
+    <div className={`rr-item${on ? " on" : ""}`}>
+      <button
+        type="button"
+        className="rr-item-main"
+        title={on ? t.shell.rightRail.collapseItem(label) : label}
+        aria-pressed={on}
+        onClick={onSelect}
+      >
+        <span className={`rr-item-tile${drive ? " driving" : ""}`}>
+          {tile}
+          {drive && <span className="rail-drive" aria-hidden="true" />}
+        </span>
+        <span className="rr-item-label">{label}</span>
+      </button>
+      <button
+        type="button"
         className="rr-item-x"
-        role="button"
+        title={t.shell.rightRail.closeItem(label)}
         aria-label={t.shell.rightRail.closeItem(label)}
-        onClick={(e) => {
-          e.stopPropagation();
-          onClose();
-        }}
+        onClick={onClose}
       >
         ×
-      </span>
-    </button>
+      </button>
+    </div>
   );
 }

@@ -10,6 +10,7 @@ import { maskAccountLabel } from "../accountIdentity";
 import { assertPublicUrl } from "../../net/net";
 import { emitNeedsReconnect, needsReconnect } from "../server/registry";
 import { BRAND } from "@openmasq/branding";
+import { scopeCovered } from "./scopes";
 
 /** SSRF floor on hop 0 of an authenticated connector fetch, BEFORE the bearer is attached:
  *  a tool interpolating a model-supplied value into the HOST must not reach an internal
@@ -29,14 +30,16 @@ async function assertConnectorTarget(url: string): Promise<void> {
 }
 
 /**
- * A short, SAFE reason CODE from a provider error body (`error.status` or a `reason`
- * token): ONLY enum-like tokens, NEVER the free-text message, which could echo PII.
+ * A short, SAFE reason CODE from a provider error body: Google's `error.status` / `reason`,
+ * Microsoft Graph's `error.code` (`itemNotFound`, `ResourceNotFound`). ONLY enum-like
+ * tokens, NEVER the free-text message, which could echo PII.
  */
 function upstreamReason(body: string): string | undefined {
   try {
     const j = JSON.parse(body) as {
       error?: {
         status?: string;
+        code?: unknown;
         errors?: { reason?: string }[];
         details?: { reason?: string }[];
       };
@@ -46,7 +49,8 @@ function upstreamReason(body: string): string | undefined {
     const reason =
       e.errors?.find((x) => x.reason)?.reason ??
       e.details?.find((x) => x.reason)?.reason ??
-      e.status;
+      e.status ??
+      (typeof e.code === "string" ? e.code : undefined);
     // A bare enum token only, never a sentence.
     return reason && /^[A-Za-z_]+$/.test(reason) ? reason : undefined;
   } catch {
@@ -179,7 +183,7 @@ export function makeConnectorConnection(opts: {
     id,
     async listTools(): Promise<McpTool[]> {
       return connector.tools
-        .filter((t) => !t.scope || grantedScopes.includes(t.scope))
+        .filter((t) => !t.scope || scopeCovered(grantedScopes, t.scope))
         .map((t) => ({
           name: t.name,
           description: modelLabel ? `${t.description} (compte : ${modelLabel})` : t.description,

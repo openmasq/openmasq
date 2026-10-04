@@ -2,7 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { fileSourceSlots } from "./host/fileSources";
 import { envSlot } from "./host/envSlot";
-import { HostProvider, applyPersistedTheme, type Host } from "@openmasq/ui";
+import { HostProvider, applyPersistedTheme, setHostLocaleSink, type Host } from "@openmasq/ui";
 import "@openmasq/ui/styles.css";
 import { App } from "./App";
 import { initRendererTelemetry } from "./telemetry";
@@ -17,6 +17,7 @@ import {
 } from "./sync";
 import { billingHost } from "./billing";
 import { subscriptionHost } from "./hostSubscription";
+import { localPiiDetector } from "./localPiiHost";
 import { feedbackHost, mailtoFeedbackHost } from "./feedback";
 // THE renderer's environment reader (`./appEnv`).
 import {
@@ -39,6 +40,7 @@ const host: Host = {
   startChat: (payload, handlers) => window.openmasq.startChat(payload, handlers),
   app: {
     versions: () => window.openmasq.app.versions(),
+    ...(window.openmasq.app.setLocale && { setLocale: (l: string) => window.openmasq.app.setLocale(l) }),
   },
   media: window.openmasq.media
     ? { ensureMicAccess: () => window.openmasq.media.ensureMicAccess() }
@@ -147,14 +149,14 @@ const host: Host = {
   files: {
     pick: () => window.openmasq.files.pick(),
     pickPaths: () => window.openmasq.files.pickPaths(),
-    extract: (paths, onProgress) => window.openmasq.files.extract(paths, onProgress),
-    // Absent ⇒ no "Read all".
-    extractAll: window.openmasq.files.extractAll
-      ? (paths, onProgress) => window.openmasq.files.extractAll(paths, onProgress)
-      : undefined,
+    extract: (paths, onProgress, onStream, job) => window.openmasq.files.extract(paths, onProgress, onStream, job),
+    // The re-read of a record read under the former 10-page OCR cap: the SAME whole-document
+    // extraction (there is no cap left to lift), so no channel of its own.
+    extractAll: (paths, onProgress) => window.openmasq.files.extract(paths, onProgress),
     read: (path) => window.openmasq.files.read(path),
-    extractBytes: (data, name, mime, onProgress) =>
-      window.openmasq.files.extractBytes(data, name, mime, onProgress),
+    extractBytes: (data, name, mime, onProgress, onStream, job) =>
+      window.openmasq.files.extractBytes(data, name, mime, onProgress, onStream, job),
+    cancelExtract: (job) => void window.openmasq.files.cancelExtract(job).catch(() => {}),
     // Absent ⇒ no picker hint.
     pathForFile: window.openmasq.files.pathForFile
       ? (file: File) => window.openmasq.files.pathForFile!(file)
@@ -164,9 +166,7 @@ const host: Host = {
   },
   complete: (payload) => window.openmasq.complete(payload),
   // Absent ⇒ the local engine is unavailable (the store falls back to the pattern rules).
-  detectLocalPii: window.openmasq.detectLocalPii
-    ? (payload) => window.openmasq.detectLocalPii!(payload)
-    : undefined,
+  detectLocalPii: localPiiDetector(),
   probeLocalEndpoint: window.openmasq.probeLocalEndpoint
     ? (baseUrl) => window.openmasq.probeLocalEndpoint!(baseUrl)
     : undefined,
@@ -354,6 +354,8 @@ if (navigator.userAgent.includes("Macintosh")) {
 
 // Theme <html> BEFORE the first render, so the splash paints in the right theme.
 applyPersistedTheme();
+// Main's native dialogs and menus follow the interface language (`main/i18n.ts`).
+setHostLocaleSink((locale) => void host.app?.setLocale?.(locale));
 
 ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
   <React.StrictMode>

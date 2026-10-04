@@ -39,10 +39,10 @@ export function typedPartOfWire(text: string): string {
   return i < 0 ? text : text.slice(0, i);
 }
 
-/** The per-document cap on what the WIRE carries (each folded file is clipped here,
- *  « …(truncated) » marker included) — THE single source (rule 9): the drop-time
- *  redaction scans to this bound and the preview modal shows the cut at it, so the
- *  three surfaces cannot disagree on where the document stops leaving the machine. */
+/** The FORMER per-document wire cut. The fold sends every document WHOLE now (the guard
+ *  is the context precheck, `contextFit.ts`, before masking); this survives only to word a
+ *  turn persisted under that cut (`attachments[].clipped`, never set any more).
+ *  @deprecated as a bound on new sends — nothing in the send path may read it. */
 export const MAX_FILE_CHARS = 50_000;
 
 /**
@@ -51,11 +51,8 @@ export const MAX_FILE_CHARS = 50_000;
  * boundary row (`jean.dup` out of an email, half an IBAN): the detector, scanning the
  * SAME clipped text, no longer recognises the fragment's shape, so the fragment
  * shipped in clear — a partially-redacted send. Cutting at the newline means every
- * line that leaves was scanned WHOLE. THE single clip (rule 9): the wire fold below,
- * the drop-time scan (`pages/ChatWorkspace/redactAttachment.ts`), the preview's
- * redacted bound (`AttachmentPreviewModal`), the detection layers and the tool-result
- * cap all call this — a second slice is how the surfaces drift. A text with no
- * newline inside the bound hard-cuts at `max` (nothing better exists for one line).
+ * line that leaves was scanned WHOLE. THE single clip (rule 9) for what still has a cap
+ * (a tool result). A text with no newline inside the bound hard-cuts at `max`.
  */
 export function clipFileText(text: string, max: number): string {
   if (text.length <= max) return text;
@@ -74,9 +71,11 @@ export interface DocReplacement {
   real: string;
   fake: string;
   tone?: string;
+  /** The FINE category the document's redaction found (name/address/…). */
+  kind?: string;
 }
 
-/** A reused document's wire part: its header + the drop-time reps + the clipped text. */
+/** A reused document's wire part: its header + the drop-time reps + the WHOLE text. */
 export interface ReusePart {
   header: string;
   reps: DocReplacement[];
@@ -96,6 +95,10 @@ export interface FoldedPayload {
   /** fake→real entries to merge into the vault BEFORE detection, so a value seen in a
    *  reused doc AND the typed text gets ONE shared fake. */
   vaultPreload: Record<string, string>;
+  /** real→kind of the reused docs' values. The vault holds pairs only: without this the
+   *  conversation never learns a reused value's category and every display (chat marks,
+   *  debug log, audit) falls back to « sensitive ». */
+  docKinds: Record<string, string>;
 }
 
 /** Fold the attached files' text into the model payload. See the module doc. */
@@ -111,11 +114,8 @@ export function buildFoldedPayload(
    *  directive, a compétence's prompt, or both. It is part of `modelText`, so the
    *  engine redacts it like any other text — never bypass this and append after. */
   prefix: string,
-  maxFileChars = MAX_FILE_CHARS,
 ): FoldedPayload {
   const imageNames = new Set(opts.imageNames ?? []);
-  const clip = (t: string) =>
-    t.length > maxFileChars ? clipFileText(t, maxFileChars) + "\n…(truncated)" : t;
   // The real filename can itself leak (refs, dates, names PII detection won't catch,
   // e.g. "438-GAZ-20220208.pdf") — the model only ever sees a neutral name.
   const safeName = (name: string, i: number) => {
@@ -135,13 +135,20 @@ export function buildFoldedPayload(
   const reuseDocs: { name: string; reps: DocReplacement[]; text: string }[] = [];
   for (const a of folded) {
     const reps = reuseReps[a.name];
-    if (reps?.length) reuseDocs.push({ name: a.name, reps, text: clip(a.text) });
-    else detectDocs.push({ name: a.name, text: clip(a.text) });
+    // The WHOLE document, never a first slice: what is sent is what was masked (a reused
+    // map covers the whole text, `redactAttachment.ts`; a detected one is detected whole).
+    if (reps?.length) reuseDocs.push({ name: a.name, reps, text: a.text });
+    else detectDocs.push({ name: a.name, text: a.text });
   }
   // Pre-load the reused replacements (fake→real) so the caller's vault + the typed-text
   // detector share the SAME fakes for a value seen in both.
   const vaultPreload: Record<string, string> = {};
-  for (const d of reuseDocs) for (const r of d.reps) if (r.fake && r.real) vaultPreload[r.fake] = r.real;
+  const docKinds: Record<string, string> = {};
+  for (const d of reuseDocs)
+    for (const r of d.reps) {
+      if (r.fake && r.real) vaultPreload[r.fake] = r.real;
+      if (r.real && r.kind) docKinds[r.real] = r.kind;
+    }
 
   // Global doc numbering across ALL groups (detect → reuse → image) for coherent headers.
   // Every header carries `ATTACHMENT_INLINE_NOTE` (incl. the persisted image blocks — a
@@ -174,7 +181,7 @@ export function buildFoldedPayload(
   // Image-sent docs' text — for `modelContent` persistence ONLY (numbered after the
   // folded ones so the headers stay coherent); NEVER added to `modelText`/the wire.
   const imageDocBlocks = imageDocs
-    .map((d) => `${header(d.name, docNo++)}${clip(d.text)}`)
+    .map((d) => `${header(d.name, docNo++)}${d.text}`)
     .join("");
 
   // Only the typed text + the docs we must still detect go through the (costly) engine.
@@ -190,5 +197,5 @@ export function buildFoldedPayload(
 
   // Reuse reps first: on a collision (impossible in practice, aliases are synthetic),
   // the document's map wins.
-  return { modelText, fullModelText, hasFolded, reuseParts, vaultPreload: { ...aliasVault, ...vaultPreload } };
+  return { modelText, fullModelText, hasFolded, reuseParts, vaultPreload: { ...aliasVault, ...vaultPreload }, docKinds };
 }

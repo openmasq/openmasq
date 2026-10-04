@@ -1,4 +1,5 @@
 import { BRAND } from "@openmasq/branding";
+import type { Messages } from "@openmasq/i18n";
 /**
  * What a drag-and-drop onto a conversation MEANS — the pure decision, extracted so the
  * security-shaped part of it is testable without a DOM drop event.
@@ -24,7 +25,8 @@ import { BRAND } from "@openmasq/branding";
  * to main and granting it re-opens both holes at once.
  */
 
-/** A folder the user dropped: its name for the card, its path ONLY as a picker hint. */
+/** A folder the user dropped: its name for the card ("" when the platform gives none —
+ *  the card then says « dossier » in the UI language), its path ONLY as a picker hint. */
 export interface DroppedFolder {
   name: string;
   /** Untrusted, unprivileged: `defaultPath` for the native dialog. Never a grant. */
@@ -71,7 +73,7 @@ export function readDrop(
     const file = files[fileIndex++];
     const entry = item.webkitGetAsEntry?.();
     if (entry?.isDirectory) {
-      const name = entry.name || file?.name || "dossier";
+      const name = entry.name || file?.name || "";
       const hintPath = file && pathFor ? pathFor(file) : undefined;
       out.folders.push({ name, ...(hintPath ? { hintPath } : {}) });
       continue;
@@ -94,11 +96,10 @@ export function dragCarriesFiles(types: readonly string[]): boolean {
 
 /** The card's sentence. Named here rather than in the component so the wording is
  *  testable and cannot drift from what the flow actually does. */
-export function folderOfferText(folders: readonly DroppedFolder[]): string {
-  if (folders.length === 1) {
-    return `Donner à ${BRAND.name} l'accès au dossier « ${folders[0]!.name} » ?`;
-  }
-  return `Donner à ${BRAND.name} l'accès à ces ${folders.length} dossiers ?`;
+export function folderOfferText(folders: readonly DroppedFolder[], t: Messages): string {
+  const f = t.runtime.files;
+  if (folders.length === 1) return f.folderOfferOne(BRAND.name, folders[0]!.name || f.folderFallbackName);
+  return f.folderOfferMany(BRAND.name, folders.length);
 }
 
 /**
@@ -107,6 +108,6 @@ export function folderOfferText(folders: readonly DroppedFolder[]): string {
  * If a future change makes the in-app click sufficient, this text becomes a lie AND the
  * grant invariant is broken — the two are deliberately tied together.
  */
-export const FOLDER_OFFER_NOTE =
-  "Une fenêtre du système s'ouvrira sur ce dossier pour que vous confirmiez. " +
-  `${BRAND.name} ne peut pas s'accorder un dossier tout seul.`;
+export function folderOfferNote(t: Messages): string {
+  return t.runtime.files.folderOfferNote(BRAND.name);
+}

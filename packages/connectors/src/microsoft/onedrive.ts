@@ -7,12 +7,14 @@ import {
   type RemoteEntry,
 } from "../files";
 import { GRAPH, MAX_CHARS, clampLimit, str } from "./graph";
+import { onedriveUploadFile } from "./onedriveUpload";
 
 /**
  * OneDrive connector (Microsoft Graph — the user's personal drive). Search files +
  * read a text-like file's content, with the user's token obtained desktop-direct via
- * Microsoft loopback + PKCE (public client, no secret). `Files.Read` is a delegated
- * user scope (no admin consent) so 1-clic works; `byo` widens to `Files.Read.All`.
+ * Microsoft loopback + PKCE (public client, no secret). `Files.ReadWrite` is a delegated
+ * user scope (no admin consent) so 1-clic works; `byo` widens to `Files.ReadWrite.All`.
+ * Write = `upload_file` (`./onedriveUpload.ts`), creating only, never overwriting.
  */
 interface DriveItem {
   id?: string;
@@ -110,17 +112,36 @@ const readDocument: ConnectorTool = {
   async run(args, ctx: ConnectorToolCtx) {
     const itemId = str(args.itemId);
     if (!itemId) return { content: [{ type: "text", text: "itemId requis." }], isError: true };
-    const raw = await ctx.fetchText(`${GRAPH}/me/drive/items/${itemId}/content`);
+    const raw = await ctx.fetchText(`${GRAPH}/me/drive/items/${encodeURIComponent(assertFileId(itemId))}/content`);
     const text = raw.length > MAX_CHARS ? `${raw.slice(0, MAX_CHARS)}\n…(tronqué)` : raw;
     return { content: [{ type: "text", text: text || "(vide ou non lisible en texte)" }] };
   },
 };
 
+/**
+ * A 404 on the ROOT or on a search names no item: Graph answers it when the account has no
+ * OneDrive provisioned (a work account without the licence, one never opened). The model got
+ * a bare « (404) » and retried; it now knows what to tell the user. Same diagnosis as the
+ * Folders panel (`main/cloudfs`). A 404 with a folder/item id stays « that id is wrong ».
+ */
+export function onedriveErrorHint(err: unknown): string {
+  const m = err instanceof Error ? err.message : String(err);
+  if (!/\(404\)/.test(m)) return m;
+  return (
+    `${m} — sur la racine ou une recherche, cela signifie que ce compte Microsoft n'a pas ` +
+    `encore d'espace OneDrive : dis à l'utilisateur d'ouvrir OneDrive une fois avec ce compte ` +
+    `(onedrive.com) ou de vérifier sa licence OneDrive. Sur un id précis, l'id est inconnu. ` +
+    `Ne réessaie pas en boucle.`
+  );
+}
+
 export const microsoftOneDriveConnector: Connector = {
   id: "microsoft-onedrive",
   name: "OneDrive",
   auth: "microsoft",
-  // Files.Read = delegated, no admin consent → 1-clic; byo widens to all files.
-  scopes: { managed: ["Files.Read"], byo: ["Files.Read.All"] },
-  tools: [searchFiles, listFolder, readDocument],
+  // Files.ReadWrite = delegated, no admin consent → 1-clic; byo widens to all files.
+  // A connection granted only `Files.Read` keeps reading, without `upload_file`.
+  scopes: { managed: ["Files.ReadWrite"], byo: ["Files.ReadWrite.All"] },
+  tools: [searchFiles, listFolder, readDocument, onedriveUploadFile],
+  errorHint: onedriveErrorHint,
 };

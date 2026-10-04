@@ -1,7 +1,9 @@
+import { getMessages } from "@openmasq/i18n";
 import { describe, it, expect, vi } from "vitest";
 import { stageDeferredFile, placeholderFor, type DeferredAttachDeps } from "./deferredAttach";
 import type { Attachment } from "./Composer";
 import type { ExtractedFile } from "../../host";
+import { cancelExtraction } from "../../state/files/extractCancel";
 
 const FILE: ExtractedFile = { name: "scan.pdf", kind: "pdf", text: "Paul Morvanz", chars: 12 };
 
@@ -19,6 +21,7 @@ function deps(over: Partial<DeferredAttachDeps> = {}): DeferredAttachDeps & {
     countMatches: () => 3,
     onExtracted: vi.fn(),
     newCid: () => "cid1",
+    t: getMessages("fr"),
     ...over,
   };
 }
@@ -79,7 +82,7 @@ describe("stageDeferredFile — le chip paraît AVANT le contenu", () => {
     );
     expect(d.staged).toHaveLength(1);
     expect(d.patches).toHaveLength(1);
-    expect(d.patches[0][1]).toMatchObject({ extracting: false, error: "extraction échouée" });
+    expect(d.patches[0][1]).toMatchObject({ extracting: false, error: "Lecture impossible" });
     expect(d.onExtracted).not.toHaveBeenCalled();
   });
 
@@ -101,5 +104,59 @@ describe("placeholderFor", () => {
 
   it("sans mime connu, le champ est ABSENT plutôt que vide", () => {
     expect("mime" in placeholderFor({ name: "a", load: async () => FILE }, "c")).toBe(false);
+  });
+});
+
+describe("stageDeferredFile — l'aperçu de lecture (`readingMask.ts`)", () => {
+  const session = () => ({ push: vi.fn(), end: vi.fn(), bytes: vi.fn() });
+
+  it("le flux de la lecture va à la session du chip, qui finit OK sur un texte entier", async () => {
+    const s = session();
+    const d = deps({ reading: () => s });
+    await stageDeferredFile(
+      {
+        name: "scan.pdf",
+        load: async (_p, onStream) => {
+          onStream?.({ name: "scan.pdf", page: { n: 1, total: 1, read: true, text: "Paul Morvanz" } });
+          return FILE;
+        },
+      },
+      "conv1",
+      d,
+    );
+    expect(s.push).toHaveBeenCalledOnce();
+    expect(s.end).toHaveBeenCalledWith(true);
+  });
+
+  it("une lecture en échec (ou sans texte) jette ce qu'elle a diffusé", async () => {
+    const failed = session();
+    await stageDeferredFile({ name: "a.pdf", load: () => Promise.reject(new Error("x")) }, "c", deps({ reading: () => failed }));
+    expect(failed.end).toHaveBeenCalledWith(false);
+    const partial = session();
+    await stageDeferredFile(
+      { name: "b.pdf", load: async () => ({ ...FILE, text: "", error: "page 3 illisible" }) },
+      "c",
+      deps({ reading: () => partial }),
+    );
+    expect(partial.end).toHaveBeenCalledWith(false);
+  });
+});
+
+describe("stageDeferredFile — un chip retiré pendant la lecture", () => {
+  it("donne son cid à la source, et ignore l'issue d'une lecture annulée", async () => {
+    const d = deps({ newCid: () => "gone1" });
+    let job: string | undefined;
+    let reject!: (e: Error) => void;
+    const p = stageDeferredFile(
+      { name: "scan.pdf", load: (_p, _s, _b, j) => ((job = j), new Promise<ExtractedFile>((_, rej) => (reject = rej))) },
+      "conv1",
+      d,
+    );
+    expect(job).toBe("gone1");
+    cancelExtraction("gone1");
+    reject(new Error("extraction annulée"));
+    await p;
+    expect(d.patches).toEqual([]); // no error chip for a file the user removed
+    expect(d.onExtracted).not.toHaveBeenCalled();
   });
 });

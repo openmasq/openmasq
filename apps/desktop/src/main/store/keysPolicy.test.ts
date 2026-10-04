@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
+import { setMainLocale } from "../i18n";
 import {
   _resetKeysPolicy,
   byoKeysBlockedError,
@@ -7,6 +8,9 @@ import {
 } from "./keysPolicy";
 
 afterEach(() => _resetKeysPolicy());
+
+// These cases read main's FRENCH wording (`../i18n.ts`); the behaviour is language-independent.
+setMainLocale("fr");
 
 describe("setOrgByoKeysAllowed", () => {
   it("ne bloque RIEN tant que rien n'a été publié — un compte solo garde ses clés", () => {

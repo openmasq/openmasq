@@ -100,7 +100,7 @@ export function SkillProposalCard({ kind, text }: { kind: "competence" | "workfl
           </>
         }
       >
-        <AgentCardTitle>{skill.name || "Sans titre"}</AgentCardTitle>
+        <AgentCardTitle>{skill.name || t.lists.skills.untitled}</AgentCardTitle>
         {skill.desc && <AgentCardDesc>{skill.desc}</AgentCardDesc>}
         {/* The prompt in clear, collapsed: it's what the thing WILL DO, and one must be able
             to read it before adopting it. In mono, like everywhere an instruction

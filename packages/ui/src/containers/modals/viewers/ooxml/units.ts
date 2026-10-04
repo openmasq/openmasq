@@ -10,8 +10,6 @@
 
 /** English Metric Units per inch — the DrawingML/pptx coordinate base. */
 const EMU_PER_INCH = 914400;
-/** EMU per point (72 pt = 1 inch). */
-const EMU_PER_POINT = 12700;
 /** CSS reference pixels per inch. */
 const PX_PER_INCH = 96;
 
@@ -19,11 +17,6 @@ const PX_PER_INCH = 96;
  *  size (`<p:sldSz cx=/>`) are all EMU. */
 export function emuToPx(emu: number): number {
   return (emu / EMU_PER_INCH) * PX_PER_INCH;
-}
-
-/** EMU → points. */
-export function emuToPt(emu: number): number {
-  return emu / EMU_PER_POINT;
 }
 
 /** docx `<w:sz w:val>` / `<w:spacing>`: HALF-points → points. */

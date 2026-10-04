@@ -114,12 +114,18 @@ describe("FolderTreePanel — les dossiers autorisés dans le rail", () => {
     await m.click(".rr-src");
 
     // A LOCAL file has no « Demander » action: it opens, and attaching it is a
-    // separate decision (the panel carries it). The hover only offers it on a folder.
-    expect(m.findAll(".rr-tree-ask")).toHaveLength(1);
-    await m.click(".rr-tree-ask");
+    // separate decision (the panel carries it). Folders offer it — the granted ROOT
+    // included, the likeliest thing to ask about.
+    const asks = m.findAll(".rr-tree-ask");
+    expect(asks).toHaveLength(2);
+    await m.click(asks[0]);
+    await m.click(asks[1]);
     // The target says what it IS — a folder — not just its path: it's the
     // `kind` that makes the tag (and the context line sent to the model).
-    expect(asked).toEqual([{ kind: "folder", path: "/w/Clients" }]);
+    expect(asked).toEqual([
+      { kind: "folder", path: "/w" },
+      { kind: "folder", path: "/w/Clients" },
+    ]);
 
     await m.unmount();
   });

@@ -132,8 +132,26 @@ export const US_RULES: RedactionRule[] = [
     type: "national_id",
     pattern: gate(
       "driver'?s? licen[cs]e|driving licen[cs]e|dl no|dmv",
-      String.raw`[A-Za-z]\d{6,12}\b|\d{7,12}\b|[A-Za-z]{2}\d{5,10}\b`,
+      // …and the SPACED 3-3-3(-3) print of New York and others (« 123 456 789 »).
+      String.raw`[A-Za-z]\d{6,12}\b|\d{3}[ -]\d{3}[ -]\d{3}(?:[ -]\d{3})?\b|\d{7,12}\b|[A-Za-z]{2}\d{5,10}\b`,
     ),
+  },
+  // US IMMIGRATION. A USCIS receipt number (also the green card's) is 3 service-centre letters
+  // + 10 digits — distinctive enough to stand alone. The A-number, the I-94 and the visa control
+  // number are banal digit runs, so each is gated on its own words.
+  { type: "national_id", pattern: re(String.raw`\b(?:EAC|WAC|LIN|SRC|NBC|MSC|IOE|YSC)\d{10}\b`) },
+  {
+    type: "national_id",
+    pattern: gate("alien registration (?:number|no|#)|alien (?:number|no)|a-number|uscis (?:number|no|#)", String.raw`A?[ -]?\d{3}[ -]?\d{3}[ -]?\d{2,3}\b`),
+  },
+  { type: "national_id", pattern: gate("i-94|admission record", String.raw`\d{9}[A-Za-z]\d\b|\d{11}\b`) },
+  { type: "national_id", pattern: gate("visa (?:control|foil) (?:number|no)", String.raw`\d{8,14}\b|[A-Za-z]\d{7,8}\b`) },
+  // US military (DoD ID / EDIPI, 10 digits) and Medicaid (state formats, 8-14 alphanumerics).
+  { type: "national_id", pattern: gate("dod id|edipi|dod identification", String.raw`\d{10}\b`) },
+  {
+    type: "national_id",
+    pattern: gate("medicaid|medi-cal", String.raw`[A-Za-z0-9]{8,14}\b`),
+    validate: (m) => /\d/.test(m) && (m.match(/\d/g) ?? []).length >= 6,
   },
   // Canada passport — 2 letters + 6 digits, a generic code shape → gated.
   {

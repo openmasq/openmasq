@@ -24,6 +24,12 @@
         "(/usr/bin/)?sandbox-exec"
       ]
     },
+    "packages/redact": {
+      "entry": [
+        "scripts/*.ts",
+        "bench/**/*.{ts,mts,mjs}"
+      ]
+    },
     "apps/desktop": {
       "entry": [
         "e2e/**/*.ts",

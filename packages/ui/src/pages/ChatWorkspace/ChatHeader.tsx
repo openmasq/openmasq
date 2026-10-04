@@ -1,3 +1,4 @@
+import { displayTitle } from "../../state/conversation/displayTitle";
 import { useState } from "react";
 import { AnimatePresence } from "framer-motion";
 import { ConfirmDialog } from "../../components/feedback/ConfirmDialog";
@@ -110,7 +111,7 @@ export function ChatHeader({
         {onBack ? (
           <div className="chat-title-mobile">
             <div className="chat-title-mobile-name">
-              {conversation?.title || t.chrome.untitledConversation}
+              {displayTitle(conversation?.title, t)}
             </div>
             {modelName && <div className="chat-title-mobile-model">{modelName}</div>}
           </div>
@@ -213,7 +214,7 @@ export function ChatHeader({
           <ConfirmDialog
             title={t.chrome.deleteConversation}
             message={t.chrome.deleteConversationBody(
-              conversation?.title || t.chrome.untitledConversation,
+              displayTitle(conversation?.title, t),
             )}
             confirmLabel={t.chrome.deleteConversationAction}
             onCancel={() => setConfirmDelete(false)}

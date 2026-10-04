@@ -9,7 +9,7 @@ import type { Messages } from "../messages";
 
 export const language = {
   label: "Language",
-  hint: "The app's own language. Your conversations keep the one you write in.",
+  hint: "The app's interface language. Your conversations stay in the language you write in.",
   // Endonyms — each language named in its OWN tongue, identical across catalogues.
   names: { fr: "Français", en: "English" },
 } satisfies Messages["language"];

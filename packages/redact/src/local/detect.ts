@@ -49,7 +49,8 @@ export interface LocalDetectOptions extends ChunkerOptions {
    * from `bench/`, never by eye.
    */
   miscThreshold?: number;
-  /** Surface an inference failure (unloaded model, bad weights…) without throwing. */
+  /** Observe an inference failure (unloaded model, bad weights…) before it rejects —
+   *  logging, metrics. It cannot turn the failure into an empty result. */
   onError?: (err: unknown) => void;
 }
 
@@ -110,9 +111,10 @@ function readmitMisc(span: LocalSpan, input: string, threshold: number): boolean
 
 /**
  * Detect free-form PII in `input` using an injected NER `predict` function.
- * Returns verbatim `{value, category}` spans, de-duplicated. Never throws: a
- * failing model yields `[]` so callers fall back to the deterministic rules,
- * exactly like the LLM detector.
+ * Returns verbatim `{value, category}` spans, de-duplicated. A failing model REJECTS
+ * (fail closed): an empty list must only ever mean "nothing found". Inside
+ * `pseudonymize` the rejection becomes `modelError` and the pass continues on the rules,
+ * so the caller decides; a quiet `[]` would leave it nothing to decide on.
  */
 export async function detectLocalNer(
   input: string,
@@ -125,9 +127,8 @@ export async function detectLocalNer(
   try {
     spans = await chunker.predict(input, predict);
   } catch (err) {
-    console.warn("[redact] local NER failed — falling back to pattern rules.", err);
     options.onError?.(err);
-    return [];
+    throw err;
   }
   // Recover surnames the cased model tagged only the FIRST name of ("Ninon" → "Ninon
   // Verdolini"). ON by default (high precision); the span's [start,end) is extended

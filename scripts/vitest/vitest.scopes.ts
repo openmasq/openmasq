@@ -37,7 +37,11 @@ export const PURE_TESTS = [
 export const NO_ISOLATE_UNSAFE_TESTS = [
   "packages/redact/src/documents.ocr.test.ts",
   "packages/redact/src/documents.pdfbuf.test.ts",
+  "packages/redact/src/documents.limits.test.ts",
+  "packages/redact/src/ocr/pdfFactories.test.ts",
   "packages/redact/src/ocr/ocr.test.ts",
+  "packages/redact/src/ocr/pdfRegions.test.ts",
+  "packages/redact/src/ocr/pdfRegions.pdf.test.ts",
 ];
 
 /** Scope-driven exclusion: VITEST_SCOPE=pure drops the app trees, =apps drops the pure ones. */

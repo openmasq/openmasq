@@ -1,4 +1,5 @@
 import { isNotoriousEntity, type NotorietyOpts } from "../notorious";
+import { escapeRe, occurrences } from "./textOccurrences";
 
 /**
  * Two gates that need the SURROUNDING TEXT, not just the candidate's value.
@@ -16,21 +17,6 @@ import { isNotoriousEntity, type NotorietyOpts } from "../notorious";
  * an adjacency to a known entity, a prose position — and to keep the candidate whenever
  * the evidence is absent.
  */
-
-const WORD = "[\\p{L}\\p{M}\\p{N}''’-]+";
-
-const escapeRe = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-
-/** Every occurrence of `value` in `input`, with the adjacent word on each side. */
-function occurrences(value: string, input: string): { before: string; after: string }[] {
-  const re = new RegExp(
-    `(${WORD})?[ \\t]*${escapeRe(value)}[ \\t]*(${WORD})?`,
-    "giu",
-  );
-  const out: { before: string; after: string }[] = [];
-  for (const m of input.matchAll(re)) out.push({ before: m[1] ?? "", after: m[2] ?? "" });
-  return out;
-}
 
 /**
  * True when the candidate is a WORD OF a notorious entity that is present in this very

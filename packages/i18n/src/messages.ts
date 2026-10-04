@@ -63,6 +63,9 @@ import type {
 } from "./messages/rest";
 import type { ShellMessages } from "./messages/shell";
 import type { ViewersMessages } from "./messages/viewers";
+import type { DesktopMainMessages } from "./messages/desktopMain";
+import type { RuntimeMessages } from "./messages/runtime";
+import type { DocumentsMessages } from "./messages/documents";
 import type { SettingsMessages } from "./messages/settings";
 import type {
   AccountTabMessages,
@@ -170,4 +173,7 @@ export interface Messages {
   redactionCatalog: RedactionCatalogMessages;
   modelCatalog: ModelCatalogMessages;
   language: LanguageMessages;
+  desktopMain: DesktopMainMessages;
+  runtime: RuntimeMessages;
+  documents: DocumentsMessages;
 }

@@ -33,6 +33,8 @@ export interface CompletePayload {
 
 export interface DetectLocalPayload {
   text: string;
+  /** Names this run for `cancelLocalPii` (a superseded preview). Opaque, ≤ 64 chars. */
+  cancelKey?: string;
 }
 
 export interface AppVersions {

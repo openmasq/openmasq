@@ -1,4 +1,3 @@
-import { shell } from "electron";
 import { readFile } from "node:fs/promises";
 import { redactFileInPlace } from "@openmasq/redact/inplace";
 import {
@@ -13,6 +12,7 @@ import { pickAndExtract, extractPaths, pickPaths, type OcrProgressFn } from "../
 import { safeFileName } from "../db/safePath";
 import { writeAppTmpFile } from "./appTmpFile";
 import { safeFetch } from "../net/net";
+import { safeOpenPath } from "../net/safeOpen";
 import { isFetchHostAllowed } from "../net/fetchAllow";
 import { previewLink } from "../net/linkPreview";
 import { withAgentBrowserHidden } from "../mcp/browser";
@@ -48,9 +48,9 @@ let linkPreviewsEnabled = false;
 // OCR progress → renderer, best-effort; `filesExtractIpc.ts` relays the same.
 export const progressTo =
   (sender: Electron.WebContents): OcrProgressFn =>
-  (name, page, pages) => {
+  (name, page, pages, meta) => {
     try {
-      if (!sender.isDestroyed()) sender.send("files:ocr-progress", { name, page, pages });
+      if (!sender.isDestroyed()) sender.send("files:ocr-progress", { name, page, pages, ...meta });
     } catch {
       /* display only */
     }
@@ -156,8 +156,13 @@ export function registerFilesIpc(): void {
     // supplied id), deleted on quit: these are the DECRYPTED originals. The slug prefix
     // keeps the path inside the read-gate's temp allow-list.
     const path = await writeAppTmpFile("open", safeFileName(data.name), Buffer.from(data.original));
-    const err = await shell.openPath(path);
-    return err === "";
+    // An executable type is REVEALED, never run (`safeOpenPath`): the name is the attachment's.
+    try {
+      await safeOpenPath(path);
+      return true;
+    } catch {
+      return false;
+    }
   });
   /** The payload of `files:redact-and-save`. A shape the handler ITSELF still re-checks
    *  (`typeof p.data === "string"`, the `p.path` branch): `obj` at the boundary only
@@ -171,6 +176,9 @@ export function registerFilesIpc(): void {
     mime: string;
     vault: Record<string, string>;
     disabledKinds?: string[];
+    /** Real value → category of the vault's values. Untrusted, display-only (it files a
+     *  value; it can only SKIP one whose category is in `disabledKinds`, as the rules do). */
+    kinds?: Record<string, string>;
     /** Renderer's drop-time distinct-redaction count — the fallback stored count for
      *  a blocked format (image/PDF) whose in-place pass finds nothing. Untrusted +
      *  display-only, so it is clamped below; it never gates a redaction decision. */
@@ -203,7 +211,7 @@ export function registerFilesIpc(): void {
     const vault = { ...p.vault };
     // The classifier must agree with the renderer's message pass on ONE map; pinned by
     // `documentKinds.parity.test.ts`.
-    const { scrub, kinds, spans } = makeDocumentScrub(vault, p.disabledKinds);
+    const { scrub, kinds, spans } = makeDocumentScrub(vault, p.disabledKinds, stringRecord(p.kinds));
     let scrubbed: Uint8Array | null = null;
     let redacted = false;
     try {
@@ -231,4 +239,10 @@ export function registerFilesIpc(): void {
     // `redacted` = were the BYTES rewritten (an empty `spans` on a PDF is NOT "nothing masked").
     return { vault, kinds, spans, redacted }; // merged into the conversation + log
   });
+}
+
+/** A plain `string → string` map, or `{}`: the payload's `kinds` is renderer-supplied. */
+function stringRecord(v: unknown): Record<string, string> {
+  if (!v || typeof v !== "object" || Array.isArray(v)) return {};
+  return Object.fromEntries(Object.entries(v).filter((e): e is [string, string] => typeof e[1] === "string"));
 }

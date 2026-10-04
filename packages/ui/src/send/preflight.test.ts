@@ -1,3 +1,4 @@
+import { getMessages } from "@openmasq/i18n";
 import { afterEach, describe, it, expect } from "vitest";
 import { configurePlatformAccess } from "./platformAccess";
 import { preflightError, type PreflightInput } from "./preflight";
@@ -16,6 +17,7 @@ function base(over: Partial<PreflightInput> = {}): PreflightInput {
     model: { id: "claude-x", label: "Claude X" },
     effectivePlatform: false,
     openaiCompatBaseUrl: "http://localhost:11434/v1",
+    t: getMessages("fr"),
     ...over,
   };
 }
@@ -38,7 +40,16 @@ describe("preflightError", () => {
 
   it("blocks a model the org's allow-list does not carry", () => {
     const r = preflightError(base({ orgProfile: org({ allowedModelIds: ["autre-modele"] }) }));
-    expect(r?.text).toBeTruthy();
+    expect(r?.text).toBe("Votre organisation a désactivé le modèle « Claude X ». Choisissez-en un autre.");
+  });
+
+  it("says the refusal in the UI language", () => {
+    const en = getMessages("en");
+    expect(preflightError(base({ t: en, orgProfile: org({ status: "suspended" }) }))?.text).toBe(
+      "Your organization suspended your access. Sending is blocked.",
+    );
+    const r = preflightError(base({ t: en, orgProfile: org({ allowedModelIds: [] }) }));
+    expect(r?.text).toBe('Your organization turned off the model "Claude X". Choose another one.');
   });
 
   it("blocks EVERY model when the org has opened none — an empty allow-list is a policy", () => {

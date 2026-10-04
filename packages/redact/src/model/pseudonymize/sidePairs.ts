@@ -8,6 +8,7 @@
 // One loop and one set of guards for the three, so a pair can never be vaulted under a looser
 // rule than another: never an alias equal to its real, never one already present in the input
 // (it would forward-alias prose), never one another identity already wears.
+import { substringTest } from "./substringIndex";
 import type { Vault } from "../../types";
 import { ipPrefixPairs } from "../fakes/ip";
 import { emailDomainPair } from "../identity";
@@ -41,7 +42,7 @@ export function registerSidePairs(sink: PairSink, a: SidePairsArgs): void {
           ? ipPrefixPairs(a.value, a.fake)
           : [];
   for (const [alias, real] of pairs) {
-    if (alias === real || sink.input.includes(alias)) continue;
+    if (alias === real || substringTest(sink.input)(alias)) continue;
     if (sink.taken.has(alias) || sink.vault[alias] !== undefined) continue;
     sink.vault[alias] = real;
     if (!sink.reverse.has(real)) sink.reverse.set(real, alias);

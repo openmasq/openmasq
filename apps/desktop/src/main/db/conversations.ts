@@ -4,6 +4,18 @@ import { filesDir } from "./paths";
 import { isUnderDir } from "./safePath";
 import type { DbMessage, DbConversation } from "./types";
 
+/** A JSON column read back; a corrupt value is DROPPED (`undefined`), never a broken load. */
+function parseJson<T>(raw: unknown, ok: (v: unknown) => boolean): T | undefined {
+  if (typeof raw !== "string" || !raw) return undefined;
+  try {
+    const v = JSON.parse(raw);
+    return ok(v) ? (v as T) : undefined;
+  } catch {
+    return undefined;
+  }
+}
+const isObject = (v: unknown) => !!v && typeof v === "object" && !Array.isArray(v);
+
 export async function dbLoad(): Promise<{
   conversations: DbConversation[];
   settings: unknown | null;
@@ -60,6 +72,15 @@ export async function dbLoad(): Promise<{
         /* corrupt JSON → drop the tag, don't break the load */
       }
     }
+    let droppedDocs: string[] | undefined;
+    if (r.dropped_docs) {
+      try {
+        const v = JSON.parse(r.dropped_docs);
+        if (Array.isArray(v)) droppedDocs = v.filter((n: unknown): n is string => typeof n === "string");
+      } catch {
+        /* corrupt JSON → drop the notice, don't break the load */
+      }
+    }
     list.push({
       id: r.id,
       role: r.role,
@@ -76,6 +97,9 @@ export async function dbLoad(): Promise<{
       toolCalls: toolCalls?.length ? toolCalls : undefined,
       competence: skill,
       reasoning: r.reasoning || undefined,
+      droppedDocs: droppedDocs?.length ? droppedDocs : undefined,
+      // The turn's model payload: restored so a later turn re-sends its documents.
+      modelContent: typeof r.model_content === "string" ? r.model_content : undefined,
     });
     msgsByConv.set(r.conversation_id, list);
   }
@@ -132,6 +156,10 @@ export async function dbLoad(): Promise<{
       // on reload, a conversation in tokens would revert to fakes on the next turn.
       redactionMode: redaction.redactionMode === "token" ? "token" : undefined,
       memoryWatermark: typeof redaction.memoryWatermark === "number" ? redaction.memoryWatermark : undefined,
+      // State the plaintext mirror strips, so this DB is the only thing that restores it.
+      contextSummary: parseJson(r.context_summary, (v) => isObject(v) && typeof (v as { text?: unknown }).text === "string"),
+      turnCheckpoint: parseJson(r.turn_checkpoint, (v) => isObject(v) && Array.isArray((v as { messages?: unknown }).messages)),
+      fileRedactions: parseJson(r.file_redactions, (v) => Array.isArray(v) && v.length > 0),
     };
   });
 

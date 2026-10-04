@@ -116,7 +116,7 @@ export function OfflineNote() {
  * none can import another's. The copy is therefore necessary, and a TEST is what holds
  * it — `spamHint.parity.test.ts` READS the four files.
  */
-export const SPAM_HINT = "Rien reçu ? Regardez dans vos spams (courriers indésirables).";
+const SPAM_HINT = "Rien reçu ? Regardez dans vos spams (courriers indésirables).";
 
 export function SpamHint() {
   return (

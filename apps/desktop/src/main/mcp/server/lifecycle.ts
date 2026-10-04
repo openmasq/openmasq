@@ -7,6 +7,7 @@ import { newCustomServerId, validateCustomServer } from "./customSpec";
 import { infoFor } from "./info";
 import { mcpDisconnect } from "./registry";
 import type { McpServerInfo } from "./types";
+import { mainMessages } from "../../i18n";
 
 // Directories the user chose via the native `mcp:pick-dir` dialog this session: a stdio
 // path grant is accepted ONLY from here, so a renderer can't self-grant a folder.
@@ -47,7 +48,7 @@ export function mcpAddStdio(
     for (const v of values) {
       const val = String(v).trim();
       if (val && !isPickedDir(val)) {
-        return err(`${field.label} : dossier non autorisé — sélectionnez-le via le bouton`);
+        return err(mainMessages().desktopMain.mcp.folderNotAllowed(field.label));
       }
     }
   }
@@ -85,9 +86,9 @@ export async function mcpSetStdioDirs(
   const next = [...new Set(dirs.map((d) => String(d).trim()).filter(Boolean))];
   for (const dir of next) {
     if (previous.has(resolve(dir))) continue; // already granted: nothing new to consent to
-    if (!isPickedDir(dir)) return err(`${field.label} : dossier non autorisé — sélectionnez-le via le bouton`);
+    if (!isPickedDir(dir)) return err(mainMessages().desktopMain.mcp.folderNotAllowed(field.label));
   }
-  if (field.required && next.length === 0) return err(`${field.label} : au moins un dossier est requis`);
+  if (field.required && next.length === 0) return err(mainMessages().desktopMain.mcp.folderRequired(field.label));
 
   const params = { ...(spec.params ?? {}), [key]: next };
   const { errors } = resolveParams(entry, params);
@@ -119,17 +120,14 @@ export async function mcpAddCustom(input: {
   if (!check.ok) return err(check.error);
   // The policy names an id, a member adds the same service by URL: matched on the HOST.
   if (isConnectorUrlBlocked(check.draft.url)) {
-    return err("Ce service est bloqué par votre organisation.");
+    return err(mainMessages().desktopMain.mcp.blockedByOrg);
   }
   try {
     await assertPublicUrl(check.draft.url, "mcp-connect");
   } catch (e) {
     const code = (e as NodeJS.ErrnoException).code;
-    return err(
-      code === "EDNS_UNRESOLVED"
-        ? "Hôte introuvable — vérifiez l'adresse et votre connexion."
-        : "Adresse refusée : ce serveur est sur un réseau interne ou privé.",
-    );
+    const t = mainMessages().desktopMain.mcp;
+    return err(code === "EDNS_UNRESOLVED" ? t.hostNotFound : t.privateAddress);
   }
   const spec: ServerSpec = {
     id: newCustomServerId(),

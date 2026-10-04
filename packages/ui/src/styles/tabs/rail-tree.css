@@ -194,7 +194,7 @@
   top: 50%;
   inset-inline-end: 3px;
   transform: translateY(-50%);
-  display: none;
+  display: inline-flex;
   align-items: center;
   gap: 3px;
   height: 15px;
@@ -208,10 +208,15 @@
   font-weight: 600;
   letter-spacing: 0.01em;
   cursor: pointer;
+  /* Opacity, not `display: none` — a hidden-by-display button can't take focus, so
+     its `:focus-visible` never fired. Focusing the ROW shows it too. */
+  opacity: 0;
+  pointer-events: none;
 }
 .rr-tree-line:hover .rr-tree-ask,
-.rr-tree-ask:focus-visible {
-  display: inline-flex;
+.rr-tree-line:focus-within .rr-tree-ask {
+  opacity: 1;
+  pointer-events: auto;
 }
 /* Icon alone: on a dashed bar, the shape says « ajouter ici » just as well
    as the word would. The full label stays in `title`/`aria-label`. */

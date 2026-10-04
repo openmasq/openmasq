@@ -10,4 +10,3 @@ export { usePlatformEffects } from "./usePlatformEffects";
 export { useOrgProfile } from "./useOrgProfile";
 // Mounted by the SHELL (`containers/shell/useShell`): opening the clicked thread needs
 // the section nav, which the store doesn't have.
-export { useReplyNotice } from "./useReplyNotice";

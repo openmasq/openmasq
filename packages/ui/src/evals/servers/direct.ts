@@ -76,6 +76,7 @@ const R: Record<string, string> = {
   "microsoft-onedrive__list_folder":
     "[dossier] Documents · id:01ABC!101\nBudget 2026.xlsx · id:01ABC!204",
   "microsoft-onedrive__read_document": "# Budget 2026\n\nQ3 : matériel 12 400 €, prestation Karl Studio 48 000 € HT.",
+  "microsoft-onedrive__upload_file": "Fichier déposé sur OneDrive : « compte-rendu.docx » · id:01UPLOAD42",
   "microsoft-sharepoint__search_sites": "1 site : « Équipe Produit » (produit.sharepoint)",
   "microsoft-sharepoint__list_documents": "« Roadmap 2026.pptx » · « Specs export PDF.docx »",
   "microsoft-sharepoint__read_document": "# Specs export PDF\n\nLimite connue : > 1000 lignes → timeout (bug #118).",

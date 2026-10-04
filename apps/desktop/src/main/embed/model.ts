@@ -25,16 +25,10 @@ export const E5_QUERY_PREFIX = "query: ";
  * Provenance: self-exported FIRST-PARTY from `intfloat/multilingual-e5-small` (the model
  * author's official HF org — no community re-upload involved): AutoModel →
  * `last_hidden_state`-only ONNX (torch dynamo exporter) → QUInt8 dynamic quantization
- * (~118 MB), by `scratchpad e5/export_e5.py` (recipe kept in the bake script's header).
- * The bake stages it from `OPENMASQ_E5_SRC`; integrity comes from the sha256 pins below,
- * not from where the bytes are hosted (root rule 7). A durable first-party hosting of
- * this export (for CI) is the same tracked follow-up as the NER bake source.
- */
-export const EMBED_UPSTREAM = Object.freeze({
-  sourceRepo: "intfloat/multilingual-e5-small",
-});
-
-/**
+ * (~118 MB), recipe kept in the bake script's header. The bake stages it from
+ * `OPENMASQ_E5_SRC`; integrity comes from the sha256 pins below, not from where the bytes
+ * are hosted (root rule 7).
+ *
  * sha256 (hex) of each bundled file, RELATIVE to the model dir. Verified TWICE, fail-
  * closed both times: by `scripts/bake-embed-models.ts` before writing into the app
  * resources, and by `worker.ts` (via `verifyWeights` from `@openmasq/redact`) before

@@ -41,7 +41,7 @@ export {
   setAppMainFocused,
 };
 
-export interface BrowserStatus {
+interface BrowserStatus {
   /** The feature is opted in. */
   enabled: boolean;
   /** The isolated agent-browser process is running with a live CDP endpoint. */

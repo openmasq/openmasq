@@ -44,6 +44,9 @@ const BODIES: string[] = [
   // Justice
   "tribunal judiciaire", "tribunal administratif", "tribunal de commerce",
   "tribunal correctionnel", "tribunal de police", "conseil de prud'hommes",
+  // The commercial courts' new name (tribunal des activités économiques), and its registry
+  // as a file name spells it (« Greffe du tribunal des activités économiques de Lyon »).
+  "tribunal des activités économiques", "tribunal des activites economiques", "greffe du tribunal",
   "cour d'appel", "cour administrative d'appel", "cour de cassation",
   "conseil d'état", "conseil d'etat", "parquet", "greffe",
   // Territories and State representation

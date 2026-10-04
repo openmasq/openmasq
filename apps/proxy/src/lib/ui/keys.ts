@@ -31,7 +31,7 @@ export const KEY_HINTS: KeyHint[] = [
 const CTRL_C = String.fromCharCode(3);
 
 /** Copy `text` with the platform's clipboard tool; false when none answered. */
-export function copyToClipboard(text: string, platform = process.platform): Promise<boolean> {
+function copyToClipboard(text: string, platform = process.platform): Promise<boolean> {
   const cmd =
     platform === "darwin"
       ? ["pbcopy"]

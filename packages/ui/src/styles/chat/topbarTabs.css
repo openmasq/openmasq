@@ -111,6 +111,16 @@
     animation-duration: 1.3s;
   }
 }
+/* Staged files still being read or masked (`ConvTab.preparing`): the same spinner, lighter
+   and on the brand accent, so it never reads as a reply arriving. */
+.conv-tab-spin.is-prep {
+  width: 12px;
+  height: 12px;
+  border-width: 1.5px;
+  border-color: var(--border-subtle);
+  border-top-color: var(--brand);
+  animation-duration: 0.9s;
+}
 .conv-tab-label {
   font-size: 13px;
   font-weight: 600;

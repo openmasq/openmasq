@@ -1,8 +1,10 @@
 import { statfs } from "node:fs/promises";
 import { BRAND } from "@openmasq/branding";
+import type { Locale, Messages } from "@openmasq/i18n";
+import { mainLocale, mainMessages } from "../i18n";
 
 // ── Download size + free-disk + friendly errors ─────────────────────────────
-export interface UpdFile {
+interface UpdFile {
   url?: string;
   size?: number;
 }
@@ -43,54 +45,68 @@ export async function freeBytes(path: string): Promise<number | null> {
   }
 }
 
-/** Human GB, 1 decimal (e.g. "1.4 Go"). */
+/** GB, 1 decimal, for the LOG and telemetry (e.g. "1.4 Go"). A person reads {@link sizeGB}. */
 export const fmtGB = (b: number): string => `${(b / 1e9).toFixed(1)} Go`;
+
+/** GB, 1 decimal, in the user's language: the locale's decimal mark and unit ("1,4 Go"). */
+export function sizeGB(b: number, locale: Locale = mainLocale(), t: Messages = mainMessages()): string {
+  const n = new Intl.NumberFormat(locale, { minimumFractionDigits: 1, maximumFractionDigits: 1 }).format(b / 1e9);
+  return t.desktopMain.updates.gigabytes(n);
+}
 
 // The installer unzips a full second copy of the app before swapping: installing needs the
 // download PLUS the uncompressed app free. ~2.2× the .zip is a safe estimate.
 export const APPLY_SPACE_FACTOR = 2.2;
 
-/** Map a raw updater / ShipIt error to a user-safe FR message (+ a stable code) so the
- *  UI never shows a `ditto`/`pkzip` technical dump. */
-export function humanizeUpdateError(err: unknown): { code: string; message: string } {
-  const e = err as { message?: string; code?: string; errno?: number } | undefined;
+/** Map a raw updater / ShipIt error to a stable code + a user-safe message in the user's
+ *  language (`t`, main's by default), so the UI never shows a `ditto`/`pkzip` dump. The
+ *  CODES are a contract (telemetry, `updateStatus.ts`); only the words are localized. */
+export function humanizeUpdateError(
+  err: unknown,
+  t: Messages["desktopMain"]["updates"]["errors"] = mainMessages().desktopMain.updates.errors,
+): { code: string; message: string } {
+  const e = err as { message?: string; code?: string; errno?: number; statusCode?: number } | undefined;
   // The CODE matters as much as the text: macOS localizes its network errors, so
   // `code`/`errno` are read too, and the localized phrasings are matched.
   const raw = [e?.message ?? err ?? "", e?.code ?? ""].filter(Boolean).join(" ");
   if (/no space left|enospc|pkzip signature|not enough space|disk.*full|espace disque/i.test(raw))
     return {
       code: "no_space",
-      message:
-        "Espace disque insuffisant pour installer la mise à jour. Libérez de l'espace disque, puis réessayez.",
+      message: t.noSpace,
     };
   // READ-ONLY volume (the mounted `.dmg`, or Downloads under translocation): NOT a bug,
   // the remedy is moving the app. An ENVIRONMENT fact, not an update failure (index.ts).
   if (/read-only volume|move the application|read only volume|volume en lecture seule/i.test(raw))
     return {
       code: "read_only_volume",
-      message:
-        `Pour se mettre à jour, ${BRAND.name} doit être dans le dossier Applications. Déplacez l'app depuis le disque d'installation (ou Téléchargements) vers Applications, puis relancez-la.`,
+      message: t.readOnlyVolume(BRAND.name),
     };
   // "App Still Running": the installer saw >1 instance of the bundle. The self-spawned
   // children are killed before quitAndInstall, so this is a fallback message.
   if (/app still running|running instances|sqrlinstaller/i.test(raw))
     return {
       code: "app_running",
-      message:
-        `Une partie de l'app tournait encore. Quittez complètement ${BRAND.name}, puis relancez la mise à jour.`,
+      message: t.appRunning(BRAND.name),
     };
   // Integrity: the download didn't match the manifest. The most important failure to see.
   if (/sha512|checksum|signature|not signed|integrity|corrupt/i.test(raw))
     return {
       code: "signature",
-      message: "La mise à jour téléchargée n'a pas pu être vérifiée (intégrité). Réessayez.",
+      message: t.signature,
     };
-  // A 4xx/5xx from the feed; the STATUS rides in the code (`download-404`).
-  const httpStatus = /(?:status(?: code)?|httperror|response code)\D*(\d{3})/i.exec(raw)?.[1];
+  // A 4xx/5xx from the feed; the STATUS rides in the code (`download-404`). The thrown
+  // `HttpError` carries it as `statusCode`; its text only names it when electron-updater
+  // wraps it ("…: HttpError: 404") — a bare server error reads "500 …".
+  const httpStatus =
+    typeof e?.statusCode === "number"
+      ? String(e.statusCode)
+      : /(?:status(?: code)?|httperror|response code)\D*(\d{3})/i.exec(raw)?.[1];
   if (httpStatus || /cannot download|download failed|unable to download/i.test(raw))
     return {
       code: httpStatus ? `download-${httpStatus}` : "download",
-      message: "Téléchargement de la mise à jour impossible. Vérifiez votre connexion, puis réessayez.",
+      // A 5xx is the server's fault: "check your connection" would send the user after
+      // the wrong cause. The renderer shows its own copy by `code` (updateStatus.ts).
+      message: httpStatus?.startsWith("5") ? t.serverDown : t.download,
     };
   // Transport: DNS / refused / reset / timeout before any HTTP status.
   if (
@@ -100,7 +116,7 @@ export function humanizeUpdateError(err: unknown): { code: string; message: stri
   )
     return {
       code: "network",
-      message: "Connexion au serveur de mise à jour impossible. Vérifiez votre réseau, puis réessayez.",
+      message: t.network,
     };
-  return { code: "generic", message: "La mise à jour a échoué. Réessayez plus tard." };
+  return { code: "generic", message: t.generic };
 }

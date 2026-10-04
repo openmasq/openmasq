@@ -39,8 +39,8 @@ export function EgressLogCard() {
     };
   }, [listEgress]);
 
-  const groups = useMemo(() => groupEgress(entries ?? []), [entries]);
   const t = useT();
+  const groups = useMemo(() => groupEgress(entries ?? [], t), [entries, t]);
   const shown = useMemo(() => filterEgress(groups, q), [groups, q]);
   const stats = useMemo(() => summarise(groups), [groups]);
 

@@ -8,7 +8,7 @@ import { join } from "node:path";
 import { assertOwnerOnly } from "@openmasq/mcp/node";
 import { openmasqDir } from "../../lib/stateDir.js";
 
-export interface StdioSpec {
+interface StdioSpec {
   id: string;
   transport: "stdio";
   command: string;

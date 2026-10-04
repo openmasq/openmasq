@@ -1,7 +1,7 @@
 // Multilingual street-address + postal-code detector. A NER model catches the
 // city/name but NOT a full street address, and there's no fixed "address" shape
 // a single regex can match across languages — the number/type/name order differs:
-//   FR/PT  "36 rue du Capitaine Glarner"   number → type → name
+//   FR/PT  "36 rue du Capitaine Vermond"   number → type → name
 //   ES/IT  "Calle Mayor 3" / "Via Roma 12" type → name → number
 //   EN     "221 Baker Street"              number → name → type
 //   DE/NL  "Musterstraße 12"               name+type compound → number
@@ -13,13 +13,13 @@
 // category, country}` for `pseudonymize`. Deterministic + language-agnostic-by-extension.
 import type { Detection } from "../../types";
 
-import { PRE, SUF, SUF_LONG, DE, NORDIC, H, W, NAME, TAIL_CORE, TAIL_ZIPCITY, TAIL_CITYZIP } from "./shapes";
+import { PRE, SUF, SUF_LONG, SUF_ABBR, DIRECTIONAL, DE, NORDIC, H, W, NAME, TAIL_CORE, TAIL_ZIPCITY, TAIL_CITYZIP } from "./shapes";
 
 /** `SUF_LONG` with each word in its two casings (see shape D'); `DE` lowercase or ALL-CAPS. */
 const SUF_LONG_CASED = SUF_LONG.split("|").map((w) => `[${w[0]!.toUpperCase()}${w[0]}]${w.slice(1)}`).join("|");
 // Each type word Capitalised-or-lowercase (« Vadim-Pohl-Ring », « Musterstraße ») or ALL-CAPS.
 const DE_CASED = `${DE.replace(/(^|\|)(\p{L})/gu, (_, p, c) => `${p}[${c.toUpperCase()}${c}]`)}|${DE.toUpperCase()}`;
-import { trimAddressTail } from "./tail";
+import { trimAddressTail, trimProseTail } from "./tail";
 
 // Re-exported: `trimAddressTail` used to live here, and consumers import it from this path.
 export { trimAddressTail } from "./tail";
@@ -62,7 +62,7 @@ function pushAll(
   country?: CountryHint,
 ) {
   for (const m of text.matchAll(re)) {
-    const value = clean(category === "ADDRESS" ? trimAddressTail(m[0]) : m[0]);
+    const value = clean(category === "ADDRESS" ? trimProseTail(trimAddressTail(m[0])) : m[0]);
     if (value.length < minLen) continue;
     const key = `${category}::${value}`;
     if (seen.has(key)) continue;
@@ -122,6 +122,16 @@ export function detectAddresses(text: string): Detection[] {
   pushAll(
     text,
     new RegExp(`\\b\\d{1,5}${H}+\\p{Lu}${NAME}${H}+(?:${SUF_LONG_CASED})\\b${TAIL_CITYZIP}`, "gu"),
+    "ADDRESS", out, seen, 6, anglo,
+  );
+  // Shape D'' — number → [directional] → CAPITALISED name → USPS abbreviation → [directional]
+  // (`SUF_ABBR`). Case-sensitive like D'; the abbreviation must END the street.
+  pushAll(
+    text,
+    new RegExp(
+      `\\b\\d{1,5}${H}+(?:(?:${DIRECTIONAL})\\.?${H}+)?\\p{Lu}${NAME}${H}+(?:${SUF_ABBR})\\.?(?:${H}+(?:${DIRECTIONAL})\\b)?(?![\\p{L}\\d])${TAIL_CITYZIP}`,
+      "gu",
+    ),
     "ADDRESS", out, seen, 6, anglo,
   );
   // FR minor street types ("2 mail Camille du Gast", sente/venelle/hameau/clos) —
@@ -191,9 +201,18 @@ export function detectAddresses(text: string): Detection[] {
     "domicilie", "demeurant", "résidant", "residant", "agence", "commune", "ville", "signature",
     "sis", "située", "situee", "situé", "situe", "née", "né", "fait"]
     .sort((a, b) => b.length - a.length).map(ci).join("|");
+  // ⚠️ The unaccented « a » (an OCR'd « à ») must be a WORD, never the last letter of one:
+  // « Elena Varga (SBN 301884) » read « Elen[a] » as the preposition, « Varga (SBN » as a
+  // city and « 30188 » — the first five digits of a bar number — as its postal code. The
+  // accented « à » stays free to be GLUED (« Néà CONDOM (79000) », an OCR join). The code
+  // ends on a digit boundary for the same reason. `cityCpAnchor.test.ts`.
+  // ⚠️ COST: the lookbehind runs at EVERY position. It is guarded by a lookahead on the city's
+  // first character, and its separator is ONE optional punctuation between two space runs —
+  // « [ ]*[:,.]?[ ]* » let both runs split the same spaces: cubic on a long run of tabs (9 s
+  // for 2 000). `whitespaceRun.test.ts`.
   const CITY_CP_RE = new RegExp(
-    `(?<=(?:[àa]\\s{1,3}|(?:${PLACE_CUE})\\b[^\\S\\r\\n]*[:,.–—-]?[^\\S\\r\\n]*(?:[dD][eu]s?[^\\S\\r\\n]+)?))` +
-      `${CITY_TOK}(?:${CITY_JOIN}${CITY_TOK}){0,4}\\s*\\(\\s*(?:${CITY_TOK}(?:[ ]${CITY_TOK}){0,3}\\s+)?(\\d{5})\\s*\\)?`,
+    `(?=[\\p{Lu}\\d])(?<=(?:(?:à|(?<!\\p{L})a)\\s{1,3}|(?:${PLACE_CUE})\\b[^\\S\\r\\n]*(?:[:,.–—-][^\\S\\r\\n]*)?(?:[dD][eu]s?[^\\S\\r\\n]+)?))` +
+      `${CITY_TOK}(?:${CITY_JOIN}${CITY_TOK}){0,4}\\s*\\(\\s*(?:${CITY_TOK}(?:[ ]${CITY_TOK}){0,3}\\s+)?(\\d{5})(?!\\d)\\s*\\)?`,
     "gu",
   );
   for (const m of text.matchAll(CITY_CP_RE)) {

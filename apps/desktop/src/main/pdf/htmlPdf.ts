@@ -1,8 +1,6 @@
-import { app, BrowserWindow, session, type Session } from "electron";
+import { BrowserWindow, session, type Session } from "electron";
 import { DEVTOOLS_PREF } from "../devtools";
-import { readdir, readFile } from "node:fs/promises";
-import { join } from "node:path";
-import { fontsDir } from "../python/runtime";
+import { readVerifiedDocumentFont } from "./documentFont";
 import {
   PDF_CSP,
   PDF_DOC_URL,
@@ -38,29 +36,17 @@ let printSession: Session | null = null;
 /** Renders are serialised (each spawns a renderer process); `pending` bounds the queue. */
 let queue: Promise<unknown> = Promise.resolve();
 let pending = 0;
-/** `undefined` = not resolved yet, `null` = no bundled font on this install. */
+/** `undefined` = not resolved yet, `null` = no verified document font on this install. */
 let fontB64: string | null | undefined;
 
-/** The bundled brand font, the SAME file the Python runtime ships (rule 9). Absent ⇒ a
- *  system sans. */
-async function brandFontBase64(): Promise<string | null> {
+/** The pinned document font (Inter), re-hashed against its pin before it is embedded. Absent
+ *  or unverified ⇒ `null` ⇒ the print CSS falls through to a system sans. The Python runtime's
+ *  brand font is deliberately NOT a fallback: it would print under the wrong family name, and
+ *  this path would again depend on the 500 MB runtime being present. */
+async function documentFontBase64(): Promise<string | null> {
   if (fontB64 !== undefined) return fontB64;
-  fontB64 = null;
-  // Packaged: the baked runtime under resources. Dev: wherever the runtime resolved to.
-  const dirs = [
-    ...(app.isPackaged ? [fontsDir(join(process.resourcesPath, "python-runtime"))] : []),
-    fontsDir(),
-  ];
-  for (const dir of dirs) {
-    const names = await readdir(dir).catch(() => [] as string[]);
-    const file = names.sort().find((n) => /\.(ttf|otf)$/i.test(n));
-    if (!file) continue;
-    const bytes = await readFile(join(dir, file)).catch(() => null);
-    if (bytes?.length) {
-      fontB64 = bytes.toString("base64");
-      break;
-    }
-  }
+  const bytes = await readVerifiedDocumentFont();
+  fontB64 = bytes ? bytes.toString("base64") : null;
   return fontB64;
 }
 
@@ -85,7 +71,7 @@ function ensureSession(): Session {
 
 /** Render one document to PDF bytes. Rejects (never half-delivers) on any failure. */
 async function renderOne(req: PdfRenderRequest): Promise<Uint8Array> {
-  const html = pdfSkeleton(req, pdfFontFaceCss((await brandFontBase64()) ?? undefined));
+  const html = pdfSkeleton(req, pdfFontFaceCss((await documentFontBase64()) ?? undefined));
   const ses = ensureSession();
   current = Buffer.from(html, "utf8");
   const win = new BrowserWindow({

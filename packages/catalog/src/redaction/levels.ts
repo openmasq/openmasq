@@ -1,7 +1,7 @@
 // The three protection levels as CATEGORY SETS — the one home (rule 9) for what « standard »,
 // « renforcé » and « strict » switch on, read by the desktop's settings AND by the local proxy.
 // Copy, hues and the "custom" state stay on the UI side; this is only the arithmetic.
-import type { RedactionCategory } from "@openmasq/redact";
+import { MODEL_CATEGORIES, type RedactionCategory } from "@openmasq/redact";
 import { CATEGORY_DEFAULTS, REDACTION_CATEGORIES } from "./index";
 
 export type RedactionLevel = "standard" | "renforce" | "strict";
@@ -21,9 +21,10 @@ export const ALWAYS_ON: readonly RedactionCategory[] = ["apikey", "secret"];
  */
 export const FROM_RENFORCE: readonly RedactionCategory[] = ["username"];
 
-// Read at CALL time, not at module load: `./index` re-exports this file, so the list is
-// still undefined while the two modules evaluate each other.
-const aiKeys = () => new Set(REDACTION_CATEGORIES.filter((c) => c.ai).map((c) => c.key));
+// Which categories need the model is the ENGINE's fact (`MODEL_CATEGORIES`); which ones a
+// level turns on is ours. Read at CALL time, not at module load: `./index` re-exports this
+// file, so `REDACTION_CATEGORIES` is still undefined while the two modules evaluate each other.
+const aiKeys = () => new Set(MODEL_CATEGORIES);
 const allKeys = () => REDACTION_CATEGORIES.map((c) => c.key);
 
 /**
@@ -48,15 +49,13 @@ export function categoriesForLevel(level: RedactionLevel): Record<RedactionCateg
 }
 
 /**
- * Does this set need the on-device model? The `ai` categories (names, dates of birth,
- * addresses, places, companies) are the only ones it finds; a set without them is pure
- * pattern matching, so a caller can skip loading the model entirely.
+ * Does this set need the on-device model? The engine's `MODEL_CATEGORIES` (names, dates of
+ * birth, addresses, places, companies) are the ones only it covers; a set without them is
+ * pure pattern matching, so a caller can skip loading the model entirely.
  */
 export function usesLocalModel(effectiveCategories: Record<string, boolean>): boolean {
   const ai = aiKeys();
-  return Object.entries(effectiveCategories).some(
-    ([key, on]) => on && ai.has(key as RedactionCategory),
-  );
+  return Object.entries(effectiveCategories).some(([key, on]) => on && ai.has(key as RedactionCategory));
 }
 
 /** The categories turned OFF (left in clear / neither redacted nor highlighted). */

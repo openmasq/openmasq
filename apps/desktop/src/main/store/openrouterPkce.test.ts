@@ -24,6 +24,8 @@ const {
   _resetOpenRouterFlow,
   CALLBACK_URL,
 } = await import("./openrouterPkce");
+// These cases read main's FRENCH wording (`../i18n.ts`); the behaviour is language-independent.
+(await import("../i18n")).setMainLocale("fr");
 
 beforeEach(() => {
   opened.length = 0;

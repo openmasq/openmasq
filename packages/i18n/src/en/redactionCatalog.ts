@@ -10,21 +10,21 @@ export const redactionCatalog = {
     name: {
       label: "Names",
       detail:
-        "First names, surnames and full identities detected by the local model — including in CAPITALS, run together or in a labelled field (Name:, First name(s):). Public figures stay readable.",
+        "First names, last names and full names found by on-device detection, including in ALL CAPS, run together or in a labeled field (Name:, First name(s):). Public figures are not masked by default.",
     },
     dob: {
       label: "Date of birth",
       detail:
-        "Dates of birth (born on…, date of birth, FR/EN/DE formats), labelled fields included. Other dates belong to « Dates », off by default.",
+        "Dates of birth (born on…, date of birth, FR/EN/DE formats), including labeled fields. Other dates fall under “Dates”, off by default.",
       impact:
-        "Masked, an age or a delay COMPUTED by the model may be off (the fake date protects the real year, itself identifying). The restored date is always the real one.",
+        "When masked, an age or time period the model calculates may be off: the substitute date also hides the real birth year, which can identify someone. The date shown to you is always the real one.",
     },
     date: {
       label: "Dates",
       detail:
-        "Every other date — in digits (12/05/2024, 2024-05-12, 20240512) or in words (12 May 2024, May 12, 2024, May 2024) — and clock times (14:30, 8:15 AM, 07h30), in the product's languages. Off by default; the Strict level turns it on. Bare years and durations are never touched.",
+        "All other dates, in digits (12/05/2024, 2024-05-12, 20240512) or in words (12 May 2024, May 12, 2024, May 2024), and clock times (14:30, 8:15 AM, 07h30), in the app's languages. Off by default; the Strict level turns it on. Years alone and durations are never masked.",
       impact:
-        "Masked, the durations, deadlines and timelines the model computes run on borrowed dates: shifted by a few years but consistent with each other, and always restored true.",
+        "When masked, durations, deadlines and timelines the model calculates use substitute dates. They are shifted by a few years but stay consistent with each other. The real dates are always restored.",
     },
     username: {
       label: "Username / handle",
@@ -33,66 +33,66 @@ export const redactionCatalog = {
     email: {
       label: "Email",
       detail:
-        "Email addresses (the fake keeps a consistent first name so that “Hello X” stays reversible).",
+        "Email addresses. The substitute keeps a matching first name, so a greeting like “Hello X” still maps back correctly.",
     },
     phone: {
       label: "Phone",
       detail:
-        "French and international numbers (+33, 00…), validated with libphonenumber for international ones.",
+        "French and international phone numbers (+33, 00…). International numbers are checked against each country's numbering rules.",
     },
     address: {
       label: "Postal address",
       detail:
-        "Complete multilingual addresses (FR/EN/DE/ES/IT/PT/NL + CJK) — replaced by a real address in the same country, different region.",
+        "Full addresses in many languages (FR/EN/DE/ES/IT/PT/NL + CJK), replaced by a realistic address in the same country, in a different region.",
       impact:
-        "Masked, the address stays consistent (same country, same shape) but any geographic computation — distance, proximity, district — is about the borrowed place.",
+        "When masked, the address stays consistent (same country, same format), but any geographic reasoning (distance, proximity, area) applies to the substitute place.",
     },
     location: {
-      label: "Place / city / postcode",
+      label: "Place / city / ZIP code",
       detail:
-        "Cities, postcodes, departments, regions, birthplaces. COUNTRIES are never masked (world knowledge).",
+        "Cities, ZIP and postal codes, regions, places of birth. Countries are never masked (general knowledge).",
       impact:
-        "Masked, distances, routes and jurisdictions are reasoned about on borrowed places — consistent with each other, but not with the real map.",
+        "When masked, distances, routes and jurisdictions are reasoned about using substitute places. They stay consistent with each other, but not with the real map.",
     },
     company: {
       label: "Company",
       detail:
-        "Company and organisation names detected by the model. Major brands, products and known indices stay readable; your SIREN/VAT numbers belong to “Company identifiers”.",
+        "Company and organization names found by on-device detection. Major brands, products and well-known indices are not masked by default. Registration numbers (SIREN, VAT…) fall under “Company identifiers”.",
       impact:
-        "Masked, the model knows NOTHING about the company (sector, size, collective agreement): its borrowed name is unknown to the world, on purpose.",
+        "When masked, the model knows nothing about the company (industry, size, labor agreements), because the substitute name is fictitious.",
     },
     card: {
-      label: "Bank card",
-      detail: "13–19-digit card numbers validated with Luhn, spaces/dashes tolerated.",
+      label: "Credit/debit card",
+      detail: "13–19-digit card numbers checked with the Luhn algorithm. Spaces and dashes are allowed.",
     },
     iban: {
       label: "IBAN / bank details",
       detail:
-        "IBAN (mod-97), BIC/SWIFT, and routing codes: ABA (US), sort code (UK), BSB (AU), CLABE (MX), IFSC (IN), labelled account numbers.",
+        "IBAN (mod-97), BIC/SWIFT, and routing codes: ABA (US), sort code (UK), BSB (AU), CLABE (MX), IFSC (IN), labeled account numbers.",
     },
     national_id: {
-      label: "National ID / passport / licence",
+      label: "National ID / passport / license",
       detail:
-        "Identity documents from 40+ countries: national ID cards, passports, French NIR/social security (spaced, Corsica), driving licences, residence permits, tax numbers, MRZ of scanned documents, SSN/ITIN, NHS, PESEL, Swiss AVS, Belgian register, Brazilian CPF, Chinese ID card, HKID, My Number… plus licence plates, VIN and IMEI. Check digits verified where the country publishes one.",
+        "Identity documents from 40+ countries: national ID cards, passports, French NIR/social security, driver's licenses, residence permits, tax numbers, MRZ of scanned documents, SSN/ITIN, NHS, PESEL, Swiss AVS, Belgian register, Brazilian CPF, Chinese ID card, HKID, My Number… plus license plates, VIN and IMEI. Check digits are verified when the country publishes one.",
     },
     company_id: {
       label: "Company identifiers",
       detail:
-        "SIREN/SIRET/RCS, intra-EU VAT (FR + EU), LEI, trade registers (German HR, Singapore UEN, Australian ABN/ACN, Brazilian CNPJ, US EIN), organisation numbers.",
+        "SIREN/SIRET/RCS, intra-EU VAT (FR + EU), LEI, trade registers (German HR, Singapore UEN, Australian ABN/ACN, Brazilian CNPJ, US EIN), organization numbers.",
     },
     ip: {
       label: "IP address",
-      detail: "IPv4, IPv6 (compressed :: forms) and MAC addresses — replaced by valid addresses.",
+      detail: "IPv4, IPv6 (including compressed :: forms) and MAC addresses, replaced by valid addresses.",
     },
     path: {
       label: "File paths",
       detail:
-        "Absolute paths (macOS/Windows/Linux), personal file and folder names (documents, images, archives) — source code is not targeted.",
+        "Absolute paths (macOS/Windows/Linux) and file and folder names: the username and the people, companies and numbers they contain are replaced, ordinary words stay readable (in Strict, any word not recognised is replaced too). Source code is not targeted.",
     },
     url: {
       label: "Web addresses (URL)",
       detail:
-        "Masks the WHOLE address — domain, path and parameters — not just what it contains. Off, URLs stay readable AND nothing inside them is masked by mistake (file names, cache tokens of a visited page); keys inside them always are. On at the Strict level, meant for document analysis.",
+        "Masks the whole URL (domain, path and parameters), not just what it contains. When off, URLs stay readable and nothing inside them is masked by mistake (file names, page cache tokens), but keys inside them are still masked. On at the Strict level, for document review.",
     },
     secret: {
       label: "Keys & secrets",
@@ -102,14 +102,14 @@ export const redactionCatalog = {
     apikey: {
       label: "Key-like strings (generic)",
       detail:
-        "Broad heuristic: any string that LOOKS like a key (long mix of letters and digits). Active at every protection level — a missed key leaves in clear. In return it also catches harmless product references.",
+        "Broad rule: masks any string that looks like a key (a long mix of letters and digits). On at every privacy level, because a missed key would be sent unmasked. It can also catch harmless product codes.",
     },
   },
   sections: {
     Identité: "Identity",
     Contact: "Contact",
     Localisation: "Location",
-    Organisation: "Organisation",
+    Organisation: "Organization",
     Financier: "Financial",
     Identifiants: "Identifiers",
     Réseau: "Network",
@@ -139,12 +139,12 @@ export const redactionCatalog = {
     secret: "Keys & secrets",
     apikey: "Key-like strings",
   },
-  lockedByOrg: "Enforced by your organisation",
+  lockedByOrg: "Set by your organization",
   modified: "changed",
   detailAria: (label) => `Detail — ${label}`,
   detailTip: "See what this category covers",
   neutralKind: "item",
   allOn: "Turn everything on",
   allOff: "Turn everything off",
-  reset: "Reset — inherit the default settings",
+  reset: "Reset to defaults",
 } satisfies Messages["redactionCatalog"];

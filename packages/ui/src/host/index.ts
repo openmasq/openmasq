@@ -94,8 +94,10 @@ export interface Host {
    * redaction engine: detects free-form PII (names/orgs/places) with NO network
    * and NO model completion. Returns verbatim `{value, category}` spans. Absent =
    * engine unavailable on this platform (falls back to the pattern rules).
+   * `signal`: the caller abandoned the result (a superseded preview) — a host that can
+   * stop the inference does, and the call REJECTS; never resolves a partial `[]`.
    */
-  detectLocalPii?(payload: DetectLocalPayload): Promise<Detection[]>;
+  detectLocalPii?(payload: DetectLocalPayload, signal?: AbortSignal): Promise<Detection[]>;
   /**
    * Optional reachability probe for a self-hosted (openai-compat) endpoint — a short,
    * loopback/public-guarded request from MAIN (the renderer can't reach localhost under the

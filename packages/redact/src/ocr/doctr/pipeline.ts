@@ -18,7 +18,7 @@ export interface DoctrRuntime {
 /** One recognised word: text, its ORIGINAL-pixel box `[x0,y0,x1,y1]`, and the CTC
  *  confidence (0–1) — the model's own certainty, used both as `OcrWord.confidence` and
  *  as the router's latin-vs-not signal. */
-export interface DoctrWord {
+interface DoctrWord {
   text: string;
   box: number[];
   confidence: number;

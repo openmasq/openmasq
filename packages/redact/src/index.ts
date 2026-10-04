@@ -34,6 +34,9 @@ export type {
 } from "./types";
 
 export { redactionKind, redactionCategory, URL_EXEMPT_KINDS } from "./kinds";
+// Which categories only a model detector covers — the engine fact a caller's fail-closed
+// check reads (the app's protection LEVELS are product policy and stay in `@openmasq/catalog`).
+export { MODEL_CATEGORIES, requiresModel } from "./modelCategories";
 export { REDACT_TYPES, type RedactType } from "./redactTypes";
 export { escapeRegExp, replaceStandalone, hasStandalone, isWordGlued, entityVariantRegex, variantOccurrences, entityKey } from "./util";
 export { RULES } from "./engine/rules";
@@ -152,3 +155,16 @@ export {
   type Sniffed,
   type SniffFamily,
 } from "./documents/safety/guard";
+// How long a document may be and still be masked IN FULL (the drop-time chip, the
+// pre-OCR refusal), and how long its extraction may run.
+export {
+  MAX_MASK_CHARS,
+  LONG_MASK_CHARS,
+  CHARS_PER_PAGE,
+  estimateMaskMs,
+  approxPages,
+  maskPlan,
+  maskTimeoutMs,
+  extractTimeoutMs,
+  type MaskPlan,
+} from "./documents/safety/maskBudget";

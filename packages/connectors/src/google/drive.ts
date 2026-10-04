@@ -265,8 +265,11 @@ export const googleDriveConnector: Connector = {
   // ⚠️ THIS list is the one OAuth requests (`main/mcp/connectors/index.ts`); the
   // catalog carries a display copy of it — `scopesParity.test.ts` keeps them equal.
   // `drive.file` gives writing WITHOUT widening the restricted surface (see the header).
+  // One-click OFF until Google verifies the app's client (CASA for the restricted
+  // scopes): BYO only for now — main refuses the built-in mode (`byoOnly`).
+  byoOnly: true,
   scopes: {
-    managed: ["https://www.googleapis.com/auth/drive.readonly", "https://www.googleapis.com/auth/drive.file"],
+    managed: [],
     byo: ["https://www.googleapis.com/auth/drive.readonly", "https://www.googleapis.com/auth/drive.file"],
   },
   tools: [searchFiles, listFolder, readDocument, uploadFile],

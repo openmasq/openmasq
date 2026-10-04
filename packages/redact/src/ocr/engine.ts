@@ -9,7 +9,6 @@
 // `../doctr` (docTR).
 import type { OcrWord } from "./layout";
 
-export type { OcrWord };
 
 /** One OCR'd page: the reading-order text + its positioned words, plus optional
  *  engine-agnostic routing signals. Coordinates are TOP-left pixels (see `OcrWord`). */

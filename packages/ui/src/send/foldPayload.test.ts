@@ -136,11 +136,12 @@ describe("buildFoldedPayload", () => {
     expect(r.fullModelText).toContain("document-3.png"); // image
   });
 
-  it("clips a document to maxFileChars with a truncation marker", () => {
-    const big = "x".repeat(120);
-    const r = buildFoldedPayload("t", [{ name: "big.txt", text: big }], {}, "", 50);
-    expect(r.modelText).toContain("x".repeat(50) + "\n…(truncated)");
-    expect(r.modelText).not.toContain("x".repeat(51));
+  it("folds every document WHOLE — no per-document cut, no truncation marker", () => {
+    const big = "x".repeat(200_000);
+    const r = buildFoldedPayload("t", [{ name: "big.txt", text: big }], {}, "");
+    expect(r.modelText).toContain(big);
+    expect(r.fullModelText).toContain(big);
+    expect(r.modelText).not.toContain("(truncated)");
   });
 
   it("skips whitespace-only attachments (no text to fold)", () => {
@@ -178,6 +179,39 @@ describe("buildFoldedPayload", () => {
     expect(Object.keys(r.vaultPreload)).not.toContain("R");
     // Still a reused doc (has reps), so it's on reuseParts, not detected.
     expect(r.reuseParts).toHaveLength(1);
+  });
+});
+
+describe("un document réutilisé transmet la CATÉGORIE de ses valeurs, pas seulement ses paires", () => {
+  // Reported: a dropped document typed each value correctly in its preview (address,
+  // company, name…), but the conversation then showed nearly all of them as « sensitive »
+  // (red) — the vault receives pairs only, so the reused values reached the conversation
+  // with no category.
+  it("chaque valeur réutilisée garde son type (réel → catégorie)", () => {
+    const r = buildFoldedPayload(
+      "donne l'adresse",
+      [{ name: "recu.pdf", text: "Ateliers Morvan, 12 rue des Lilas" }],
+      {
+        docReplacements: {
+          "recu.pdf": [
+            { real: "Ateliers Morvan", fake: "Forges Duval", tone: "violet", kind: "company" },
+            { real: "12 rue des Lilas", fake: "4 allée des Ormes", tone: "amber", kind: "address" },
+          ],
+        },
+      },
+      "",
+    );
+    expect(r.docKinds).toEqual({ "Ateliers Morvan": "company", "12 rue des Lilas": "address" });
+  });
+
+  it("un remplacement sans catégorie (ancien format) n'invente rien", () => {
+    const r = buildFoldedPayload(
+      "go",
+      [{ name: "a.txt", text: "Marc Savary" }],
+      { docReplacements: { "a.txt": [{ real: "Marc Savary", fake: "Paul Morvan", tone: "violet" }] } },
+      "",
+    );
+    expect(r.docKinds).toEqual({});
   });
 });
 
@@ -239,14 +273,5 @@ describe("clipFileText — la coupe ne tranche JAMAIS une ligne (donc jamais une
   it("texte sous la borne : inchangé ; une seule ligne géante : coupe dure (rien de mieux)", () => {
     expect(clipFileText("court", 100)).toBe("court");
     expect(clipFileText("x".repeat(120), 50)).toBe("x".repeat(50));
-  });
-
-  it("le pli d'envoi utilise la MÊME coupe : le document plié se termine sur une ligne entière", () => {
-    const doc = Array.from({ length: 20 }, (_, i) => `client ${i}: valeur-${i}`).join("\n");
-    const r = buildFoldedPayload("t", [{ name: "list.txt", text: doc }], {}, "", 100);
-    const folded = r.modelText.slice(r.modelText.indexOf("client 0"));
-    const kept = folded.slice(0, folded.indexOf("\n…(truncated)"));
-    // Every line present is WHOLE (it ends with its own value).
-    for (const line of kept.split("\n")) expect(line).toMatch(/^client \d+: valeur-\d+$/);
   });
 });

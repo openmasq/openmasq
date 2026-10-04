@@ -47,7 +47,7 @@ export type ToolErrorReason =
 export type ToolErrorFamily = "auth" | "quota" | "not_found" | "bad_request" | "timeout" | "server" | "other";
 
 /** Why a connector (OAuth) failed to connect — bounded. */
-export type ConnectorErrorReason = "oauth" | "network" | "unauthorized" | "unknown";
+type ConnectorErrorReason = "oauth" | "network" | "unauthorized" | "unknown";
 
 export type TrackEvent =
   // ── app / navigation ───────────────────────────────────────────────────
@@ -181,6 +181,8 @@ export type TrackEvent =
       ms?: number;
       /** Router: how many tools were OFFERED after routing vs the connected total. */
       routerOffered: number; routerTotal: number;
+      /** Duration of the router model call (bucketed); absent when no routing call ran. */
+      routerMs?: number;
       /** `load_tools` calls naming a connector/tool that doesn't exist (count only —
        *  the invented NAME is model-generated free text and never leaves). */
       loadToolsUnknown: number;
@@ -221,12 +223,16 @@ export type TrackEvent =
   | { name: "update_check"; channel: string; result: "available" | "up_to_date"; found_version?: string }
   | { name: "update_downloaded"; channel: string; version: string }
   | { name: "update_install"; channel: string; version: string }
+  // A staged build the AUTOMATIC install is holding back, and why — once per version and
+  // reason per session: `in_use` (a window has focus), `busy_main` (a turn in flight),
+  // `busy_renderer` (a send or a draft), `no_answer` (the renderer did not reply).
+  | {
+      name: "update_install_deferred";
+      channel: string;
+      version: string;
+      reason: "in_use" | "busy_main" | "busy_renderer" | "no_answer";
+    }
   | { name: "update_installed"; channel: string; from: string; to: string };
 
 export type EventName = TrackEvent["name"];
 
-/** A sanitized event ready for a sink: name + allow-listed, bucketed properties. */
-export interface CleanEvent {
-  name: EventName;
-  props: Record<string, string | number | boolean | string[]>;
-}

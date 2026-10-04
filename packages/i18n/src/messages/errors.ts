@@ -25,6 +25,10 @@ export interface ErrorsMessages {
   providerCredits: string;
   invalidKeyNamed: (provider: string) => string;
   invalidKey: string;
+  /** A subscription CLI's OWN session is gone (`CLI_AUTH:<cli>` from main). `cli` = « Claude Code ». */
+  cliSessionExpired: (cli: string) => string;
+  /** Same, for a CLI the app cannot sign in (antigravity): the way out is in the tool itself. */
+  cliSessionExpiredExternal: (cli: string) => string;
   /** Burst: a short wait, announced when the gateway gives it. */
   rateBurst: (wait: string) => string;
   someSeconds: string;

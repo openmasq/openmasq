@@ -1,3 +1,4 @@
+import { displayTitle } from "../../../state/conversation/displayTitle";
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { findModel } from "@openmasq/llm";
 import type { Conversation } from "../../../types";
@@ -9,7 +10,7 @@ import { groupConversationsByDate } from "../../../hooks/conversationGroups";
 import type { SettingsDestination } from "../../../pages/Settings/settingsIndex";
 import type { SectionDestination } from "../../../help";
 import type { LibFile } from "../../../pages/Library/libFile";
-import { relTime } from "./rowMeta";
+import { relTime } from "../../../hooks/conversationGroups";
 import { FileRows, SectionRows, SettingsRows } from "./rows";
 
 /**
@@ -61,7 +62,7 @@ export function SearchModal({
   const [active, setActive] = useState(0);
 
   const filtered = conversations.filter((c) =>
-    (c.title || t.chrome.untitledConversation).toLowerCase().includes(q.toLowerCase()),
+    displayTitle(c.title, t).toLowerCase().includes(q.toLowerCase()),
   );
   const groups = useMemo(() => groupConversationsByDate(filtered, t), [filtered, t]);
   // Each injected group. An EMPTY query yields none of them (the palette stays
@@ -205,9 +206,9 @@ export function SearchModal({
                     className={`search-row${isActive ? " is-active" : ""}`}
                   >
                     {model && <ModelLogo provider={model.provider} modelId={model.id} size={16} />}
-                    <span className="search-row-title">{c.title || t.chrome.untitledConversation}</span>
+                    <span className="search-row-title">{displayTitle(c.title, t)}</span>
                     {busy && <span className="search-row-spin" aria-label={t.modals.searchRows.generating} />}
-                    <span className="search-time">{relTime(c.updatedAt)}</span>
+                    <span className="search-time">{relTime(c.updatedAt, t)}</span>
                   </button>
                 );
               })}

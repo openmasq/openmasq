@@ -9,34 +9,30 @@
 
 /** The home starters' ids — the union `starters.ts` (packages/ui) builds its lists from. */
 export type StarterId =
-  | "write"
-  | "search"
+  | "follow-up"
+  | "contract-review"
+  | "hr-review"
   | "memory"
-  | "analyse"
-  | "mail-triage"
-  | "files-find"
-  | "day-brief"
   | "chat-catchup"
-  | "pr-review";
+  | "notes-find"
+  | "files-find";
 
 export interface ConversationMessages {
   /** The home of an empty conversation. */
   greeting: { morning: string; afternoon: string; evening: string };
   starters: {
-    noSetup: string;
-    withServices: string;
-    orConnect: string;
-    seeOthers: string;
     cardTip: (category: string, prompt: string) => string;
     cardAria: (category: string, prompt: string) => string;
-    connectTip: (connector: string, prompt: string) => string;
     dismiss: string;
     /** The cards' copy, keyed by the starter id of `starters.ts` — that module keeps the
-     *  STRUCTURE (which four, what each needs), the words live here in every language. */
+     *  STRUCTURE (which cards, in what order), the words live here in every language. */
     cats: Record<StarterId, string>;
-    /** Every prompt takes the brand's domain, even the ones that ignore it: the « write »
-     *  card names an address on it, and one shape keeps the lookup by id trivial. */
-    prompts: Record<StarterId, (domain: string) => string>;
+    /** One shape for every prompt, so the lookup by id stays trivial: the brand's domain
+     *  (the follow-up card names an address on it) and the CONNECTED service's product name
+     *  (an integration card says where to look; « » for the others). */
+    prompts: Record<StarterId, (domain: string, service: string) => string>;
+    /** Eyebrow of the row of cards about the user's CONNECTED services. */
+    withServices: string;
   };
 
   /** The preview of a file produced by the model. */
@@ -119,6 +115,13 @@ export interface ConversationMessages {
   actions: { copy: string; copied: string; regenerate: string; fork: string; feedback: string };
 
   /** What borders a bubble. */
+  /** The OS notification when a reply lands in the background: no content, no title. */
+  replyNotice: {
+    failed: string;
+    ready: (model: string) => string;
+    readyPlain: string;
+  };
+
   bubble: {
     openAttachment: (name: string) => string;
     plotTip: string;
@@ -138,6 +141,28 @@ export interface ConversationMessages {
      *  The placeholder says why; loading it is the user's own click. */
     imageWithheld: string;
     imageWithheldLoad: string;
+    /** A LONG user message is folded in the thread; the whole text is one click away. */
+    showAll: string;
+    showLess: string;
+  };
+
+  /** Files under a turn, and what the conversation's documents cost the model's window.
+   *  Display only: none of this changes what is sent. */
+  docs: {
+    /** The summary row of a long file list (« 8 fichiers »). */
+    filesCount: (count: number) => string;
+    showFiles: string;
+    /** The eyebrow of a file the assistant produced. */
+    generatedBy: (brand: string) => string;
+    /** A document the wire cut at the per-document cap. */
+    clippedTag: string;
+    clipped: (name: string, max: string) => string;
+    /** « a, b et 2 autres » — the tail of a long name list. */
+    others: (count: number) => string;
+    weight: (percent: number, model: string) => string;
+    weightOver: (model: string) => string;
+    dropped: (names: string, count: number) => string;
+    roomHint: string;
   };
 
   /** The tool-call trace card: one row per call, its status words. */
@@ -199,6 +224,8 @@ export interface ConversationMessages {
 
   /** When a tool went wrong — said with the gesture that repairs it. */
   struggle: {
+    /** Who struggled, when the model has no name to show. */
+    thisModel: string;
     /** The caption's tooltip — carries the tool's technical name, for support. */
     failedTip: (tool?: string) => string;
     unknownTool: (connector: string, action: string) => string;

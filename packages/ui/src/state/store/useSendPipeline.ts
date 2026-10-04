@@ -3,7 +3,7 @@ import type { ExtractedFile } from "../../host";
 import type { Conversation } from "../../types";
 import { loadReattachFile } from "../../pages/Library/reattach";
 import { askTargetLaunchText } from "../../send/askTarget";
-import { retryResendWire, retryTagPrompt } from "../../send/retryResend";
+import { planRetryResend, retryTagPrompt } from "../../send/retryResend";
 import { createSendMessage, type SendMessageDeps } from "../../send/sendOrchestrator";
 
 type CancelMap = MutableRefObject<Map<string, () => void>>;
@@ -16,7 +16,7 @@ type CancelMap = MutableRefObject<Map<string, () => void>>;
  */
 export function useSendPipeline(deps: SendMessageDeps & { conversations: Conversation[]; activeIdRef: MutableRefObject<string | null> }) {
   const { conversations, activeIdRef, ...bag } = deps;
-  const { host, settings, activeId, keyConfigured, createConversation, patchConversation, cancelRef, finishRef } = bag;
+  const { host, settings, activeId, keyConfigured, createConversation, patchConversation, cancelRef, finishRef, t } = bag;
 
   const sendMessage = useCallback(
     (...args: Parameters<ReturnType<typeof createSendMessage>>) => createSendMessage(bag)(...args),
@@ -30,13 +30,15 @@ export function useSendPipeline(deps: SendMessageDeps & { conversations: Convers
   /**
    * Retry a FAILED assistant turn IN PLACE: drop the errored assistant AND its user
    * message (so the text is never sent twice), then re-send the user's text and its
-   * documents. A message persists only its attachments' METADATA, so the documents are
-   * rebuilt from the library by name; when that recovers no text (file never stored, no
-   * DB, extraction failed), the turn's persisted `modelContent` is re-sent verbatim as the
-   * wire — the same source a normal follow-up turn re-includes.
+   * documents — ALL of them or nothing (`planRetryResend`): rebuilt from the library by
+   * name, else the turn's persisted `modelContent`, else the retry is refused ON the failed
+   * bubble, naming the missing files, with the turn left in place and nothing sent.
    */
+  // The library reload is awaited BEFORE the turn is removed: a second click meanwhile must not send twice.
+  const retrying = useRef(new Set<string>());
   const regenerate = useCallback(
     async (assistantId: string, targetConvId?: string) => {
+      if (retrying.current.has(assistantId)) return;
       const convId = targetConvId ?? activeId;
       const conv = conversations.find((c) => c.id === convId);
       if (!conv) return;
@@ -45,26 +47,29 @@ export function useSendPipeline(deps: SendMessageDeps & { conversations: Convers
       const user = conv.messages[idx - 1];
       if (user.role !== "user") return;
       const text = user.content;
-      const attachMeta = user.attachments ?? [];
+      const attachedNames = (user.attachments ?? []).map((a) => a.name);
+      retrying.current.add(assistantId);
+      let rebuilt: ExtractedFile[] | undefined;
+      try {
+        rebuilt = attachedNames.length ? await reloadTurnFiles(host, convId!, attachedNames) : undefined;
+      } finally {
+        retrying.current.delete(assistantId);
+      }
+      const plan = planRetryResend(text, user.modelContent, attachedNames, rebuilt);
+      if (plan.kind === "blocked") {
+        const errorText = t.runtime.send.retryMissingFiles(plan.missing.length, plan.missing.join(", "));
+        patchConversation(convId!, (c) => ({
+          ...c,
+          messages: c.messages.map((m) => (m.id === assistantId ? { ...m, error: true, errorText, errorAction: undefined } : m)),
+        }));
+        return;
+      }
       patchConversation(convId!, (c) => ({
         ...c,
         messages: c.messages.filter((m) => m.id !== assistantId && m.id !== user.id),
       }));
-      let files: ExtractedFile[] | undefined;
-      if (attachMeta.length && host.db?.listFiles && host.db?.loadFile) {
-        try {
-          const names = new Set(attachMeta.map((a) => a.name));
-          const metas = (await host.db.listFiles(convId!)).filter((m) => names.has(m.name));
-          const loaded = await Promise.all(
-            metas.map((m) => loadReattachFile(host, { id: m.id, name: m.name, mime: m.mime }).catch(() => null)),
-          );
-          const ok = loaded.filter((f): f is ExtractedFile => f !== null);
-          if (ok.length) files = ok;
-        } catch {
-          /* library unavailable → fall back to a text-only retry */
-        }
-      }
-      const resendWire = retryResendWire(text, user.modelContent, files);
+      const files = plan.kind === "files" ? plan.files : undefined;
+      const resendWire = plan.kind === "wire" ? plan.resendWire : undefined;
       // With a `resendWire` the compétence rides for its TAG only (the instruction is
       // already inside it); without one, `retryTagPrompt` re-supplies the prompt — snapshot
       // first, else today's version. `competence ?? workflow`: an old turn from the
@@ -79,7 +84,7 @@ export function useSendPipeline(deps: SendMessageDeps & { conversations: Convers
       // Let the removal flush to state first, so the resent turn's history excludes it.
       setTimeout(
         () =>
-          void sendMessageRef.current(text, resendWire ? undefined : files, {
+          void sendMessageRef.current(text, files, {
             plotTag: user.plotTag,
             ...(tag ? { competence: { id: tag.id, name: tag.name, prompt: compPromptRetry, servers: tag.servers } } : {}),
             ...(user.askTarget ? { askTarget: { ...user.askTarget, prompt: atPromptRetry } } : {}),
@@ -91,12 +96,30 @@ export function useSendPipeline(deps: SendMessageDeps & { conversations: Convers
         0,
       );
     },
-    [activeId, conversations, patchConversation, host, settings.competences],
+    [activeId, conversations, patchConversation, host, settings.competences, t],
   );
 
   const stop = useCallback((targetConvId?: string) => stopTurns(cancelRef, finishRef, targetConvId ?? activeIdRef.current, !!targetConvId), []);
 
   return { sendMessage, regenerate, stop };
+}
+
+/**
+ * The turn's documents from the library, matched by NAME (a message keeps only metadata).
+ * A file that fails to load is simply absent: `planRetryResend` decides what that means.
+ */
+async function reloadTurnFiles(host: SendMessageDeps["host"], convId: string, names: string[]) {
+  if (!host.db?.listFiles || !host.db?.loadFile) return undefined;
+  try {
+    const wanted = new Set(names);
+    const metas = (await host.db.listFiles(convId)).filter((m) => wanted.has(m.name));
+    const loaded = await Promise.all(
+      metas.map((m) => loadReattachFile(host, { id: m.id, name: m.name, mime: m.mime }).catch(() => null)),
+    );
+    return loaded.filter((f): f is ExtractedFile => f !== null);
+  } catch {
+    return undefined; // library unavailable → the plan falls back to the persisted payload, or blocks
+  }
 }
 
 /**

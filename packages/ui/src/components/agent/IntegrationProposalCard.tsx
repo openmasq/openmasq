@@ -158,7 +158,8 @@ function IntegrationCard({
   // A remote/builtin connector has none declared — show no chips rather than invent any:
   // this card tells the user what access they are granting, so a plausible-looking but
   // fabricated scope list would be a lie about their data.
-  const scopes = c.scopes?.managed ?? [];
+  // A keys-only connector requests its scopes in « Mes clés » mode only.
+  const scopes = (c.byoOnly ? c.scopes?.byo : c.scopes?.managed) ?? [];
 
   return (
     <AgentCard

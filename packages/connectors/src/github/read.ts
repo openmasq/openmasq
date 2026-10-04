@@ -4,10 +4,10 @@ import type { ConnectorTool, ConnectorToolResult } from "../types";
  *  token via the device flow). Kept small; write tools live in `./write`. */
 export const API = "https://api.github.com";
 
-export const LIMIT_PROP = {
+const LIMIT_PROP = {
   limit: { type: "integer", minimum: 1, maximum: 50, description: "How many rows (default 20)." },
 } as const;
-export function clampLimit(a: Record<string, unknown>, def = 20): number {
+function clampLimit(a: Record<string, unknown>, def = 20): number {
   const n = typeof a.limit === "number" ? Math.floor(a.limit) : def;
   return Math.max(1, Math.min(50, n || def));
 }
@@ -31,7 +31,7 @@ export const str = (a: Record<string, unknown>, k: string): string =>
 export const num = (a: Record<string, unknown>, k: string): number | null =>
   typeof a[k] === "number" ? Math.floor(a[k] as number) : null;
 export const enc = encodeURIComponent;
-export const NEED_REPO = "`owner` et `repo` sont requis.";
+const NEED_REPO = "`owner` et `repo` sont requis.";
 
 const getMe: ConnectorTool = {
   name: "get_me",

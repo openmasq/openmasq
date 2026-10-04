@@ -1,13 +1,11 @@
 import { join } from "node:path";
 import { app, utilityProcess, type UtilityProcess } from "electron";
-import {
-  extractText as extractTextInProcess,
-  extractBytes as extractBytesInProcess,
-  type ExtractedFile,
-} from "@openmasq/redact/documents";
+import type { ExtractedFile, ExtractStreamEvent } from "@openmasq/redact/documents";
 import { reportMainError } from "../runtime/errorReport";
 import { isAppQuitting } from "../runtime/quitState";
 import { BRAND } from "@openmasq/branding";
+import { extractTimeoutMs } from "@openmasq/redact";
+import { checkStreamMessage } from "./extractStream";
 
 /**
  * CLIENT of the extraction worker (`extractWorker.ts`) — the documents counterpart of
@@ -26,6 +24,8 @@ import { BRAND } from "@openmasq/branding";
 
 type Reply =
   | { id: number; progress: { done: number; pages: number } }
+  | { id: number; page: unknown }
+  | { id: number; thumb: unknown }
   | { id: number; ok: true; file: ExtractedFile }
   | { id: number; ok: false; error: string };
 
@@ -33,12 +33,19 @@ interface Pending {
   resolve: (f: ExtractedFile) => void;
   reject: (e: Error) => void;
   onProgress?: (done: number, pages: number) => void;
+  /** The preview stream, already checked (`extractStream.ts`). */
+  onStream?: (ev: ExtractStreamEvent) => void;
   timer: ReturnType<typeof setTimeout>;
+  /** The page count the deadline was last scaled to (0 = the floor). */
+  scaledFor: number;
+  /** Re-arm the deadline for `pages` pages, counted from the job's START. */
+  rescale: (pages: number) => void;
 }
 
-// Backstop only (a worker stuck without dying): OCR on a big scan on a
-// low-power machine (Intel/WASM) is counted in minutes — generous, never the nominal bound.
-const EXTRACT_TIMEOUT_MS = 6 * 60 * 1000;
+// Backstop only (a worker stuck without dying): `extractTimeoutMs` (`@openmasq/redact`, the
+// single home of the document limits) — a floor until the count of pages OCR reads is known,
+// then rescaled to it on the first progress tick. A whole document is read, so the deadline
+// follows its length; past it the file is in ERROR, never returned in part.
 // Tesseract WASM + docTR sessions are heavy: we give back the RAM after this idle period.
 const IDLE_MS = 5 * 60 * 1000;
 const STDERR_RING_MAX = 2000;
@@ -102,7 +109,13 @@ function ensureChild(): UtilityProcess {
     const p = pending.get(msg.id);
     if (!p) return;
     if ("progress" in msg) {
+      if (msg.progress.pages > p.scaledFor) p.rescale(msg.progress.pages);
       p.onProgress?.(msg.progress.done, msg.progress.pages);
+      return;
+    }
+    if ("page" in msg || "thumb" in msg) {
+      const ev = checkStreamMessage(msg);
+      if (ev) p.onStream?.(ev);
       return;
     }
     clearTimeout(p.timer);
@@ -135,12 +148,15 @@ function armIdleEviction(): void {
   }, IDLE_MS);
 }
 
-async function run(
+export async function runInWorker(
   req:
-    | { kind: "path"; path: string; ocrAllPages?: boolean }
-    | { kind: "bytes"; data: string; name: string; mime?: string; ocrAllPages?: boolean },
+    | { kind: "path"; path: string; locale: string }
+    | { kind: "bytes"; data: string; name: string; mime?: string; locale: string },
   onProgress?: (done: number, pages: number) => void,
+  onStream?: (ev: ExtractStreamEvent) => void,
+  signal?: AbortSignal,
 ): Promise<ExtractedFile> {
+  if (signal?.aborted) throw new Error("extraction annulée");
   if (idleTimer) {
     clearTimeout(idleTimer);
     idleTimer = null;
@@ -150,15 +166,34 @@ async function run(
     const c = ensureChild();
     const id = ++seq;
     return await new Promise<ExtractedFile>((resolve, reject) => {
-      const timer = setTimeout(() => {
-        pending.delete(id);
-        reject(new Error("extraction : délai dépassé"));
-      }, EXTRACT_TIMEOUT_MS);
-      pending.set(id, { resolve, reject, onProgress, timer });
+      const startedAt = Date.now();
+      const arm = (pages: number) =>
+        setTimeout(() => {
+          pending.delete(id);
+          reject(new Error("extraction : délai dépassé"));
+        }, Math.max(0, startedAt + extractTimeoutMs(pages) - Date.now()));
+      const entry: Pending = {
+        resolve,
+        reject,
+        onProgress,
+        onStream,
+        timer: arm(0),
+        scaledFor: 0,
+        rescale: (pages) => {
+          clearTimeout(entry.timer);
+          entry.scaledFor = pages;
+          entry.timer = arm(pages);
+        },
+      };
+      pending.set(id, entry);
+      // The user removed the file: concurrency is 1, so this job is the worker's only one —
+      // killing it is the only way to stop a page mid-OCR. Detached first (`killChild`), so
+      // the exit is « expected », never reported as a death; the next job forks afresh.
+      signal?.addEventListener("abort", () => pending.has(id) && killChild(), { once: true });
       try {
-        c.postMessage({ id, ...req });
+        c.postMessage({ id, ...req, stream: !!onStream });
       } catch (err) {
-        clearTimeout(timer);
+        clearTimeout(entry.timer);
         pending.delete(id);
         reject(err instanceof Error ? err : new Error(String(err)));
       }
@@ -169,15 +204,18 @@ async function run(
   }
 }
 
-/** Has the in-process fallback taken over for this request? See the header. */
-async function withFallback(
+/** The worker path, or the in-process fallback for the session (see the header). A
+ *  CANCELLED job never falls back: its worker was killed on purpose, not « never born ». */
+export async function workerOrInProcess(
   viaWorker: () => Promise<ExtractedFile>,
   inProcess: () => Promise<ExtractedFile>,
+  signal?: AbortSignal,
 ): Promise<ExtractedFile> {
   if (workerBroken) return inProcess();
   try {
     return await viaWorker();
   } catch (e) {
+    if (signal?.aborted) throw e;
     // A worker that has NEVER served = it isn't getting born here (missing bundle, spawn
     // refused): in-process for the session, said once. A worker that has already served
     // then dies, on the other hand, stays on the worker path (the next fork tries again).
@@ -188,32 +226,4 @@ async function withFallback(
     }
     throw e;
   }
-}
-
-/** Extraction of a file on disk — worker first, in-process as session fallback. */
-export function extractTextInWorker(
-  filePath: string,
-  onOcrProgress?: (done: number, pages: number) => void,
-  /** "Read all": lift the OCR cap — threaded as-is through to the engine. */
-  ocrAllPages?: boolean,
-): Promise<ExtractedFile> {
-  return withFallback(
-    () => run({ kind: "path", path: filePath, ocrAllPages }, onOcrProgress),
-    () => extractTextInProcess(filePath, onOcrProgress, ocrAllPages),
-  );
-}
-
-/** Extraction of in-memory bytes (base64 on the IPC caller side) — same contract. */
-export function extractBytesInWorker(
-  bytes: Uint8Array,
-  name: string,
-  mime?: string,
-  onOcrProgress?: (done: number, pages: number) => void,
-  ocrAllPages?: boolean,
-): Promise<ExtractedFile> {
-  const data = Buffer.from(bytes).toString("base64");
-  return withFallback(
-    () => run({ kind: "bytes", data, name, mime, ocrAllPages }, onOcrProgress),
-    () => extractBytesInProcess(bytes, name, mime, onOcrProgress, ocrAllPages),
-  );
 }

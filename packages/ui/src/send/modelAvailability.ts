@@ -35,11 +35,23 @@ export type UnavailableReason =
    *  installed/reachable on this machine, or the setting is off — nothing to
    *  spawn, so nothing to offer. */
   | "cli_unavailable"
+  /** The CLI is here and switched on, but its OWN status (`subscription:status`) says
+   *  signed out: a send would only bring back « please log in ». Only a KNOWN `false`
+   *  gets here — an unanswered status never blocks (`CliReadiness`). */
+  | "cli_signed_out"
   /** Self-hosted (openai-compat): no endpoint URL configured, so there's nothing to call. */
   | "no_endpoint"
   /** Self-hosted (openai-compat): an endpoint IS configured, but the local server
    *  (Ollama / LM Studio) didn't answer a reachability probe — it's likely not running. */
   | "endpoint_unreachable";
+
+/**
+ * A subscription CLI's readiness, as the probe hook knows it: `true` = usable (opt-in on,
+ * binary found, not KNOWN to be signed out), `"signed_out"` = on and found but its status
+ * answered `loggedIn: false`, anything else = not usable. Every `=== true` check stays
+ * fail-closed on the new value by construction.
+ */
+export type CliReadiness = boolean | null | "signed_out";
 
 export interface AvailabilityInput {
   model: { id: string; provider: ProviderId };
@@ -69,11 +81,11 @@ export interface AvailabilityInput {
    *  local probe, only `true` OPENS it up — absent/`null`/`false` hides the model. Most
    *  machines don't have the CLI: fail-open would show everyone a model
    *  that fails on the first send. */
-  claudeCliReady?: boolean | null;
+  claudeCliReady?: CliReadiness;
   /** Same for the `codex-cli` provider (ChatGPT subscription via the Codex CLI). */
-  codexCliReady?: boolean | null;
+  codexCliReady?: CliReadiness;
   /** Same for `antigravity-cli` (Google subscription via the `agy` CLI). */
-  antigravityCliReady?: boolean | null;
+  antigravityCliReady?: CliReadiness;
 }
 
 /**
@@ -84,7 +96,9 @@ export interface AvailabilityInput {
  * so hiding the row would hide the very thing they configured.
  */
 export function pickerBlocks(reason: UnavailableReason): boolean {
-  return reason === "no_endpoint" || reason === "endpoint_unreachable";
+  // A signed-out CLI too: the person set it up, the fix is one sign-in away — hiding the
+  // row would hide the model they chose; greying it says why.
+  return reason === "no_endpoint" || reason === "endpoint_unreachable" || reason === "cli_signed_out";
 }
 
 /**
@@ -135,21 +149,20 @@ export function visibleModels<T extends { id: string }>(
   });
 }
 
+function cliReason(ready: CliReadiness | undefined): UnavailableReason | null {
+  if (ready === true) return null;
+  return ready === "signed_out" ? "cli_signed_out" : "cli_unavailable";
+}
+
 export function modelUnavailableReason(p: AvailabilityInput): UnavailableReason | null {
   const { provider } = p.model;
 
   // Claude subscription via the Claude Code CLI: usable ONLY when the host has
   // positively confirmed (setting on + CLI detected). Unknown = unavailable —
   // fail-closed, unlike the local probe (see `claudeCliReady`).
-  if (provider === "claude-cli") {
-    return p.claudeCliReady === true ? null : "cli_unavailable";
-  }
-  if (provider === "codex-cli") {
-    return p.codexCliReady === true ? null : "cli_unavailable";
-  }
-  if (provider === "antigravity-cli") {
-    return p.antigravityCliReady === true ? null : "cli_unavailable";
-  }
+  if (provider === "claude-cli") return cliReason(p.claudeCliReady);
+  if (provider === "codex-cli") return cliReason(p.codexCliReady);
+  if (provider === "antigravity-cli") return cliReason(p.antigravityCliReady);
 
   // Self-hosted / local (Ollama, LM Studio…): the ONLY thing that makes it reachable is
   // the endpoint the user configured. Blank ⇒ nothing to call, so fail closed rather
@@ -227,6 +240,8 @@ export function unavailableLabel(
     case "cli_unavailable":
       // `providerLabel` = the provider's CLI ("Claude Code", "Gemini CLI").
       return { chip: a.cliRequired, title: a.cliUnavailable(providerLabel) };
+    case "cli_signed_out":
+      return { chip: a.cliSignedOut, title: a.cliSignedOutTitle(providerLabel) };
     case "no_endpoint":
       return { chip: a.noEndpoint, title: a.noEndpointTitle };
     case "endpoint_unreachable":

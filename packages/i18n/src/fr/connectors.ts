@@ -18,7 +18,7 @@ export const connectors = {
   airtable:
     "Airtable combine la simplicité d'un tableur avec la puissance d'une base de données pour organiser projets et données d'équipe.",
   superhuman:
-    "Superhuman est un client email premium centré sur la vitesse, avec agenda et fonctions d'IA intégrées.",
+    "Superhuman est un client e-mail centré sur la vitesse, avec agenda et fonctions d'IA intégrées.",
   linear:
     "Linear est un outil de suivi d'issues et de gestion de projet rapide, taillé pour les équipes produit et ingénierie.",
   atlassian:
@@ -46,7 +46,7 @@ export const connectors = {
   square:
     "Square (Block) fournit des solutions de paiement, de point de vente et de gestion commerciale.",
   close:
-    "Close est un CRM de vente pensé pour les équipes commerciales, avec appels, emails et suivi des deals intégrés.",
+    "Close est un CRM pour les équipes commerciales, avec appels, e-mails et suivi des affaires intégrés.",
   intercom:
     "Intercom est une plateforme de relation client : messagerie, support et assistance IA pour les entreprises.",
   attio:
@@ -54,7 +54,7 @@ export const connectors = {
   zapier:
     "Zapier automatise les tâches en connectant plus de 8000 applications via des workflows sans code.",
   canva:
-    "Canva est un outil de design graphique en ligne pour créer visuels, présentations et documents facilement.",
+    "Canva est un outil de design graphique en ligne pour créer visuels, présentations et documents.",
   wix:
     "Wix est une plateforme de création de sites web, boutiques en ligne et réservations, sans code.",
   webflow:
@@ -62,7 +62,7 @@ export const connectors = {
   dropbox:
     "Dropbox est un service de stockage et de partage de fichiers dans le cloud.",
   huggingface:
-    "Hugging Face est la plateforme de référence pour partager modèles d'IA, datasets et applications (Spaces).",
+    "Hugging Face est la principale plateforme de partage de modèles d'IA, de datasets et d'applications (Spaces).",
   github:
     "GitHub est la plateforme d'hébergement de code et de collaboration développeur la plus utilisée (Microsoft).",
   "google-calendar":
@@ -74,7 +74,7 @@ export const connectors = {
   slack:
     "Slack est une plateforme de messagerie d'équipe organisée en canaux (Salesforce).",
   amplitude:
-    "Amplitude est une plateforme d'analytics produit pour comprendre les parcours utilisateurs et piloter les fonctionnalités.",
+    "Amplitude est une plateforme d'analytics produit pour comprendre les parcours utilisateurs et orienter les décisions produit.",
   posthog:
     "PostHog est une plateforme open-source d'analytics produit : événements, replays de sessions et feature flags.",
   apify:
@@ -94,7 +94,7 @@ export const connectors = {
   websitepublisher:
     "WebsitePublisher.ai crée et publie des sites web complets à partir d'une simple conversation.",
   morningstar:
-    "Morningstar est une référence de la recherche financière : données de marché, analyses et notations de fonds.",
+    "Morningstar est un acteur majeur de la recherche financière : données de marché, analyses et notations de fonds.",
   vantage:
     "Vantage centralise et analyse vos coûts cloud (AWS, GCP, Azure…) pour les comprendre et les réduire.",
   synapse:

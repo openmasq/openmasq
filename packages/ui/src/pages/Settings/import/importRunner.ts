@@ -7,6 +7,7 @@ import {
   type ImportProvider,
   type ImportProgress,
 } from "../../../import";
+import type { Messages } from "@openmasq/i18n";
 import type { Conversation } from "../../../types";
 
 export const PROVIDER_LABEL: Record<ImportProvider, string> = {
@@ -18,8 +19,8 @@ export const PROVIDER_LABEL: Record<ImportProvider, string> = {
  * The whole import flow for one picked file, off the JSX (logic in .ts): read the
  * export (zip or json, 100% local) → parse for the chosen provider → run the
  * import-time redaction pass per conversation (progress-reported — it dominates the
- * wall clock on a big export). Throws user-facing FRENCH messages; the modal shows
- * them verbatim.
+ * wall clock on a big export). Throws user-facing messages in the UI language (`t`); the
+ * modal shows them verbatim.
  */
 export async function runImport(opts: {
   bytes: Uint8Array;
@@ -30,8 +31,9 @@ export async function runImport(opts: {
    *  time, so the mode is frozen there). Absent ⇒ plausible fakes. */
   mode?: "fake" | "token";
   onProgress?: ImportProgress;
+  t: Messages;
 }): Promise<Conversation[]> {
-  const json = await readExportFile(opts.bytes);
+  const json = await readExportFile(opts.bytes, opts.t);
   const parsed =
     opts.provider === "chatgpt"
       ? parseChatGptExport(json, { modelId: opts.modelId })
@@ -40,12 +42,8 @@ export async function runImport(opts: {
   if (parsed.length === 0) {
     const detected = detectExportProvider(json);
     if (detected && detected !== opts.provider)
-      throw new Error(
-        `Ce fichier ressemble à un export ${PROVIDER_LABEL[detected]} — sélectionnez « ${PROVIDER_LABEL[detected]} » puis réessayez.`,
-      );
-    throw new Error(
-      `Aucune conversation trouvée. Vérifiez qu'il s'agit bien de l'export ${PROVIDER_LABEL[opts.provider]} (le .zip reçu par e-mail, ou son conversations.json).`,
-    );
+      throw new Error(opts.t.runtime.files.importWrongProvider(PROVIDER_LABEL[detected]));
+    throw new Error(opts.t.runtime.files.importNothing(PROVIDER_LABEL[opts.provider]));
   }
 
   const out: Conversation[] = [];

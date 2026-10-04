@@ -33,10 +33,6 @@ export const WHEELS: string[] = [
   "python-pptx==1.0.2", // PPTX (import: `from pptx import Presentation`; pulls lxml+Pillow binary wheels)
 ];
 
-/** Human-facing list of the pre-installed packages, for the model-facing guidance
- *  (so it uses what's there and never tries to `pip install`). */
-export const PACKAGES = "numpy, pandas, scipy, matplotlib, seaborn (graphiques), yfinance, requests, fpdf2 (PDF), openpyxl (Excel), python-docx (Word), python-pptx (PowerPoint)";
-
 /**
  * Hosts the egress proxy permits WHILE RUNNING model-generated code (suffix-matched).
  * yfinance/requests are forced through the loopback proxy (via `HTTPS_PROXY`), which
@@ -83,8 +79,9 @@ _KV_BG = "#fbfbfa"     # warm off-white surface
 # Categorical cycle = the design highlight hues: lime, mint, violet, sky, amber, pink, ink.
 _KV_CYCLE = ["#b8e635", "#5fe3c0", "#b79cff", "#6fc2ff", "#ffb85c", "#ff8fa3", "#18280c"]
 
-# Brand font: register Space Grotesk (downloaded into the runtime) so plots use the
-# charter typography. Best-effort — falls back to the default sans if it's absent.
+# Charter font: register the file in OPENMASQ_FONT_DIR (the app's verified Inter, else the
+# runtime's brand font) so plots use the document typography. Best-effort — falls back to
+# the default sans if it's absent.
 _KV_FONT = "sans-serif"
 try:
     _fd = _os.environ.get("OPENMASQ_FONT_DIR")

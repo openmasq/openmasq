@@ -36,8 +36,10 @@ pins, and add a row here.
 | `labelledNeighbour.test.ts` | unit case (`pnpm test`) | FUITE — la valeur voisine d'un champ NOM (16/08/2026) |
 | `layouts.recall.test.ts` | recall bench (`pnpm test:corpus`) | complex-layout recall (full deterministic pipeline) |
 | `legal.recall.test.ts` | recall bench (`pnpm test:corpus`) | complex-legal recall (full deterministic pipeline) |
+| `longPaste.test.ts` | unit case (`pnpm test`) | a 200k-character pleading masks within a loose time bound and round-trips (no per-candidate full scans) |
 | `newRules.test.ts` | unit case (`pnpm test`) | ⚠️ `url` OFF = THE PRODUCT DEFAULT (`CATEGORY_DEFAULTS`), and that's what this test models: what happens INSIDE a URL we don't mask. The bare engine itself has… |
 | `notarialDeed.test.ts` | unit case (`pnpm test`) | acte notarié (promesse d'achat) — identifying values are redacted |
+| `pathNames.test.ts` | unit case (`pnpm test`) | a path masked like a sentence — 45-path corpus, leak/meaning/restore floors (`pathNames.corpus.ts`, `pathNames.measure.ts`) |
 | `paths.test.ts` | unit case (`pnpm test`) | path category |
 | `placeAliases.test.ts` | unit case (`pnpm test`) | place composite — la ville seule doit revenir |
 | `rareCategories.recall.test.ts` | recall bench (`pnpm test:corpus`) | rare-category recall (full deterministic pipeline) |

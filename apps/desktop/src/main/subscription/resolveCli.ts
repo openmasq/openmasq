@@ -112,7 +112,7 @@ export function candidatePaths(cli: SubscriptionCliId, opts: CandidateOptions): 
 /** True if the path exists AND is executable. Isolated so it can be stubbed in tests. */
 export type ExecutableProbe = (path: string) => boolean;
 
-export const defaultProbe: ExecutableProbe = (path) => {
+const defaultProbe: ExecutableProbe = (path) => {
   try {
     accessSync(path, constants.X_OK);
     return true;

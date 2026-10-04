@@ -8,7 +8,7 @@ import type { ThemeHex } from "./palette.js";
 import { colorDepth, type Depth, resolveTheme, themeHex, type ThemeName } from "./theme.js";
 
 /** The pens available INSIDE a filled row: none of them may reset, or the fill stops. */
-export interface FillPen {
+interface FillPen {
   /** Re-colour the foreground, then restore the row's base ink. */
   ink(hex: string, s: string): string;
   strong(s: string): string;

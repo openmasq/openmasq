@@ -1,4 +1,5 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
+import { useT } from "../../../i18n";
 import { captureEvent } from "../../../analytics";
 import { findModelAny } from "../../../prompt/models";
 import { askTargetLaunchText } from "../../../send/askTarget";
@@ -13,6 +14,7 @@ import type { ForcedRedactionsApi } from "./useForcedRedactions";
 import type { IntentChipsApi } from "./useIntentChips";
 import type { PendingGatesApi } from "./usePendingGates";
 import type { ChatViewProps, RunSendOpts } from "./types";
+import { checkSubmit } from "../submitGuard";
 import { planSubmit } from "../submitPlan";
 
 interface Deps {
@@ -23,6 +25,8 @@ interface Deps {
   forced: ForcedRedactionsApi;
   intents: IntentChipsApi;
   gates: PendingGatesApi;
+  /** The model this send goes to (the conversation's, else the default; « auto » allowed). */
+  modelId?: string;
 }
 
 /** The send: what leaves the composer, with which gates, and the reset that follows. */
@@ -30,6 +34,9 @@ export function useSendPipeline(p: ChatViewProps, d: Deps) {
   const { conversation, settings, orgProfile, onSend } = p;
   // Values the user chose to KEEP IN CLEAR via the composer's un-redact chips.
   const keepListRef = useRef<string[]>([]);
+  const t = useT();
+  // The files the open « send without them? » dialog names; null ⇒ no dialog.
+  const [unreadConfirm, setUnreadConfirm] = useState<string[] | null>(null);
 
   const runSend = async (text: string, usable: Attachment[], opts?: RunSendOpts) => {
     d.att.setAttachWarning(null);
@@ -77,21 +84,25 @@ export function useSendPipeline(p: ChatViewProps, d: Deps) {
   const reuseDocReplacements = (list: Attachment[]) =>
     reusableDocReplacements(list, conversation?.redactCategories, settings, d.forced.forcedValues, orgProfile?.forcedCategories);
 
-  function submit() {
+  /** `accepted`: the unreadable files the user just agreed to send WITHOUT (the dialog's names). */
+  function submit(accepted?: string[]) {
     const { attachments } = d.att;
     const text = d.input.trim();
-    const usable = attachments.filter((a) => a.text.trim());
-    if ((!text && usable.length === 0) || d.activeStreaming) return;
-    // Never send while a file's redaction is unfinished or failed.
-    if (attachments.some((a) => a.redacting)) {
-      d.att.setAttachWarning("Redaction du fichier en cours — patientez avant d'envoyer.");
+    if (d.activeStreaming) return;
+    // Never drop a file silently (`submitGuard.ts`): one still read or masked refuses, one
+    // with nothing to send is named first, a message too big for the model refuses before
+    // masking. A refusal clears NOTHING — draft and chips stay.
+    const check = checkSubmit({ text, attachments, t, accepted, modelId: d.modelId });
+    if (check.kind === "idle") return;
+    if (check.kind === "refuse") {
+      d.att.setAttachWarning(check.warning);
       return;
     }
-    const failed = attachments.find((a) => a.redactError);
-    if (failed) {
-      d.att.setAttachWarning(failed.redactError!);
+    if (check.kind === "confirm") {
+      setUnreadConfirm(check.unread);
       return;
     }
+    setUnreadConfirm(null);
     // Read the staged intents BEFORE the reset below; both send paths carry them.
     const { activeSkill, activeTarget, activeTag } = d.intents;
     const competence = activeSkill
@@ -117,7 +128,17 @@ export function useSendPipeline(p: ChatViewProps, d: Deps) {
     void runSend(text, plan.files, plan.opts);
   }
 
-  return { runSend, submit, setKeepList: (k: string[]) => (keepListRef.current = k) };
+  return {
+    runSend,
+    submit: () => submit(),
+    // The dialog's « Envoyer sans eux » re-runs the WHOLE gate: a file that changed meanwhile is re-checked.
+    unreadConfirm,
+    confirmUnread: () => {
+      if (unreadConfirm) submit(unreadConfirm);
+    },
+    cancelUnread: () => setUnreadConfirm(null),
+    setKeepList: (k: string[]) => (keepListRef.current = k),
+  };
 }
 
 export type SendPipelineApi = ReturnType<typeof useSendPipeline>;

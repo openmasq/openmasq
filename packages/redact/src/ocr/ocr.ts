@@ -11,8 +11,9 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { brandKey } from "@openmasq/branding";
 import { OCR_LANGS, OCR_TRAINEDDATA_SHA256, type OcrMeta } from "../documents/core";
+import { DocumentError } from "../documents/errors";
 import { ocrWordsToText, type OcrWord } from "./layout";
-import { preferDoctr, doctrModelDir, type OcrEngine, type OcrPage } from "./engine";
+import { preferDoctr, doctrModelDir, type OcrPage } from "./engine";
 import { garbledBoxes, isGarbledWord, type GarbledRect } from "./garbled";
 
 /** Flatten a tesseract.js v5 result (`{ blocks: true }` output) into positioned
@@ -95,15 +96,14 @@ async function loadTesseract(): Promise<any> {
   try {
     mod = await import("tesseract2.js");
   } catch {
-    throw new Error(
-      "moteur OCR indisponible (tesseract2.js n'a pas pu être chargé — module manquant) — réinstallez l'application",
+    throw new DocumentError(
+      "ocr_engine_missing",
+      "OCR engine unavailable (tesseract2.js could not be loaded — module missing)",
     );
   }
   const createWorker = mod?.createWorker ?? mod?.default?.createWorker;
   if (typeof createWorker !== "function") {
-    throw new Error(
-      "moteur OCR incompatible (tesseract2.js) — réinstallez l'application",
-    );
+    throw new DocumentError("ocr_engine_incompatible", "OCR engine incompatible (tesseract2.js)");
   }
   return createWorker;
 }
@@ -192,7 +192,7 @@ export async function ocrImageLayout(
       // Low confidence / non-latin script → fall through to Tesseract (broad coverage).
     } catch (e) {
       // A docTR failure must never break OCR — degrade to Tesseract (fail-safe).
-      console.warn("[ocr] docTR échec, repli sur Tesseract:", (e as Error)?.message);
+      console.warn("[ocr] docTR failed, falling back to Tesseract:", (e as Error)?.message);
     }
   }
   const r = await tesseractLayout(buf, lang);
@@ -245,15 +245,3 @@ async function tesseractLayout(
   }
 }
 
-/** Tesseract wrapped as an {@link OcrEngine} — so the router treats every engine uniformly
- *  and "add another OCR model" is just "implement `OcrEngine`". `regions`/`meanConfidence`
- *  are unreported (Tesseract has no separate detect stage / comparable confidence). */
-export const tesseractEngine: OcrEngine = {
-  id: "tesseract",
-  async recognize(bytes: Uint8Array, lang: string = DEFAULT_LANG): Promise<OcrPage> {
-    const { text, words } = await tesseractLayout(bytes, lang);
-    const width = words.reduce((m, w) => Math.max(m, w.x1), 0);
-    const height = words.reduce((m, w) => Math.max(m, w.y1), 0);
-    return { text, words, width, height };
-  },
-};

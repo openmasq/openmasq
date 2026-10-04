@@ -20,7 +20,7 @@ export interface DbMessage {
   /** Sensitive spans + their kind, so the value->kind map can be persisted. */
   redactedSpans?: { value: string; kind: string }[];
   /** Attached-file references (chips) — restored so files survive a reload. */
-  attachments?: { name: string; kind: string; mime?: string }[];
+  attachments?: { name: string; kind: string; mime?: string; clipped?: boolean }[];
   /** Token usage for the model reply, so stats survive a reload. */
   usage?: { model: string; inputTokens: number; outputTokens: number };
   /** Model id that produced this reply — pinned so its badge survives a reload. */
@@ -28,6 +28,8 @@ export interface DbMessage {
   /** AUTO mode: how the routed turn was billed — persisted so the « choisi
    *  automatiquement · via votre abonnement » caption survives a reload. */
   autoRouted?: "free" | "byo" | "metered";
+  /** Documents this turn's history window stopped sending — the notice survives a reload. */
+  droppedDocs?: string[];
   /** "try a stronger model" hint, persisted so it survives a reload. */
   toolStruggle?: {
     tool: string;
@@ -47,6 +49,9 @@ export interface DbMessage {
    *  unbounded — this DB is its only at-rest home; the plaintext localStorage copy
    *  strips it, like `competence.prompt`. */
   reasoning?: string;
+  /** A user turn's model payload (typed text + folded documents, REAL values) — what a later
+   *  turn re-sends. This DB is its only at-rest home (`messages.model_content`). */
+  modelContent?: string;
 }
 export interface DbConversation {
   id: string;
@@ -72,4 +77,10 @@ export interface DbConversation {
   redactionMode?: "fake" | "token";
   /** Auto-memory extraction cursor (a count — not sensitive). */
   memoryWatermark?: number;
+  /** Compaction recap of the oldest turns (wire text). Encrypted DB only. */
+  contextSummary?: { throughTurn: number; text: string; at: number; model?: string };
+  /** The in-flight agentic turn's wire transcript, so a cut-off turn resumes. Encrypted DB only. */
+  turnCheckpoint?: { turnId: string; at: number; messages: unknown[] };
+  /** Redaction spans of the attached files (`{value: REAL}`). Encrypted DB only. */
+  fileRedactions?: { name: string; spans: { value: string; kind: string }[]; at: number }[];
 }

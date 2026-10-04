@@ -1,3 +1,4 @@
+import type { Messages } from "@openmasq/i18n";
 /**
  * "Your reply has arrived" — the PURE logic of the system notification.
  *
@@ -69,13 +70,14 @@ export function repliesToAnnounce(p: {
 }
 
 /** The banner's text. No conversation content — see the file header. */
-export function noticeText(n: ReplyNotice, modelLabel?: string): { title: string; body: string } {
+export function noticeText(
+  n: ReplyNotice,
+  t: Messages,
+  modelLabel?: string,
+): { title: string; body: string } {
+  const c = t.conversation.replyNotice;
   return {
     title: BRAND.name,
-    body: n.failed
-      ? "L'envoi a échoué — ouvrez la conversation pour réessayer."
-      : modelLabel
-        ? `Réponse prête · ${modelLabel}`
-        : "Réponse prête.",
+    body: n.failed ? c.failed : modelLabel ? c.ready(modelLabel) : c.readyPlain,
   };
 }

@@ -55,7 +55,7 @@ export function AuditRedactionView({
   // row the user clicked to reveal it. `null` = nothing revealed.
   const [reveal, setReveal] = useState<{ row: AuditRow; convTitle: string; at: number } | null>(null);
 
-  const groups = useMemo(() => buildAuditGroups(conversations), [conversations]);
+  const groups = useMemo(() => buildAuditGroups(conversations, t), [conversations, t]);
   const total = useMemo(() => countAuditRows(groups), [groups]);
   const cats = useMemo(() => auditKindCounts(groups), [groups]);
   const filtered = useMemo(() => filterAuditGroups(groups, { query: q, kind: cat }), [groups, q, cat]);

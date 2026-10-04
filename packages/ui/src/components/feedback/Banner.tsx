@@ -12,7 +12,6 @@ import { useT } from "../../i18n";
  * floating and permanent, this bar used to cover the whole bottom of the screen for one
  * sentence. Those notices go through `StatusChip`.
  */
-export type { BannerAction, BannerTone };
 
 export interface BannerProps {
   tone: BannerTone;

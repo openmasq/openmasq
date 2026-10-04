@@ -6,7 +6,6 @@ import { tonePaint } from "./tonePaint";
 
 // The palette is THEME-RESOLVED (`tonePaint`) — see that module for why a frozen table
 // here was a bug. Re-exported so existing importers keep their path.
-export { TONE_RGB, INK, tonePaint } from "./tonePaint";
 
 /**
  * PADDING, as a fraction of the box height.

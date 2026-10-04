@@ -1,5 +1,6 @@
 import { bucket, captureEvent } from "../../analytics";
 import { uid } from "../../state/storePersistence";
+import { docScrubKinds, docScrubVault } from "../docScrubVault";
 import { buildSendAnalyticsEvents } from "../sendAnalytics";
 import type { RedactedTurn } from "./redactionPasses";
 import type { RedactionSetup } from "./redactionSetup";
@@ -97,8 +98,11 @@ function storeAttachments(ctx: TurnContext, r: RedactionSetup): void {
         data: a.data,
         name: a.name,
         mime: a.mime || "application/octet-stream",
-        vault: r.vault,
+        // ⚠️ The send's vault holds what THIS send detected; a REUSED document was not
+        // re-detected at all, its values are in its drop-time map — both, or one stays in clear.
+        vault: docScrubVault(r.vault, a.replacements),
         disabledKinds: r.disabledKinds,
+        kinds: docScrubKinds(r, a.replacements),
         // The drop-time count, so an image/PDF still shows its redaction badge in the library.
         redactedCount: a.redactPreview,
         // Persist the extraction so RE-ATTACHING skips OCR/parsing; `redactions` is the

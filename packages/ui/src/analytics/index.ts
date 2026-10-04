@@ -6,15 +6,12 @@ export type {
   TrackEvent,
   SendErrorReason,
   ToolErrorReason,
-  // Read by `agent/toolFault.ts` through `import("…/analytics").ToolErrorFamily` — a form
-  // knip does not follow, so it is NOT dead: keep it here, whatever the report says.
   ToolErrorFamily,
-  ConnectorErrorReason,
 } from "./events";
-export { sanitize, bucket } from "./sanitize";
+export { bucket } from "./sanitize";
 export { configureAnalytics, setAnalyticsConsent, setAnalyticsSuspended, setStableIdSource, analyticsDistinctId, captureError } from "./posthog";
 export type { ErrorReport } from "@openmasq/analytics";
-export { EVENT_TIER, USAGE_EVENTS, type EventTier } from "./tier";
+export { USAGE_EVENTS } from "./tier";
 
 /**
  * Capture a typed event: allow-list + bucket it, then hand it to the sink (which

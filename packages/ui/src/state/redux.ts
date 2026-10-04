@@ -41,7 +41,6 @@ export {
   panelCloseItem,
   panelHide,
   type PanelItem,
-  type PanelArtifact,
 } from "./panel";
 
 export { isDevMode } from "./debug/devlog";
