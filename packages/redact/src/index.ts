@@ -34,6 +34,9 @@ export type {
 } from "./types";
 
 export { redactionKind, redactionCategory, URL_EXEMPT_KINDS } from "./kinds";
+// Which categories only a model detector covers — the engine fact a caller's fail-closed
+// check reads (the app's protection LEVELS are product policy and stay in `@openmasq/catalog`).
+export { MODEL_CATEGORIES, requiresModel } from "./modelCategories";
 export { REDACT_TYPES, type RedactType } from "./redactTypes";
 export { escapeRegExp, replaceStandalone, hasStandalone, isWordGlued, entityVariantRegex, variantOccurrences, entityKey } from "./util";
 export { RULES } from "./engine/rules";

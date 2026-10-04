@@ -30,6 +30,11 @@ The **vault** maps every substitute to the real value: it is the sensitive data 
 The engine never stores it — the caller keeps it in memory, encrypts it at rest, and never
 sends it with the text.
 
+**Fail closed.** Names, companies, addresses, places and birth dates (`MODEL_CATEGORIES`)
+need a model detector — rules only catch their anchored forms. If `requiresModel(disabledKinds)`
+is true and you pass no `detectLocal`, refuse the pass rather than send a half-masked text.
+Which categories to enable (your « levels ») is your policy: the engine only states the fact.
+
 The core entry (`.`) only depends on `libphonenumber-js` and `fflate`. The other entries
 need **optional peers** the consumer installs:
 
@@ -85,6 +90,12 @@ const restored = unredact(modelReply, vault);           // ce que voit l'utilisa
 Le **coffre** associe chaque substitut à la vraie valeur : c'est la donnée sensible elle-même.
 Le moteur ne le stocke jamais — l'appelant le garde en mémoire, le chiffre au repos, et ne
 l'envoie jamais avec le texte.
+
+**Échouer fermé.** Noms, entreprises, adresses, lieux et dates de naissance (`MODEL_CATEGORIES`)
+exigent un détecteur à modèle — les règles n'en attrapent que les formes ancrées. Si
+`requiresModel(disabledKinds)` est vrai et qu'aucun `detectLocal` n'est fourni, refusez la passe
+plutôt que d'envoyer un texte à moitié masqué. Quelles catégories activer (vos « niveaux ») est
+votre politique : le moteur n'énonce que le fait.
 
 L'entrée principale (`.`) ne dépend que de `libphonenumber-js` et `fflate`. Les autres entrées
 demandent des **peers optionnels** que le consommateur installe :

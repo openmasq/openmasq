@@ -12,21 +12,18 @@ import type { RedactionCategory } from "@openmasq/redact";
 export const BASE: {
   key: RedactionCategory;
   label: string;
-  ai?: boolean;
   detail?: string;
   impact?: string;
 }[] = [
   {
     key: "name",
     label: "Noms & prénoms",
-    ai: true,
     detail:
       "Prénoms, noms, identités complètes détectés par le modèle local — y compris en MAJUSCULES, collés ou dans un champ étiqueté (Nom :, Prénom(s) :). Les personnalités publiques restent lisibles.",
   },
   {
     key: "dob",
     label: "Date de naissance",
-    ai: true,
     detail:
       "Dates de naissance (né le…, date of birth, formats FR/EN/DE), champs étiquetés inclus. Les autres dates relèvent de « Dates », éteinte par défaut.",
     impact:
@@ -69,7 +66,6 @@ export const BASE: {
   {
     key: "address",
     label: "Adresse postale",
-    ai: true,
     detail:
       "Adresses complètes multi-langues (FR/EN/DE/ES/IT/PT/NL + CJK) — remplacées par une vraie adresse du même pays, région différente.",
     impact:
@@ -78,7 +74,6 @@ export const BASE: {
   {
     key: "location",
     label: "Lieu / ville / code postal",
-    ai: true,
     detail:
       "Villes, codes postaux, départements, régions, lieux de naissance. Les PAYS ne sont jamais masqués (connaissance du monde).",
     impact:
@@ -87,7 +82,6 @@ export const BASE: {
   {
     key: "company",
     label: "Entreprise",
-    ai: true,
     detail:
       "Noms d'entreprises et d'organisations détectés par le modèle. Les grandes marques, produits et indices connus restent lisibles ; vos numéros SIREN/TVA relèvent d'« Identifiants d'entreprise ».",
     impact:
