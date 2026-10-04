@@ -22,6 +22,7 @@ export const viewers = {
     tileCurrent: (n) => `Page ${n} · reading`,
     tileWaiting: (n) => `Page ${n} · waiting to be read`,
     tileHeld: (n) => `Page ${n} · masked, shown once the whole document is done`,
+    original: (n) => `Page ${n} · original, not masked yet`,
   },
   extracted: (chars, status) => `${chars} characters extracted · ${status}`,
   staleTip: "Masked with your previous settings",
@@ -71,7 +72,7 @@ export const viewers = {
     zoomIn: "Zoom in",
     fitWidth: "Fit to panel width",
     provisional:
-      "Provisional preview: a page appears once it is read and masked. A value found further on may still be masked on a page already shown.",
+      "Provisional preview: a page still in its original form says so, and switches to its masked version as soon as it is masked. A value found further on may still be masked on a page already masked.",
     goToPage: (n) => `Go to page ${n}`,
     haloOn: "Highlighted: text read on the page, masked before sending",
     haloOff: "Highlight hidden. Text read on the page is still masked before sending.",

@@ -1,7 +1,12 @@
 import { PAGE_BREAK, pageOffsets } from "@openmasq/redact/documents.browser";
 import { layoutValueHits, type PartialMask, type PdfReplacement } from "@openmasq/redact/pdf-redact";
 
-/** Where a page of a PDF still being read or masked stands. Only `masked` may show the page. */
+/** ONE empty map, not a fresh `[]` per recompute: the viewer repaints when the map's IDENTITY
+ *  changes, and a new empty array on every streamed page repainted every page in view. */
+const NO_REPLACEMENTS: PdfReplacement[] = [];
+
+/** Where a page of a PDF still being read or masked stands. A `masked` page shows masked; any
+ *  other shows the ORIGINAL, labelled as such (`usePdfPages.ts`). */
 export type PdfPageState = "masked" | "read" | "current" | "waiting";
 
 export interface PendingPage {
@@ -67,7 +72,7 @@ export function pendingPdf(s: PendingSource): PendingPdf {
       ...(text !== undefined ? { text } : {}),
     };
   });
-  return { replacements: mask?.replacements ?? [], pages };
+  return { replacements: mask?.replacements ?? NO_REPLACEMENTS, pages };
 }
 
 /**

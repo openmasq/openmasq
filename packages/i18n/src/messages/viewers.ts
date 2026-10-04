@@ -32,6 +32,8 @@ export interface ViewersMessages {
     tileWaiting: (n: number) => string;
     /** Masked, but its values cannot be drawn on the page yet (a scan's boxes come at the end). */
     tileHeld: (n: number) => string;
+    /** The banner over a page shown AS IT IS while it is not masked yet — the user's own file. */
+    original: (n: number) => string;
   };
   extracted: (chars: string, status: string) => string;
   staleTip: string;

@@ -1,7 +1,9 @@
 // @vitest-environment jsdom
 // The PDF viewer while its document is still read or masked (`pending`), and the moment it
-// becomes final: a page is drawn from its raster ONLY once masked and proven covered; the
-// strip and the arrow keys move page to page; pending → final is the SAME instance.
+// becomes final: a page is drawn MASKED only once masked and proven covered — any other page
+// shows AS IT IS under an « original » banner, never under a masked label; a growing map
+// repaints only what it touches; the strip and the arrow keys move page to page; pending →
+// final is the SAME instance.
 import type { ReactNode } from "react";
 import { act } from "react";
 import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
@@ -76,21 +78,42 @@ describe("PdfRedactedViewer — a document still being masked", () => {
     pages: states.map((state, i) => ({ state, thumb, text: PAGE_TEXT[i] })),
   });
 
-  it("only a MASKED page is rendered; the others show their thumbnail, never their raster", async () => {
+  const banners = (el: HTMLElement) =>
+    [...el.querySelectorAll<HTMLElement>(".pdfv-page.is-original")].map((s) => Number(s.dataset.page)).sort();
+
+  it("a MASKED page shows masked; every other page shows AS IT IS, under an « original » banner", async () => {
     const m = await mount(<PdfRedactedViewer bytes={bytes} pending={pending(["masked", "read", "waiting"])} />, { wrap });
     await settle();
-    expect(renders.map((r) => r.p)).toEqual([1]); // pages 2 and 3 are never even rasterised
-    expect(rasters(m.el)).toEqual([1]);
-    expect(m.el.querySelectorAll(".pdfv-wait img.pdfv-wait-thumb")).toHaveLength(2);
-    expect(m.el.querySelector(".pdfv-page.is-provisional")).not.toBeNull();
+    // Every page is visible before the end — the masked one with the map, the others with none.
+    expect(rasters(m.el).sort()).toEqual([1, 2, 3]);
+    expect(renders.find((r) => r.p === 1)?.reps).toEqual(["Jean Dupont", "Marie Curie"]);
+    expect(renders.filter((r) => r.p !== 1).every((r) => r.reps.length === 0)).toBe(true);
+    expect(banners(m.el)).toEqual([2, 3]);
+    expect(m.el.querySelectorAll(".pdfv-original")).toHaveLength(2);
+    expect(m.el.querySelector('.pdfv-page[data-page="1"]')?.classList.contains("is-provisional")).toBe(true);
     await m.unmount();
   });
 
-  it("a masked page whose values its paint does not cover (a scan, no geometry yet) stays a thumbnail", async () => {
+  it("a masked page whose values its paint does not cover (a scan, no geometry yet) shows as the ORIGINAL", async () => {
     const m = await mount(<PdfRedactedViewer bytes={bytes} pending={pending(["masked", "masked", "waiting"])} />, { wrap });
     await settle();
-    expect(renders.map((r) => r.p).sort()).toEqual([1, 2]);
-    expect(rasters(m.el)).toEqual([1]); // page 2 was painted off-screen, never mounted
+    // Page 2's masked paint is dropped, never mounted: it is shown as the original, labelled.
+    expect(banners(m.el)).toEqual([2, 3]);
+    expect(m.el.querySelector('.pdfv-page[data-page="1"]')?.classList.contains("is-original")).toBe(false);
+    await m.unmount();
+  });
+
+  it("a growing map never repaints an ORIGINAL page; a page that gets masked repaints at once", async () => {
+    const m = await mount(<PdfRedactedViewer bytes={bytes} pending={{ ...pending(["masked", "waiting", "waiting"]), replacements: [MARIE] }} />, { wrap });
+    await settle();
+    renders.length = 0;
+    await m.rerender(<PdfRedactedViewer bytes={bytes} pending={pending(["masked", "waiting", "waiting"])} />);
+    await settle();
+    expect(renders.filter((r) => r.p !== 1)).toEqual([]); // pages 2 and 3: untouched
+    await m.rerender(<PdfRedactedViewer bytes={bytes} pending={pending(["masked", "waiting", "masked"])} />);
+    await settle();
+    expect(renders.filter((r) => r.p === 3).at(-1)?.reps).toEqual(["Jean Dupont", "Marie Curie"]);
+    expect(banners(m.el)).toEqual([2]);
     await m.unmount();
   });
 
@@ -106,10 +129,13 @@ describe("PdfRedactedViewer — a document still being masked", () => {
     await m.unmount();
   });
 
-  it("a map that grows repaints the pages already shown (a value found later marks them too)", async () => {
+  it("a map that grows repaints the masked pages already shown — batched, not per chunk", async () => {
     const m = await mount(<PdfRedactedViewer bytes={bytes} pending={{ ...pending(["masked", "waiting", "waiting"]), replacements: [MARIE] }} />, { wrap });
     await settle();
     await m.rerender(<PdfRedactedViewer bytes={bytes} pending={pending(["masked", "waiting", "waiting"])} />);
+    await settle();
+    // `PENDING_REPAINT_MS`: the masked pages repaint once the map has settled a moment.
+    await act(async () => new Promise((r) => setTimeout(r, 1300)));
     await settle();
     const last = renders.filter((r) => r.p === 1).at(-1);
     expect(last?.reps).toContain("Jean Dupont");

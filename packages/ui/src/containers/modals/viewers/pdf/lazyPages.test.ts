@@ -85,4 +85,16 @@ describe("createPageQueue", () => {
     await h.land(2);
     expect(h.log).toEqual(["paint 2", "release 1"]);
   });
+
+  it("refreshPages repaints only the pages named — the others keep their paint", async () => {
+    const h = harness();
+    h.q.want(1, true);
+    await h.land(1);
+    h.q.want(2, true);
+    await h.land(2);
+    h.log.length = 0;
+    h.q.refreshPages([1]);
+    await h.land(1);
+    expect(h.log).toEqual(["paint 1"]); // page 2 untouched
+  });
 });

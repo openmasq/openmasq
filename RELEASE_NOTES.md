@@ -59,12 +59,12 @@ kept in the French they were sent in, for the reason given above.
 - **Ask about any folder** — the folder you allowed now offers Ask too, not only the ones inside it.
 
 ### Improvements & fixes
+- Scanned pages inside a mostly digital PDF are read, masked and sent with the rest.
+- While a PDF is being masked, every page shows, each labelled until it is masked.
 - Earlier messages are masked the same way on every new message, after a restart too.
 - Imported conversations are checked on your device before they are used.
 - Long lists of people each get a replacement name of their own.
 - Opening files and web searches follow stricter rules.
-- Company names and addresses are told apart more precisely.
-- A folder that can't be read now says why.
 
 ## 0.14.0 — 2026-10-03
 > Every document is masked from the first page to the last, and you can watch it happen.
