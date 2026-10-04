@@ -1,7 +1,7 @@
 {
   "name": "@openmasq/redact",
   "version": "0.1.0",
-  "description": "The redaction engine: detect, redact, pseudonymise and restore sensitive data with a per-conversation vault — pure, unit-tested, the suite is the specification.",
+  "description": "Reversible PII redaction for LLM prompts: detect sensitive data, replace it with realistic fakes, restore the reply from a vault. Offline, TypeScript.",
   "license": "Apache-2.0",
   "repository": {
     "type": "git",
@@ -11,14 +11,21 @@
   "homepage": "https://github.com/openmasq/openmasq/tree/dev/packages/redact#readme",
   "bugs": "https://github.com/openmasq/openmasq/issues",
   "keywords": [
+    "pii",
+    "pii-detection",
     "redaction",
     "pseudonymization",
     "anonymization",
-    "pii",
-    "privacy",
+    "data-masking",
     "llm",
-    "dlp",
-    "gdpr"
+    "llm-security",
+    "prompt",
+    "privacy",
+    "gdpr",
+    "rgpd",
+    "ner",
+    "openai",
+    "anthropic"
   ],
   "type": "module",
   "main": "./dist/index.cjs",
