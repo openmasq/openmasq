@@ -31,7 +31,7 @@ describe("OCR reads every page it must, and only those", () => {
   it("a digital PDF OCRs exactly the pages its layer could not prove (3rd argument)", async () => {
     const ocrPdf = vi.fn(async () => ({ text: "Tampon : Jean Rebour", meta: { engine: "doctr", ms: 1, pages: 1 } }));
     const f = await extractFromBytes(PDF, { name: "bail.pdf" }, deps(digital(3, [2]), ocrPdf));
-    expect(ocrPdf).toHaveBeenCalledWith(expect.any(Uint8Array), undefined, [2], undefined, undefined, undefined);
+    expect(ocrPdf).toHaveBeenCalledWith(expect.any(Uint8Array), undefined, [2], undefined, expect.any(Function), undefined);
     expect(f.ocrText).toBe("Tampon : Jean Rebour");
     expect(f.text).toContain("Contrat de bail"); // the layer stays primary
   });
@@ -39,14 +39,14 @@ describe("OCR reads every page it must, and only those", () => {
   it("a binding that cannot tell (no `needsOcr`) gets EVERY page read", async () => {
     const ocrPdf = vi.fn(async () => "");
     await extractFromBytes(PDF, { name: "a.pdf" }, deps(digital(2), ocrPdf));
-    expect(ocrPdf).toHaveBeenCalledWith(expect.any(Uint8Array), undefined, undefined, undefined, undefined, undefined);
+    expect(ocrPdf).toHaveBeenCalledWith(expect.any(Uint8Array), undefined, undefined, undefined, expect.any(Function), undefined);
   });
 
   it("a scan reads EVERY page, whatever the binding listed (its OCR becomes the text)", async () => {
     const ocrPdf = vi.fn(async () => "IBAN FR76 3000 4000 0512 3456 789");
     const scan = async () => ({ text: "", pages: 30, imagePages: 30, needsOcr: [1] });
     const f = await extractFromBytes(PDF, { name: "scan.pdf" }, deps(scan, ocrPdf));
-    expect(ocrPdf).toHaveBeenCalledWith(expect.any(Uint8Array), undefined, undefined, undefined, undefined, undefined);
+    expect(ocrPdf).toHaveBeenCalledWith(expect.any(Uint8Array), undefined, undefined, undefined, expect.any(Function), undefined);
     expect(f.text).toContain("FR76");
   });
 
@@ -110,5 +110,40 @@ describe("an OCR failure fails the FILE — never a text missing pages", () => {
     const f = await extractFromBytes(PDF, { name: "scan.pdf" }, deps(thin, ocrPdf));
     expect(f.text).toBe("");
     expect(f.error).toMatch(/PDF without a text layer/);
+  });
+});
+
+describe("a mixed digital PDF sends its scanned pages", () => {
+  // A digital PDF with a scanned insert, a page drawn as vector outlines: those pages hold
+  // their content in the PIXELS only. They take their OCR reading (`layers/pageMerge.ts`) —
+  // the document announced « sent in full » must not reach the model with empty pages.
+  const SCAN = "Attestation — Ninon Verdolini, IBAN FR76 3000 4000 0512 3456 789, signée à Lyon.";
+  const mixed = async () => ({ text: [DENSE, "", DENSE, "p. 4"].join("\n\f\n"), pages: 4, imagePages: 0, needsOcr: [2, 4] });
+  const page = (text: string) => ({ text, words: [], width: 1, height: 1 });
+
+  it("a thin page takes its OCR reading in the PRIMARY text, a dense one keeps its layer", async () => {
+    const ocrPdf = vi.fn(async () => ({
+      text: ["", SCAN, "", "Tampon"].join("\n\f\n").trim(),
+      meta: { engine: "doctr", ms: 1, pages: 2 },
+      layout: [page(""), page(SCAN), page(""), page("Tampon")],
+    }));
+    const f = await extractFromBytes(PDF, { name: "mixte.pdf" }, deps(mixed, ocrPdf));
+    const pages = f.text.split("\n\f\n");
+    expect(pages[1]).toBe(SCAN); // was empty: now sent, and masked like any text
+    expect(pages[0]).toBe(DENSE.trimStart());
+    expect(pages[2]).toBe(DENSE);
+    expect(pages[3]).toBe("Tampon"); // the thin layer « p. 4 » held less than OCR read
+    expect(f.textPages).toBeUndefined(); // the stub binding returns no layer geometry
+  });
+
+  it("a binding with no page layout merges from the pages it reported as it read them", async () => {
+    const ocrPdf = vi.fn(async (_b: Uint8Array, _p: unknown, _only: unknown, _m: unknown, onPage?: (n: number, t: number, s: string) => void) => {
+      onPage?.(2, 4, SCAN);
+      onPage?.(4, 4, "");
+      return { text: SCAN, meta: { engine: "doctr", ms: 1, pages: 2 } };
+    });
+    const f = await extractFromBytes(PDF, { name: "mixte.pdf" }, deps(mixed, ocrPdf as ExtractDeps["ocrPdf"]));
+    expect(f.text.split("\n\f\n")[1]).toBe(SCAN);
+    expect(f.text.split("\n\f\n")[3]).toBe("p. 4"); // OCR read nothing there: the layer stays
   });
 });

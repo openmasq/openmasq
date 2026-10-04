@@ -14,7 +14,7 @@ import { describeRedactFailure, useRedactEngine, useRedaction } from "../../../.
 import { buildRevealMarks } from "./pageLayers";
 import { createPageQueue, observePages, type PageQueue } from "./lazyPages";
 import { mountPage, sizeShell } from "./mountPage";
-import { mountPendingTile } from "./pendingTile";
+import { mountOriginalBanner, mountPendingTile } from "./pendingTile";
 import { pageProven, type PendingPage, type PendingPdf } from "./pendingPages";
 
 export interface PdfPagesOptions {
@@ -23,7 +23,7 @@ export interface PdfPagesOptions {
   /** The map to paint; `undefined` ⇒ derived from the document's own text (a model run). */
   replacements: PdfReplacement[] | undefined;
   ocrPages: RenderRedactedPdfOptions["ocrPages"];
-  /** The masking is not over: only `masked` pages may show (`pendingPages.ts`). */
+  /** The masking is not over: `masked` pages show masked, the others AS THEY ARE, labelled. */
   pending?: PendingPdf;
   showTextHalo?: boolean;
   revealed?: ReadonlySet<string>;
@@ -41,14 +41,30 @@ function tileLabel(page: PendingPage | undefined, n: number, t: Messages): strin
   return page.state === "current" ? r.tileCurrent(n) : r.tileWaiting(n);
 }
 
+/** What a page shows: its final paint, its provisional masked paint, or itself, labelled. */
+type Shown = "final" | "masked" | "original";
+
+/** What page `p` should show now (`total`: the document's page count). */
+function shownOf(o: PdfPagesOptions, p: number, total: number): Shown {
+  const pend = o.pending;
+  if (!pend) return "final";
+  // A pending page list that does not match the document proves nothing: original.
+  const page = pend.pages.length === total ? pend.pages[p - 1] : undefined;
+  return page?.state === "masked" ? "masked" : "original";
+}
+
+/** A pending map grows chunk by chunk; its masked pages repaint at most this often. */
+const PENDING_REPAINT_MS = 1200;
+
 /**
  * The heavy half of `PdfRedactedViewer`: open the document ONCE, give every page a shell
  * sized to it, paint the pages near the viewport (`lazyPages.ts`). A map, an OCR geometry or
- * a pending state that CHANGES repaints the pages in view in place — no reload, no skeleton —
- * which is how one viewer goes from « being masked » to final.
+ * a pending state that CHANGES repaints, in place, the pages it changes — no reload, no
+ * skeleton — which is how one viewer goes from « being masked » to final.
  *
- * ⚠️ While `pending`, a page is painted only once it is `masked`, and its paint is SHOWN only
- * if it covers every value of its text (`pageProven`); anything else is a thumbnail tile.
+ * ⚠️ While `pending`, a page is masked-painted only once it is `masked`, and that paint is
+ * SHOWN only if it covers every value of its text (`pageProven`). Any other page shows AS IT
+ * IS under an « original, not masked yet » banner — the user's own file; nothing leaves.
  */
 export function usePdfPages(o: PdfPagesOptions) {
   const redact = useRedaction();
@@ -65,6 +81,9 @@ export function usePdfPages(o: PdfPagesOptions) {
   const pagesRef = useRef(new Map<number, { pg: RenderedPage; pageEl: HTMLElement }>());
   const queueRef = useRef<PageQueue | null>(null);
   const shellsRef = useRef<HTMLElement[]>([]);
+  /** What each mounted page shows, to repaint only the pages a change touches. */
+  const shownRef = useRef(new Map<number, Shown>());
+  const totalRef = useRef(0);
   const wantWords = !!o.onWordPick || !!o.showTextHalo;
   const derive = o.replacements === undefined;
 
@@ -86,10 +105,12 @@ export function usePdfPages(o: PdfPagesOptions) {
     const released = new Map<number, () => void>();
     // Per page, so a page painted again on return is never counted twice.
     const tally = new Map<number, { zones: number; imageOnly: boolean }>();
+    shownRef.current = new Map();
     const clear = (p: number) => {
       released.get(p)?.();
       released.delete(p);
       pagesRef.current.delete(p);
+      shownRef.current.delete(p);
       tally.delete(p);
     };
 
@@ -123,9 +144,27 @@ export function usePdfPages(o: PdfPagesOptions) {
           shells.push(shell);
         }
         shellsRef.current = shells;
+        totalRef.current = open.total;
         const tile = (p: number, page: PendingPage | undefined) => {
           clear(p);
           released.set(p, mountPendingTile(shells[p - 1]!, page, tileLabel(page, p, live.current.t)));
+          return true;
+        };
+        // The page AS IT IS: no map painted, no halo, no picking — and a banner saying so.
+        const original = async (p: number, page: PendingPage | undefined) => {
+          const pg = await open.renderPage(p, undefined, { replacements: [], ocrPages: undefined });
+          if (ctrl.signal.aborted) return false;
+          if (!pg) return tile(p, page);
+          clear(p);
+          const shell = shells[p - 1]!;
+          const m = mountPage(shell, pg, false, { showTextHalo: false, onWordPick: () => {}, hasReveal: false, t: live.current.t });
+          const unBanner = mountOriginalBanner(shell, live.current.t.viewers.reading.original(p));
+          shell.classList.remove("is-provisional");
+          released.set(p, () => {
+            unBanner();
+            m.release();
+          });
+          shownRef.current.set(p, "original");
           return true;
         };
         const queue = createPageQueue({
@@ -134,14 +173,15 @@ export function usePdfPages(o: PdfPagesOptions) {
             const pend = cur.pending;
             // A pending page list that does not match the document proves nothing: tiles.
             const page = pend && pend.pages.length === open.total ? pend.pages[p - 1] : undefined;
-            if (pend && page?.state !== "masked") return tile(p, page);
+            const shown = shownOf(cur, p, open.total);
+            if (shown === "original") return original(p, page);
             const over = { replacements: cur.replacements, ocrPages: cur.ocrPages };
             const pg = await open.renderPage(p, cur.revealed, derive ? { ocrPages: cur.ocrPages } : over);
             if (!pg || ctrl.signal.aborted) return false;
             if (pend && !pageProven(pg.covered, page?.text, cur.replacements ?? [])) {
               pg.canvas.width = 0;
               pg.canvas.height = 0;
-              return tile(p, page);
+              return original(p, page);
             }
             clear(p);
             const shell = shells[p - 1]!;
@@ -153,6 +193,7 @@ export function usePdfPages(o: PdfPagesOptions) {
             });
             shell.classList.toggle("is-provisional", !!pend);
             released.set(p, m.release);
+            shownRef.current.set(p, shown);
             pagesRef.current.set(p, { pg, pageEl: shell });
             tally.set(p, { zones: m.zones, imageOnly: m.imageOnly });
             setImgSrc(sumTally(tally));
@@ -183,11 +224,43 @@ export function usePdfPages(o: PdfPagesOptions) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [o.bytes, derive ? redact : null, o.redacted, derive, wantWords, o.showTextHalo, engine]);
 
-  // The map grew, the geometry arrived, a page got masked: repaint what is in view.
-  const pendingKey = o.pending?.pages.map((p) => `${p.state[0]}${p.thumb ? "t" : ""}`).join("") ?? "final";
+  // The map grew, the geometry arrived, a page got masked: repaint the pages it TOUCHES. A page
+  // whose kind of paint changed (original → masked → final) repaints at once; while pending,
+  // a growing map repaints the masked pages at most every `PENDING_REPAINT_MS`; an original
+  // page never depends on the map. Repainting every page in view on every streamed page or
+  // masking chunk is what made the read slower with the preview open.
+  const pendingKey = o.pending?.pages.map((p) => p.state[0]).join("") ?? "final";
+  const lastMap = useRef({ r: o.replacements, ocr: o.ocrPages });
+  const deferred = useRef<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => {
-    queueRef.current?.refresh();
+    const queue = queueRef.current;
+    const prev = lastMap.current;
+    lastMap.current = { r: o.replacements, ocr: o.ocrPages };
+    if (!queue) return;
+    const mapChanged = prev.r !== o.replacements || prev.ocr !== o.ocrPages;
+    const now: number[] = [];
+    let later = false;
+    for (const [p, shown] of shownRef.current) {
+      const want = shownOf(live.current, p, totalRef.current);
+      if (want !== shown) now.push(p);
+      else if (mapChanged && want === "final") now.push(p);
+      else if (mapChanged && want === "masked") later = true;
+    }
+    if (now.length) queue.refreshPages(now);
+    if (later && !deferred.current) {
+      deferred.current = setTimeout(() => {
+        deferred.current = null;
+        const masked = [...shownRef.current].filter(([, s]) => s === "masked").map(([p]) => p);
+        queueRef.current?.refreshPages(masked);
+      }, PENDING_REPAINT_MS);
+    }
   }, [o.replacements, o.ocrPages, pendingKey]);
+  useEffect(
+    () => () => {
+      if (deferred.current) clearTimeout(deferred.current);
+    },
+    [],
+  );
 
   // Reveal toggle: INCREMENTAL — restore/repaint just the affected patches on the
   // already-rendered canvases and rebuild each page's marks. No reload.

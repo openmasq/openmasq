@@ -31,3 +31,24 @@ export function mountPendingTile(shell: HTMLElement, page: PendingPage | undefin
     shell.removeAttribute("aria-label");
   };
 }
+
+/**
+ * The banner over a page shown AS IT IS while the document is still being masked: the
+ * user's own file, on their own machine — nothing is sent — but never under a « masqué »
+ * label it does not deserve. The page switches to its masked paint the moment it is masked.
+ * Returns what clears it.
+ */
+export function mountOriginalBanner(shell: HTMLElement, label: string): () => void {
+  const banner = document.createElement("div");
+  banner.className = "pdfv-original";
+  banner.textContent = label;
+  shell.appendChild(banner);
+  shell.classList.add("is-original");
+  shell.setAttribute("aria-label", label);
+  return () => {
+    banner.remove();
+    shell.classList.remove("is-original");
+    shell.removeAttribute("aria-label");
+  };
+}
+

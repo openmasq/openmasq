@@ -12,6 +12,10 @@ export interface PageQueue {
   /** What a page shows changed (a map that grew, a page masked): repaint the pages near the
    *  viewport, in place — each keeps its current paint until the new one replaces it. */
   refresh: () => void;
+  /** The same, for THESE pages only: a page whose paint did not change is left alone — a
+   *  pending read refreshes often, and repainting every page in view each time is what
+   *  competed with the OCR for the CPU. */
+  refreshPages: (pages: Iterable<number>) => void;
   stop: () => void;
 }
 
@@ -78,6 +82,15 @@ export function createPageQueue(o: {
       if (stopped) return;
       for (const p of painted) stale.add(p);
       painted.clear();
+      void pump();
+    },
+    refreshPages(pages) {
+      if (stopped) return;
+      for (const p of pages) {
+        if (!painted.has(p)) continue;
+        stale.add(p);
+        painted.delete(p);
+      }
       void pump();
     },
     stop() {

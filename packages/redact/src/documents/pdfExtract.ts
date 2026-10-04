@@ -8,14 +8,16 @@ import { approxPages, CHARS_PER_PAGE, maskPlan } from "./safety/maskBudget";
 import type { OcrMarkers } from "./ocrMarkers";
 import type { OcrLayerPage } from "./layers/geometry";
 import { PAGE_BREAK } from "./pageBreak";
+import { layerMayYield, mergeThinPages, pagePrimary, yieldingPages } from "./layers/pageMerge";
 import type { ExtractStream } from "./pageStream";
 import { PDF_MIN_CHARS_PER_PAGE, PDF_TEXT_MIN, type ExtractDeps, type ExtractedFile, type OcrMeta } from "./core";
 
 /** The characters masking will face, estimated BEFORE OCR. A document whose OCR may become
  *  the primary text (a scan, a mixed one) counts a dense page per page it reads; a digital
- *  one keeps its text layer as the primary text, which is already measured. */
-function pdfMaskEstimate(p: { layerChars: number; ocrPages: number; scanLike: boolean }): number {
-  return p.scanLike ? Math.max(p.layerChars, p.ocrPages * CHARS_PER_PAGE) : p.layerChars;
+ *  one keeps its measured layer, plus a dense page per page whose thin layer may take its OCR
+ *  reading (`layers/pageMerge.ts`). */
+function pdfMaskEstimate(p: { layerChars: number; ocrPages: number; scanLike: boolean; yieldPages: number }): number {
+  return p.scanLike ? Math.max(p.layerChars, p.ocrPages * CHARS_PER_PAGE) : p.layerChars + p.yieldPages * CHARS_PER_PAGE;
 }
 
 export async function extractPdf(
@@ -59,7 +61,8 @@ export async function extractPdf(
   const ocrCount = only ? only.length : pages;
 
   // Refused BEFORE minutes of OCR, by the same rule masking applies once read (`maskPlan`).
-  const estimate = pdfMaskEstimate({ layerChars: text.length, ocrPages: ocrCount, scanLike });
+  const yieldPages = scanLike ? 0 : yieldingPages(rawLayer, only);
+  const estimate = pdfMaskEstimate({ layerChars: text.length, ocrPages: ocrCount, scanLike, yieldPages });
   if (maskPlan(estimate).kind === "refuse") {
     const approx = approxPages(estimate);
     return {
@@ -80,8 +83,15 @@ export async function extractPdf(
   // will FINALLY say is known now for a digital PDF (its layer stays primary), after its OCR
   // for a scan with no layer, and only at the end for a sparse scan — which streams none.
   const streamed = startStream(o.stream, deps, bytes, { rawLayer, digital: !scanLike, noLayer, only });
+  // Each page's OCR reading as it is read — the source of a digital PDF's page merge when the
+  // binding returns no page-indexed layout, and the same string the stream announced.
+  const ocrByPage: (string | undefined)[] = [];
+  const onOcrPage = (n: number, total: number, t: string) => {
+    ocrByPage[n - 1] = t;
+    streamed.onPage?.(n, total, t);
+  };
   try {
-    const res = await deps.ocrPdf(bytes, o.onOcrProgress, only, o.ocrMarkers, streamed.onPage, regions);
+    const res = await deps.ocrPdf(bytes, o.onOcrProgress, only, o.ocrMarkers, onOcrPage, regions);
     const ocrRaw = (typeof res === "string" ? res : res.text).trim();
     const ocrMeta = typeof res === "string" ? undefined : res.meta;
     ocrPages = typeof res === "string" ? undefined : res.layout;
@@ -93,8 +103,15 @@ export async function extractPdf(
         textPages = undefined; // the text layer no longer describes `text`
         ocr = ocrMeta ?? { engine: "ocr", ms: Date.now() - tText };
       } else {
-        // Digital PDF: OCR is the SECOND layer, additive. Surface it when it says
-        // something the text layer doesn't (else it's redundant noise).
+        // Digital PDF: the layer stays primary — except on the pages whose thin or debris
+        // layer holds their content only in the pixels: those take their OCR reading, or they
+        // reach the model empty (`layers/pageMerge.ts`). The geometry (`textPages`) is kept:
+        // it describes the layer, which detection still aligns against the OCR.
+        const pageReads = ocrPages ? ocrPages.map((pg) => pg.text) : ocrByPage;
+        const merged = mergeThinPages(rawLayer, pageReads);
+        if (merged.promoted.length) text = merged.text;
+        // OCR is also the SECOND layer, additive, for detection. Surface it when it says
+        // something the primary text doesn't (else it's redundant noise).
         if (ocrRaw !== text) ocrText = ocrRaw;
         ocr = {
           engine: `pdf-text+${ocrMeta?.engine ?? "ocr"}`,
@@ -153,15 +170,23 @@ function startStream(
       /* display only */
     }
   };
+  const layers = p.rawLayer.split(PAGE_BREAK);
+  // A page whose thin layer may take its OCR reading (`layers/pageMerge.ts`): its final text
+  // is decided when OCR reads it, so it is announced THEN, by the same rule as the result.
+  const read = p.only ? new Set(p.only) : null;
+  const yields = (n: number) => p.digital && (!read || read.has(n)) && layerMayYield(layers[n - 1] ?? "");
   if (p.digital) {
-    const pages = p.rawLayer.split(PAGE_BREAK);
     // A page OCR still reads is not READ yet, but its final text (the layer's) is known.
-    const pending = p.only ? new Set(p.only) : null;
-    pages.forEach((text, i) => emit({ n: i + 1, total: pages.length, read: !!pending && !pending.has(i + 1), text }));
+    layers.forEach((text, i) =>
+      emit({ n: i + 1, total: layers.length, read: !!read && !read.has(i + 1), ...(yields(i + 1) ? {} : { text }) }),
+    );
   }
-  const withText = p.noLayer;
   return {
-    onPage: (n, total, text) => emit({ n, total, read: true, ...(withText ? { text } : {}) }),
+    onPage: (n, total, text) => {
+      if (p.noLayer) emit({ n, total, read: true, text });
+      else if (yields(n)) emit({ n, total, read: true, text: pagePrimary(layers[n - 1] ?? "", text || undefined) });
+      else emit({ n, total, read: true });
+    },
     stop,
   };
 }

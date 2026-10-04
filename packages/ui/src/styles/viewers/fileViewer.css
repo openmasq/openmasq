@@ -55,12 +55,15 @@
   border-color: var(--brand);
 }
 /* AttachmentPreviewModal has no header flex row, so its corner controls (view picker,
-   close) pin to the panel's top-right; `z-index` clears the header and the opening sweep. */
+   close) pin to the panel's top-right. ⚠️ This box is the STACKING CONTEXT of the view
+   menu that drops out of it: its z-index must clear everything the body lifts — the PDF
+   page strip (`.pdfv-bar`, 5) and the halo legend on page 1 (`.pdfv-halolegend`, 3) —
+   or the open menu slides UNDER them. Pinned by `viewerStacking.test.ts`. */
 .fv-corner {
   position: absolute;
   top: 12px;
   right: 14px;
-  z-index: 3;
+  z-index: 6;
   display: flex;
   align-items: center;
   gap: 8px;

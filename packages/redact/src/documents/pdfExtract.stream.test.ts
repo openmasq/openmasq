@@ -62,6 +62,23 @@ describe("PDF page stream", () => {
     expect(f.ocrText).toBe("Tampon : Jean Rebour"); // the result is what it always was
   });
 
+  it("a DIGITAL PDF's thin page is announced only once OCR read it, by the result's own rule", async () => {
+    const SCAN = "Attestation — Ninon Verdolini, IBAN FR76 3000 4000 0512 3456 789, signée à Lyon.";
+    const layer = [DENSE(1), "", DENSE(3)];
+    const events: PageEvent[] = [];
+    const digital = async () => ({ text: layer.join(PAGE_BREAK), pages: 3, imagePages: 0, needsOcr: [2] });
+    const f = await extractFromBytes(
+      PDF,
+      { name: "mixte.pdf", stream: { onPage: (e) => events.push(e) } },
+      deps(digital, ["", SCAN, ""]),
+    );
+    // Its layer is not its final text: the page is announced WITHOUT text, then with OCR's.
+    expect(events[1]).toEqual({ n: 2, total: 3, read: false });
+    expect(events[3]).toEqual({ n: 2, total: 3, read: true, text: SCAN });
+    expect(streamedPrefix(collect(events)).text.trim()).toBe(f.text);
+    expect(f.text).toContain(SCAN);
+  });
+
   it("a SPARSE scan (layer or OCR, decided at the end) streams NO text", async () => {
     const events: PageEvent[] = [];
     const sparse = async () => ({ text: "En-tête société".padEnd(40, "."), pages: 2, imagePages: 2 });

@@ -22,6 +22,7 @@ export const viewers = {
     tileCurrent: (n) => `Page ${n} · lecture en cours`,
     tileWaiting: (n) => `Page ${n} · en attente de lecture`,
     tileHeld: (n) => `Page ${n} · masquée, affichée une fois tout le document traité`,
+    original: (n) => `Page ${n} · originale, pas encore masquée`,
   },
   extracted: (chars, status) => `${chars} caractères extraits · ${status}`,
   staleTip: "Masqué avec vos anciens réglages",
@@ -71,7 +72,7 @@ export const viewers = {
     zoomIn: "Zoomer",
     fitWidth: "Ajuster à la largeur du panneau",
     provisional:
-      "Aperçu provisoire : une page s'affiche une fois lue et masquée. Une valeur repérée plus loin peut encore être masquée sur une page déjà affichée.",
+      "Aperçu provisoire : une page encore originale le signale, et passe en version masquée dès qu'elle l'est. Une valeur repérée plus loin peut encore être masquée sur une page déjà masquée.",
     goToPage: (n) => `Aller à la page ${n}`,
     haloOn: "Surligné : texte lu sur la page, masqué avant envoi",
     haloOff: "Surlignage caché. Le texte lu sur la page reste masqué avant envoi.",

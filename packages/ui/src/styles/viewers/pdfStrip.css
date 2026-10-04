@@ -152,3 +152,28 @@
   outline: 1px dashed var(--border-strong);
   outline-offset: 3px;
 }
+/* A page shown AS IT IS while the document is still being masked (`pendingTile.ts`
+   `mountOriginalBanner`): the real page, a dashed frame, and a pill saying it is the
+   original — never a page that reads as masked when it is not. */
+.pdfv-page.is-original {
+  outline: 1px dashed var(--border-strong);
+  outline-offset: 3px;
+}
+.pdfv-original {
+  position: absolute;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  max-width: 86%;
+  padding: 5px 12px;
+  border-radius: var(--radius-pill);
+  border: 1px dashed var(--border-strong);
+  background: var(--surface-card);
+  box-shadow: var(--shadow-xs);
+  color: var(--text-strong);
+  font-size: var(--text-sm);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+}
