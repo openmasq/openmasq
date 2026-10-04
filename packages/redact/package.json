@@ -1,6 +1,6 @@
 {
   "name": "@openmasq/redact",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Reversible PII redaction for LLM prompts: detect sensitive data, replace it with realistic fakes, restore the reply from a vault. Offline, TypeScript.",
   "license": "Apache-2.0",
   "repository": {
@@ -81,7 +81,8 @@
     "!dist/**/*.map",
     "README.md",
     "LICENSE",
-    "NOTICE"
+    "NOTICE",
+    "CHANGELOG.md"
   ],
   "publishConfig": {
     "access": "public"
