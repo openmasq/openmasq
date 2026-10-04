@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { MODEL_CATEGORIES, requiresModel } from "@openmasq/redact";
 import { REDACTION_CATEGORIES } from "./index";
 import {
   ALWAYS_ON,
@@ -49,5 +50,22 @@ describe("the three levels as category sets", () => {
     const standard = categoriesForLevel("standard");
     for (const key of ["email", "phone", "iban", "card", "ip", "secret"] as const)
       expect(standard[key], key).toBe(true);
+  });
+});
+
+describe("the model categories are the engine's", () => {
+  // Which categories need a model is `@openmasq/redact`'s fact; the catalogue only DERIVES
+  // its `ai` flag from it. Every one of them is a live product category, or a level could
+  // turn on a category the rules screen cannot show.
+  it("the `ai` flag is exactly MODEL_CATEGORIES", () => {
+    const ai = REDACTION_CATEGORIES.filter((c) => c.ai).map((c) => c.key);
+    expect(new Set(ai)).toEqual(new Set(MODEL_CATEGORIES));
+  });
+
+  it("usesLocalModel agrees with the engine's requiresModel", () => {
+    for (const level of ["standard", "renforce", "strict"] as const) {
+      const set = categoriesForLevel(level);
+      expect(usesLocalModel(set)).toBe(requiresModel(disabledKindsOf(set)));
+    }
   });
 });

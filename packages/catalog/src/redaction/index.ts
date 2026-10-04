@@ -6,6 +6,7 @@
 import {
   CATEGORY_HUE,
   CATEGORY_SECTION,
+  MODEL_CATEGORIES,
   REDACTION_SECTIONS,
   SECTION_HUE,
   type Hue,
@@ -33,7 +34,8 @@ export interface CatalogRedactionCategory {
   /** Highlight colour as a `var(--hl-*)` CSS custom property. DERIVED from the category's
    *  section (`SECTION_HUE`), so a row on the rules screen is the colour the chat paints. */
   tone: string;
-  /** True = only detected by the model engine (free-form PII) — UI nudges to enable. */
+  /** True = only detected by the model engine (free-form PII) — UI nudges to enable.
+   *  DERIVED from the engine's `MODEL_CATEGORIES`, never declared here. */
   ai?: boolean;
   /** User-facing FR summary of what the category ACTUALLY covers — surfaced in the
    *  rules modal and the docs so a short label never under-sells (or over-sells) the
@@ -72,6 +74,7 @@ export const RETIRED_CATEGORIES: readonly RedactionCategory[] = ["health", "numb
  *  the palette source, never declared beside the label. */
 export const REDACTION_CATEGORIES: CatalogRedactionCategory[] = BASE.map((c) => ({
   ...c,
+  ...(MODEL_CATEGORIES.includes(c.key) ? { ai: true } : {}),
   group: CATEGORY_SECTION[c.key],
   tone: hlFg(CATEGORY_HUE[c.key]),
 }));
