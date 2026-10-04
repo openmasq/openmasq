@@ -23,6 +23,7 @@ secret to pass, that is a bug in the workflow, not a setup step for the contribu
 | `release.yml` | `v*` / `beta-v*` tags | Apple signing + the publication credentials. **Every secret-dependent step is skipped with a named notice when the secret is absent**: a fork's tag builds, boot-smokes and uploads the UNSIGNED app to the run — nothing reaches a channel (`PUBLISH` in the job env is the one decision). |
 | `release-windows.yml` | manual | nothing — by design (see its header). |
 | `audit.yml` | weekly | nothing. `pnpm audit` sorted by shipped surface. |
+| `publish-redact.yml` | manual, `dry_run` by default | npm trusted publishing on the `npm` environment — no secret. Publishes `@openmasq/redact` (flow: `.changeset/README.md`). |
 
 The server side is maintained outside this repository.
 
@@ -58,6 +59,7 @@ pour le contributeur.
 | `release.yml` | tags `v*` / `beta-v*` | La signature Apple + les identifiants de publication. **Chaque étape dépendante d'un secret est sautée avec un avis nommé quand le secret est absent** : le tag d'un fork construit, passe le test de démarrage et téléverse l'application NON SIGNÉE dans le run — rien n'atteint un canal (`PUBLISH` dans l'env du job est la décision unique). |
 | `release-windows.yml` | manuel | rien — à dessein (voir son en-tête). |
 | `audit.yml` | hebdomadaire | rien. `pnpm audit` trié par surface livrée. |
+| `publish-redact.yml` | manuel, `dry_run` par défaut | le trusted publishing npm sur l'environnement `npm` — aucun secret. Publie `@openmasq/redact` (procédure : `.changeset/README.md`). |
 
 Le côté serveur est maintenu en dehors de ce dépôt.
 
