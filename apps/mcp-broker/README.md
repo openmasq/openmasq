@@ -102,7 +102,7 @@ platforms over IPC (`mcp:broker`).
 | Property | Behaviour |
 |---|---|
 | **PKCE** | `S256` only. A missing challenge or `plain` is refused. |
-| **Redirect URIs** | Loopback URIs (`127.0.0.1`, `::1`, `localhost`) match ignoring the port (RFC 8252). Any other URI must match exactly. |
+| **Redirect URIs** | Loopback URIs (`127.0.0.1`, `::1`, `localhost`) match ignoring the port (RFC 8252). Any other URI is compared character for character. |
 | **Authorization codes** | Single use, valid 60 s. |
 | **Broker tokens** | 256-bit random, valid 1 hour. A refresh token is single use and rotates on every refresh. |
 | **Provider tokens** | Never sent to the client. Provider error bodies are not forwarded: tools see a status and a short reason. |
