@@ -15,7 +15,7 @@ import { PdfRedactedViewer } from "./PdfRedactedViewer";
 import type { PendingPdf } from "./pendingPages";
 
 const PAGE_TEXT = ["Emprunteur : Jean Dupont", "Contact Marie Curie", "Fin du relevé"];
-const renders: { p: number; reps: string[] }[] = [];
+const renders: { p: number; reps: string[]; width?: number; reveal?: ReadonlySet<string> }[] = [];
 const loads = vi.fn();
 
 vi.mock("@openmasq/redact/pdf-redact", async (orig) => {
@@ -30,10 +30,11 @@ vi.mock("@openmasq/redact/pdf-redact", async (orig) => {
         pageSize: async () => ({ cssW: 100, cssH: 140 }),
         // A text-layer page paints (and covers) the values its text holds; page 2 plays a
         // SCAN read without its OCR geometry: nothing painted, nothing covered.
-        renderPage: async (p: number, _reveal?: unknown, over?: { replacements?: PdfReplacement[]; ocrPages?: unknown }) => {
+        renderPage: async (p: number, reveal?: ReadonlySet<string>, over?: { replacements?: PdfReplacement[]; ocrPages?: unknown; width?: number }) => {
           const reps = over?.replacements ?? [];
-          renders.push({ p, reps: reps.map((r) => r.real) });
+          renders.push({ p, reps: reps.map((r) => r.real), width: over?.width, reveal });
           const canvas = document.createElement("canvas");
+          canvas.toDataURL = () => `data:image/png;base64,PAGE${p}`;
           canvas.dataset.raster = String(p);
           const scanNoGeometry = p === 2 && !over?.ocrPages;
           const covered = new Set(scanNoGeometry ? [] : reps.filter((r) => PAGE_TEXT[p - 1].includes(r.real)).map((r) => r.real));
@@ -139,6 +140,31 @@ describe("PdfRedactedViewer — a document still being masked", () => {
     await settle();
     const last = renders.filter((r) => r.p === 1).at(-1);
     expect(last?.reps).toContain("Jean Dupont");
+    await m.unmount();
+  });
+});
+
+describe("PdfRedactedViewer — the strip previews each page once final, MASKED", () => {
+  const thumbsIn = (el: HTMLElement) => [...el.querySelectorAll<HTMLImageElement>(".pdfv-strip-thumb.is-preview")].map((i) => i.src);
+
+  it("every page gets a small preview painted with the map, never with a value revealed", async () => {
+    const m = await mount(<PdfRedactedViewer bytes={bytes} replacements={[JEAN, MARIE]} />, { wrap });
+    await settle();
+    await act(async () => new Promise((r) => setTimeout(r, 200)));
+    await settle();
+    const small = renders.filter((r) => r.width);
+    expect(small.map((r) => r.p)).toEqual([1, 2, 3]);
+    expect(small.every((r) => r.reps.includes("Jean Dupont") && r.reveal?.size === 0)).toBe(true);
+    expect(thumbsIn(m.el)).toEqual(["data:image/png;base64,PAGE1", "data:image/png;base64,PAGE2", "data:image/png;base64,PAGE3"]);
+    await m.unmount();
+  });
+
+  it("while the masking runs, no preview is painted — the strip keeps the read's thumbnails", async () => {
+    const m = await mount(<PdfRedactedViewer bytes={bytes} pending={{ replacements: [JEAN], pages: [0, 1, 2].map(() => ({ state: "read" as const, thumb })) }} />, { wrap });
+    await settle();
+    await act(async () => new Promise((r) => setTimeout(r, 200)));
+    expect(renders.some((r) => r.width)).toBe(false);
+    expect(thumbsIn(m.el)).toEqual([]);
     await m.unmount();
   });
 });

@@ -84,6 +84,8 @@ export function usePdfPages(o: PdfPagesOptions) {
   /** What each mounted page shows, to repaint only the pages a change touches. */
   const shownRef = useRef(new Map<number, Shown>());
   const totalRef = useRef(0);
+  /** The open document, for the strip's thumbnails (`usePdfThumbs`); null while (re)loading. */
+  const docRef = useRef<RedactedPdfDoc | null>(null);
   const wantWords = !!o.onWordPick || !!o.showTextHalo;
   const derive = o.replacements === undefined;
 
@@ -130,6 +132,7 @@ export function usePdfPages(o: PdfPagesOptions) {
         });
         if (ctrl.signal.aborted) return void doc.destroy();
         const open = doc;
+        docRef.current = open;
         if (open.modelError) setWarn(describeRedactFailure(open.modelError, first.t, engine));
         // EVERY page gets a shell sized to it up-front: the scrollbar is the document's.
         const shells: HTMLElement[] = [];
@@ -215,6 +218,7 @@ export function usePdfPages(o: PdfPagesOptions) {
       ctrl.abort();
       unobserve();
       queueRef.current = null;
+      docRef.current = null;
       shellsRef.current = [];
       for (const release of released.values()) release();
       void doc?.destroy();
@@ -272,7 +276,7 @@ export function usePdfPages(o: PdfPagesOptions) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [o.revealed]);
 
-  return { rootRef, shellsRef, state, empty, warn, imgSrc, total };
+  return { rootRef, shellsRef, docRef, state, empty, warn, imgSrc, total };
 }
 
 function sumTally(tally: Map<number, { zones: number; imageOnly: boolean }>) {
