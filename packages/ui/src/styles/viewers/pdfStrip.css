@@ -1,31 +1,37 @@
 /* The PDF viewer's SIDE column (`containers/modals/viewers/pdf/PdfRedactedViewer.tsx`): the
    zoom, then the page strip (`PageStrip.tsx`) as a vertical list, stuck beside the pages while
-   the panel scrolls — a column and not a top bar, which took the height the pages need. And
+   the panel scrolls, on the RIGHT, the pages centred — a column and not a top bar, which
+   took the height the pages need. And
    the TILE a page shows while it may not be shown (`pdf/pendingTile.ts`). A tile's picture is
    already illegible at the source (≤ 40 px wide, `@openmasq/redact` `THUMB_MAX_WIDTH_PX`); the
    blur only turns the upscale into a page. Every colour is a token both themes define; ink on
    `--brand` is `--ink-on-brand` (rule 12). */
 .pdfv-main {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
+  /* Three columns, the outer two the SAME width: the pages sit in the exact middle of the
+     viewer, the side column on the right balanced by an empty gutter on the left. */
+  display: grid;
+  grid-template-columns: var(--pdfv-side-w) minmax(0, 1fr) var(--pdfv-side-w);
+  column-gap: 14px;
+  align-items: start;
   width: 100%;
+  --pdfv-side-w: 76px;
 }
 .pdfv-main > .pdfv-pages {
-  flex: 1;
-  min-width: 0;
+  grid-column: 2;
+  grid-row: 1;
   width: auto;
 }
 .pdfv-side {
+  grid-column: 3;
+  grid-row: 1;
   position: sticky;
   top: 0;
   z-index: 5;
-  flex: none;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 10px;
-  width: 76px;
+  width: var(--pdfv-side-w);
   /* The column never outgrows the visible panel: its list scrolls on its own. */
   max-height: calc(100vh - 150px);
   padding: 4px 0;
@@ -220,10 +226,10 @@
   container-type: inline-size;
 }
 @container (max-width: 440px) {
+  .pdfv-main {
+    --pdfv-side-w: 40px;
+  }
   .pdfv-strip {
     display: none;
-  }
-  .pdfv-side {
-    width: auto;
   }
 }
