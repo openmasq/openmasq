@@ -80,7 +80,7 @@ export const composer = {
   undo: "Undo",
   protectionLevel: "Protection level",
 
-  placeholder: (brand) => `Message ${brand}…`,
+  placeholder: (brand) => `Message ${brand} or drop a file…`,
 
   editSkill: "Edit skill",
   slotsToFill: "Fill in your message",
