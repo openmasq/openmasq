@@ -45,8 +45,7 @@ export function trackCheckStalled(): void {
 /** A placeholder, so an event with no version still counts in the funnel. */
 const UNKNOWN = "unknown";
 
-/** The renderer subscribes to `app:event` while it boots: anything sent earlier is dropped. */
-const RENDERER_READY_MS = 8000;
+
 
 /**
  * The PREVIOUS session's outcome from persisted state (pure, `track.test.ts`):
@@ -108,7 +107,8 @@ export function setupUpdateTracking(report?: ReportEvent): void {
     if (!once(`downloaded:${downloadedVersion}`)) return;
     emit({ name: "update_downloaded", channel: getConfig().channel, version: downloadedVersion });
   });
-  setTimeout(flushLastSession, RENDERER_READY_MS).unref?.();
+  // Emitted now: the bridge holds it until a renderer listens (`runtime/errorReport.ts`).
+  flushLastSession();
 }
 
 /** Record the install attempt SYNCHRONOUSLY to disk: the renderer owns the transport and

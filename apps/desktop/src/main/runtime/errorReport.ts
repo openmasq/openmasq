@@ -17,6 +17,52 @@ import type { TrackEvent } from "@openmasq/ui";
  */
 let getWin: (() => BrowserWindow | null) | null = null;
 
+/** How long a freshly loaded renderer needs before it listens on `app:event` / `app:error`. */
+export const RENDERER_LISTEN_MS = 8000;
+/** The most reports held while no renderer listens; past it, the OLDEST go first. */
+export const MAX_PENDING = 200;
+
+type Report = { channel: "app:event" | "app:error"; payload: unknown };
+/**
+ * What main had to say while NO renderer listened — no window (macOS keeps the app running in
+ * the Dock after its last window closes), or one still booting. It used to be DROPPED: an
+ * install that lived windowless for days sent no update telemetry at all, and looked like
+ * one that had stopped checking. Held here, delivered once a window listens.
+ */
+const pending: Report[] = [];
+/** The window whose renderer is known to listen (`markRendererListening`). */
+let listening: BrowserWindow | null = null;
+
+function deliver(r: Report): void {
+  const w = getWin?.();
+  if (w && !w.isDestroyed() && w === listening) {
+    w.webContents.send(r.channel, r.payload);
+    return;
+  }
+  pending.push(r);
+  if (pending.length > MAX_PENDING) pending.splice(0, pending.length - MAX_PENDING);
+}
+
+/** A window's renderer now listens (its load + `RENDERER_LISTEN_MS`): deliver what waited. */
+export function markRendererListening(win: BrowserWindow): void {
+  if (win.isDestroyed()) return;
+  listening = win;
+  const held = pending.splice(0);
+  for (const r of held) {
+    try {
+      deliver(r);
+    } catch {
+      /* never throw from telemetry */
+    }
+  }
+}
+
+/** Tests only. */
+export function resetTelemetryBridge(): void {
+  pending.length = 0;
+  listening = null;
+}
+
 /** Wire the window getter + install process-level catch-alls. Call once in `whenReady`. */
 export function installErrorReporting(win: () => BrowserWindow | null): void {
   getWin = win;
@@ -69,18 +115,19 @@ export function reportMainError(scope: string, code: string, err: unknown): void
 }
 
 /** The renderer bridge alone (`app:error`) — for the uncaught case, already captured by Sentry
- *  via the SDK integrations. Best-effort; with no window, the report is dropped. */
+ *  via the SDK integrations. Best-effort; with no renderer listening, the report waits. */
 function bridgeMainError(scope: string, code: string, err: unknown): void {
   try {
-    const w = getWin?.();
-    if (!w || w.isDestroyed()) return;
     const e = err as { name?: string; message?: string; status?: number } | null;
-    w.webContents.send("app:error", {
-      scope,
-      code,
-      name: e && typeof e === "object" ? e.name : undefined,
-      status: e && typeof e === "object" ? e.status : undefined,
-      message: err instanceof Error ? err.message : typeof err === "string" ? err : undefined,
+    deliver({
+      channel: "app:error",
+      payload: {
+        scope,
+        code,
+        name: e && typeof e === "object" ? e.name : undefined,
+        status: e && typeof e === "object" ? e.status : undefined,
+        message: err instanceof Error ? err.message : typeof err === "string" ? err : undefined,
+      },
     });
   } catch {
     /* never throw from error reporting */
@@ -93,15 +140,13 @@ function bridgeMainError(scope: string, code: string, err: unknown): void {
  * in the renderer). `TrackEvent` is imported type-only from the ONE catalogue
  * (`@openmasq/ui/analytics/events`), so a main-process event can't drift from it.
  *
- * ⚠️ No window (not yet created, or already torn down by `quitAndInstall`) ⇒ the event
- * is DROPPED, like an error report. Anything worth measuring across a restart must
- * therefore be re-derived on the next launch, not sent as we quit.
+ * ⚠️ No renderer listening (no window, or one still booting) ⇒ the event WAITS for one
+ * (`pending`, bounded). A process that QUITS with reports pending loses them: anything worth
+ * measuring across a restart must still be re-derived on the next launch.
  */
 export function reportMainEvent(event: TrackEvent): void {
   try {
-    const w = getWin?.();
-    if (!w || w.isDestroyed()) return;
-    w.webContents.send("app:event", event);
+    deliver({ channel: "app:event", payload: event });
   } catch {
     /* never throw from telemetry */
   }
