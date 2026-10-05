@@ -14,13 +14,26 @@ export const CHECK_INTERVAL_MS = 15 * 60 * 1000; // 15 min
 export interface CheckGate {
   /** A check or a download is already in flight — a second one would race it. */
   busy: boolean;
-  /** A build is staged and waiting on the restart prompt; nothing left to check for. */
-  downloaded: boolean;
 }
 
-/** Pure: the whole decision, so the gate is testable without a timer or a network. */
+/**
+ * Pure: the whole decision, so the gate is testable without a timer or a network. A STAGED
+ * build no longer closes it: the loop used to stop at `update-downloaded`, so an install that
+ * stayed open past the next release installed the build it had staged days before — one
+ * restart behind, every time (seen: 0.11.2 → 0.13.0 the day after 0.15.0 shipped).
+ */
 export function shouldCheck(g: CheckGate): boolean {
-  return !g.busy && !g.downloaded;
+  return !g.busy;
+}
+
+/**
+ * Should a build the feed announces be DOWNLOADED, given the one staged? Only a DIFFERENT
+ * version (a newer release — or the exact one a pin asked for): re-feeding the SAME staged
+ * build would hand the installer the same ~500 MB again at every check. Pure, tested.
+ */
+export function replacesStaged(found: string | undefined, staged: string | null): boolean {
+  if (staged === null) return true;
+  return !!found && found !== staged;
 }
 
 /**
@@ -37,7 +50,7 @@ export function isStalled(s: { busy: boolean; lastAlive: number }, now: number):
   return s.busy && now - s.lastAlive >= STALL_MS;
 }
 
-const state = { busy: false, downloaded: false, lastAlive: 0 };
+const state = { busy: false, lastAlive: 0, staged: null as string | null };
 let timer: ReturnType<typeof setInterval> | null = null;
 let intervalMs = CHECK_INTERVAL_MS;
 /** Cancels the download the last check started (its CancellationToken), if any. */
@@ -115,17 +128,30 @@ export function startUpdateChecks(everyMs: number = CHECK_INTERVAL_MS, hooks?: {
   stopUpdateChecks();
   intervalMs = everyMs;
   state.busy = false;
-  state.downloaded = false;
+  state.staged = null;
   onStall = hooks?.onStall ?? null;
 
   autoUpdater.on("checking-for-update", () => {
     state.busy = true;
     alive();
   });
-  // A download follows only when autoDownload is on; otherwise the check is over.
-  autoUpdater.on("update-available", () => {
-    state.busy = autoUpdater.autoDownload;
+  // Nothing staged: autoDownload is on and the download follows. A build staged: the check
+  // runs with autoDownload OFF and the download is decided here, for a different version only.
+  autoUpdater.on("update-available", (info?: { version?: string }) => {
     alive();
+    if (state.staged === null) {
+      state.busy = autoUpdater.autoDownload;
+      return;
+    }
+    if (!replacesStaged(info?.version, state.staged)) {
+      state.busy = false;
+      return;
+    }
+    logUpdate(`v${info?.version} supersedes the staged v${state.staged} — downloading it`);
+    state.busy = true;
+    autoUpdater.downloadUpdate().catch(() => {
+      // The `error` event owns the log + the telemetry.
+    });
   });
   // A download that moves is alive, however long it takes.
   autoUpdater.on("download-progress", alive);
@@ -133,20 +159,23 @@ export function startUpdateChecks(everyMs: number = CHECK_INTERVAL_MS, hooks?: {
     state.busy = false;
   });
   autoUpdater.on("error", () => {
+    // An error with a check or download IN FLIGHT is that request's (offline, a 500): the
+    // staged build is untouched. One with NOTHING in flight while a build is staged is the
+    // staged build failing to apply: forget it, so the next check fetches one again.
+    const applyFailed = !state.busy && state.staged !== null;
     state.busy = false;
-    // An error AFTER a build was staged means it did NOT apply: void the terminal state
-    // and re-open the loop, or the machine stays on the old version until a relaunch.
-    if (state.downloaded) {
-      logUpdate("staged build failed to apply — re-opening the update loop");
-      state.downloaded = false;
-      armTimer();
+    if (applyFailed) {
+      logUpdate("staged build failed to apply — the next check fetches it again");
+      state.staged = null;
+      autoUpdater.autoDownload = true;
     }
   });
-  // Terminal: the build is staged. A second staged download is what the installer dislikes.
-  autoUpdater.on("update-downloaded", () => {
+  // Staged: keep checking, with autoDownload OFF so the same build is not re-fed to the
+  // installer at every tick; a DIFFERENT version is downloaded explicitly (`update-available`).
+  autoUpdater.on("update-downloaded", (info?: { version?: string }) => {
     state.busy = false;
-    state.downloaded = true;
-    stopUpdateChecks();
+    state.staged = info?.version ?? state.staged ?? "unknown";
+    autoUpdater.autoDownload = false;
   });
 
   tick("launch");

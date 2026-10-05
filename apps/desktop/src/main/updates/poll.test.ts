@@ -6,12 +6,13 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 // in-flight check or churn a build already staged for ShipIt.
 
 const { handlers, updater } = vi.hoisted(() => ({
-  handlers: new Map<string, () => void>(),
+  handlers: new Map<string, (info?: { version?: string }) => void>(),
   updater: {
     autoDownload: true,
     checkForUpdatesPromise: null as unknown,
-    on: (ev: string, fn: () => void) => handlers.set(ev, fn),
+    on: (ev: string, fn: (info?: { version?: string }) => void) => handlers.set(ev, fn),
     checkForUpdates: vi.fn(async () => undefined as unknown),
+    downloadUpdate: vi.fn(async () => [] as string[]),
   },
 }));
 vi.mock("electron-updater", () => ({ default: { autoUpdater: updater } }));
@@ -24,12 +25,13 @@ import {
   STALL_MS,
   isStalled,
   ownDownloadPromise,
+  replacesStaged,
   shouldCheck,
   startUpdateChecks,
   stopUpdateChecks,
 } from "./poll";
 
-const fire = (ev: string): void => handlers.get(ev)?.();
+const fire = (ev: string, version?: string): void => handlers.get(ev)?.(version ? { version } : undefined);
 const checks = (): number => updater.checkForUpdates.mock.calls.length;
 
 function start(): void {
@@ -41,20 +43,26 @@ function start(): void {
 afterEach(() => {
   stopUpdateChecks();
   vi.useRealTimers();
+  updater.autoDownload = true; // a staged test turns it off
 });
 
 describe("shouldCheck — the gate", () => {
-  const gate = { busy: false, downloaded: false };
-
-  // No more PREFERENCE in the gate: the update is always automatic, so
-  // only an operation in flight or a build already staged can hold back a tick.
-  it("checks when nothing is in flight", () => {
-    expect(shouldCheck(gate)).toBe(true);
+  // No PREFERENCE in the gate: the update is always automatic, so only an operation in
+  // flight can hold back a tick — a STAGED build no longer does (it may be superseded).
+  it("checks when nothing is in flight, refuses while something is", () => {
+    expect(shouldCheck({ busy: false })).toBe(true);
+    expect(shouldCheck({ busy: true })).toBe(false);
   });
+});
 
-  it("refuses while a check/download is in flight, and once a build is staged", () => {
-    expect(shouldCheck({ ...gate, busy: true })).toBe(false);
-    expect(shouldCheck({ ...gate, downloaded: true })).toBe(false);
+describe("replacesStaged — which announced build is worth downloading", () => {
+  it("nothing staged: any", () => {
+    expect(replacesStaged("0.15.0", null)).toBe(true);
+  });
+  it("a different version replaces the staged one; the same one is never re-fed", () => {
+    expect(replacesStaged("0.15.0", "0.13.0")).toBe(true);
+    expect(replacesStaged("0.13.0", "0.13.0")).toBe(false);
+    expect(replacesStaged(undefined, "0.13.0")).toBe(false);
   });
 });
 
@@ -117,27 +125,67 @@ describe("startUpdateChecks", () => {
     expect(checks()).toBe(2);
   });
 
-  // The counterpart of "terminal": a staging that FAILS is no longer terminal. Without this, the device
-  // stayed on the old version until the next launch — the reported symptom:
-  // "update stuck on some devices" (ditto/lstat on 0.4.1-staging).
-  it("ré-ouvre la boucle quand le build posé échoue à s'appliquer", () => {
+  // An error with NOTHING in flight while a build is staged is the staged build failing to
+  // apply: it is forgotten and the next check fetches one again (ditto/lstat, 0.4.1-staging).
+  it("a staged build that fails to apply is forgotten — the next check downloads again", () => {
     vi.useFakeTimers();
     start();
-    fire("update-downloaded");
-    vi.advanceTimersByTime(5000);
-    expect(checks()).toBe(1); // terminal: nothing moves
-
-    fire("error"); // ShipIt/ditto could not apply
+    fire("update-downloaded", "0.13.0");
+    expect(updater.autoDownload).toBe(false);
+    fire("error"); // nothing in flight: ShipIt/ditto could not apply
+    expect(updater.autoDownload).toBe(true);
     vi.advanceTimersByTime(1000);
-    expect(checks()).toBe(2); // the loop is going again, the build will be re-downloaded
+    expect(checks()).toBe(2);
   });
 
-  it("stops for good once a build is downloaded — ShipIt has it, re-checking only churns", () => {
+  it("a CHECK that errors while a build is staged leaves it staged", () => {
     vi.useFakeTimers();
     start();
-    fire("update-downloaded");
-    vi.advanceTimersByTime(10 * 1000);
-    expect(checks()).toBe(1);
+    fire("update-downloaded", "0.13.0");
+    fire("checking-for-update");
+    fire("error"); // offline, a 500 — that request's failure, not the staged build's
+    expect(updater.autoDownload).toBe(false);
+  });
+});
+
+// The loop used to STOP at `update-downloaded`: an install left open past the next release
+// installed the build it had staged days before (0.11.2 → 0.13.0 the day after 0.15.0).
+describe("a staged build keeps being checked against the feed", () => {
+  it("keeps checking, with autoDownload OFF so the same build is not re-fed", () => {
+    vi.useFakeTimers();
+    start();
+    fire("update-downloaded", "0.13.0");
+    vi.advanceTimersByTime(3000);
+    expect(checks()).toBe(4);
+    expect(updater.autoDownload).toBe(false);
+  });
+
+  it("the same version announced again: no download", () => {
+    vi.useFakeTimers();
+    start();
+    updater.downloadUpdate.mockClear();
+    fire("update-downloaded", "0.13.0");
+    fire("checking-for-update");
+    fire("update-available", "0.13.0");
+    expect(updater.downloadUpdate).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(1000);
+    expect(checks()).toBe(2); // the gate is open again
+  });
+
+  it("a NEWER version is downloaded explicitly, and becomes the staged one", () => {
+    vi.useFakeTimers();
+    start();
+    updater.downloadUpdate.mockClear();
+    fire("update-downloaded", "0.13.0");
+    fire("checking-for-update");
+    fire("update-available", "0.15.0");
+    expect(updater.downloadUpdate).toHaveBeenCalledOnce();
+    vi.advanceTimersByTime(2000);
+    expect(checks()).toBe(1); // downloading: the gate stays closed
+    fire("update-downloaded", "0.15.0");
+    fire("checking-for-update");
+    fire("update-available", "0.15.0");
+    expect(updater.downloadUpdate).toHaveBeenCalledOnce(); // 0.15.0 is now the staged one
   });
 });
 

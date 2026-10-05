@@ -14,6 +14,7 @@ import { stopAgentBrowser, setAppMainFocused } from "./mcp/browser";
 import { safeOpenExternal } from "./net/safeOpen";
 import { devOnly } from "./security/devOnly";
 import { markWindowShown } from "./store/safeStore";
+import { markRendererListening, RENDERER_LISTEN_MS } from "./runtime/errorReport";
 import { loadWindowTone } from "./windowTone";
 
 export function createWindow(): void {
@@ -140,6 +141,11 @@ export function createWindow(): void {
 
   // Publish the window so the magic-link deep-link handlers can reach it.
   setMainWindow(mainWindow);
+  // Once its renderer listens, main's held telemetry reaches it (`runtime/errorReport.ts`):
+  // a window reopened from the Dock receives what main reported while there was none.
+  mainWindow.webContents.on("did-finish-load", () => {
+    setTimeout(() => markRendererListening(mainWindow), RENDERER_LISTEN_MS).unref?.();
+  });
 
   // The MAIN window's focus feeds the overlay's visibility gate (combined with the child's
   // own `AGENT_FOCUS`), so it hides whenever the app isn't frontmost.
