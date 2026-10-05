@@ -81,6 +81,16 @@ function askRendererBusy(win: BrowserWindow): Promise<boolean | null> {
   });
 }
 
+/**
+ * The renderer's answer, or what stands for it. NO WINDOW (macOS keeps the app running in the
+ * Dock after the last window closes) means no renderer: no draft, no send, nothing to lose —
+ * so « free », not « silent ». Read as silent, a windowless app never installed: there was no
+ * window to ask, and every tick abstained (seen on 0.11.2). Pure, `autoInstall.test.ts`.
+ */
+export function rendererQuiescence(windowless: boolean, answer: () => Promise<boolean | null>): Promise<boolean | null> {
+  return windowless ? Promise.resolve(false) : answer();
+}
+
 /** Arms the timer. `mainBusy` is injected; "staged" is listened to here (`update-downloaded`
  *  arms it, a post-download `error` disarms it). */
 export function startAutoInstall(
@@ -101,8 +111,8 @@ export function startAutoInstall(
   const tick = async (): Promise<void> => {
     if (!staged || installing) return;
     const win = getWin();
-    if (!win || win.isDestroyed()) return;
-    const focused = BrowserWindow.getFocusedWindow() != null;
+    const windowless = !win || win.isDestroyed();
+    const focused = !windowless && BrowserWindow.getFocusedWindow() != null;
     if (focused) {
       blurredSince = null;
       trackInstallDeferred("in_use");
@@ -123,7 +133,7 @@ export function startAutoInstall(
       if (why) trackInstallDeferred(why);
       return;
     }
-    signals.rendererBusy = await askRendererBusy(win);
+    signals.rendererBusy = await rendererQuiescence(windowless, () => askRendererBusy(win!));
     if (!shouldAutoInstall(signals)) {
       const why = deferReason(signals);
       if (why) trackInstallDeferred(why);
