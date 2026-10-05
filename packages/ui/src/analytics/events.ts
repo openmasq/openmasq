@@ -220,7 +220,7 @@ export type TrackEvent =
   // found the running version changed. The gap between the two IS the silent-failure
   // rate, unobservable in-process. No feed URL, no installId, no device id.
   // `found_version` = what the feed PROPOSES (≠ `app_version`, which is running).
-  | { name: "update_check"; channel: string; result: "available" | "up_to_date"; found_version?: string }
+  | { name: "update_check"; channel: string; result: "available" | "up_to_date" | "stalled"; found_version?: string }
   | { name: "update_downloaded"; channel: string; version: string }
   | { name: "update_install"; channel: string; version: string }
   // A staged build the AUTOMATIC install is holding back, and why — once per version and

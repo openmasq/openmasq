@@ -22,11 +22,11 @@ import { logUpdate, logUpdateError, updaterLogger, updaterLogPath } from "./log"
 import { reportUpdateFailure } from "./report";
 import { ensureUpdateConfigFile } from "./appUpdateConfig";
 import { wireDownloaded } from "./downloaded";
-import { quitAndInstallSafely, setBeforeInstall } from "./install";
+import { installOnQuit, quitAndInstallSafely, setBeforeInstall } from "./install";
 import { startAutoInstall } from "./autoInstall";
 import { ownDownloadPromise, startUpdateChecks } from "./poll";
 import { detectAndReportShipItFailure } from "./shipit";
-import { setupUpdateTracking, type ReportEvent } from "./track";
+import { setupUpdateTracking, trackCheckStalled, type ReportEvent } from "./track";
 
 /** Injected error reporter, so this module never imports the telemetry bridge. */
 type ReportError = (code: string, err: unknown) => void;
@@ -212,6 +212,8 @@ export function setupAutoUpdates(
 
   // A staged build INSTALLS ITSELF when the app is left open for days. Guards: `autoInstall.ts`.
   startAutoInstall(getWin, { mainBusy: hooks?.mainBusy ?? (() => false) });
+  // …and on a plain quit, once the self-spawned children are really gone (`install.ts`).
+  installOnQuit(app);
 
   autoUpdater.on("error", (err) => {
     logUpdateError("auto-update", err);
@@ -232,6 +234,6 @@ export function setupAutoUpdates(
     }
   });
 
-  // Check on launch AND periodically (`poll.ts`).
-  startUpdateChecks();
+  // Check on launch AND periodically (`poll.ts`); a hung check is released and reported.
+  startUpdateChecks(undefined, { onStall: trackCheckStalled });
 }

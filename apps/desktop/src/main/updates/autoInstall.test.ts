@@ -12,6 +12,7 @@ import {
   AUTO_BLURRED_MS,
   AUTO_IDLE_AWAY_S,
   deferReason,
+  rendererQuiescence,
   shouldAutoInstall,
   type AutoInstallSignals,
 } from "./autoInstall";
@@ -72,3 +73,19 @@ describe("deferReason — the funnel says WHY a downloaded build waits", () => {
     expect(deferReason(quiet({ staged: false, focused: true }))).toBeNull();
   });
 });
+
+// macOS keeps the app in the Dock after its last window closes. No window = no renderer: no
+// draft, no send — « free ». Read as « silent » (= busy), a windowless app never installed.
+describe("rendererQuiescence — no window is not a silent renderer", () => {
+  it("windowless: free, without asking anyone", async () => {
+    const ask = vi.fn(async () => null);
+    await expect(rendererQuiescence(true, ask)).resolves.toBe(false);
+    expect(ask).not.toHaveBeenCalled();
+  });
+
+  it("with a window: its own answer, silence included", async () => {
+    await expect(rendererQuiescence(false, async () => true)).resolves.toBe(true);
+    await expect(rendererQuiescence(false, async () => null)).resolves.toBeNull();
+  });
+});
+

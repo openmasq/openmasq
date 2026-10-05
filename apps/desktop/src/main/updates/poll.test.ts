@@ -9,6 +9,7 @@ const { handlers, updater } = vi.hoisted(() => ({
   handlers: new Map<string, () => void>(),
   updater: {
     autoDownload: true,
+    checkForUpdatesPromise: null as unknown,
     on: (ev: string, fn: () => void) => handlers.set(ev, fn),
     checkForUpdates: vi.fn(async () => undefined as unknown),
   },
@@ -16,8 +17,12 @@ const { handlers, updater } = vi.hoisted(() => ({
 vi.mock("electron-updater", () => ({ default: { autoUpdater: updater } }));
 vi.mock("./log", () => ({ logUpdate: () => {} }));
 
+import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import {
   CHECK_INTERVAL_MS,
+  STALL_MS,
+  isStalled,
   ownDownloadPromise,
   shouldCheck,
   startUpdateChecks,
@@ -157,3 +162,66 @@ describe("ownDownloadPromise", () => {
     expect(() => ownDownloadPromise({})).not.toThrow();
   });
 });
+
+// A check that HANGS sends no event, so `busy` stayed set and every later tick was skipped
+// until a relaunch: an install open for days silently stopped asking the feed (0.11.2).
+describe("a stalled check or download is released", () => {
+  it("isStalled: only a busy loop with no sign of life for STALL_MS", () => {
+    expect(isStalled({ busy: false, lastAlive: 0 }, STALL_MS * 3)).toBe(false);
+    expect(isStalled({ busy: true, lastAlive: 0 }, STALL_MS - 1)).toBe(false);
+    expect(isStalled({ busy: true, lastAlive: 0 }, STALL_MS)).toBe(true);
+  });
+
+  it("a hung check is released after STALL_MS: re-asked for real, and reported", () => {
+    vi.useFakeTimers();
+    const onStall = vi.fn();
+    updater.checkForUpdates.mockClear();
+    startUpdateChecks(60_000, { onStall });
+    fire("checking-for-update"); // …and nothing ever comes back
+    updater.checkForUpdatesPromise = Promise.race([]); // the library's cached, pending check
+    vi.advanceTimersByTime(STALL_MS - 60_000);
+    expect(checks()).toBe(1);
+    vi.advanceTimersByTime(60_000);
+    expect(checks()).toBe(2);
+    // The cached pending promise is dropped, or `checkForUpdates()` would hand it back.
+    expect(updater.checkForUpdatesPromise).toBeNull();
+    expect(onStall).toHaveBeenCalledOnce();
+  });
+
+  it("a download that MOVES is never a stall, however long it takes", () => {
+    vi.useFakeTimers();
+    const onStall = vi.fn();
+    updater.checkForUpdates.mockClear();
+    startUpdateChecks(60_000, { onStall });
+    fire("checking-for-update");
+    fire("update-available");
+    for (let i = 0; i < 5; i++) {
+      vi.advanceTimersByTime(STALL_MS - 60_000);
+      fire("download-progress");
+    }
+    expect(checks()).toBe(1);
+    expect(onStall).not.toHaveBeenCalled();
+  });
+
+  it("a stalled download is cancelled through the token its check returned", async () => {
+    vi.useFakeTimers();
+    const cancel = vi.fn();
+    updater.checkForUpdates.mockClear();
+    updater.checkForUpdates.mockResolvedValueOnce({ cancellationToken: { cancel } });
+    startUpdateChecks(60_000);
+    await vi.advanceTimersByTimeAsync(0); // the check's promise settles
+    fire("checking-for-update");
+    fire("update-available"); // downloading… then silence
+    await vi.advanceTimersByTimeAsync(STALL_MS);
+    expect(cancel).toHaveBeenCalledOnce();
+  });
+
+  // `releaseStall` writes electron-updater's private cache by NAME: a library bump that renames
+  // it would turn the release into a silent no-op. Read the installed library's source.
+  it("the cached-check field still exists in the installed electron-updater", () => {
+    const src = readFileSync(createRequire(import.meta.url).resolve("electron-updater/out/AppUpdater.js"), "utf8");
+    expect(src).toContain("this.checkForUpdatesPromise = null");
+    expect(src).toMatch(/let checkForUpdatesPromise = this\.checkForUpdatesPromise;/);
+  });
+});
+

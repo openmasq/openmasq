@@ -36,6 +36,12 @@ export function trackInstallDeferred(reason: InstallDeferReason): void {
   emit({ name: "update_install_deferred", channel: getConfig().channel, version, reason });
 }
 
+/** A check/download that hung and was released (`poll.ts` `STALL_MS`): without it, an
+ *  install that silently stopped asking the feed looks like one on the latest version. */
+export function trackCheckStalled(): void {
+  emit({ name: "update_check", channel: getConfig().channel, result: "stalled" });
+}
+
 /** A placeholder, so an event with no version still counts in the funnel. */
 const UNKNOWN = "unknown";
 
