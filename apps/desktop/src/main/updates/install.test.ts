@@ -1,5 +1,10 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+// ShipIt (Squirrel.Mac) aborts the swap with "App Still Running Error" while it sees >1
+// running instance of the bundle; the app re-spawns itself (agent browser / playwright-mcp),
+// so those children MUST be confirmed gone before the hand-off — on the restart button AND on
+// a plain quit.
+//
 // A plain quit with a build staged: the installer applies it as the app exits, but it refuses
 // the swap while the self-spawned children are alive — and a plain quit stopped them without
 // waiting. The quit is held once, the attempt recorded, the teardown AWAITED, then the quit
@@ -90,3 +95,30 @@ describe("installOnQuit — a plain quit installs only once the children are gon
     expect(beforeQuit().preventDefault).not.toHaveBeenCalled();
   });
 });
+
+describe("quitAndInstallSafely — the restart button", () => {
+  it("records the attempt, awaits the pre-install teardown, THEN quitAndInstalls", async () => {
+    const steps: string[] = [];
+    track.trackUpdateInstall.mockImplementation(() => steps.push("record-attempt"));
+    setBeforeInstall(async () => {
+      await new Promise((r) => setTimeout(r, 10));
+      steps.push("teardown");
+    });
+    updater.quitAndInstall.mockImplementation(() => steps.push("quitAndInstall"));
+    await quitAndInstallSafely();
+    // The attempt is persisted first and synchronously: it's the only trace that survives
+    // the quit, and the next launch turns it into `update_install`.
+    expect(steps).toEqual(["record-attempt", "teardown", "quitAndInstall"]);
+    track.trackUpdateInstall.mockImplementation(() => {});
+    updater.quitAndInstall.mockImplementation(() => {});
+  });
+
+  it("still quitAndInstalls if the teardown rejects (fail-safe — the user asked to update)", async () => {
+    setBeforeInstall(async () => {
+      throw new Error("child kill failed");
+    });
+    await quitAndInstallSafely();
+    expect(updater.quitAndInstall).toHaveBeenCalledOnce();
+  });
+});
+
