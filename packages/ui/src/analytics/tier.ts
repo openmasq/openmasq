@@ -65,6 +65,7 @@ export const EVENT_TIER = {
   update_install: "diagnostic",
   update_install_deferred: "diagnostic",
   update_installed: "diagnostic",
+  update_install_failed: "diagnostic",
 } as const satisfies Record<EventName, EventTier>;
 
 /** The names a `usage`-tier sink lets through — derived, never a second list. */

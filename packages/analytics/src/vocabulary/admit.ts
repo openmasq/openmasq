@@ -15,8 +15,8 @@ import { VOCABULARY, type Source } from "./index";
  * a label, `source`, and it is treated as one.
  */
 
-/** The keys the sink stamps on EVERY event (`sink.ts` `withContext`) — context, not payload. */
-export const CONTEXT_KEYS = ["env", "app_version"] as const;
+/** The keys the sink stamps on events (`sink.ts` `withContext`) — context, not payload. */
+export const CONTEXT_KEYS = ["env", "app_version", "$session_id"] as const;
 
 /** The fixed shape of an `$exception` built by `sink.ts` `captureError`. */
 export const EXCEPTION_KEYS = ["$exception_list", "scope", "code", "fatal", "name", "status"] as const;

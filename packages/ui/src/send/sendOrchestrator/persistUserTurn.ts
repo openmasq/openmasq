@@ -1,4 +1,4 @@
-import { bucket, captureEvent } from "../../analytics";
+import { bucket, captureEvent, type TrackEvent } from "../../analytics";
 import { uid } from "../../state/storePersistence";
 import { docScrubKinds, docScrubVault } from "../docScrubVault";
 import { buildSendAnalyticsEvents } from "../sendAnalytics";
@@ -120,13 +120,7 @@ function storeAttachments(ctx: TurnContext, r: RedactionSetup): void {
             : undefined,
       })
       .then(({ vault: merged, kinds, spans, redacted }) => {
-        // Mime + a coarse FILE-size bucket + redaction count only; never the name or content.
-        captureEvent({
-          name: "file_attached",
-          mime: a.mime || "application/octet-stream",
-          sizeBucket: bucket(a.data ? Math.round(a.data.length * 0.75) : (a.text?.length ?? 0)),
-          redactions: spans.length,
-        });
+        captureEvent(fileAttachedEvent(a, spans.length, redacted));
         d.patchConversation(convId, (c) => ({
           ...c,
           redactionVault: mergeVault(c.redactionVault, merged),
@@ -156,4 +150,23 @@ function storeAttachments(ctx: TurnContext, r: RedactionSetup): void {
         }),
       );
   }
+}
+
+/**
+ * Mime + a coarse FILE-size bucket + redaction count only; never the name or content.
+ * A PDF/image is not rewritten (`redacted === false`, `spans` empty): its count is the
+ * drop-time detection on the extracted text, the text that is sent — otherwise every PDF
+ * reads « 0 redactions ».
+ */
+export function fileAttachedEvent(
+  a: { mime?: string; data?: string; text?: string; redactPreview?: number },
+  spans: number,
+  redacted: boolean | undefined,
+): TrackEvent {
+  return {
+    name: "file_attached",
+    mime: a.mime || "application/octet-stream",
+    sizeBucket: bucket(a.data ? Math.round(a.data.length * 0.75) : (a.text?.length ?? 0)),
+    redactions: redacted === false ? (a.redactPreview ?? 0) : spans,
+  };
 }

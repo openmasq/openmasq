@@ -49,9 +49,10 @@ const UNKNOWN = "unknown";
 
 /**
  * The PREVIOUS session's outcome from persisted state (pure, `track.test.ts`):
- * `pendingInstall` ⇒ an install ATTEMPT; a different running version ⇒ it LANDED. An
- * attempt with no landing is the silent failure this channel exists to see. A first launch
- * (no `lastVersion`) yields nothing.
+ * `pendingInstall` ⇒ an install ATTEMPT; a different running version ⇒ it LANDED; an
+ * attempt relaunching on the SAME version ⇒ it FAILED, said explicitly so the funnel needs
+ * no anti-join to see it (on every OS — `shipit.ts` only reads the macOS log). A first
+ * launch (no `lastVersion`) yields nothing.
  */
 export function lastSessionEvents(state: {
   channel: string;
@@ -64,6 +65,8 @@ export function lastSessionEvents(state: {
   if (pendingInstall) events.push({ name: "update_install", channel, version: pendingInstall });
   if (lastVersion && lastVersion !== current)
     events.push({ name: "update_installed", channel, from: lastVersion, to: current });
+  else if (pendingInstall && lastVersion && pendingInstall !== current)
+    events.push({ name: "update_install_failed", channel, version: pendingInstall, running: current });
   return events;
 }
 

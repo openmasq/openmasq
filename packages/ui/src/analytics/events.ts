@@ -162,10 +162,11 @@ export type TrackEvent =
   // A name picked by the router was SALVAGED instead of discarded: a bare name re-prefixed
   // (`bare_name`) or a whole service expanded into its tools (`connector_pick`).
   | { name: "tool_route_salvage"; kind: "bare_name" | "connector_pick"; count: number; provider: string; model: string; loopId?: string }
-  // A router miss was RESCUED by name: empty pick + the user named a
-  // connected connector → its tools are loaded automatically. One event per connector
-  // rescued, to measure how many `tool_route_miss` kind=empty resolve on their own.
-  | { name: "tool_route_rescue"; connector: string; tools: number; provider: string; model: string; loopId?: string }
+  // Tools ADDED after routing by a deterministic rescue, one event per connector: `entry` =
+  // the web/files entry tools, `scoped` = a workflow's declared connectors, `named` = an
+  // empty pick where the user named a connected connector. Without it, `tool_route_miss`
+  // `offered: 0` and the summary's `routerOffered` disagree with no explanation.
+  | { name: "tool_route_rescue"; via: "entry" | "scoped" | "named"; connector: string; tools: number; provider: string; model: string; loopId?: string }
   // The model called a REAL tool whose schema wasn't loaded (read from the catalogue,
   // `load_tools` skipped). `bounced` = the args provably violated the schema, the
   // server wasn't touched; `dispatched` = nothing provable, the call went out.
@@ -217,8 +218,8 @@ export type TrackEvent =
   // ── auto-update (the FUNNEL — versions + channel only) ─────────────────
   // Emitted by the MAIN process (`updates/track.ts` → the `app:event` bridge).
   // `update_install` = the user accepted the restart; `update_installed` = the NEXT launch
-  // found the running version changed. The gap between the two IS the silent-failure
-  // rate, unobservable in-process. No feed URL, no installId, no device id.
+  // found the running version changed; `update_install_failed` = it relaunched on the SAME
+  // version (`running`), the failure unobservable in-process. No feed URL, no installId, no device id.
   // `found_version` = what the feed PROPOSES (≠ `app_version`, which is running).
   | { name: "update_check"; channel: string; result: "available" | "up_to_date" | "stalled"; found_version?: string }
   | { name: "update_downloaded"; channel: string; version: string }
@@ -232,7 +233,8 @@ export type TrackEvent =
       version: string;
       reason: "in_use" | "busy_main" | "busy_renderer" | "no_answer";
     }
-  | { name: "update_installed"; channel: string; from: string; to: string };
+  | { name: "update_installed"; channel: string; from: string; to: string }
+  | { name: "update_install_failed"; channel: string; version: string; running: string };
 
 export type EventName = TrackEvent["name"];
 

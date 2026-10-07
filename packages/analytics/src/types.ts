@@ -36,6 +36,11 @@ export interface SinkOptions {
   /** The distinct id source: a random local anon id (NO account/PII). Sync (desktop
    *  localStorage) or async (extension chrome.storage) — both are awaited. */
   getAnonId: () => string | Promise<string>;
+  /** The session an event belongs to, stamped as `$session_id` (PostHog derives session
+   *  count and duration from it). Asked per event NAME so a surface can leave background
+   *  events out of any session; `undefined` = no session. A random, rotating id: it links
+   *  nothing `distinct_id` does not already link. Optional — no source, no field. */
+  getSessionId?: (event: string) => string | undefined;
   /** `source` used when `configureAnalytics` isn't given one (e.g. "extension"). */
   defaultSource?: string;
   /** Diagnostic console prefix (event names/reasons only — never content). */

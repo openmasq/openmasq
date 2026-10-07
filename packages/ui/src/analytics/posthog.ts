@@ -1,5 +1,6 @@
 import { createSink } from "@openmasq/analytics";
 import { BRAND } from "@openmasq/branding";
+import { sessionIdFor } from "./session";
 
 /**
  * The desktop analytics transport = the SHARED `@openmasq/analytics` sink, wired
@@ -109,6 +110,7 @@ export function __resetAnalyticsIdForTests(): void {
 
 export const { configureAnalytics, setAnalyticsConsent, setAnalyticsSuspended, sink, captureError, fetchFlags } = createSink({
   getAnonId: anonId,
+  getSessionId: sessionIdFor,
   defaultSource: "desktop",
   logPrefix: "[analytics]",
 });
