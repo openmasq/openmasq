@@ -212,7 +212,22 @@ export type TrackEvent =
   | { name: "file_attached"; mime: string; sizeBucket: string; redactions: number }
   // ── settings / onboarding ──────────────────────────────────────────────
   | { name: "setting_changed"; key: string }
-  | { name: "onboarding"; step: string }
+  // `step` = done / skip:<screen>. The rest is the ACCESS the person left with — enum ids
+  // only, never a key: `agents` and `key_providers` are comma-joined CLI / provider ids
+  // ("claude,codex"), or "none".
+  | {
+      name: "onboarding";
+      step: string;
+      access?: "agent" | "key" | "none";
+      agents?: string;
+      key_providers?: string;
+      openrouter_oauth?: boolean;
+      tuned?: boolean;
+    }
+  // One per screen SHOWN ("1"…"3", "regler") — the funnel `onboarding` alone can't draw.
+  | { name: "onboarding_step"; step: string }
+  // A subscription CLI probed during the onboarding: is it on this machine at all?
+  | { name: "agent_detected"; agent: string; found: boolean }
   | { name: "debug_mode_toggle"; on: boolean }
   | { name: "analytics_consent"; on: boolean }
   // ── auto-update (the FUNNEL — versions + channel only) ─────────────────

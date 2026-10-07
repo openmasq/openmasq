@@ -58,6 +58,8 @@ export const EVENT_TIER = {
   file_attached: "usage",
   setting_changed: "usage",
   onboarding: "usage",
+  onboarding_step: "usage",
+  agent_detected: "usage",
   debug_mode_toggle: "diagnostic",
   analytics_consent: "usage",
   update_check: "diagnostic",
