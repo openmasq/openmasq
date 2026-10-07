@@ -1,5 +1,5 @@
 import { app } from "electron";
-import { getMessages, isLocale, resolveLocale, type Locale, type Messages } from "@openmasq/i18n";
+import { FALLBACK_LOCALE, getMessages, isLocale, resolveLocale, type Locale, type Messages } from "@openmasq/i18n";
 
 /**
  * The MAIN process's language: what its native dialogs, menus and pages say.
@@ -25,7 +25,7 @@ function systemLocale(): Locale | null {
 
 /** The language main speaks right now. */
 export function mainLocale(): Locale {
-  return chosen ?? systemLocale() ?? "en";
+  return chosen ?? systemLocale() ?? FALLBACK_LOCALE;
 }
 
 /** The catalogue in that language. Read at the moment the text is built, never cached. */

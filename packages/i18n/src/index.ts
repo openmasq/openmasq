@@ -20,6 +20,7 @@ export {
   MESSAGES,
   LOCALES,
   DEFAULT_LOCALE,
+  FALLBACK_LOCALE,
   isLocale,
   resolveLocale,
   getMessages,

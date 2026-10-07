@@ -34,7 +34,7 @@ export { I18nProvider, useT, type I18nProviderProps } from "./i18n";
 // The resolved device language (device key → host → default), usable BEFORE auth:
 // the renderer attaches it to the connection so the auth email goes out in the right language.
 export { initialLocale, reportLocale, setHostLocaleSink } from "./state/settings/locale";
-export { type Locale, LOCALES, DEFAULT_LOCALE, resolveLocale, getMessages, type Messages } from "@openmasq/i18n";
+export { type Locale, LOCALES, DEFAULT_LOCALE, FALLBACK_LOCALE, resolveLocale, getMessages, type Messages } from "@openmasq/i18n";
 export { MissingApiKeyError, CreditsExhaustedError } from "./state/errors";
 
 export { useAuth } from "./state/auth/useAuth";

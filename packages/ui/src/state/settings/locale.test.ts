@@ -54,7 +54,7 @@ describe("langue d'appareil", () => {
     expect(hostLocale()).toBe("fr");
   });
 
-  it("initialLocale : appareil d'abord, puis hôte, puis défaut", () => {
+  it("initialLocale : appareil d'abord, puis hôte, puis anglais", () => {
     // 1. the device wins
     saveDeviceLocale("en");
     vi.spyOn(globalThis, "navigator", "get").mockReturnValue({ language: "fr-FR" } as Navigator);
@@ -64,8 +64,8 @@ describe("langue d'appareil", () => {
     localStorage.clear();
     expect(initialLocale()).toBe("fr");
 
-    // 3. with neither device nor known host, the default (French)
-    vi.spyOn(globalThis, "navigator", "get").mockReturnValue({ language: "de-DE" } as Navigator);
-    expect(initialLocale()).toBe("fr");
+    // 3. with neither device nor known host, the fallback (English)
+    vi.spyOn(globalThis, "navigator", "get").mockReturnValue({ language: "it-IT" } as Navigator);
+    expect(initialLocale()).toBe("en");
   });
 });
