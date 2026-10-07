@@ -9,6 +9,7 @@ import { useT } from "../../i18n";
 import { RedactionDemo } from "../../components/RedactionDemo";
 import { KeyChoice } from "./KeyChoice";
 import { useAgentOptIns } from "../../hooks/useAgentOptIns";
+import { useOnboardingTelemetry } from "./useOnboardingTelemetry";
 import { platformAccessServed, subscriptionsSold } from "../../send/platformAccess";
 
 /* redact — first-run onboarding.
@@ -69,15 +70,17 @@ export function Onboarding({ settings, onChange, onDone, onSaveKey, onConnectOpe
     onAntigravityCliEnabled: (on) => onChange({ ...settings, antigravityCliEnabled: on }),
   });
 
+  const telemetry = useOnboardingTelemetry({ step, rules, agents, keyConfigured, onConnectOpenRouter });
+
   function finish() {
-    captureEvent({ name: "onboarding", step: "done" });
+    captureEvent({ name: "onboarding", step: "done", ...telemetry.choices() });
     onChange({ ...settings, onboarded: true });
   }
   /* « Passer » is measured TOO, and with the screen it was clicked from: without that, the
      one journey worth understanding — the one that abandons — is invisible, and
      "done" alone would suggest everyone makes it to the end. */
   function skip() {
-    captureEvent({ name: "onboarding", step: rules ? "skip:regler" : `skip:${step + 1}` });
+    captureEvent({ name: "onboarding", step: rules ? "skip:regler" : `skip:${step + 1}`, ...telemetry.choices() });
     onDone();
   }
 
@@ -183,7 +186,7 @@ export function Onboarding({ settings, onChange, onDone, onSaveKey, onConnectOpe
                   mode={settings.billingMode ?? null}
                   onMode={(m) => onChange({ ...settings, billingMode: m })}
                   onSaveKey={onSaveKey}
-                  onConnectOpenRouter={onConnectOpenRouter}
+                  onConnectOpenRouter={telemetry.connectOpenRouter}
                   keyConfigured={keyConfigured ?? new Set()}
                   agents={agents}
                 />
@@ -217,7 +220,14 @@ export function Onboarding({ settings, onChange, onDone, onSaveKey, onConnectOpe
                     {t.onboarding.ready.helpHint.tail}
                   </li>
                 </ul>
-                <button type="button" className="ob-tune" onClick={() => setRules(true)}>
+                <button
+                  type="button"
+                  className="ob-tune"
+                  onClick={() => {
+                    setRules(true);
+                    telemetry.markTuned();
+                  }}
+                >
                   {t.onboarding.ready.tuneRedaction}
                 </button>
               </>
