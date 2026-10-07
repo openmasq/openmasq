@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { McpTool } from "@openmasq/mcp";
-import { rescueNamedConnectors, rescueScopedConnectors } from "./connectorRescue";
+import { countByConnector, rescueNamedConnectors, rescueScopedConnectors } from "./connectorRescue";
 
 /** Real catalog ids on purpose (`findConnector` resolves against the real registry) —
  *  a made-up id would silently test the "unknown connector" path instead. */
@@ -70,5 +70,17 @@ describe("rescueScopedConnectors — inchangé par le déménagement", () => {
   it("scope vide → identité", () => {
     const kept = [tool("notion__t0")];
     expect(rescueScopedConnectors(kept, ALL, [], WIN).kept).toBe(kept);
+  });
+});
+
+describe("countByConnector — the telemetry shape of a list-only rescue", () => {
+  it("groups by connector, folding a multi-account prefix back to its brand", () => {
+    expect(countByConnector([tool("notion__a"), tool("notion__b"), tool("gmail--a1b2__c")])).toEqual([
+      { id: "notion", added: 2 },
+      { id: "gmail", added: 1 },
+    ]);
+  });
+  it("nothing added → nothing reported", () => {
+    expect(countByConnector([])).toEqual([]);
   });
 });

@@ -129,3 +129,45 @@ describe("le blocage est POSITIF : le doute émet", () => {
     expect(fetchFn).toHaveBeenCalledTimes(1);
   });
 });
+
+describe("`$session_id` — stamped from the injected source, read when the event HAPPENS", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  function wireSession(getSessionId?: (e: string) => string | undefined) {
+    const fetchFn = vi.fn(async (_url: string, _init: { body: string }) => ({ ok: true }));
+    vi.stubGlobal("fetch", fetchFn);
+    vi.stubGlobal("navigator", {});
+    vi.stubGlobal("location", undefined);
+    const s = createSink({ getAnonId: () => "anon-x", getSessionId, defaultSource: "test" });
+    s.configureAnalytics({ relayUrl: "https://relay.test/e" });
+    const props = () => fetchFn.mock.calls.map(([, init]) => JSON.parse(init.body).properties);
+    return { s, props };
+  }
+
+  it("stamps the id the source returns, on events and on `$exception`", async () => {
+    const { s, props } = wireSession(() => "sess-1");
+    s.setAnalyticsConsent(true);
+    s.sink({ name: "app_open", props: {} });
+    s.captureError({ scope: "db", code: "open", name: "Error" });
+    await flush();
+    expect(props().map((p) => p.$session_id)).toEqual(["sess-1", "sess-1"]);
+  });
+
+  it("an event held for consent keeps the session it happened in", async () => {
+    let id = "before";
+    const { s, props } = wireSession(() => id);
+    s.sink({ name: "app_open", props: {} });
+    id = "after";
+    s.setAnalyticsConsent(true);
+    await flush();
+    expect(props()[0].$session_id).toBe("before");
+  });
+
+  it("no source, or `undefined` for that event → no field", async () => {
+    const { s, props } = wireSession((e) => (e === "update_check" ? undefined : "x"));
+    s.setAnalyticsConsent(true);
+    s.sink({ name: "update_check", props: {} });
+    await flush();
+    expect("$session_id" in props()[0]).toBe(false);
+  });
+});

@@ -38,9 +38,16 @@ describe("lastSessionEvents", () => {
     ]);
   });
 
-  it("reports the attempt with NO landing when ShipIt silently failed", () => {
+  it("reports the attempt AND its failure when the relaunch is still on the old version", () => {
     expect(lastSessionEvents({ ...base, lastVersion: "0.3.3", pendingInstall: "0.3.4" })).toEqual([
       { name: "update_install", channel: "desktop-production", version: "0.3.4" },
+      { name: "update_install_failed", channel: "desktop-production", version: "0.3.4", running: "0.3.3" },
+    ]);
+  });
+
+  it("a staged build that IS the running version is not a failure", () => {
+    expect(lastSessionEvents({ ...base, lastVersion: "0.3.3", pendingInstall: "0.3.3" })).toEqual([
+      { name: "update_install", channel: "desktop-production", version: "0.3.3" },
     ]);
   });
 

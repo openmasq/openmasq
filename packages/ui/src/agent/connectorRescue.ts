@@ -36,16 +36,28 @@ export interface ConnectorRescueResult {
   rescued: { id: string; added: number }[];
 }
 
+/** A tool's connector id: the FIRST `__` is the boundary, a multi-account prefix
+ *  (`gmail--a1b2`) folds back to its brand. */
+function connectorOf(t: McpTool): string {
+  const i = t.name.indexOf("__");
+  return i > 0 ? connectorIdFromInstance(t.name.slice(0, i)) : (t.serverId ?? "");
+}
+
+/** Count tools per connector — the telemetry shape of a rescue that only returns a list
+ *  (`rescueEntryTools`). */
+export function countByConnector(tools: readonly McpTool[]): { id: string; added: number }[] {
+  return [...unkeptByConnector([], tools)].map(([id, list]) => ({ id, added: list.length }));
+}
+
 /** Group the not-yet-kept tools by connector id — the same derivation as the catalog:
  *  the FIRST `__` is the connector boundary, and a multi-account prefix
  *  (`gmail--a1b2`) folds back to its brand. */
-function unkeptByConnector(kept: McpTool[], all: McpTool[]): Map<string, McpTool[]> {
+function unkeptByConnector(kept: readonly McpTool[], all: readonly McpTool[]): Map<string, McpTool[]> {
   const keptNames = new Set(kept.map((t) => t.name));
   const by = new Map<string, McpTool[]>();
   for (const t of all) {
     if (keptNames.has(t.name)) continue;
-    const i = t.name.indexOf("__");
-    const id = i > 0 ? connectorIdFromInstance(t.name.slice(0, i)) : (t.serverId ?? "");
+    const id = connectorOf(t);
     if (!id) continue;
     const list = by.get(id) ?? [];
     list.push(t);

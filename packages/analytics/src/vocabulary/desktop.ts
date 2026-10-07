@@ -36,7 +36,7 @@ export const DESKTOP_EVENTS = {
   tool_error: ["server", "tool", "reason", "connector", "provider", "model", "family", "param", "attempt", "ms", "loopId"],
   tool_struggle: ["server", "tool", "kind", "provider", "model", "loopId"],
   tool_route_miss: ["kind", "offered", "available", "connector", "provider", "model", "loopId"],
-  tool_route_rescue: ["connector", "tools", "provider", "model", "loopId"],
+  tool_route_rescue: ["via", "connector", "tools", "provider", "model", "loopId"],
   tool_route_salvage: ["kind", "count", "provider", "model", "loopId"],
   tool_schema_blind: ["server", "tool", "verdict", "provider", "model", "loopId"],
   tool_result: ["connector", "tool", "ok", "ms", "provider", "model", "loopId"],
@@ -65,4 +65,5 @@ export const DESKTOP_EVENTS = {
   update_install: ["channel", "version"],
   update_install_deferred: ["channel", "version", "reason"],
   update_installed: ["channel", "from", "to"],
+  update_install_failed: ["channel", "version", "running"],
 } as const;

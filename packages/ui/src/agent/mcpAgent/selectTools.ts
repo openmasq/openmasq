@@ -2,7 +2,7 @@ import { contextWindow } from "@openmasq/llm";
 import type { McpTool } from "@openmasq/mcp";
 import { captureEvent } from "../../analytics";
 import { pushDebug, updateDebug } from "../../state/debug/debug";
-import { rescueNamedConnectors, rescueScopedConnectors } from "../connectorRescue";
+import { countByConnector, rescueNamedConnectors, rescueScopedConnectors } from "../connectorRescue";
 import { rescueEntryTools } from "../entryTools";
 import { isAbortError } from "../mcpAgentAbort";
 import { estToolTokens, fitToBudget } from "../toolCatalog";
@@ -95,13 +95,18 @@ export async function selectTools(p: McpAgentParams, all: McpTool[], loopId?: st
   }
   // The router is a model call and prunes the ENTRY tool a request can't do without;
   // the rescues are additive and bounded (`entryTools.ts`, `connectorRescue.ts`).
-  kept = rescueEntryTools(kept, all, userText);
+  // Every rescue is reported, so `routerOffered` (summary) minus `offered` (miss) is explained.
+  const rescueEvent = (via: "entry" | "scoped" | "named", r: { id: string; added: number }): void =>
+    captureEvent({ name: "tool_route_rescue", via, connector: r.id, tools: r.added, provider: p.provider, model: p.modelId, loopId });
   {
+    const before = kept.length;
+    kept = rescueEntryTools(kept, all, userText);
+    for (const r of countByConnector(kept.slice(before))) rescueEvent("entry", r);
     const s = rescueScopedConnectors(kept, all, p.scopedConnectors ?? [], win);
     const n = rescueNamedConnectors(s.kept, all, userText, win);
     kept = n.kept;
-    for (const r of n.rescued)
-      captureEvent({ name: "tool_route_rescue", connector: r.id, tools: r.added, provider: p.provider, model: p.modelId, loopId });
+    for (const r of s.rescued) rescueEvent("scoped", r);
+    for (const r of n.rescued) rescueEvent("named", r);
     const parts = [...s.rescued.map((r) => `${r.id} (+${r.added})`), ...n.rescued.map((r) => `${r.id} (+${r.added}, nommé)`)];
     if (parts.length)
       updateDebug(routePhase, { ok: true, detail: `${routeDetail} · rattrapage : ${parts.join(", ")}` });

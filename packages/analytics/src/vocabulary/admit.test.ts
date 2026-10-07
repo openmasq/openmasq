@@ -19,13 +19,13 @@ describe("admit — what the relay lets through", () => {
     const a = admit({
       source: "desktop",
       event: "send_message",
-      properties: { chars: "1-20", provider: "openai", env: "production", app_version: "0.8.1", prompt: "hello", $ip: "1.2.3.4" },
+      properties: { chars: "1-20", provider: "openai", env: "production", app_version: "0.8.1", $session_id: "s", prompt: "hello", $ip: "1.2.3.4" },
     });
     expect(a).toEqual({
       ok: true,
       source: "desktop",
       event: "send_message",
-      properties: { chars: "1-20", provider: "openai", env: "production", app_version: "0.8.1" },
+      properties: { chars: "1-20", provider: "openai", env: "production", app_version: "0.8.1", $session_id: "s" },
     });
   });
 

@@ -27,7 +27,7 @@ interface SinkConfig {
 
 /** Build the transport (relay-or-direct PostHog) with the injected id source. */
 export function createSink(options: SinkOptions): Sink {
-  const { getAnonId, defaultSource, logPrefix = "[analytics]" } = options;
+  const { getAnonId, getSessionId, defaultSource, logPrefix = "[analytics]" } = options;
   let config: SinkConfig | null = null;
   let consent = false;
   let debug = false;
@@ -105,10 +105,11 @@ export function createSink(options: SinkOptions): Sink {
 
   /** Stamp EVERY event with the build's env + version (non-sensitive context), so PostHog
    *  can slice by environment/version — the dev/staging/prod split the user asked for. */
-  const withContext = (props: Record<string, unknown>): Record<string, unknown> => {
+  const withContext = (props: Record<string, unknown>, sessionId?: string): Record<string, unknown> => {
     const out: Record<string, unknown> = { ...props };
     if (config?.env) out.env = config.env;
     if (config?.appVersion) out.app_version = config.appVersion;
+    if (sessionId) out.$session_id = sessionId;
     return out;
   };
 
@@ -163,6 +164,8 @@ export function createSink(options: SinkOptions): Sink {
   };
 
   const sink = (event: CleanEvent): void => {
+    // Read NOW, not at send: an event held for consent belongs to the session it happened in.
+    const sessionId = getSessionId?.(event.name);
     const send = (): void => {
       if (suspended) return log("skip", event.name, "suspendu (lancement automatisé)");
       if (!consent) return log("skip", event.name, "consent off");
@@ -182,7 +185,7 @@ export function createSink(options: SinkOptions): Sink {
           // l'enveloppe, donc le `distinct_id` reste l'id d'installation anonyme.
           post(
             cfg.relayUrl,
-            { event: event.name, distinct_id, properties: withContext(event.props), source: cfg.source, ts: Date.now() },
+            { event: event.name, distinct_id, properties: withContext(event.props, sessionId), source: cfg.source, ts: Date.now() },
             event.name,
             await relayAuthHeaders(),
           );
@@ -194,7 +197,7 @@ export function createSink(options: SinkOptions): Sink {
               api_key: cfg.key,
               event: event.name,
               distinct_id,
-              properties: { ...withContext(event.props), $process_person_profile: false },
+              properties: { ...withContext(event.props, sessionId), $process_person_profile: false },
             },
             event.name,
           );
@@ -217,6 +220,7 @@ export function createSink(options: SinkOptions): Sink {
     // Same gate as `sink` — but its own gated POST so it can send the real
     // `$exception_list` ARRAY (CleanEvent props forbid objects). Anonymised: only
     // bounded scope/code/name/status + a SCRUBBED message.
+    const sessionId = getSessionId?.("$exception");
     const send = (): void => {
     if (suspended) return log("skip", "$exception", "suspendu (lancement automatisé)");
     if (!consent) return log("skip", "$exception", "consent off");
@@ -247,9 +251,9 @@ export function createSink(options: SinkOptions): Sink {
     if (!cfg) return;
     void Promise.resolve(getAnonId()).then(async (distinct_id) => {
       if (cfg.relayUrl) {
-        post(cfg.relayUrl, { event: "$exception", distinct_id, properties: withContext(properties), source: cfg.source, ts: Date.now() }, "$exception", await relayAuthHeaders());
+        post(cfg.relayUrl, { event: "$exception", distinct_id, properties: withContext(properties, sessionId), source: cfg.source, ts: Date.now() }, "$exception", await relayAuthHeaders());
       } else {
-        post(`${cfg.apiHost}/capture/`, { api_key: cfg.key, event: "$exception", distinct_id, properties: { ...withContext(properties), $process_person_profile: false } }, "$exception");
+        post(`${cfg.apiHost}/capture/`, { api_key: cfg.key, event: "$exception", distinct_id, properties: { ...withContext(properties, sessionId), $process_person_profile: false } }, "$exception");
       }
     });
     };
