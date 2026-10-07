@@ -4,8 +4,7 @@ import { join } from "node:path";
 import { helperSpawnArgs } from "../../appEntry";
 import { startCdpBroker, probeCdpPipe, type CdpBroker } from "./cdpBroker";
 import { showHaloAt, hideHalo, destroyHalo } from "./haloOverlay";
-import { reportMainError } from "../../runtime/errorReport";
-import { isAppQuitting } from "../../runtime/quitState";
+import { reportAgentExit } from "./childExit";
 
 // ── Parent-side manager for the isolated agent-browser process ───────────────
 // Spawns the SAME app binary in agent mode (OPENMASQ_AGENT_BROWSER=1 → runAgentBrowserMain),
@@ -261,10 +260,8 @@ function spawnChildPipe(): Promise<string> {
     proc.stdout?.on("data", onData);
     proc.on("exit", (code) => {
       if (child === proc) {
-        // A death MID-SESSION is reported by name.
-        if (settled && !isAppQuitting()) {
-          reportMainError("browser", `agent-exit-${code ?? "?"}`, new Error(`agent browser (pipe) mort (code ${code})`));
-        }
+        // A crash MID-SESSION is reported by name (a clean exit is not: `childExit.ts`).
+        if (settled) reportAgentExit("pipe", code);
         child = null;
         endpoint = null;
         starting = null;
@@ -307,10 +304,8 @@ function spawnChildPort(): Promise<string> {
     proc.stdout?.on("data", onData);
     proc.on("exit", (code) => {
       if (child === proc) {
-        // Same rule as the pipe transport: a death mid-session gets reported.
-        if (endpoint && !isAppQuitting()) {
-          reportMainError("browser", `agent-exit-${code ?? "?"}`, new Error(`agent browser (port) mort (code ${code})`));
-        }
+        // Same rule as the pipe transport.
+        if (endpoint) reportAgentExit("port", code);
         child = null;
         endpoint = null;
         starting = null;
