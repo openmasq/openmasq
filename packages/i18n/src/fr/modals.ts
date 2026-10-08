@@ -46,6 +46,9 @@ export const modals = {
     restartSlow:
       "L'app n'a pas encore redémarré. Quittez-la : la mise à jour s'installe au prochain lancement.",
     retry: "Réessayer",
+    toastTitle: "Mise à jour prête",
+    toastMessage: (brand, version) => `${brand} ${version} s'installera au prochain redémarrage.`,
+    toastAction: "Voir",
   },
 
   mcpAuth: {

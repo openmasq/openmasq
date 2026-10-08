@@ -11,12 +11,12 @@ import { useUpdateReady, type UpdateReadyApi } from "./useUpdateReady";
 /**
  * THE ANNOUNCEMENT OF A DOWNLOADED UPDATE — what the system used to do, worse.
  *
- * Three things are worth pinning, because each one, if missed, shows up as an
- * app defect rather than as an incorrect line of code: it only opens on
- * `downloaded` (never on « disponible » — the version isn't there yet); it only
- * opens ONCE per version, the updater re-signalling on every check; and
- * closing it doesn't erase the update, or else the rail's button would have nothing to
- * reopen.
+ * Four things are worth pinning, because each one, if missed, shows up as an
+ * app defect rather than as an incorrect line of code: the announcement is a TOAST and the
+ * modal never opens on its own (a download ends mid-reply, mid-sentence); it only comes on
+ * `downloaded` (never on « disponible » — the version isn't there yet); only ONCE per
+ * version, the updater re-signalling on every check; and the toast passing doesn't erase
+ * the update, or else the rail's button would have nothing to open.
  */
 
 const NOTE = {
@@ -67,12 +67,12 @@ beforeEach(() => {
 });
 
 describe("useUpdateReady", () => {
-  it("s'ouvre sur « téléchargée », avec la note publiée de CETTE version", async () => {
+  it("s'annonce par un toast sur « téléchargée », avec la note publiée de CETTE version", async () => {
     const h = fakeHost();
     const { ui, out } = await render(h.host);
 
     await act(async () => h.push({ state: "downloaded", version: "0.5.1", sizeBytes: 42 }));
-    expect(out.api!.open).toBe(true);
+    expect(out.api!.toast).toBe(true);
     expect(out.api!.version).toBe("0.5.1");
     expect(out.api!.note?.title).toBe("Une version de plus");
 
@@ -81,28 +81,45 @@ describe("useUpdateReady", () => {
 
   /** ⚠️ « Disponible » means « we saw it on the server », not « we have it ». Announcing
    *  it there would offer a restart that would install nothing. */
-  it("ne s'ouvre PAS tant que la mise à jour n'est que disponible ou en cours", async () => {
+  /** ⚠️ The modal grabs focus: popping it at a moment nobody chose would cut a sentence
+   *  being typed. It opens on a gesture only — the toast's action, the rail's button. */
+  it("la fenêtre ne s'ouvre JAMAIS d'elle-même — seulement sur un geste", async () => {
+    const h = fakeHost();
+    const { ui, out } = await render(h.host);
+
+    await act(async () => h.push({ state: "downloaded", version: "0.5.1" }));
+    expect(out.api!.open).toBe(false);
+
+    await act(async () => out.api!.setOpen(true));
+    expect(out.api!.open).toBe(true);
+    expect(out.api!.toast).toBe(false); // the modal says it all: no toast beside it
+
+    await ui.unmount();
+  });
+
+  it("ne s'annonce PAS tant que la mise à jour n'est que disponible ou en cours", async () => {
     const h = fakeHost();
     const { ui, out } = await render(h.host);
 
     await act(async () => h.push({ state: "available", version: "0.5.1" }));
     await act(async () => h.push({ state: "downloading", version: "0.5.1", percent: 80 }));
+    expect(out.api!.toast).toBe(false);
     expect(out.api!.open).toBe(false);
     expect(out.api!.version).toBeNull();
 
     await ui.unmount();
   });
 
-  it("une seule ouverture automatique par version — l'updater re-signale à chaque vérification", async () => {
+  it("un seul toast par version — l'updater re-signale à chaque vérification", async () => {
     const h = fakeHost();
     const { ui, out } = await render(h.host);
 
     await act(async () => h.push({ state: "downloaded", version: "0.5.1" }));
-    await act(async () => out.api!.setOpen(false));
-    expect(out.api!.open).toBe(false);
+    await act(async () => out.api!.setToast(false));
+    expect(out.api!.toast).toBe(false);
 
     await act(async () => h.push({ state: "downloaded", version: "0.5.1" }));
-    expect(out.api!.open).toBe(false); // doesn't reopen over what we're writing
+    expect(out.api!.toast).toBe(false); // not announced twice
     // …but the update isn't lost: that's what the rail's button reopens.
     expect(out.api!.version).toBe("0.5.1");
 
@@ -114,9 +131,9 @@ describe("useUpdateReady", () => {
     const { ui, out } = await render(h.host);
 
     await act(async () => h.push({ state: "downloaded", version: "0.5.1" }));
-    await act(async () => out.api!.setOpen(false));
+    await act(async () => out.api!.setToast(false));
     await act(async () => h.push({ state: "downloaded", version: "0.5.2" }));
-    expect(out.api!.open).toBe(true);
+    expect(out.api!.toast).toBe(true);
     expect(out.api!.version).toBe("0.5.2");
 
     await ui.unmount();
@@ -128,7 +145,7 @@ describe("useUpdateReady", () => {
     const { ui, out } = await render(h.host);
 
     await act(async () => h.push({ state: "downloaded", version: "0.9.9" }));
-    expect(out.api!.open).toBe(true);
+    expect(out.api!.toast).toBe(true);
     expect(out.api!.note).toBeUndefined();
 
     await ui.unmount();
@@ -147,6 +164,7 @@ describe("useUpdateReady", () => {
 
   it("sans plateforme de mise à jour (aperçu, mobile), rien ne s'arme", async () => {
     const { ui, out } = await render({});
+    expect(out.api!.toast).toBe(false);
     expect(out.api!.open).toBe(false);
     expect(out.api!.version).toBeNull();
     await ui.unmount();

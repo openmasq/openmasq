@@ -6,12 +6,12 @@ import { mainMessages } from "../i18n";
 /**
  * The SYSTEM banner « a version is ready » — for the user who is NOT looking at the app.
  *
- * The renderer announces the downloaded version itself (`useUpdateReady`, with its note);
+ * The renderer announces the downloaded version itself (`useUpdateReady`, a toast);
  * a banner on top of that, while the window is in front, would say the same thing twice.
  * So it fires only when the window is not focused (minimized, hidden, another app in
  * front), and once per version: the updater re-signals `update-downloaded` on later checks.
  *
- * The click brings the window back, where the announcement is already open. It installs
+ * The click brings the window back, where the right rail's button waits. It installs
  * nothing: installing stays an act inside the app. Nothing here comes from the renderer.
  */
 const notified = new Set<string>();

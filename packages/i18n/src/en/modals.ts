@@ -44,6 +44,10 @@ export const modals = {
     restartingHint: "The app restarts in a few seconds.",
     restartSlow: "The app hasn't restarted yet. Quit it, and the update installs the next time you open it.",
     retry: "Try again",
+    toastTitle: "Update ready",
+    toastMessage: (brand, version) =>
+      `${brand} ${version} installs the next time the app restarts.`,
+    toastAction: "View",
   },
 
   mcpAuth: {
