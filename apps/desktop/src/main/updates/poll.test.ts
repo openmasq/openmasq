@@ -23,6 +23,7 @@ import { createRequire } from "node:module";
 import {
   CHECK_INTERVAL_MS,
   STALL_MS,
+  isStaged,
   isStalled,
   ownDownloadPromise,
   replacesStaged,
@@ -186,6 +187,29 @@ describe("a staged build keeps being checked against the feed", () => {
     fire("checking-for-update");
     fire("update-available", "0.15.0");
     expect(updater.downloadUpdate).toHaveBeenCalledOnce(); // 0.15.0 is now the staged one
+  });
+});
+
+// A re-check finding the staged build announced « available » to the UI, which then sat on
+// « downloading » forever: nothing downloads, so no `update-downloaded` follows (0.15.2).
+describe("isStaged — a re-check announcing the staged build is not a new download", () => {
+  it("nothing staged: every announced build is new", () => {
+    start();
+    expect(isStaged("0.15.2")).toBe(false);
+  });
+
+  it("the staged version is recognised, a newer one is not", () => {
+    start();
+    fire("update-downloaded", "0.15.2");
+    expect(isStaged("0.15.2")).toBe(true);
+    expect(isStaged("0.15.3")).toBe(false);
+  });
+
+  it("a staged build that failed to apply is forgotten", () => {
+    start();
+    fire("update-downloaded", "0.15.2");
+    fire("error");
+    expect(isStaged("0.15.2")).toBe(false);
   });
 });
 

@@ -51,6 +51,11 @@ export function isStalled(s: { busy: boolean; lastAlive: number }, now: number):
 }
 
 const state = { busy: false, lastAlive: 0, staged: null as string | null };
+
+/** Is `found` the build already staged? Then a re-check announcing it is NOT a new download:
+ *  the status stream must keep saying « ready to install », not « downloading » forever. */
+export const isStaged = (found: string | undefined): boolean =>
+  state.staged !== null && !replacesStaged(found, state.staged);
 let timer: ReturnType<typeof setInterval> | null = null;
 let intervalMs = CHECK_INTERVAL_MS;
 /** Cancels the download the last check started (its CancellationToken), if any. */
