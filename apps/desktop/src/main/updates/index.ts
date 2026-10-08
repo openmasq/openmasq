@@ -24,7 +24,7 @@ import { ensureUpdateConfigFile } from "./appUpdateConfig";
 import { wireDownloaded } from "./downloaded";
 import { installOnQuit, quitAndInstallSafely, setBeforeInstall } from "./install";
 import { startAutoInstall } from "./autoInstall";
-import { ownDownloadPromise, startUpdateChecks } from "./poll";
+import { isStaged, ownDownloadPromise, startUpdateChecks } from "./poll";
 import { detectAndReportShipItFailure } from "./shipit";
 import { setupUpdateTracking, trackCheckStalled, type ReportEvent } from "./track";
 
@@ -49,6 +49,13 @@ function wireEvents(getWin: () => BrowserWindow | null): void {
     send({ state: "checking" });
   });
   autoUpdater.on("update-available", (info) => {
+    // A re-check finding the STAGED build downloads nothing (`poll.ts`): « available » would
+    // leave the UI on « downloading » with no `update-downloaded` ever following.
+    if (isStaged(info?.version)) {
+      logUpdate(`v${info?.version} already staged — ready to install`);
+      send({ state: "downloaded", version: info?.version, sizeBytes: totalUpdateSize(info) });
+      return;
+    }
     logUpdate(`update available: v${info?.version} (${fmtGB(totalUpdateSize(info))})`);
     lastPct = -1;
     send({ state: "available", version: info?.version, sizeBytes: totalUpdateSize(info) });
