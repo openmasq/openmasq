@@ -1,6 +1,6 @@
 {
   "apps/desktop/src/main/mcp/browser/agentMain.ts": 572,
-  "apps/desktop/src/main/mcp/browser/process.ts": 470,
+  "apps/desktop/src/main/mcp/browser/process.ts": 465,
   "apps/desktop/src/main/python/sandbox.ts": 450,
   "packages/ui/src/components/message/MessageBubble.tsx": 437,
   "apps/desktop/src/renderer/src/auth.ts": 437,
