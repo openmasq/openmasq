@@ -9,7 +9,7 @@ import type { TrackEvent } from "@openmasq/ui";
 const { handlers, updateConfig, config } = vi.hoisted(() => ({
   handlers: new Map<string, (info: unknown) => void>(),
   updateConfig: vi.fn(() => ({})),
-  config: { channel: "desktop-production" },
+  config: { channel: "desktop-production" } as { channel: string; lastVersion?: string },
 }));
 vi.mock("electron", () => ({ app: { getVersion: () => "0.3.3" } }));
 vi.mock("electron-updater", () => ({
@@ -18,7 +18,13 @@ vi.mock("electron-updater", () => ({
 vi.mock("./config", () => ({ getConfig: () => config, updateConfig }));
 vi.mock("./log", () => ({ logUpdate: () => {} }));
 
-import { lastSessionEvents, setupUpdateTracking, trackInstallDeferred, trackUpdateInstall } from "./track";
+import {
+  lastSessionEvents,
+  setupUpdateTracking,
+  takeJustUpdated,
+  trackInstallDeferred,
+  trackUpdateInstall,
+} from "./track";
 
 const base = { channel: "desktop-production", current: "0.3.3" };
 
@@ -108,5 +114,30 @@ describe("one download, one event — whatever the periodic check re-emits", () 
       { name: "update_install_deferred", channel: "desktop-production", version: "0.9.3", reason: "in_use" },
       { name: "update_install_deferred", channel: "desktop-production", version: "0.9.3", reason: "busy_renderer" },
     ]);
+  });
+});
+
+// The renderer's « what's new » reads the landing ONCE: a window recreated in the same
+// session (macOS: closed, reopened from the Dock) must not announce the version again.
+describe("takeJustUpdated", () => {
+  it("hands the version this launch landed on, once", () => {
+    config.lastVersion = "0.3.2";
+    try {
+      setupUpdateTracking(() => {});
+      expect(takeJustUpdated()).toEqual({ from: "0.3.2", to: "0.3.3" });
+      expect(takeJustUpdated()).toBeNull();
+    } finally {
+      delete config.lastVersion;
+    }
+  });
+
+  it("nothing on a launch that did not change version", () => {
+    config.lastVersion = "0.3.3";
+    try {
+      setupUpdateTracking(() => {});
+      expect(takeJustUpdated()).toBeNull();
+    } finally {
+      delete config.lastVersion;
+    }
   });
 });

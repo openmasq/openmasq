@@ -107,6 +107,9 @@ export interface UpdatesHost {
   pin(version: string): Promise<{ ok: boolean; reason?: string }>;
   setChannel(channel: string): Promise<{ ok: boolean; channel: string }>;
   install(): Promise<void>;
+  /** The update THIS launch landed on (`{ from, to }`), handed once — else `null`. Optional:
+   *  absent (un-restarted preload), no « what's new » is shown. */
+  justUpdated?(): Promise<{ from: string; to: string } | null>;
   /** Privileged cross-environment release list (staging + production). Absent on
    *  an un-restarted preload; present but `privileged:false` when the device
    *  lacks the permission. When privileged, the picker offers switching envs. */

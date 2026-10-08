@@ -15,3 +15,4 @@ export { McpToolsModal } from "./McpToolsModal";
 export { ImportSkillsModal, type SkillImportChoice } from "./ImportSkillsModal";
 export { McpAuthChoiceModal } from "./McpAuthChoiceModal";
 export { UpdateReadyModal } from "./UpdateReadyModal";
+export { WhatsNewModal } from "./WhatsNewModal";

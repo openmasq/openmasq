@@ -18,6 +18,7 @@ import { useRightPane, type RightPane } from "./hooks/useRightPane";
 import { useSearchPalette } from "./hooks/useSearchPalette";
 import { useFeedback } from "./hooks/useFeedback";
 import { useUpdateReady, type UpdateReadyApi } from "./hooks/useUpdateReady";
+import { useWhatsNew, type WhatsNewApi } from "./hooks/useWhatsNew";
 import { useSplitRatio } from "./hooks/useSplitRatio";
 import type { WorkspaceLayout } from "../../workspace/layout";
 
@@ -82,6 +83,8 @@ export type ShellApi = {
    *  (`shell/hooks/useUpdateReady.ts`). Shell-level for the same reason as the guide:
    *  it arrives regardless of the screen, and the right rail must be able to reopen it. */
   update: UpdateReadyApi;
+  /** The version this launch updated to, with its note (`shell/hooks/useWhatsNew.ts`). */
+  whatsNew: WhatsNewApi;
   mcpReconnect: ReturnType<typeof useMcpReconnect>;
   /** The tiling workspace layout — a pane resolves its own tab strip against it. */
   layout: WorkspaceLayout;
@@ -171,6 +174,7 @@ export function useShell({
   const [guideOpen, setGuideOpen] = useState(false);
   const [guideChapter, setGuideChapter] = useState<string | undefined>(undefined);
   const update = useUpdateReady();
+  const whatsNew = useWhatsNew();
 
   const auth = useAuth();
   // Minimum on-screen time for the AppIntro shimmer, so it PLAYS a visible beat rather
@@ -229,6 +233,7 @@ export function useShell({
       },
     },
     update,
+    whatsNew,
     mcpReconnect,
     layout,
     deep,

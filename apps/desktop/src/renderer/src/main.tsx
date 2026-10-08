@@ -2,6 +2,7 @@ import React from "react";
 import ReactDOM from "react-dom/client";
 import { fileSourceSlots } from "./host/fileSources";
 import { envSlot } from "./host/envSlot";
+import { updatesSlot } from "./host/updatesSlot";
 import { HostProvider, applyPersistedTheme, setHostLocaleSink, type Host } from "@openmasq/ui";
 import "@openmasq/ui/styles.css";
 import { App } from "./App";
@@ -26,7 +27,6 @@ import {
   BILLING_SOLD,
   GATEWAY_CONFIGURED,
   RELEASE_NOTES_URL,
-  UPDATES_CONFIGURED,
   REDACT_FN_URL,
 } from "./appEnv";
 
@@ -78,35 +78,7 @@ const host: Host = {
         listLocal: (u) => window.openmasq.models.listLocal?.(u) ?? Promise.resolve([]),
       }
     : undefined,
-  // Auto-update controls. Two conditions: a feed provided at build time (otherwise
-  // there is NOTHING to query) and an up-to-date preload.
-  updates:
-    UPDATES_CONFIGURED && window.openmasq.updates
-      ? {
-          current: () => window.openmasq.updates.current(),
-          revealLog: window.openmasq.updates.revealLog
-            ? () => window.openmasq.updates.revealLog!()
-            : undefined,
-          list: () => window.openmasq.updates.list(),
-          permissions: () => window.openmasq.updates.permissions(),
-          check: () => window.openmasq.updates.check(),
-          pin: (version) => window.openmasq.updates.pin(version),
-          setChannel: (channel) => window.openmasq.updates.setChannel(channel),
-          listAll: () => window.openmasq.updates.listAll(),
-          switchTo: (arg) => window.openmasq.updates.switchTo(arg),
-          install: () => window.openmasq.updates.install(),
-          onStatus: (cb) => window.openmasq.updates.onStatus(cb),
-          // Absent ⇒ "never auto-install" (main fail-closes on silence).
-          ...(window.openmasq.updates.onQuiescenceAsk
-            ? {
-                onQuiescenceAsk: (cb: (askId: string) => void) =>
-                  window.openmasq.updates.onQuiescenceAsk(cb),
-                replyQuiescence: (askId: string, busy: boolean) =>
-                  window.openmasq.updates.replyQuiescence(askId, busy),
-              }
-            : {}),
-        }
-      : undefined,
+  updates: updatesSlot(),
   env: envSlot(),
   db: {
     configured: () => window.openmasq.db.configured(),

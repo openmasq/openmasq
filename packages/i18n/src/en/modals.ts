@@ -34,6 +34,11 @@ export const modals = {
     retry: "Retry",
   },
 
+  whatsNew: {
+    eyebrow: "NEW VERSION INSTALLED",
+    close: "Continue",
+  },
+
   updateReady: {
     eyebrow: "UPDATE READY",
     version: (version) => `Version ${version}`,

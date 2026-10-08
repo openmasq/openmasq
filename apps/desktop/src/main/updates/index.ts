@@ -26,7 +26,7 @@ import { installOnQuit, quitAndInstallSafely, setBeforeInstall } from "./install
 import { startAutoInstall } from "./autoInstall";
 import { isStaged, ownDownloadPromise, startUpdateChecks } from "./poll";
 import { detectAndReportShipItFailure } from "./shipit";
-import { setupUpdateTracking, trackCheckStalled, type ReportEvent } from "./track";
+import { setupUpdateTracking, takeJustUpdated, trackCheckStalled, type ReportEvent } from "./track";
 
 /** Injected error reporter, so this module never imports the telemetry bridge. */
 type ReportError = (code: string, err: unknown) => void;
@@ -99,6 +99,9 @@ function registerUpdateIpc(): void {
     channel: getConfig().channel,
     installId: getConfig().installId,
   }));
+
+  // The version this launch updated to, once (`track.ts`): the renderer's « what's new ».
+  handle("updates:just-updated", [], () => takeJustUpdated());
 
   // ⛔ No `updates:set-auto`: an IPC channel that can turn updates off is a door to turn
   // them off from a compromised renderer.

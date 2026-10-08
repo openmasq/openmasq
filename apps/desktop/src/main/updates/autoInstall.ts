@@ -17,6 +17,9 @@ const { autoUpdater } = electronUpdater;
 const AUTO_POLL_MS = 60_000;
 /** The user is AWAY: no system input for 10 min (powerMonitor). */
 export const AUTO_IDLE_AWAY_S = 10 * 60;
+/** In FRONT but nobody there: no system input for 30 min. Longer than the away threshold, so
+ *  someone reading a long reply in front of the app is not restarted under their eyes. */
+export const AUTO_FOCUSED_AWAY_S = 30 * 60;
 /** Blurred without interruption for 30 min. Longer than the away threshold: the relaunch
  *  steals the foreground from a user working ALONGSIDE. */
 export const AUTO_BLURRED_MS = 30 * 60_000;
@@ -38,22 +41,29 @@ export interface AutoInstallSignals {
   rendererBusy: boolean | null;
 }
 
-/** The decision, pure (tested): background for a while OR user away — and nothing in
- *  flight anywhere. Every condition that's in doubt refuses. */
-export function shouldAutoInstall(s: AutoInstallSignals): boolean {
-  if (!s.staged || s.focused || s.mainBusy) return false;
-  if (s.rendererBusy !== false) return false;
+/** Unused long enough to restart: in front, nobody at the machine for a long while; behind,
+ *  the user away OR the app left in the background for a while. Pure. */
+function unusedLongEnough(s: AutoInstallSignals): boolean {
+  if (s.focused) return s.idleS >= AUTO_FOCUSED_AWAY_S;
   return s.idleS >= AUTO_IDLE_AWAY_S || s.blurredMs >= AUTO_BLURRED_MS;
+}
+
+/** The decision, pure (tested): the app unused long enough — and nothing in flight
+ *  anywhere. Every condition that's in doubt refuses. */
+export function shouldAutoInstall(s: AutoInstallSignals): boolean {
+  if (!s.staged || s.mainBusy) return false;
+  if (s.rendererBusy !== false) return false;
+  return unusedLongEnough(s);
 }
 
 /** Why a staged build is held back, or `null` when nothing BLOCKS it (the app is simply not
  *  idle long enough yet — ordinary waiting, not worth a report). Pure, tested. */
 export function deferReason(s: AutoInstallSignals): InstallDeferReason | null {
   if (!s.staged) return null;
-  if (s.focused) return "in_use";
+  if (s.focused && s.idleS < AUTO_FOCUSED_AWAY_S) return "in_use";
   if (s.mainBusy) return "busy_main";
   if (s.rendererBusy === true) return "busy_renderer";
-  if (s.rendererBusy === null && (s.idleS >= AUTO_IDLE_AWAY_S || s.blurredMs >= AUTO_BLURRED_MS)) return "no_answer";
+  if (s.rendererBusy === null && unusedLongEnough(s)) return "no_answer";
   return null;
 }
 
@@ -113,17 +123,14 @@ export function startAutoInstall(
     const win = getWin();
     const windowless = !win || win.isDestroyed();
     const focused = !windowless && BrowserWindow.getFocusedWindow() != null;
-    if (focused) {
-      blurredSince = null;
-      trackInstallDeferred("in_use");
-      return;
-    }
-    if (blurredSince == null) blurredSince = Date.now();
+    // In front, the blur clock restarts; the idle clock alone can still clear it.
+    if (focused) blurredSince = null;
+    else if (blurredSince == null) blurredSince = Date.now();
     const signals: AutoInstallSignals = {
       staged,
       focused,
       idleS: powerMonitor.getSystemIdleTime(),
-      blurredMs: Date.now() - blurredSince,
+      blurredMs: blurredSince == null ? 0 : Date.now() - blurredSince,
       mainBusy: probes.mainBusy(),
       // Asked LAST, once everything else is met.
       rendererBusy: null,
@@ -141,7 +148,7 @@ export function startAutoInstall(
     }
     installing = true;
     logUpdate(
-      `auto-install: app inactive (idle ${signals.idleS}s, floutée ${Math.round(signals.blurredMs / 60000)}min) — redémarrage pour installer`,
+      `auto-install: app inactive (${focused ? "au premier plan, " : ""}idle ${signals.idleS}s, floutée ${Math.round(signals.blurredMs / 60000)}min) — redémarrage pour installer`,
     );
     await quitAndInstallSafely();
   };

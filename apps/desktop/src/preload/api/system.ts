@@ -162,6 +162,8 @@ export const updates = {
   switchTo: (arg: { channel: string; version: string }): Promise<{ ok: boolean; reason?: string }> =>
     ipcRenderer.invoke("updates:switch", arg),
   install: (): Promise<void> => ipcRenderer.invoke("updates:install"),
+  justUpdated: (): Promise<{ from: string; to: string } | null> =>
+    ipcRenderer.invoke("updates:just-updated"),
   onStatus: (cb: (s: UpdateStatus) => void): (() => void) => {
     const handler = (_e: IpcRendererEvent, s: UpdateStatus) => cb(s);
     ipcRenderer.on("updates:status", handler);

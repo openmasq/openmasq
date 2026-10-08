@@ -35,6 +35,12 @@ export interface ModalsMessages {
     retry: string;
   };
 
+  /** After an update LANDED: what the running version brings (shown once, on its note). */
+  whatsNew: {
+    eyebrow: string;
+    close: string;
+  };
+
   /** The downloaded update, with its release note when one is published. */
   updateReady: {
     eyebrow: string;

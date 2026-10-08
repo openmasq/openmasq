@@ -70,12 +70,25 @@ export function lastSessionEvents(state: {
   return events;
 }
 
+/** The update this launch LANDED on, handed ONCE to the renderer (`takeJustUpdated`) so it
+ *  shows what the version brings. Consumed on read: a recreated window does not re-announce. */
+let justUpdated: { from: string; to: string } | null = null;
+
+export function takeJustUpdated(): { from: string; to: string } | null {
+  const j = justUpdated;
+  justUpdated = null;
+  return j;
+}
+
 /** Report the previous session's install attempt / landing, then re-baseline the file. */
 function flushLastSession(): void {
   const { channel, lastVersion, pendingInstall } = getConfig();
   const current = app.getVersion();
   for (const e of lastSessionEvents({ channel, lastVersion, pendingInstall, current })) {
-    if (e.name === "update_installed") logUpdate(`update applied: v${e.from} → v${e.to}`);
+    if (e.name === "update_installed") {
+      logUpdate(`update applied: v${e.from} → v${e.to}`);
+      justUpdated = { from: e.from, to: e.to };
+    }
     emit(e);
   }
   // Always re-baseline, so a consumed `pendingInstall` is never re-reported.

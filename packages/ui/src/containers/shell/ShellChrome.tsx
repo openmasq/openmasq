@@ -10,7 +10,7 @@ import { FeedbackOpenProvider } from "../providers/feedbackOpen";
 import { useOpenConnector } from "../providers/connectors";
 import { needsAccessNotice } from "../../state/auth/accessNotice";
 import { hasEstablishedAccount } from "../../state/auth/establishedAccount";
-import { FeedbackModal, GuideModal, SearchModal, UpdateReadyModal } from "../modals";
+import { FeedbackModal, GuideModal, SearchModal, UpdateReadyModal, WhatsNewModal } from "../modals";
 import { StatusChip } from "../../components/feedback/StatusChip";
 import { UpdateReadyToast } from "./UpdateReadyToast";
 import { pickShellNotice, type ShellNoticeKind } from "./shellNotice";
@@ -212,6 +212,11 @@ export function ShellChrome({
                       onClose={() => shell.update.setOpen(false)}
                       onInstall={shell.update.install}
                     />
+                  )}
+                </AnimatePresence>
+                <AnimatePresence>
+                  {!overlay && shell.whatsNew.version && shell.whatsNew.note && (
+                    <WhatsNewModal version={shell.whatsNew.version} note={shell.whatsNew.note} onClose={shell.whatsNew.close} />
                   )}
                 </AnimatePresence>
                 <AnimatePresence>

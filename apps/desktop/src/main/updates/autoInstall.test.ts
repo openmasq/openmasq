@@ -10,6 +10,7 @@ vi.mock("./track", () => ({ trackInstallDeferred: () => {} }));
 
 import {
   AUTO_BLURRED_MS,
+  AUTO_FOCUSED_AWAY_S,
   AUTO_IDLE_AWAY_S,
   deferReason,
   rendererQuiescence,
@@ -38,9 +39,24 @@ describe("shouldAutoInstall — le redémarrage automatique refuse au moindre do
     expect(shouldAutoInstall(quiet({ idleS: 0, blurredMs: 5 * 60_000 }))).toBe(false);
   });
 
-  it("jamais sans build posé, jamais au premier plan", () => {
+  it("jamais sans build posé", () => {
     expect(shouldAutoInstall(quiet({ staged: false }))).toBe(false);
-    expect(shouldAutoInstall(quiet({ focused: true }))).toBe(false);
+  });
+
+  // An app left IN FRONT on an unattended machine never installed: « unused » is the
+  // person's absence, not the window's position. In front, the bar is higher.
+  it("au premier plan : seulement quand personne n'est là depuis longtemps", () => {
+    expect(shouldAutoInstall(quiet({ focused: true }))).toBe(false); // away 10 min: not enough in front
+    expect(shouldAutoInstall(quiet({ focused: true, idleS: AUTO_FOCUSED_AWAY_S - 1 }))).toBe(false);
+    expect(shouldAutoInstall(quiet({ focused: true, idleS: AUTO_FOCUSED_AWAY_S }))).toBe(true);
+    expect(AUTO_FOCUSED_AWAY_S).toBeGreaterThan(AUTO_IDLE_AWAY_S);
+  });
+
+  it("au premier plan et absent : un brouillon, un tour en vol ou un renderer muet refusent encore", () => {
+    const away = { focused: true, idleS: AUTO_FOCUSED_AWAY_S };
+    expect(shouldAutoInstall(quiet({ ...away, rendererBusy: true }))).toBe(false);
+    expect(shouldAutoInstall(quiet({ ...away, rendererBusy: null }))).toBe(false);
+    expect(shouldAutoInstall(quiet({ ...away, mainBusy: true }))).toBe(false);
   });
 
   it("un flux en vol côté main refuse", () => {
@@ -67,6 +83,11 @@ describe("deferReason — the funnel says WHY a downloaded build waits", () => {
   it("ordinary waiting (not idle or blurred long enough yet) is not a deferral", () => {
     expect(deferReason(quiet({ idleS: 0, blurredMs: 5 * 60_000 }))).toBeNull();
     expect(deferReason(quiet({ idleS: 0, blurredMs: 0, rendererBusy: null }))).toBeNull();
+  });
+
+  it("in front and away long enough is no longer « in use »", () => {
+    expect(deferReason(quiet({ focused: true, idleS: AUTO_FOCUSED_AWAY_S }))).toBeNull();
+    expect(deferReason(quiet({ focused: true, idleS: AUTO_FOCUSED_AWAY_S, rendererBusy: true }))).toBe("busy_renderer");
   });
 
   it("nothing staged ⇒ nothing to defer", () => {

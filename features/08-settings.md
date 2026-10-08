@@ -254,10 +254,16 @@ stuck with a version that breaks your use.
       only served to stay on an old version, hence to keep defects already fixed —
       `apps/desktop/src/main/updates/poll.test.ts`
 - [x] **A ready version installs ITSELF when nobody is looking**: app in prolonged background
-      (≥ 30 min) or user away (≥ 10 min idle), and only if nothing is in flight — no send
-      running, no unsent draft (the renderer answers a probe; its silence counts as "busy", so
-      never a random restart) — `apps/desktop/src/main/updates/autoInstall.test.ts`,
+      (≥ 30 min), user away (≥ 10 min idle), or app left IN FRONT on an unattended machine
+      (≥ 30 min idle), and only if nothing is in flight — no send running, no unsent draft
+      (the renderer answers a probe; its silence counts as "busy", so never a random
+      restart) — `apps/desktop/src/main/updates/autoInstall.test.ts`,
       `packages/ui/src/state/effects/useUpdateQuiescence.test.ts`
+- [x] **After an update, « Nouvelle version installée » shows what it brings**, once, at the
+      first launch on the new version (installed by a click, a quit or on its own), with the
+      published note; no published note, no modal — `WhatsNewModal`,
+      `packages/ui/src/containers/shell/hooks/useWhatsNew.test.tsx`,
+      `apps/desktop/src/main/updates/track.test.ts`
 - [x] **The list of published versions and what each brought** (the same content as the
       « Nouveautés » tab of the help), including where there is no build to install — the
       build history itself only shows on a pre-release version or a privileged device —

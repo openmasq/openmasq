@@ -34,6 +34,11 @@ export const modals = {
     retry: "Réessayer",
   },
 
+  whatsNew: {
+    eyebrow: "NOUVELLE VERSION INSTALLÉE",
+    close: "Continuer",
+  },
+
   updateReady: {
     eyebrow: "MISE À JOUR PRÊTE",
     version: (version) => `Version ${version}`,
