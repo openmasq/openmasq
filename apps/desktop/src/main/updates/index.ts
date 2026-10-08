@@ -1,4 +1,4 @@
-import { app, dialog, shell, type BrowserWindow } from "electron";
+import { app, dialog, powerMonitor, shell, type BrowserWindow } from "electron";
 import { handle, obj } from "../ipc/handle";
 import electronUpdater from "electron-updater";
 
@@ -24,7 +24,7 @@ import { ensureUpdateConfigFile } from "./appUpdateConfig";
 import { wireDownloaded } from "./downloaded";
 import { installOnQuit, quitAndInstallSafely, setBeforeInstall } from "./install";
 import { startAutoInstall } from "./autoInstall";
-import { isStaged, ownDownloadPromise, startUpdateChecks } from "./poll";
+import { checkSoon, isStaged, ownDownloadPromise, startUpdateChecks, WAKE_DELAY_MS } from "./poll";
 import { detectAndReportShipItFailure } from "./shipit";
 import { setupUpdateTracking, takeJustUpdated, trackCheckStalled, type ReportEvent } from "./track";
 
@@ -246,4 +246,8 @@ export function setupAutoUpdates(
 
   // Check on launch AND periodically (`poll.ts`); a hung check is released and reported.
   startUpdateChecks(undefined, { onStall: trackCheckStalled });
+  // A sleeping machine runs no timer and has no network: a release published meanwhile
+  // would wait for the next tick. Ask again once awake, after the network returns.
+  powerMonitor.on("resume", () => checkSoon("wake", WAKE_DELAY_MS));
+  powerMonitor.on("unlock-screen", () => checkSoon("unlock", WAKE_DELAY_MS));
 }

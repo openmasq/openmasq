@@ -22,7 +22,10 @@ import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import {
   CHECK_INTERVAL_MS,
+  RETRY_MS,
   STALL_MS,
+  WAKE_DELAY_MS,
+  checkSoon,
   isStaged,
   isStalled,
   ownDownloadPromise,
@@ -210,6 +213,53 @@ describe("isStaged — a re-check announcing the staged build is not a new downl
     fire("update-downloaded", "0.15.2");
     fire("error");
     expect(isStaged("0.15.2")).toBe(false);
+  });
+});
+
+// A Mac woke with no network yet: the check failed and the next one was 15 min away, while
+// a release had shipped during the sleep. A failed CHECK asks again soon; a wake asks once.
+describe("a failed check and a wake ask the feed again soon", () => {
+  it("a failed CHECK retries after RETRY_MS, not a whole interval", () => {
+    vi.useFakeTimers();
+    updater.checkForUpdates.mockClear();
+    startUpdateChecks(CHECK_INTERVAL_MS);
+    fire("checking-for-update");
+    fire("error");
+    vi.advanceTimersByTime(RETRY_MS - 1);
+    expect(checks()).toBe(1);
+    vi.advanceTimersByTime(1);
+    expect(checks()).toBe(2);
+  });
+
+  it("a failed DOWNLOAD keeps the interval (~500 MB is not a manifest GET)", () => {
+    vi.useFakeTimers();
+    updater.checkForUpdates.mockClear();
+    startUpdateChecks(CHECK_INTERVAL_MS);
+    fire("checking-for-update");
+    fire("update-available", "0.15.3"); // the download starts
+    fire("error");
+    vi.advanceTimersByTime(RETRY_MS);
+    expect(checks()).toBe(1);
+  });
+
+  it("a burst of wakes asks the feed once", () => {
+    vi.useFakeTimers();
+    updater.checkForUpdates.mockClear();
+    startUpdateChecks(CHECK_INTERVAL_MS);
+    checkSoon("wake", WAKE_DELAY_MS);
+    checkSoon("unlock", WAKE_DELAY_MS);
+    vi.advanceTimersByTime(WAKE_DELAY_MS);
+    expect(checks()).toBe(2); // the launch check + ONE wake check
+  });
+
+  it("stopping the loop cancels a pending soon-check", () => {
+    vi.useFakeTimers();
+    updater.checkForUpdates.mockClear();
+    startUpdateChecks(CHECK_INTERVAL_MS);
+    checkSoon("wake", WAKE_DELAY_MS);
+    stopUpdateChecks();
+    vi.advanceTimersByTime(WAKE_DELAY_MS);
+    expect(checks()).toBe(1);
   });
 });
 

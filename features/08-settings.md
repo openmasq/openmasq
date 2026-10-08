@@ -249,7 +249,8 @@ stuck with a version that breaks your use.
       once per version; a click brings the window back (the rail's button waits), it installs
       nothing — `apps/desktop/src/main/updates/notifyDownloaded.test.ts`
 - [x] **Updating is always automatic — no setting turns it off.** Checking and downloading
-      happen on their own; installation waits for a click on "Install and restart", the next
+      happen on their own (every 15 min, again on waking from sleep, and soon after a check that
+      failed for lack of network); installation waits for a click on "Install and restart", the next
       close of the app — or a moment of inattention (next bullet). The switch that existed
       only served to stay on an old version, hence to keep defects already fixed —
       `apps/desktop/src/main/updates/poll.test.ts`

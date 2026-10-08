@@ -50,7 +50,15 @@ export function isStalled(s: { busy: boolean; lastAlive: number }, now: number):
   return s.busy && now - s.lastAlive >= STALL_MS;
 }
 
-const state = { busy: false, lastAlive: 0, staged: null as string | null };
+/** After a wake, the network takes a few seconds to come back: the check waits that long. */
+export const WAKE_DELAY_MS = 15_000;
+/** A failed CHECK (offline, a 5xx) asks again this soon, not a whole interval later: a Mac
+ *  waking with no network yet missed a release for 15 more minutes. A failed DOWNLOAD keeps
+ *  the interval — it is ~500 MB, not one manifest GET. */
+export const RETRY_MS = 2 * 60_000;
+
+const state = { busy: false, lastAlive: 0, staged: null as string | null, checking: false };
+let soonTimer: ReturnType<typeof setTimeout> | null = null;
 
 /** Is `found` the build already staged? Then a re-check announcing it is NOT a new download:
  *  the status stream must keep saying « ready to install », not « downloading » forever. */
@@ -114,6 +122,17 @@ function tick(reason: string): void {
     });
 }
 
+/** One check in `delayMs`, outside the interval (a wake, a retry). A second request
+ *  REPLACES the pending one: a burst of wakes asks the feed once. */
+export function checkSoon(reason: string, delayMs: number): void {
+  if (soonTimer) clearTimeout(soonTimer);
+  soonTimer = setTimeout(() => {
+    soonTimer = null;
+    tick(reason);
+  }, delayMs);
+  soonTimer.unref?.();
+}
+
 /** (Re)arm the interval, separate from the listeners so a re-arm doesn't stack them. */
 function armTimer(): void {
   if (timer) clearInterval(timer);
@@ -125,6 +144,8 @@ function armTimer(): void {
 export function stopUpdateChecks(): void {
   if (timer) clearInterval(timer);
   timer = null;
+  if (soonTimer) clearTimeout(soonTimer);
+  soonTimer = null;
 }
 
 /** The launch check + the periodic re-check. Call once, LAST in `setupAutoUpdates`.
@@ -134,16 +155,19 @@ export function startUpdateChecks(everyMs: number = CHECK_INTERVAL_MS, hooks?: {
   intervalMs = everyMs;
   state.busy = false;
   state.staged = null;
+  state.checking = false;
   onStall = hooks?.onStall ?? null;
 
   autoUpdater.on("checking-for-update", () => {
     state.busy = true;
+    state.checking = true;
     alive();
   });
   // Nothing staged: autoDownload is on and the download follows. A build staged: the check
   // runs with autoDownload OFF and the download is decided here, for a different version only.
   autoUpdater.on("update-available", (info?: { version?: string }) => {
     alive();
+    state.checking = false;
     if (state.staged === null) {
       state.busy = autoUpdater.autoDownload;
       return;
@@ -162,13 +186,17 @@ export function startUpdateChecks(everyMs: number = CHECK_INTERVAL_MS, hooks?: {
   autoUpdater.on("download-progress", alive);
   autoUpdater.on("update-not-available", () => {
     state.busy = false;
+    state.checking = false;
   });
   autoUpdater.on("error", () => {
     // An error with a check or download IN FLIGHT is that request's (offline, a 500): the
     // staged build is untouched. One with NOTHING in flight while a build is staged is the
     // staged build failing to apply: forget it, so the next check fetches one again.
     const applyFailed = !state.busy && state.staged !== null;
+    const checkFailed = state.checking;
     state.busy = false;
+    state.checking = false;
+    if (checkFailed) checkSoon("retry", RETRY_MS);
     if (applyFailed) {
       logUpdate("staged build failed to apply — the next check fetches it again");
       state.staged = null;
