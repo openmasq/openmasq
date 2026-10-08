@@ -50,6 +50,20 @@ kept in the French they were sent in, for the reason given above.
 
 ---
 
+## 0.15.3 — 2026-10-08
+> Updates arrive quietly, and a waiting version shows as ready to install.
+
+### What's new
+- **A quieter update notice** — a small message says a version is ready, without interrupting what you are writing.
+- **English by default for other languages** — the app opens in English when your system language is not offered yet.
+
+### Improvements & fixes
+- PDF previews give the pages more room beside the page list.
+- Updates install more reliably, even when the app stays open for days.
+- Settings shows a downloaded update as ready to install.
+- Quitting the app installs a waiting update.
+- The newest version is always the one installed.
+
 ## 0.15.2 — 2026-10-08
 > Updates arrive quietly, and PDF previews give the pages more room.
 
