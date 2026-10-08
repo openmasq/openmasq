@@ -98,10 +98,10 @@
   },
   "dependencies": {
     "fflate": "^0.8.3",
-    "libphonenumber-js": "^1.13.12"
+    "libphonenumber-js": "^1.13.14"
   },
   "devDependencies": {
-    "@napi-rs/canvas": "^1.0.8",
+    "@napi-rs/canvas": "^1.0.10",
     "@openmasq/branding": "workspace:*",
     "mammoth": "^1.12.2",
     "pdf-lib": "^1.17.1",
@@ -112,7 +112,7 @@
     "xlsx": "workspace:*"
   },
   "peerDependencies": {
-    "@napi-rs/canvas": "^1.0.8",
+    "@napi-rs/canvas": "^1.0.10",
     "mammoth": "^1.12.2",
     "pdfjs-dist": "^6.3.289",
     "xlsx": ">=0.20.3"
