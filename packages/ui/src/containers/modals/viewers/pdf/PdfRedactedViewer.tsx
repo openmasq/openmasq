@@ -130,7 +130,7 @@ export function PdfRedactedViewer({
       )}
       {pages.state === "error" && <div className="fv-status">{t.viewers.pdf.unavailable}</div>}
       {ready && pages.empty && <div className="fv-status">{t.viewers.pdf.noPages}</div>}
-      {/* The pages, CENTRED, with their column on the right: zoom, then one tile per page. A
+      {/* The pages, full width, with their column on the right: zoom, then one tile per page. A
           side column and not a top bar — a bar of thumbnails took the height the pages need.
           The page root is ALWAYS mounted: the pages are painted into it while it loads. */}
       <div className="pdfv-main">
