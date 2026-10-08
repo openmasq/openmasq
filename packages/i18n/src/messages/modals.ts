@@ -48,6 +48,10 @@ export interface ModalsMessages {
     restartingHint: string;
     restartSlow: string;
     retry: string;
+    /** The toast announcing the download; the modal opens only from its action. */
+    toastTitle: string;
+    toastMessage: (brand: string, version: string) => string;
+    toastAction: string;
   };
 
   /** A connector that accepts both: your account, or anonymous access. */

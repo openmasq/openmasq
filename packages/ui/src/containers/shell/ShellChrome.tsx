@@ -12,6 +12,7 @@ import { needsAccessNotice } from "../../state/auth/accessNotice";
 import { hasEstablishedAccount } from "../../state/auth/establishedAccount";
 import { FeedbackModal, GuideModal, SearchModal, UpdateReadyModal } from "../modals";
 import { StatusChip } from "../../components/feedback/StatusChip";
+import { UpdateReadyToast } from "./UpdateReadyToast";
 import { pickShellNotice, type ShellNoticeKind } from "./shellNotice";
 import { TooltipLayer } from "../../components/brand/TooltipLayer";
 import { AnalyticsNotice } from "../../components/AnalyticsNotice";
@@ -200,7 +201,9 @@ export function ShellChrome({
                 </AnimatePresence>
                 {/* ⚠️ Never over login or onboarding: the update waits,
                     and being announced a version before even getting in makes no
-                    sense. It isn't lost for that — the right rail reopens it. */}
+                    sense. It isn't lost for that — the right rail reopens it.
+                    The download is announced by the TOAST; the modal only opens on a gesture. */}
+                {!overlay && <UpdateReadyToast update={shell.update} />}
                 <AnimatePresence>
                   {!overlay && shell.update.open && shell.update.version && (
                     <UpdateReadyModal

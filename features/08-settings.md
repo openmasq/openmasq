@@ -233,18 +233,20 @@ stuck with a version that breaks your use.
 "always up to date" is an imposed risk.
 
 - [x] Release channel, update notes — `apps/desktop/src/main/updates/`
-- [x] **A downloaded version announces itself IN the app**, with what it brings (the
-      published note) and a "Restart now" — no more system dialog, in English and mute about
-      the content. Once per version, never before the version is there, never on top of
-      sign-in; dismissed, a button at the foot of the right rail reopens it while the update
-      waits. « Redémarrer maintenant » is acknowledged at once (« Redémarrage… », one click only,
-      what is happening), and past twenty seconds says how to get out by hand — the update applies
-      at the next launch — `UpdateReadyModal`,
+- [x] **A downloaded version announces itself IN the app, by a small toast** (« Mise à jour
+      prête », it passes on its own) — never a window popping mid-sentence: the modal, with what
+      the version brings (the published note) and a "Restart now", opens only from the toast's
+      « Voir » or the button at the foot of the right rail, there while the update waits. Once
+      per version, never before the version is there, never on top of sign-in; no more system
+      dialog, in English and mute about the content. « Redémarrer maintenant » is acknowledged
+      at once (« Redémarrage… », one click only, what is happening), and past twenty seconds
+      says how to get out by hand — the update applies at the next launch — `UpdateReadyToast`,
+      `UpdateReadyModal`,
       `packages/ui/src/containers/modals/UpdateReadyModal.test.tsx`,
       `packages/ui/src/containers/shell/hooks/useUpdateReady.test.tsx`
 - [x] **…and by a system notification when the window is not in front** (minimized, hidden,
       another app focused): « <app> <version> est prête — Redémarrez l'app pour l'installer »,
-      once per version; a click brings the window back to the announcement, it installs
+      once per version; a click brings the window back (the rail's button waits), it installs
       nothing — `apps/desktop/src/main/updates/notifyDownloaded.test.ts`
 - [x] **Updating is always automatic — no setting turns it off.** Checking and downloading
       happen on their own; installation waits for a click on "Install and restart", the next
