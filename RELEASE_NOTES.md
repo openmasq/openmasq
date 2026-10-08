@@ -50,6 +50,18 @@ kept in the French they were sent in, for the reason given above.
 
 ---
 
+## 0.15.1 — 2026-10-08
+> Updates arrive quietly and install more reliably.
+
+### What's new
+- **A quieter update notice** — a small message says a version is ready, without interrupting what you are writing.
+- **English by default for other languages** — the app opens in English when your system language is not offered yet.
+
+### Improvements & fixes
+- Updates install more reliably, even when the app stays open for days.
+- Quitting the app installs a waiting update.
+- The newest version is always the one installed.
+
 ## 0.15.0 — 2026-10-04
 > Find your way through a PDF at a glance, with every page, scans included, read and masked.
 
