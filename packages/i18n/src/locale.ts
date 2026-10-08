@@ -30,6 +30,11 @@ export const LOCALES = Object.keys(MESSAGES) as Locale[];
  *  fallback when nothing could be resolved (fail-safe, never a blank screen). */
 export const DEFAULT_LOCALE: Locale = "fr";
 
+/** The language shown to a user whose language is unknown or not shipped (an Italian,
+ *  a German…): English, the most widely understood. Distinct from `DEFAULT_LOCALE`,
+ *  which stays the SOURCE language the copy is written in. */
+export const FALLBACK_LOCALE: Locale = "en";
+
 /** True if `x` is a shipped locale. */
 export function isLocale(x: unknown): x is Locale {
   return typeof x === "string" && (LOCALES as string[]).includes(x);

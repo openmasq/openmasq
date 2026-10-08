@@ -1,4 +1,4 @@
-import { DEFAULT_LOCALE, resolveLocale, type Locale } from "@openmasq/i18n";
+import { FALLBACK_LOCALE, resolveLocale, type Locale } from "@openmasq/i18n";
 
 /**
  * The LANGUAGE — a DEVICE preference, exactly like the THEME (`theme.ts`), and for
@@ -12,7 +12,7 @@ import { DEFAULT_LOCALE, resolveLocale, type Locale } from "@openmasq/i18n";
  * loaded.
  *
  * ⚠️ The fallback is NEVER a blank screen: device key → host language
- * (`navigator.language`) → `DEFAULT_LOCALE` (French, the source language).
+ * (`navigator.language`) → `FALLBACK_LOCALE` (English).
  */
 export const LOCALE_KEY = "openmasq.language";
 
@@ -74,11 +74,11 @@ export function hostLocale(): Locale | null {
 
 /**
  * The language to use AT BOOT, in order: what the device remembered, else the
- * host language, else the default. This is the provider's initial state
+ * host language, else English. This is the provider's initial state
  * (`I18nProvider`) — a single decision, reused if pre-paint ever comes back (rule 9).
  * `<html lang>` is set BY the provider (effect), not here: the boot splash is static
  * HTML with no translatable text, so there's nothing to do before the first paint.
  */
 export function initialLocale(): Locale {
-  return loadDeviceLocale() ?? hostLocale() ?? DEFAULT_LOCALE;
+  return loadDeviceLocale() ?? hostLocale() ?? FALLBACK_LOCALE;
 }
