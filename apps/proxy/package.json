@@ -22,7 +22,7 @@
   },
   "dependencies": {
     "@huggingface/transformers": "^4.2.0",
-    "@modelcontextprotocol/sdk": "^1.30.0",
+    "@modelcontextprotocol/sdk": "^1.31.0",
     "@openmasq/branding": "workspace:*",
     "@openmasq/catalog": "workspace:*",
     "@openmasq/i18n": "workspace:*",
