@@ -46,7 +46,7 @@ export function vibeServers(files: VibeFiles): OwnServer[] {
  * list for a day: without it, a run whose integrations were down caches an EMPTY list for our
  * stable URL, and the next runs show no tools at all (measured on vibe 2.25.8).
  */
-export function ourEntry(endpoint: string): Entry {
+function ourEntry(endpoint: string): Entry {
   const u = new URL(endpoint);
   const token = u.searchParams.get("t");
   u.search = "";

@@ -26,7 +26,7 @@ const isThinking = (part: unknown): part is Record<string, unknown> =>
   isRecord(part) && part.type === "thinking";
 
 /** Mask a `content` field: a string, or an array of parts whose text parts are masked. */
-export async function maskContent(content: unknown, mask: MaskFn): Promise<unknown> {
+async function maskContent(content: unknown, mask: MaskFn): Promise<unknown> {
   if (typeof content === "string") return mask(content);
   if (!Array.isArray(content)) return content;
   const out: unknown[] = [];
@@ -40,7 +40,7 @@ export async function maskContent(content: unknown, mask: MaskFn): Promise<unkno
   return out;
 }
 
-export function restoreContent(content: unknown, restore: (s: string) => string): unknown {
+function restoreContent(content: unknown, restore: (s: string) => string): unknown {
   if (typeof content === "string") return restore(content);
   if (!Array.isArray(content)) return content;
   return content.map((part) => {
@@ -53,7 +53,7 @@ export function restoreContent(content: unknown, restore: (s: string) => string)
 
 /** Tool-call `arguments`: a JSON STRING on OpenAI's wire, and either that or an OBJECT on
  *  Mistral's. Both are walked — an object left as is would go out with its real values. */
-export async function maskArgs(args: unknown, mask: MaskFn): Promise<unknown> {
+async function maskArgs(args: unknown, mask: MaskFn): Promise<unknown> {
   if (typeof args === "string") return mapJsonString(args, mask);
   return isRecord(args) ? mapStrings(args, mask) : args;
 }

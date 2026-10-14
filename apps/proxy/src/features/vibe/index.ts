@@ -11,7 +11,6 @@ export {
   readVibeFiles,
   mergedByName,
   userDisabledTools,
-  vibeHome,
   type VibeFiles,
 } from "./files.js";
 export { routeBase, vibePlan, type Upstreams } from "./routing.js";
@@ -24,7 +23,7 @@ const bin = (arg: string): string => basename(arg).replace(/\.(cmd|exe|bat)$/i, 
 /** Where Vibe's own argv starts — the command itself, or behind a launcher (`uvx … vibe`,
  *  `uv run vibe`, `python -m vibe`). A wrapper we do not see through is not Vibe to us, and
  *  says so at start (`mcp/start.ts`); the base URLs it gets are ignored by Vibe. */
-export function vibeAt(command: string[]): number {
+function vibeAt(command: string[]): number {
   if (SESSION_BINS.has(bin(command[0] ?? ""))) return 0;
   if (!/^(uvx|uv|pipx|python\d*(\.\d+)?|py)$/.test(bin(command[0] ?? ""))) return -1;
   return command.findIndex((a, i) => i > 0 && SESSION_BINS.has(bin(a)));

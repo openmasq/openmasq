@@ -32,7 +32,7 @@ export interface ReadDeps {
   list?: (dir: string) => string[];
 }
 
-export function vibeHome(env: NodeJS.ProcessEnv, home = homedir()): string {
+function vibeHome(env: NodeJS.ProcessEnv, home = homedir()): string {
   const set = env.VIBE_HOME;
   if (!set) return join(home, ".vibe");
   return resolve(set.startsWith("~") ? join(home, set.slice(1)) : set);
@@ -49,7 +49,7 @@ function ancestors(cwd: string): string[] {
 
 /** The list-valued `VIBE_*` variables the proxy may also set: the user's own value is a layer
  *  like any other, merged under ours rather than silently replaced. */
-export const LIST_VARS = {
+const LIST_VARS = {
   providers: "VIBE_PROVIDERS",
   tts_providers: "VIBE_TTS_PROVIDERS",
   transcribe_providers: "VIBE_TRANSCRIBE_PROVIDERS",
@@ -57,7 +57,7 @@ export const LIST_VARS = {
 } as const;
 
 /** Every variable the proxy sets for Vibe (`routing.ts`, `mcp/clients/vibe.ts`). */
-export const OUR_VARS = [
+const OUR_VARS = [
   ...Object.values(LIST_VARS),
   "VIBE_ENABLE_TELEMETRY",
   "VIBE_VIBE_CODE_SESSIONS_BASE_URL",

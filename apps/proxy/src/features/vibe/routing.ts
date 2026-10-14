@@ -49,7 +49,7 @@ const DEFAULT_TRANSCRIBE: Doc[] = [
 ];
 
 /** Keys an agent profile may set that would outrank what we hand Vibe for the model. */
-export const AGENT_OVERRIDES = [
+const AGENT_OVERRIDES = [
   "providers",
   "tts_providers",
   "transcribe_providers",
