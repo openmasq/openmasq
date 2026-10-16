@@ -89,8 +89,9 @@ export function initRendererTelemetry(): void {
       fatal: true,
     });
   });
-  window.openmasq.onAppError?.((e) => captureError(e));
+  window.openmasq.onAppError?.((e, at) => captureError({ ...e, at }));
   // Main-process product events through the SAME consent-gated choke point; main emits
-  // against the `TrackEvent` catalogue, the cast re-narrows what IPC widened.
-  window.openmasq.onAppEvent?.((e) => captureEvent(e as TrackEvent));
+  // against the `TrackEvent` catalogue, the cast re-narrows what IPC widened. `at` keeps the
+  // time main emitted it: a report held while no window listened is not dated at delivery.
+  window.openmasq.onAppEvent?.((e, at) => captureEvent(e as TrackEvent, at));
 }

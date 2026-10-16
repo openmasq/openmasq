@@ -25,6 +25,13 @@ interface SinkConfig {
   usageEvents?: ReadonlySet<string>;
 }
 
+/** The event's own time: the caller's `at` when it is a real past instant, else now. A
+ *  future `at` is a clock the sink cannot trust, so it is never forwarded. */
+export function eventTime(at: number | undefined): number {
+  const now = Date.now();
+  return typeof at === "number" && Number.isFinite(at) && at > 0 && at <= now ? at : now;
+}
+
 /** Build the transport (relay-or-direct PostHog) with the injected id source. */
 export function createSink(options: SinkOptions): Sink {
   const { getAnonId, getSessionId, defaultSource, logPrefix = "[analytics]" } = options;
@@ -164,8 +171,10 @@ export function createSink(options: SinkOptions): Sink {
   };
 
   const sink = (event: CleanEvent): void => {
-    // Read NOW, not at send: an event held for consent belongs to the session it happened in.
+    // Read NOW, not at send: an event held for consent belongs to the session it happened in
+    // — and to the moment it happened in, or a held queue lands as one burst at the decision.
     const sessionId = getSessionId?.(event.name);
+    const at = eventTime(event.at);
     const send = (): void => {
       if (suspended) return log("skip", event.name, "suspendu (lancement automatisé)");
       if (!consent) return log("skip", event.name, "consent off");
@@ -185,7 +194,7 @@ export function createSink(options: SinkOptions): Sink {
           // l'enveloppe, donc le `distinct_id` reste l'id d'installation anonyme.
           post(
             cfg.relayUrl,
-            { event: event.name, distinct_id, properties: withContext(event.props, sessionId), source: cfg.source, ts: Date.now() },
+            { event: event.name, distinct_id, properties: withContext(event.props, sessionId), source: cfg.source, ts: at },
             event.name,
             await relayAuthHeaders(),
           );
@@ -198,6 +207,7 @@ export function createSink(options: SinkOptions): Sink {
               event: event.name,
               distinct_id,
               properties: { ...withContext(event.props, sessionId), $process_person_profile: false },
+              timestamp: new Date(at).toISOString(),
             },
             event.name,
           );
@@ -221,6 +231,7 @@ export function createSink(options: SinkOptions): Sink {
     // `$exception_list` ARRAY (CleanEvent props forbid objects). Anonymised: only
     // bounded scope/code/name/status + a SCRUBBED message.
     const sessionId = getSessionId?.("$exception");
+    const at = eventTime(e.at);
     const send = (): void => {
     if (suspended) return log("skip", "$exception", "suspendu (lancement automatisé)");
     if (!consent) return log("skip", "$exception", "consent off");
@@ -251,9 +262,9 @@ export function createSink(options: SinkOptions): Sink {
     if (!cfg) return;
     void Promise.resolve(getAnonId()).then(async (distinct_id) => {
       if (cfg.relayUrl) {
-        post(cfg.relayUrl, { event: "$exception", distinct_id, properties: withContext(properties, sessionId), source: cfg.source, ts: Date.now() }, "$exception", await relayAuthHeaders());
+        post(cfg.relayUrl, { event: "$exception", distinct_id, properties: withContext(properties, sessionId), source: cfg.source, ts: at }, "$exception", await relayAuthHeaders());
       } else {
-        post(`${cfg.apiHost}/capture/`, { api_key: cfg.key, event: "$exception", distinct_id, properties: { ...withContext(properties, sessionId), $process_person_profile: false } }, "$exception");
+        post(`${cfg.apiHost}/capture/`, { api_key: cfg.key, event: "$exception", distinct_id, properties: { ...withContext(properties, sessionId), $process_person_profile: false }, timestamp: new Date(at).toISOString() }, "$exception");
       }
     });
     };

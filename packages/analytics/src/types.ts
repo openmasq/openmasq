@@ -2,6 +2,9 @@
 export interface CleanEvent {
   name: string;
   props: Record<string, string | number | boolean | string[]>;
+  /** When it HAPPENED (epoch ms), if that is not when it reaches the sink: an event main
+   *  held while no window listened. Absent ⇒ the sink stamps it on arrival. */
+  at?: number;
 }
 
 /**
@@ -24,6 +27,8 @@ export interface ErrorReport {
   fatal?: boolean;
   /** Optional raw message — SCRUBBED (emails/tokens/ids/digits removed) + truncated. */
   message?: string;
+  /** When it happened (epoch ms), as `CleanEvent.at`. */
+  at?: number;
 }
 
 /** Per-field numeric quantisers (key → bucket fn). A field with a bucketer has its
@@ -118,6 +123,6 @@ export interface Sink {
 /** The full analytics API for one surface. */
 export interface Analytics<E extends { name: string }> extends Sink {
   sanitize(event: E): CleanEvent;
-  /** The single choke point: `sink(sanitize(event))`. */
-  captureEvent(event: E): void;
+  /** The single choke point: `sink(sanitize(event))`. `at`: see `CleanEvent.at`. */
+  captureEvent(event: E, at?: number): void;
 }
