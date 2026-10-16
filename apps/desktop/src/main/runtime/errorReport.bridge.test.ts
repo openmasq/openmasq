@@ -46,6 +46,16 @@ describe("main → renderer telemetry waits for a renderer that listens", () => 
     expect(sent(current)).toEqual(["update_check", "app_quit"]);
   });
 
+  it("a held report carries the time main EMITTED it, not the time a window listened", () => {
+    const now = vi.spyOn(Date, "now").mockReturnValue(1_000);
+    reportMainEvent(ev("update_check"));
+    now.mockReturnValue(5_000);
+    current = win();
+    markRendererListening(current as never);
+    expect(current.webContents.send).toHaveBeenCalledWith("app:event", { name: "update_check" }, 1_000);
+    now.mockRestore();
+  });
+
   it("bounded: past MAX_PENDING the OLDEST reports go", () => {
     for (let i = 0; i < MAX_PENDING + 5; i++) reportMainEvent(ev(`e${i}`));
     current = win();

@@ -26,6 +26,6 @@ export function createAnalytics<E extends { name: string }>(opts: {
   return {
     ...t,
     sanitize,
-    captureEvent: (event: E) => t.sink(sanitize(event)),
+    captureEvent: (event: E, at?: number) => t.sink(at === undefined ? sanitize(event) : { ...sanitize(event), at }),
   };
 }

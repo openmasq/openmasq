@@ -112,23 +112,25 @@ export const billing = {
 
 /** Main-process errors, forwarded to the renderer's anonymised `captureError`. */
 export const onAppError = (
-  cb: (e: { scope: string; code: string; name?: string; status?: number; message?: string }) => void,
+  cb: (e: { scope: string; code: string; name?: string; status?: number; message?: string }, at?: number) => void,
 ): (() => void) => {
   const handler = (
     _e: IpcRendererEvent,
     payload: { scope: string; code: string; name?: string; status?: number; message?: string },
-  ) => cb(payload);
+    at?: number,
+  ) => cb(payload, typeof at === "number" ? at : undefined);
   ipcRenderer.on("app:error", handler);
   return () => ipcRenderer.removeListener("app:error", handler);
 };
 
 /** Main-process analytics events, forwarded to the consent-gated `captureEvent`; the
- *  renderer casts them back to the `TrackEvent` catalogue main emits against. */
+ *  renderer casts them back to the `TrackEvent` catalogue main emits against. `at` = when
+ *  main emitted it (a report held while no window listened arrives late). */
 export const onAppEvent = (
-  cb: (e: { name: string } & Record<string, unknown>) => void,
+  cb: (e: { name: string } & Record<string, unknown>, at?: number) => void,
 ): (() => void) => {
-  const handler = (_e: IpcRendererEvent, payload: { name: string } & Record<string, unknown>) =>
-    cb(payload);
+  const handler = (_e: IpcRendererEvent, payload: { name: string } & Record<string, unknown>, at?: number) =>
+    cb(payload, typeof at === "number" ? at : undefined);
   ipcRenderer.on("app:event", handler);
   return () => ipcRenderer.removeListener("app:event", handler);
 };

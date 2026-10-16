@@ -18,6 +18,6 @@ export { USAGE_EVENTS } from "./tier";
  * only sends when configured + opted-in). The single choke point — every event
  * passes through `sanitize`, so no raw payload can reach a network call.
  */
-export function captureEvent(event: TrackEvent): void {
-  sink(sanitize(event));
+export function captureEvent(event: TrackEvent, at?: number): void {
+  sink(at === undefined ? sanitize(event) : { ...sanitize(event), at });
 }

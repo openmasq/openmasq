@@ -22,7 +22,9 @@ export const RENDERER_LISTEN_MS = 8000;
 /** The most reports held while no renderer listens; past it, the OLDEST go first. */
 export const MAX_PENDING = 200;
 
-type Report = { channel: "app:event" | "app:error"; payload: unknown };
+/** `at`: when main EMITTED it (epoch ms), sent beside the payload — a held report is
+ *  delivered late, and stamped on arrival it would land as one burst at the next window. */
+type Report = { channel: "app:event" | "app:error"; payload: unknown; at: number };
 /**
  * What main had to say while NO renderer listened — no window (macOS keeps the app running in
  * the Dock after its last window closes), or one still booting. It used to be DROPPED: an
@@ -36,7 +38,7 @@ let listening: BrowserWindow | null = null;
 function deliver(r: Report): void {
   const w = getWin?.();
   if (w && !w.isDestroyed() && w === listening) {
-    w.webContents.send(r.channel, r.payload);
+    w.webContents.send(r.channel, r.payload, r.at);
     return;
   }
   pending.push(r);
@@ -121,6 +123,7 @@ function bridgeMainError(scope: string, code: string, err: unknown): void {
     const e = err as { name?: string; message?: string; status?: number } | null;
     deliver({
       channel: "app:error",
+      at: Date.now(),
       payload: {
         scope,
         code,
@@ -146,7 +149,7 @@ function bridgeMainError(scope: string, code: string, err: unknown): void {
  */
 export function reportMainEvent(event: TrackEvent): void {
   try {
-    deliver({ channel: "app:event", payload: event });
+    deliver({ channel: "app:event", payload: event, at: Date.now() });
   } catch {
     /* never throw from telemetry */
   }
