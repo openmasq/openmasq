@@ -189,8 +189,8 @@ importers:
         specifier: ^17.4.2
         version: 17.4.2
       electron:
-        specifier: 43.5.0
-        version: 43.5.0
+        specifier: 43.8.1
+        version: 43.8.1
       electron-builder:
         specifier: ^26.0.12
         version: 26.15.3(electron-builder-squirrel-windows@26.15.3)
@@ -934,8 +934,8 @@ packages:
     resolution: {integrity: sha512-QxULHAm7cNu72w97JUNCBFODFaXpbDg+dP8b/oWFAZ2MTRppA3U00Y2L1HqaS4J6yBqxwa/Y3nMBaxVKbB/NsA==}
     engines: {node: '>=20.19.0'}
 
-  '@electron-internal/extract-zip@1.0.5':
-    resolution: {integrity: sha512-+bqFCP98pLI0Tt0XQo1TmlXtwjWchISndDOxCkEcIuUgXWpBnLyRI+2DU+mesvnMMX6L1XDqYNA0lXNDHd/yiA==}
+  '@electron-internal/extract-zip@1.0.6':
+    resolution: {integrity: sha512-/aQLgFDdCSnwChfUwqekSmE1q2dCTzhUy5saIHBb5vyYn5LzWaKPaIz1wM0lDMCZYBoIG4svJNvAJb6vkI8BuA==}
     engines: {node: '>=22.12.0'}
 
   '@electron/asar@3.4.1':
@@ -1858,6 +1858,7 @@ packages:
   '@opentelemetry/sdk-trace-base@2.10.0':
     resolution: {integrity: sha512-GuYQQT7QD2EeO8lcZLRQzcbOyhqAzL+6WWTKTU9mSUBYBazkEDl+VrQcXQhbB08OWM9anD1aHleVadzulpOaUQ==}
     engines: {node: ^18.19.0 || >=20.6.0}
+    deprecated: Use @opentelemetry/sdk-trace package
     peerDependencies:
       '@opentelemetry/api': '>=1.3.0 <1.10.0'
 
@@ -2627,8 +2628,8 @@ packages:
   '@types/ms@2.1.0':
     resolution: {integrity: sha512-GsCCIZDE/p3i96vtEqx+7dBUGXrc7zeSK3wwPHIaRThS+9OhWIXRqzs4d6k1SVU8g91DrNRWxWUGhp5KXQb2VA==}
 
-  '@types/node@24.19.0':
-    resolution: {integrity: sha512-zY+5tKxXdhGh1PYI0ac+7juvEu4OI6vWtVVoj5i2m42jxAY1U+zHGt6QCyOFwykdP62sM3MJ9stoYYUw5aCWew==}
+  '@types/node@24.19.2':
+    resolution: {integrity: sha512-93d49wCWJkCyN87MxLpNN6KXPCwFw7bVUg79mGUV1OS40JGWwVCr8n61DXCSqz7CV6/VfPkb7xec7uP2M+QHWQ==}
 
   '@types/node@26.6.5':
     resolution: {integrity: sha512-uMzsv9stDdofIZBx4UGh4Z9ZgXnGC9seRDscilBcTHAeOFk67MZg/k9bWVfO+bk4qZmG+l52hRnLwUiH2LnJTg==}
@@ -3288,8 +3289,8 @@ packages:
     resolution: {integrity: sha512-bO3y10YikuUwUuDUQRM4KfwNkKhnpVO7IPdbsrejwN9/AABJzzTQ4GeHwyzNSrVO+tEH3/Np255a3sVZpZDjvg==}
     engines: {node: '>=8.0.0'}
 
-  electron@43.5.0:
-    resolution: {integrity: sha512-nV2aWuKatmUrxrAWP2pNIynNX7dy83TCAz+6KnsbK7hDVLE+6fa2iouOtir41AboZTa+J5w2UgicWHAqUaaUJw==}
+  electron@43.8.1:
+    resolution: {integrity: sha512-Qa6/xXODEn60oIkyuV8jXmyX84z6nicuBh7BOkPHVZlTTCG1MeTYjAkmxX+1B/kEkErPjs3WCP+JdtwkRaKRcQ==}
     engines: {node: '>= 22.12.0'}
     hasBin: true
 
@@ -5187,8 +5188,8 @@ packages:
   undici-types@8.9.0:
     resolution: {integrity: sha512-KTDyRTYX8sWmKXAikPHHSyc63CRPETMctyjKFupcC6OBLXT3xsN0e9aF7m+mIXutFWpUXuedtowG7iLOzp0kQg==}
 
-  undici@6.29.0:
-    resolution: {integrity: sha512-R+RODBqp6i2pPflGdq+xIOUkl+RNfGgHwoinecKu/JCuf2uO06cOKoDbI2P7Dn6KcswdKwrczbU6IYJ6K8X+wg==}
+  undici@6.29.1:
+    resolution: {integrity: sha512-EvRlUt/QqAEvXdQeRMYUfwOQsfzpDztykrG2owGEE/rBOBoYv9uF39ZzsNDh4lTFHhTr2XOZjKkYgueD12ZmGA==}
     engines: {node: '>=18.17'}
 
   undici@7.29.1:
@@ -5779,7 +5780,7 @@ snapshots:
 
   '@csstools/css-tokenizer@4.0.0': {}
 
-  '@electron-internal/extract-zip@1.0.5': {}
+  '@electron-internal/extract-zip@1.0.6': {}
 
   '@electron/asar@3.4.1':
     dependencies:
@@ -7063,7 +7064,7 @@ snapshots:
 
   '@types/ms@2.1.0': {}
 
-  '@types/node@24.19.0':
+  '@types/node@24.19.2':
     dependencies:
       undici-types: 7.24.6
 
@@ -7775,11 +7776,11 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  electron@43.5.0:
+  electron@43.8.1:
     dependencies:
-      '@electron-internal/extract-zip': 1.0.5
+      '@electron-internal/extract-zip': 1.0.6
       '@electron/get': 5.1.0
-      '@types/node': 24.19.0
+      '@types/node': 24.19.2
     transitivePeerDependencies:
       - supports-color
 
@@ -9165,11 +9166,11 @@ snapshots:
 
   node-abi@4.33.0:
     dependencies:
-      semver: 7.8.5
+      semver: 7.7.4
 
   node-api-version@0.2.1:
     dependencies:
-      semver: 7.8.5
+      semver: 7.7.4
 
   node-domexception@1.0.0: {}
 
@@ -9186,10 +9187,10 @@ snapshots:
       graceful-fs: 4.2.11
       nopt: 9.0.0
       proc-log: 6.1.0
-      semver: 7.8.5
+      semver: 7.7.4
       tar: 7.5.19
       tinyglobby: 0.2.17
-      undici: 6.29.0
+      undici: 6.29.1
       which: 6.0.1
 
   node-int64@0.4.0: {}
@@ -10170,7 +10171,7 @@ snapshots:
 
   undici-types@8.9.0: {}
 
-  undici@6.29.0: {}
+  undici@6.29.1: {}
 
   undici@7.29.1: {}
 
