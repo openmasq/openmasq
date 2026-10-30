@@ -61,7 +61,7 @@
     "pdfjs-dist": "6.3.289",
     "tesseract.js-core": "^6.0.0",
     "tesseract2.js": "workspace:*",
-    "undici": "^7.29.1",
+    "undici": "^7.30.1",
     "ws": "^8.21.3",
     "xlsx": "workspace:*"
   },
