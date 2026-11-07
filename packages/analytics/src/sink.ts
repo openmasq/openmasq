@@ -155,6 +155,13 @@ export function createSink(options: SinkOptions): Sink {
     if (on) for (const run of queued) run();
   };
 
+  /** The decision is not known (any more): whoever holds it is loading. Events wait in the
+   *  queue, and only the next `setAnalyticsConsent` says whether they leave or are dropped. */
+  const awaitAnalyticsConsent = (): void => {
+    consent = false;
+    consentDecided = false;
+  };
+
   const setAnalyticsSuspended = (on: boolean): void => {
     suspended = on;
     if (on) {
@@ -275,5 +282,5 @@ export function createSink(options: SinkOptions): Sink {
     return fetchRelayFlags(config, await Promise.resolve(getAnonId()), log);
   };
 
-  return { configureAnalytics, setAnalyticsConsent, setAnalyticsSuspended, sink, captureError, fetchFlags };
+  return { configureAnalytics, setAnalyticsConsent, awaitAnalyticsConsent, setAnalyticsSuspended, sink, captureError, fetchFlags };
 }

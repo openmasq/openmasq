@@ -108,7 +108,7 @@ export function __resetAnalyticsIdForTests(): void {
   stableIdSource = null;
 }
 
-export const { configureAnalytics, setAnalyticsConsent, setAnalyticsSuspended, sink, captureError, fetchFlags } = createSink({
+export const { configureAnalytics, setAnalyticsConsent, awaitAnalyticsConsent, setAnalyticsSuspended, sink, captureError, fetchFlags } = createSink({
   getAnonId: anonId,
   getSessionId: sessionIdFor,
   defaultSource: "desktop",

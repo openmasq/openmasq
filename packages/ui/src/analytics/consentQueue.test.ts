@@ -54,6 +54,28 @@ describe("file d'attente avant la décision de consentement", () => {
     expect(names(fetchFn)).toEqual(["$exception"]);
   });
 
+  it("une décision reprise redevient une attente : rien ne part, et un refus jette ce qui attendait", async () => {
+    const { s, fetchFn } = wire();
+    s.setAnalyticsConsent(true);
+    s.awaitAnalyticsConsent();
+    s.sink({ name: "app_open", props: {} });
+    await flush();
+    expect(fetchFn, "le réglage du compte n'est pas encore connu").not.toHaveBeenCalled();
+    s.setAnalyticsConsent(false);
+    await flush();
+    expect(fetchFn).not.toHaveBeenCalled();
+  });
+
+  it("une décision reprise puis confirmée rejoue ce qui attendait", async () => {
+    const { s, fetchFn } = wire();
+    s.setAnalyticsConsent(true);
+    s.awaitAnalyticsConsent();
+    s.sink({ name: "app_open", props: {} });
+    s.setAnalyticsConsent(true);
+    await flush();
+    expect(names(fetchFn)).toEqual(["app_open"]);
+  });
+
   it("un lancement automatisé (e2e/bench) n'émet RIEN, consentement ou pas", async () => {
     const { s, fetchFn } = wire();
     s.sink({ name: "app_open", props: {} });

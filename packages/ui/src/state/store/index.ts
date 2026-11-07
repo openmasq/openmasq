@@ -80,7 +80,7 @@ export function useChatStore() {
   useResolveAccountId(host, setUserId);
   const billing = useBilling(host, userId);
   useLocalPersistence({ conversations, settings, activeId, userId, host, storageUidRef, setSettings });
-  const { keepListRef } = usePlatformEffects({ settings, host, hostRef, setSettings, orgProfile });
+  const { keepListRef } = usePlatformEffects({ settings, host, hostRef, setSettings, orgProfile, loaded });
 
   const db = useDbMirrorRefs();
   useAccountSwitch({

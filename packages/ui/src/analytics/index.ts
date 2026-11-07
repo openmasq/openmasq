@@ -9,7 +9,7 @@ export type {
   ToolErrorFamily,
 } from "./events";
 export { bucket } from "./sanitize";
-export { configureAnalytics, setAnalyticsConsent, setAnalyticsSuspended, setStableIdSource, analyticsDistinctId, captureError } from "./posthog";
+export { configureAnalytics, setAnalyticsConsent, awaitAnalyticsConsent, setAnalyticsSuspended, setStableIdSource, analyticsDistinctId, captureError } from "./posthog";
 export type { ErrorReport } from "@openmasq/analytics";
 export { USAGE_EVENTS } from "./tier";
 

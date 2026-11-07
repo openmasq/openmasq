@@ -1,7 +1,7 @@
 import { useEffect, useRef, type Dispatch, type MutableRefObject, type SetStateAction } from "react";
 import type { Settings } from "../../types";
 import type { Host, OrgProfileInfo } from "../../host";
-import { setAnalyticsConsent } from "../../analytics";
+import { awaitAnalyticsConsent, setAnalyticsConsent } from "../../analytics";
 import { connectedKeepList } from "../../send/redactKeep";
 import { setDebugCapture } from "../debug/debug";
 import { load } from "../storePersistence";
@@ -28,8 +28,10 @@ export function usePlatformEffects(p: {
   hostRef: MutableRefObject<Host>;
   setSettings: Dispatch<SetStateAction<Settings>>;
   orgProfile: OrgProfileInfo | null;
+  /** This account's settings are in (`useAccountSwitch`): until then `settings` may be another scope's. */
+  loaded: boolean;
 }): { keepListRef: MutableRefObject<string[]> } {
-  const { settings, host, hostRef, setSettings, orgProfile } = p;
+  const { settings, host, hostRef, setSettings, orgProfile, loaded } = p;
 
   // Mirror the ORG's confirmation FLOOR to main, exactly like the `linkPreviews` opt-in
   // below — main composes it with the member's own mode by taking the STRICTER
@@ -72,9 +74,15 @@ export function usePlatformEffects(p: {
   // Tri-state consent: an explicit user choice wins; otherwise default ON — in dev too,
   // so the app-attestation pipeline is exercised there. (Sending still requires a
   // configured relay, and Do-Not-Track / GPC is always honoured.)
+  // ⚠️ `loaded` first: a choice lives in the ACCOUNT's settings, and at launch `settings` is
+  // the unscoped blob, which never holds it. Read then, an opt-out would read as "no choice".
   useEffect(() => {
+    if (!loaded) {
+      awaitAnalyticsConsent();
+      return;
+    }
     setAnalyticsConsent(settings.analyticsConsent ?? true);
-  }, [settings.analyticsConsent]);
+  }, [loaded, settings.analyticsConsent]);
 
   // Mirror the `linkPreviews` opt-in to the platform (audit M4): main tracks it as the
   // AUTHORITATIVE flag (default OFF, fail-closed) and REFUSES `links:preview` until it is

@@ -96,6 +96,8 @@ export interface ConfigureOptions {
 export interface Sink {
   configureAnalytics(opts: ConfigureOptions): void;
   setAnalyticsConsent(on: boolean): void;
+  /** Take the decision back while it is not known: nothing leaves until the next `setAnalyticsConsent`. */
+  awaitAnalyticsConsent(): void;
   /** Kill switch for a NON-HUMAN launch (e2e / bench driving the built app). Nothing
    *  leaves and the pre-consent queue is dropped, whatever the consent says — an
    *  automated run must never appear in the product's numbers. */
