@@ -11,7 +11,7 @@
  */
 export const DESKTOP_EVENTS = {
   app_open: [],
-  access_state: ["access"],
+  access_state: ["access", "agents"],
   section_change: ["section"],
   theme_toggle: ["theme"],
   language_change: ["locale"],

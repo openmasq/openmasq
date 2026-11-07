@@ -31,14 +31,14 @@ describe("access_state", () => {
     const m = await mount(<Probe {...base} keysKnown={false} />);
     expect(sent()).toEqual([]);
     await m.rerender(<Probe {...base} keyConfigured={new Set(["openai"])} />);
-    expect(sent()).toEqual([{ name: "access_state", access: "key" }]);
+    expect(sent()).toEqual([{ name: "access_state", access: "key", agents: "none" }]);
   });
 
   it("waits for the probe of a CLI that is switched on", async () => {
-    const m = await mount(<Probe {...base} agents={[{ enabled: true, detected: null }]} />);
+    const m = await mount(<Probe {...base} agents={[{ cli: "claude", enabled: true, detected: null }]} />);
     expect(sent()).toEqual([]);
-    await m.rerender(<Probe {...base} agents={[{ enabled: true, detected: true }]} />);
-    expect(sent()).toEqual([{ name: "access_state", access: "agent" }]);
+    await m.rerender(<Probe {...base} agents={[{ cli: "claude", enabled: true, detected: true }]} />);
+    expect(sent()).toEqual([{ name: "access_state", access: "agent", agents: "claude" }]);
   });
 
   it("says none, once per launch, and nothing before the onboarding is over", async () => {
@@ -46,6 +46,20 @@ describe("access_state", () => {
     expect(sent()).toEqual([]);
     await m.rerender(<Probe {...base} />);
     await m.rerender(<Probe {...base} keyConfigured={new Set(["openai"])} />);
-    expect(sent()).toEqual([{ name: "access_state", access: "none" }]);
+    expect(sent()).toEqual([{ name: "access_state", access: "none", agents: "none" }]);
+  });
+
+  it("names the CLIs switched on, found or not: the choice, not only the road that works", async () => {
+    await mount(
+      <Probe
+        {...base}
+        agents={[
+          { cli: "codex", enabled: true, detected: false },
+          { cli: "claude", enabled: true, detected: true },
+          { cli: "antigravity", enabled: false, detected: true },
+        ]}
+      />,
+    );
+    expect(sent()).toEqual([{ name: "access_state", access: "agent", agents: "claude,codex" }]);
   });
 });

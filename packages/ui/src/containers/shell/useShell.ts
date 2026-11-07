@@ -221,9 +221,9 @@ export function useShell({
     keyConfigured: chat.keyConfigured,
     localReachable: chat.localEndpointReachable,
     agents: [
-      ...(host.probeClaudeCli ? [{ enabled: !!s.claudeCliEnabled, detected: chat.claudeCliDetected }] : []),
-      ...(host.probeCodexCli ? [{ enabled: !!s.codexCliEnabled, detected: chat.codexCliDetected }] : []),
-      ...(host.probeAntigravityCli ? [{ enabled: !!s.antigravityCliEnabled, detected: chat.antigravityCliDetected }] : []),
+      ...(host.probeClaudeCli ? [{ cli: "claude", enabled: !!s.claudeCliEnabled, detected: chat.claudeCliDetected }] : []),
+      ...(host.probeCodexCli ? [{ cli: "codex", enabled: !!s.codexCliEnabled, detected: chat.codexCliDetected }] : []),
+      ...(host.probeAntigravityCli ? [{ cli: "antigravity", enabled: !!s.antigravityCliEnabled, detected: chat.antigravityCliDetected }] : []),
     ],
   });
 

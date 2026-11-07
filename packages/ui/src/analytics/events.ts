@@ -60,7 +60,7 @@ export type TrackEvent =
   | { name: "app_open" }
   // The road to a model this install has, ONCE per launch, when keys and CLI probes have
   // answered. `none` on an unserved build = nothing can answer (`state/auth/modelAccess.ts`).
-  | { name: "access_state"; access: ModelAccess }
+  | { name: "access_state"; access: ModelAccess; agents: string }
   | { name: "section_change"; section: Section }
   | { name: "theme_toggle"; theme: "light" | "dark" }
   // The language CHOSEN in settings — a shipped locale, so an enum, never a raw
