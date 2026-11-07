@@ -60,3 +60,17 @@ describe("ocrPdf in a utilityProcess", () => {
     expect(res.text).toBe(pages.map((p) => p[2]).join("\n\f\n"));
   }, 30_000);
 });
+
+describe("the standard-font factory", () => {
+  it("serves a standard font, and reports one it cannot serve", async () => {
+    const { pdfRenderFactories } = await import("./pdfFactories");
+    let missing = 0;
+    const { BinaryDataFactory } = pdfRenderFactories({ createCanvas: () => ({}) }, () => missing++);
+    const f = new BinaryDataFactory();
+    expect((await f.fetch({ kind: "standardFontDataUrl", filename: "FoxitFixed.pfb" })).byteLength).toBeGreaterThan(1000);
+    await expect(f.fetch({ kind: "standardFontDataUrl", filename: "../evil" })).rejects.toThrow();
+    expect(missing).toBe(1);
+    await expect(f.fetch({ kind: "cMapUrl", filename: "UniJIS-UTF16-H.bcmap" })).rejects.toThrow(/cMapUrl/);
+  });
+});
+

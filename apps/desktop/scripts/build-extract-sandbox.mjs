@@ -17,13 +17,25 @@
  * that one digest.
  */
 import { createHash } from "node:crypto";
-import { readFileSync, writeFileSync } from "node:fs";
+import { readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
 
 const APP = join(dirname(fileURLToPath(import.meta.url)), "..");
 const OUT = join(APP, "out", "sandboxed", "extractWorker.mjs");
+
+// pdf.js's standard fonts, INSIDE the bundle (`@openmasq/redact` `ocr/standardFonts.ts`): the jail
+// grants no pdf.js folder, and an embedded copy is covered by the digest below. Read from the
+// pdfjs-dist the lockfile pins; the font licences ship beside the pdfjs-dist in the app.
+const FONTS_DIR = join(dirname(createRequire(join(APP, "package.json")).resolve("pdfjs-dist/package.json")), "standard_fonts");
+const FONTS = Object.fromEntries(
+  readdirSync(FONTS_DIR)
+    .filter((f) => /\.(pfb|ttf)$/.test(f))
+    .map((f) => [f, readFileSync(join(FONTS_DIR, f)).toString("base64")]),
+);
+if (Object.keys(FONTS).length !== 14) throw new Error(`[build:extract-sandbox] ${Object.keys(FONTS).length} standard fonts in ${FONTS_DIR}, expected 14`);
 
 await build({
   entryPoints: [join(APP, "src", "main", "ocr", "extractSandboxEntry.ts")],
@@ -47,6 +59,7 @@ await build({
       "const __dirname = __omqDirname(__filename);",
     ].join(" "),
   },
+  define: { __OMQ_STANDARD_FONTS__: JSON.stringify(FONTS) },
   logLevel: "warning",
 });
 

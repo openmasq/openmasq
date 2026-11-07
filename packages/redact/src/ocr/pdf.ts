@@ -99,16 +99,22 @@ export async function ocrPdf(
   const pdfjs: any = await import("pdfjs-dist/legacy/build/pdf.mjs");
   const getDocument = pdfjs.getDocument ?? pdfjs.default?.getDocument;
 
+  // A font pdf.js could not be given leaves its text undrawn: no page of THIS document may then
+  // be judged blank (`./pdfFactories.ts`). Fail closed — the page is read.
+  let fontMissing = false;
   const doc = await getDocument({
     // pdf.js takes ownership of `data` and detaches its ArrayBuffer; pass a COPY so
     // the caller's `buf` isn't neutered (it may have already been through pdf.js for
     // text extraction). Without this the 2nd getDocument throws "Cannot transfer
     // object of unsupported type" — the exact scanned-PDF OCR failure.
     data: buf.slice(),
-    useSystemFonts: true,
+    // The standard fonts pdf.js ships, never the machine's (`./standardFonts.ts`).
+    useSystemFonts: false,
     isEvalSupported: false,
     // Never pdf.js's defaults: in the extraction worker (a utilityProcess) they are the DOM ones.
-    ...pdfRenderFactories(canvasMod),
+    ...pdfRenderFactories(canvasMod, () => {
+      fontMissing = true;
+    }),
   }).promise;
 
   const total: number = doc.numPages;
@@ -174,7 +180,7 @@ export async function ocrPdf(
     // empty reading, in this page's raster space, without running OCR on white. A canvas
     // that cannot hand its pixels back proves nothing: the page is read (fail closed).
     const pixels = typeof ctx.getImageData === "function" ? ctx.getImageData(0, 0, canvas.width, canvas.height)?.data : undefined;
-    if (pixels && isBlankRaster(pixels)) {
+    if (pixels && !fontMissing && isBlankRaster(pixels)) {
       out.push("");
       layout.push({ text: "", words: [], width: canvas.width, height: canvas.height });
       pageRead(i, "");

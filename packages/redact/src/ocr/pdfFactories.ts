@@ -9,10 +9,17 @@
  * process, so every page painting an image failed its OCR. These factories never touch a
  * DOM: canvases come from `@napi-rs/canvas`, filters are no-ops (what pdf.js's own Node
  * filter factory does). `pdfFactories.test.ts`.
+ *
+ * The third, `BinaryDataFactory`, serves the standard fonts (`./standardFonts.ts`) so text in a
+ * non-embedded base font renders on every machine; callers pass `useSystemFonts: false` with it.
+ * pdf.js only WARNS when a font cannot be had and draws the page without it, so a failure is
+ * reported through `onFontMissing`: a page rendered then proves nothing about its ink.
  */
+import { standardFontBytes } from "./standardFonts";
+
 type CanvasModule = { createCanvas: (w: number, h: number) => any };
 
-export function pdfRenderFactories(canvasMod: CanvasModule) {
+export function pdfRenderFactories(canvasMod: CanvasModule, onFontMissing?: () => void) {
   class CanvasFactory {
     #willReadFrequently: boolean;
     constructor({ enableHWA = false }: { enableHWA?: boolean } = {}) {
@@ -66,5 +73,17 @@ export function pdfRenderFactories(canvasMod: CanvasModule) {
     }
     destroy() {}
   }
-  return { CanvasFactory, FilterFactory };
+  class BinaryDataFactory {
+    async fetch({ kind, filename }: { kind: string; filename: string }): Promise<Uint8Array> {
+      // CMaps and WASM were never supplied here; pdf.js's own wording for that case.
+      if (kind !== "standardFontDataUrl") throw new Error(`Ensure that the \`${kind}\` API parameter is provided.`);
+      try {
+        return await standardFontBytes(filename);
+      } catch (e) {
+        onFontMissing?.();
+        throw e;
+      }
+    }
+  }
+  return { CanvasFactory, FilterFactory, BinaryDataFactory };
 }

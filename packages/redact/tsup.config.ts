@@ -12,6 +12,8 @@ export default defineConfig({
     "src/local/ner.ts",
   ],
   format: ["esm", "cjs"],
+  // `import.meta.url` in the CommonJS build too (`src/ocr/standardFonts.ts` resolves pdf.js's fonts).
+  shims: true,
   dts: true,
   clean: true,
   // The monorepo build keeps its maps (the app's bundle and its Sentry traces read `dist/`);

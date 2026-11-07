@@ -8,4 +8,10 @@ import "../security/offline";
 import * as pdfjsWorker from "pdfjs-dist/legacy/build/pdf.worker.mjs";
 
 (globalThis as { pdfjsWorker?: unknown }).pdfjsWorker = pdfjsWorker;
+// pdf.js's standard fonts, embedded by `scripts/build-extract-sandbox.mjs`: no font file is read
+// from disk either (`@openmasq/redact` `ocr/standardFonts.ts`).
+declare const __OMQ_STANDARD_FONTS__: Record<string, string>;
+(globalThis as { pdfjsStandardFonts?: Record<string, Uint8Array> }).pdfjsStandardFonts = Object.fromEntries(
+  Object.entries(__OMQ_STANDARD_FONTS__).map(([name, b64]) => [name, new Uint8Array(Buffer.from(b64, "base64"))]),
+);
 void import("./extractWorker");

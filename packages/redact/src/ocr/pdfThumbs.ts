@@ -33,7 +33,7 @@ export async function pdfThumbnails(
   // A COPY: pdf.js detaches the buffer it is given, and the read is using the same bytes.
   const doc = await getDocument({
     data: buf.slice(),
-    useSystemFonts: true,
+    useSystemFonts: false, // the shipped standard fonts (`./standardFonts.ts`)
     isEvalSupported: false,
     enableXfa: false,
     ...pdfRenderFactories(canvasMod),
