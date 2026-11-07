@@ -59,6 +59,8 @@ export const DESKTOP_EVENTS = {
   redaction_timing: ["engine", "model", "ms", "cold", "ok", "reason", "chars"],
   file_attached: ["mime", "sizeBucket", "redactions"],
   setting_changed: ["key"],
+  login_step: ["step"],
+  login_result: ["method", "outcome"],
   onboarding: ["step", "access", "agents", "key_providers", "openrouter_oauth", "tuned"],
   onboarding_step: ["step"],
   onboarding_blocked: [],

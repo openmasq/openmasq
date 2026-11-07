@@ -59,6 +59,8 @@ export const EVENT_TIER = {
   tool_gate_blocked: "diagnostic",
   file_attached: "usage",
   setting_changed: "usage",
+  login_step: "usage",
+  login_result: "usage",
   onboarding: "usage",
   onboarding_step: "usage",
   onboarding_blocked: "usage",

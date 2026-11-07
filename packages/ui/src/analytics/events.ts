@@ -13,6 +13,7 @@ import type { Section } from "../types";
 import type { ModelAccess } from "../state/auth/modelAccess";
 import type { SendOutcome, SendRefusal } from "../send/sendResult";
 import type { ConnectorErrorFamily } from "../pages/Settings/mcp/connectorErrorText";
+import type { LoginMethod, LoginOutcome, LoginStep } from "../pages/Login/loginErrors";
 // Likewise: the language is a catalogue enum, never a free string.
 import type { Locale } from "@openmasq/i18n";
 
@@ -235,6 +236,10 @@ export type TrackEvent =
       openrouter_oauth?: boolean;
       tuned?: boolean;
     }
+  // The sign-in screen comes BEFORE the onboarding: one per screen shown, one per attempt.
+  // Enums only: never the address, never the auth server's text.
+  | { name: "login_step"; step: LoginStep }
+  | { name: "login_result"; method: LoginMethod; outcome: LoginOutcome }
   // One per screen SHOWN ("1"…"3", "regler") — the funnel `onboarding` alone can't draw.
   | { name: "onboarding_step"; step: string }
   // « Suivant » pressed on the access step with no road to a model: the step holds them.

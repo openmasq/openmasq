@@ -7,6 +7,7 @@ import { ModalTitle } from "../../containers/modals/ModalTitle";
 import { AssureStrip, Err, OfflineNote, Field, Spinner, GoogleIcon, SpamHint } from "./parts";
 import { friendlyError } from "./loginErrors";
 import { hasSeenAccountOnDevice } from "./seenAccount";
+import { useLoginTelemetry } from "./useLoginTelemetry";
 import { platformAccessServed } from "../../send/platformAccess";
 
 import { useT } from "../../i18n";
@@ -84,6 +85,8 @@ export function LoginScreen({
   // Link-first platforms (desktop) hide the code field behind this disclosure —
   // the link is the primary path; the code is only a fallback for a failed deep link.
   const [showCode, setShowCode] = useState(false);
+  const codeShown = stage === "sent" && codeSupported && (!linkFirst || showCode);
+  const reportLogin = useLoginTelemetry(stage === "email" ? "email" : codeShown ? "code" : "sent");
 
   const submitCode = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -93,9 +96,11 @@ export function LoginScreen({
     setError(null);
     try {
       const r = await verifyCode({ email: email.trim(), code: c });
+      reportLogin("code", r.error);
       // On success, onAuthStateChange flips the gate; on failure, show why.
       if (r.error) setError(friendlyError(r.error, t));
     } catch (err) {
+      reportLogin("code", err);
       setError(friendlyError(err, t));
     } finally {
       setVerifying(false);
@@ -110,10 +115,12 @@ export function LoginScreen({
     setError(null);
     try {
       const r = await sendMagicLink(addr);
+      reportLogin("link", r.error);
       if (r.error) setError(friendlyError(r.error, t));
       else setStage("sent");
       // After they click the link, onAuthStateChange flips the gate automatically.
     } catch (err) {
+      reportLogin("link", err);
       setError(friendlyError(err, t));
     } finally {
       setBusy(false);
@@ -191,6 +198,7 @@ export function LoginScreen({
                     onClick={() => {
                       setError(null);
                       void signInWithGoogle().then((r) => {
+                        reportLogin("google", r.error);
                         if (r.error) setError(friendlyError(r.error, t));
                       });
                     }}
@@ -212,7 +220,7 @@ export function LoginScreen({
             </form>
           ) : (
             <div className="login-fields">
-              {codeSupported && (!linkFirst || showCode) && (
+              {codeShown && (
                 <form onSubmit={submitCode} className="login-fields">
                   <Field label={t.login.code}>
                     <input
@@ -239,7 +247,7 @@ export function LoginScreen({
               )}
               <div className="login-code-row">
                 <button type="button" onClick={() => { setStage("email"); setError(null); setCode(""); setShowCode(false); }} className="login-link"><span className="om-sweep">{t.login.useAnotherAddress}</span></button>
-                <button type="button" disabled={busy} onClick={async () => { setBusy(true); setError(null); try { const r = await sendMagicLink(email.trim()); if (r.error) setError(friendlyError(r.error, t)); } catch (err) { setError(friendlyError(err, t)); } finally { setBusy(false); } }} className="login-link"><span className="om-sweep">{busy ? t.login.sending : codeSupported && !linkFirst ? t.login.resend : t.login.resendLink}</span></button>
+                <button type="button" disabled={busy} onClick={async () => { setBusy(true); setError(null); try { const r = await sendMagicLink(email.trim()); reportLogin("link", r.error); if (r.error) setError(friendlyError(r.error, t)); } catch (err) { reportLogin("link", err); setError(friendlyError(err, t)); } finally { setBusy(false); } }} className="login-link"><span className="om-sweep">{busy ? t.login.sending : codeSupported && !linkFirst ? t.login.resend : t.login.resendLink}</span></button>
               </div>
               <AssureStrip />
             </div>
