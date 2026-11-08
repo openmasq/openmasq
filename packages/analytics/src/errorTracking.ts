@@ -12,7 +12,9 @@ import type { ErrorReport } from "./types";
  */
 export function scrubMessage(raw: string): string {
   return (
-    (raw ?? "")
+    // Bounded BEFORE the rules: they run on the whole string, and some cost the square of a
+    // long run; the result is cut far shorter below anyway.
+    (raw ?? "").slice(0, 2000)
       .replace(/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/gi, "‹email›")
       .replace(/[a-z][a-z0-9+.-]*:\/\/[^\s/]*:[^\s/@]*@/gi, "‹creds›@")
       // A Windows home directory: `C:\Users\julien\…`. The POSIX rule below only knows

@@ -11,11 +11,25 @@ export function normalizeMath(input: string): string {
     .map((part, i) =>
       i % 2 === 1 // odd parts are the captured code spans/blocks
         ? part
-        : part
-            .replace(/\\\[([\s\S]+?)\\\]/g, (_m, e) => `$$${e}$$`)
-            .replace(/\\\(([\s\S]+?)\\\)/g, (_m, e) => `$${e}$`),
+        : wrapDelimited(wrapDelimited(part, "\\[", "\\]", "$$"), "\\(", "\\)", "$"),
     )
     .join("");
+}
+
+/** Every `open…close` with a NON-EMPTY body becomes `wrap…wrap` — the lazy-regex result,
+ *  found with `indexOf` so a text full of unclosed delimiters stays linear. */
+function wrapDelimited(s: string, open: string, close: string, wrap: string): string {
+  let out = "";
+  let i = 0;
+  for (;;) {
+    const a = s.indexOf(open, i);
+    if (a < 0) break;
+    const b = s.indexOf(close, a + open.length + 1);
+    if (b < 0) break; // no later opening has a closing either
+    out += s.slice(i, a) + wrap + s.slice(a + open.length, b) + wrap;
+    i = b + close.length;
+  }
+  return out + s.slice(i);
 }
 
 // KaTeX (rehype-katex) pulls in the whole katex renderer — heavy, and never needed

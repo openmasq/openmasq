@@ -40,7 +40,7 @@ const FISCAL_RE =
 // plus a ≥6-digit run is what keeps prose out. The run accepts `/` ("86517808/808109154",
 // a real insurance-policy format); a pure DATE shape is rejected in detectLabeledNumber.
 const CONTRACT_RE =
-  /(?<![\p{L}])(?:(?:num[eé]ro|n[°ºo]|no|r[eé]f[eé]rence|ref)\.?\s*(?:de\s+|d['’])?(?:la\s+)?(?:client|dossier|contrat|police|adh[eé]sion|adh[eé]rent|commande|facture|abonn[eé]|assur[eé]|soci[eé]taire|certification)e?s?|(?:client|dossier|contrat|police|adh[eé]rent|commande|facture)\s+(?:num[eé]ro|n[°ºo]|no)\.?|point\s+de\s+livraison(?:\s*\(\s*pdl\s*\))?|sous\s+le\s+(?:num[eé]ro|n[°ºo]))(?:\s*\([^)\n]{0,20}\))?(?:\s+[\p{L}'’]{1,12}){0,4}?[\s:：#.\-]*(?:n[°ºo]\.?\s*)?[:：]?\s*((?:[A-Z]{1,4}[-\/]?)?[0-9][0-9 .\-\/]{4,}[0-9])/giu;
+  /(?<![\p{L}])(?:(?:num[eé]ro|n[°ºo]|no|r[eé]f[eé]rence|ref)\.?\s*(?:de\s+|d['’])?(?:la\s+)?(?:client|dossier|contrat|police|adh[eé]sion|adh[eé]rent|commande|facture|abonn[eé]|assur[eé]|soci[eé]taire|certification)e?s?|(?:client|dossier|contrat|police|adh[eé]rent|commande|facture)\s+(?:num[eé]ro|n[°ºo]|no)\.?|point\s+de\s+livraison(?:\s*\(\s*pdl\s*\))?|sous\s+le\s+(?:num[eé]ro|n[°ºo]))(?:\s*\([^)\n]{0,20}\))?(?:\s+[\p{L}'’]{1,12}){0,4}?[\s:：#.\-]*(?:n[°ºo]\.?[\s:：#.\-]*)?((?:[A-Z]{1,4}[-\/]?)?[0-9][0-9 .\-\/]{4,}[0-9])/giu;
 
 /** Detect a labeled identifier NUMBER anchored on its digit run (colon optional).
  *  `minDigits` guards against short numbers (a year, a count); a decimal-amount
@@ -54,7 +54,7 @@ function detectLabeledNumber(text: string, re: RegExp, minDigits: number): Detec
     // so on a two-column PDF line it crosses the gap and glues the right column's
     // leading digit in ("317645928␣…␣5 rue des Bruyères" → value "…␣5") — a value
     // that no longer occurs verbatim, so the REAL number ships in clear.
-    const value = (m[1] ?? "").split(/\s{2,}/)[0]!.replace(/[\s.\-]+$/u, "").trim();
+    const value = (m[1] ?? "").split(/\s{2,}/)[0]!.replace(/(?<![\s.\-])[\s.\-]+$/u, "").trim();
     if (value.replace(/\D/g, "").length < minDigits) continue;
     if (/[.,]\d{1,2}$/.test(value)) continue; // a money amount, not an identifier
     // A pure DATE is never an identifier — "n° de contrat du 12/05/2024" names the

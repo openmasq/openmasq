@@ -17,7 +17,7 @@ import { isStopword, isGenericTerm } from "../../model/detect";
 
 /** Identity-document header, tolerant to OCR word-gluing ("CARTENATIONALE D'IDENTITÉ"). */
 const HEADER_RE =
-  /CARTE\s*NATIONALE\s*D\s*['’]?\s*IDENTIT|PASSEPORT|TITRE\s*DE\s*S[ÉE]JOUR|R[ÉE]PUBLIQUE\s*FRAN[ÇC]AISE/iu;
+  /CARTE\s*NATIONALE\s*D\s*(?:['’]\s*)?IDENTIT|PASSEPORT|TITRE\s*DE\s*S[ÉE]JOUR|R[ÉE]PUBLIQUE\s*FRAN[ÇC]AISE/iu;
 
 /** An ALL-CAPS value run (accents + compounds), 2-40 chars — how a card prints a value. */
 const CAPS = "[A-ZÀ-ÖØ-Þ][A-ZÀ-ÖØ-Þ'’ -]{1,39}";

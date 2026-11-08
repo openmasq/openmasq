@@ -98,7 +98,9 @@ const CITY = "\\p{Lu}[\\p{L}'’.\\- ]{1,28}";
 // The guard refuses to let a number followed by a currency or a tax mention pass for
 // a postal code. It does NOT close the general `i`-on-`\\p{Lu}` hole (see the register):
 // it closes the measured case, without touching the precision bar of the rest.
-export const TAIL_CORE = `[,\\s]+(?:[-–—][,\\s]*)?${MONEY_AHEAD}(?:\\d{5}|\\d{4}-\\d{3}|\\d{4}\\s?[A-Z]{2}|\\d{4})[,\\s]+${CITY}`;
+// `(?=\\d)` before the money guard: a postal code starts here or nowhere, so a position in a
+// long separator run fails at once instead of re-reading the rest of the run (`adversarialRuns.test.ts`).
+export const TAIL_CORE = `[,\\s]+(?:[-–—][,\\s]*)?(?=\\d)${MONEY_AHEAD}(?:\\d{5}|\\d{4}-\\d{3}|\\d{4}\\s?[A-Z]{2}|\\d{4})[,\\s]+${CITY}`;
 export const TAIL_ZIPCITY = `(?:${TAIL_CORE})?`;
 // Trailing "City ST ZIP" (US), "City POSTCODE" (GB), "City PROV A1A 1A1" (CA).
 const EN_POST = "\\d{5}(?:-\\d{4})?|[A-Z]\\d[A-Z]\\s?\\d[A-Z]\\d|[A-Z]{1,2}\\d[A-Z\\d]?\\s?\\d[A-Z]{2}";

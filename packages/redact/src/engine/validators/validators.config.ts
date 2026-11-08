@@ -103,7 +103,8 @@ const CODE_REFERENCE =
  * (dotted or camelCase). A password shaped like that is a loss we accept.
  */
 const CUT_CALL_BARE = /^[A-Za-z_$][\w$.]{0,60}\($/;
-const CUT_CALL_NAMED = /^(?:[A-Za-z_$][\w$]*\.[\w$.]{1,60}|[a-z_$][\w$]*[A-Z][\w$]*)\([^)]*$/;
+// camelCase: lowercase up to the FIRST capital — one way to split the name, so linear.
+const CUT_CALL_NAMED = /^(?:[A-Za-z_$][\w$]*\.[\w$.]{1,60}|[a-z_$][a-z\d_$]*[A-Z][\w$]*)\([^)]*$/;
 const isCutCall = (v: string): boolean => CUT_CALL_BARE.test(v) || CUT_CALL_NAMED.test(v);
 
 /**
@@ -112,7 +113,8 @@ const isCutCall = (v: string): boolean => CUT_CALL_BARE.test(v) || CUT_CALL_NAME
  * part is one — a literal anywhere in the chain still masks the whole expression. The
  * trailing `;` and `,` go first: a statement's punctuation is not part of its value.
  */
-const JOINERS = /\s*(?:\|\||\?\?|\?|:|&&)\s*/;
+// No surrounding `\s*`: every part is trimmed, and two adjacent whitespace runs made the split quadratic.
+const JOINERS = /\|\||\?\?|\?|:|&&/;
 const STRING_LITERAL = /^(?:""|''|``)$/;
 /**
  * A bare name — the CONDITION of a ternary, the only part of these expressions that is not
@@ -140,7 +142,7 @@ function balance(part: string): string {
 }
 
 export const isCodeReference = (value: string): boolean => {
-  const v = value.trim().replace(/[;,]+$/, "");
+  const v = value.trim().replace(/(?<![;,])[;,]+$/, "");
   if (CODE_REFERENCE.test(v) || isCutCall(v)) return true;
   // An EXPRESSION: every alternative must itself be a reference, and at least one must be a
   // genuine idiom — a chain of bare names says nothing, and a value that is ONE bare name is

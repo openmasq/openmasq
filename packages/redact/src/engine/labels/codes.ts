@@ -160,7 +160,9 @@ const PASSWORD_RE = new RegExp(
  *  URL, an e-mail, a placeholder. */
 function isPasswordShaped(v: string): boolean {
   if (!/\p{L}/u.test(v) || !/[\p{N}\p{P}\p{S}]/u.test(v)) return false;
-  if (/:\/\/|^\/|@.+\.|^\*+$|^[\[({<].*[\])}>]$/u.test(v)) return false;
+  if (/:\/\/|^\/|^\*+$|^[\[({<].*[\])}>]$/u.test(v)) return false;
+  const at = v.indexOf("@"); // an e-mail shape: an `@`, then a dot past the character after it
+  if (at >= 0 && v.lastIndexOf(".") > at + 1) return false;
   // …nor a value that REFERENCES the password (`X_PASSWORD = var.x_password`): the `_` before
   // the label is a word boundary, and a reference's dots and underscores satisfy the symbol
   // test above. One home for the test (`validators.config.ts`).
@@ -206,7 +208,7 @@ export function detectLabeledCodes(text: string): Detection[] {
     // « N8$kR9mZpY5!. ») — a final stop or comma, and a closing paren that opens nothing.
     const v = quoted
       ? raw
-      : raw.replace(/[.,;:]+$/u, "").replace(/\)$/u, (c, i, str) => (str.includes("(") ? c : ""));
+      : raw.replace(/(?<![.,;:])[.,;:]+$/u, "").replace(/\)$/u, (c, i, str) => (str.includes("(") ? c : ""));
     if (v.length < 6 || !isPasswordShaped(v)) continue;
     const key = `SECRET::${v}`;
     if (seen.has(key)) continue;

@@ -49,7 +49,7 @@ function anglo(v: string): string {
 
 /** Trim trailing separators / a trailing dangling clause from a captured span. */
 function clean(v: string): string {
-  return v.replace(/[\s,;.]+$/u, "").replace(/\s{2,}.*$/u, "").trim();
+  return v.replace(/(?<![\s,;.])[\s,;.]+$/u, "").replace(/\s{2,}.*$/u, "").trim();
 }
 
 function pushAll(

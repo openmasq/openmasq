@@ -74,7 +74,9 @@ function isAssetRef(stem: string, ext: string): boolean {
 // FRAGMENT candidate whose every occurrence sits inside an email (a NER-tagged
 // "gmail" domain inside `x@gmail.com`): redacting it alone swaps only the domain and
 // LEAKS the real local-part. The whole email is caught atomically by the email rule.
-const EMAIL_SPAN = /[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g;
+// The lookbehind starts a match only where a local part starts: the same matches, in linear
+// time — without it a long run of local-part characters with no `@` costs the square of its length.
+const EMAIL_SPAN = /(?<![A-Za-z0-9._%+-])[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g;
 
 /** All [start, end) spans of `text` that are a full email address. */
 export function detectEmailSpans(text: string): Array<[number, number]> {
