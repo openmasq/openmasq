@@ -1,3 +1,4 @@
+import { decodeHtmlEntities } from "@openmasq/connectors";
 /**
  * HTML → bounded PLAIN TEXT, by string scan — NO DOM, NO script execution (same
  * discipline as `linkPreview.ts`'s meta parsing). Used by `webFetchMany.ts` to hand
@@ -18,30 +19,6 @@ import { findElement, removeComments, removeElements, replaceAllTags, replaceNam
 /** Default cap on the extracted text per page (characters). */
 export const HTML_TEXT_MAX = 20_000;
 
-/** Decode the HTML entities that survive tag-stripping (named + numeric). */
-function decodeEntities(s: string): string {
-  return s
-    .replace(/&(#x[0-9a-f]+|#\d+);/gi, (_m, code: string) => {
-      const cp = code[1] === "x" || code[1] === "X" ? parseInt(code.slice(2), 16) : parseInt(code.slice(1), 10);
-      // Reject out-of-range / control code points → keep the raw entity rather than
-      // emit U+FFFD noise or throw.
-      return Number.isFinite(cp) && cp >= 0x20 && cp <= 0x10ffff ? safeFromCodePoint(cp) : _m;
-    })
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&(?:apos|#0*39);/gi, "'")
-    .replace(/&nbsp;/g, " ");
-}
-
-function safeFromCodePoint(cp: number): string {
-  try {
-    return String.fromCodePoint(cp);
-  } catch {
-    return "";
-  }
-}
 
 /** Block-level tags whose boundaries should become a line break, so the extracted
  *  text keeps paragraph/heading/list/row structure instead of running together. */
@@ -91,7 +68,7 @@ export function htmlToText(html: string, max = HTML_TEXT_MAX): string {
   for (const name of DROPPED_ELEMENTS) stripped = removeElements(stripped, name);
   // Block boundaries → newlines, then every remaining tag → nothing.
   stripped = replaceAllTags(replaceNamedTags(stripped, BLOCK_TAGS, "\n"), " ");
-  const text = decodeEntities(stripped)
+  const text = decodeHtmlEntities(stripped)
     // Collapse spaces/tabs, then trim blank lines, keeping single newlines as breaks.
     .replace(/[ \t\f\v\u00a0]+/g, " ")
     .replace(/ *\n */g, "\n")

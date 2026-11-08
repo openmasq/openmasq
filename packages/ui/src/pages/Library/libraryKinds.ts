@@ -1,4 +1,5 @@
 import type { Messages } from "@openmasq/i18n";
+import { RASTER_IMAGE } from "../../containers/modals/viewers/fileKind";
 /**
  * Library file classification + display helpers (pure). Buckets a stored file into
  * one of the design's category tabs (Images / Documents / Tableurs / Audio) from its
@@ -8,7 +9,8 @@ import type { Messages } from "@openmasq/i18n";
 /** A library category — the tabs the grid filters by. */
 export type LibKind = "image" | "document" | "sheet" | "audio";
 
-const IMG = /^image\/|\.(png|jpe?g|webp|bmp|tiff?|gif|svg)$/i;
+// raster only, the viewer's rule (`fileKind.ts`): an SVG is filed as a document, never shown as a picture
+const IMG = RASTER_IMAGE;
 const SHEET = /spreadsheetml|ms-excel|opendocument\.spreadsheet|^text\/csv|\.(xlsx|xlsm|xls|ods|csv|tsv)$/i;
 const AUDIO = /^audio\/|\.(m4a|mp3|wav|ogg|oga|aac|flac|opus|webm)$/i;
 

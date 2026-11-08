@@ -1,7 +1,9 @@
 // Walkers over the JSON shapes both wire families share: string leaves inside tool inputs,
 // JSON carried as a string (OpenAI tool-call `arguments`), text parts.
 
-/** Map every string leaf of a JSON value (objects, arrays), depth-first, sequentially. */
+/** Map every string leaf of a JSON value (objects, arrays), depth-first, sequentially.
+ *  Objects are rebuilt with `Object.fromEntries`: a key named `__proto__` (valid JSON) stays an
+ *  ordinary key — mapped and forwarded — instead of becoming the new object's prototype. */
 export async function mapStrings(
   value: unknown,
   fn: (s: string) => Promise<string>,
@@ -13,10 +15,9 @@ export async function mapStrings(
     return out;
   }
   if (value && typeof value === "object") {
-    const out: Record<string, unknown> = {};
-    for (const [k, v] of Object.entries(value as Record<string, unknown>))
-      out[k] = await mapStrings(v, fn);
-    return out;
+    const entries: [string, unknown][] = [];
+    for (const [k, v] of Object.entries(value as Record<string, unknown>)) entries.push([k, await mapStrings(v, fn)]);
+    return Object.fromEntries(entries);
   }
   return value;
 }
@@ -26,10 +27,7 @@ export function mapStringsSync(value: unknown, fn: (s: string) => string): unkno
   if (typeof value === "string") return fn(value);
   if (Array.isArray(value)) return value.map((v) => mapStringsSync(v, fn));
   if (value && typeof value === "object") {
-    const out: Record<string, unknown> = {};
-    for (const [k, v] of Object.entries(value as Record<string, unknown>))
-      out[k] = mapStringsSync(v, fn);
-    return out;
+    return Object.fromEntries(Object.entries(value as Record<string, unknown>).map(([k, v]) => [k, mapStringsSync(v, fn)]));
   }
   return value;
 }

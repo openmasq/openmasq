@@ -1,3 +1,4 @@
+import { decodeHtmlEntities } from "../htmlEntities";
 import { stringList } from "../args";
 /**
  * Shared helpers for the Microsoft Graph connectors (Outlook / OneDrive / SharePoint
@@ -28,14 +29,9 @@ export function addrs(v: unknown): string[] {
 
 /** Strip HTML tags to plain text (Graph message/channel bodies are often HTML). */
 export function stripHtml(html: string): string {
-  return html
+  const text = html
     .replace(/<style[\s\S]*?<\/style>/gi, "")
     .replace(/<script[\s\S]*?<\/script>/gi, "")
-    .replace(/<[^>]+>/g, " ")
-    .replace(/&nbsp;/g, " ")
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/\s+/g, " ")
-    .trim();
+    .replace(/<[^>]+>/g, " ");
+  return decodeHtmlEntities(text).replace(/\s+/g, " ").trim();
 }

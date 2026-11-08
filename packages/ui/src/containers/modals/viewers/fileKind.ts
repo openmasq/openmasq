@@ -18,8 +18,10 @@ const MD_EXT = /\.(md|markdown|mdown|mkd|mdx)$/i;
  * match the two places that already refuse SVG for exactly this reason: `ooxml/media.ts`
  * (an allow-list by magic bytes, no `image/svg+xml` entry) and the favicon path.
  * An SVG now falls through to « other » — offered for download, never rendered.
+ * The ONE raster rule: the preview views and the library's « Images » tab read it too.
  */
-const IMG = /^image\/(png|jpeg|gif|webp|bmp|tiff)\b|\.(png|jpe?g|webp|bmp|tiff?|gif)$/i;
+export const RASTER_IMAGE = /^image\/(png|jpeg|gif|webp|bmp|tiff|avif)\b|\.(png|jpe?g|webp|bmp|tiff?|gif|avif)$/i;
+const IMG = RASTER_IMAGE;
 const SHEET_MIME = /spreadsheetml|ms-excel|opendocument\.spreadsheet|^text\/csv/i;
 const SHEET_EXT = /\.(xlsx|xlsm|xls|ods|csv|tsv)$/i;
 const DOCX = /wordprocessingml\.document|\.docx$/i;

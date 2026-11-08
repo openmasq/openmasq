@@ -1,5 +1,6 @@
 import type { Messages } from "@openmasq/i18n";
 import type { DocView, DocViewOption } from "./DocViewMenu";
+import { RASTER_IMAGE } from "./fileKind";
 
 /**
  * **What can this attachment show, and which layer opens first.** Pure, so the decision
@@ -19,7 +20,7 @@ const CSV = /\.(csv|tsv)$/i;
 const DOCX = /\.docx$/i;
 const PPTX = /\.pptx$/i;
 const MD = /\.(md|markdown|mdown|mkd|mdx)$/i;
-const IMG = /^image\/|\.(png|jpe?g|webp|bmp|tiff?|gif|avif)$/i;
+const IMG = RASTER_IMAGE; // raster only: an SVG is a document with a script surface (`fileKind.ts`)
 
 export interface PreviewFile {
   name: string;

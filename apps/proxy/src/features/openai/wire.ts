@@ -83,10 +83,10 @@ async function maskCaller(
   const out: Record<string, unknown> = {};
   if (typeof body.user === "string") out.user = await mask(body.user);
   if (isRecord(body.metadata)) {
-    const metadata: Record<string, unknown> = {};
-    for (const [k, v] of Object.entries(body.metadata))
-      metadata[k] = typeof v === "string" ? await mask(v) : v;
-    out.metadata = metadata;
+    // `Object.fromEntries`: a `__proto__` key stays a key (masked), never the object's prototype
+    const entries: [string, unknown][] = [];
+    for (const [k, v] of Object.entries(body.metadata)) entries.push([k, typeof v === "string" ? await mask(v) : v]);
+    out.metadata = Object.fromEntries(entries);
   }
   return out;
 }

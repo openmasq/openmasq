@@ -1,3 +1,4 @@
+import { defaultUrlTransform } from "react-markdown";
 /**
  * INLINE marks, both directions: the small markdown subset a written document actually
  * uses (`**gras**`, `*italique*`, `` `code` ``, `[texte](url)`) ⇄ real DOM nodes.
@@ -96,7 +97,13 @@ export function inlineToNodes(md: string, doc: Document): Node[] {
     }
     if (t.kind === "link") {
       const el = doc.createElement("a");
-      el.setAttribute("href", t.href ?? "");
+      // The target stays the document's own (`data-md-href`, what is written back); only one
+      // the read view would also accept (react-markdown's `defaultUrlTransform`: http(s),
+      // mailto…) becomes a live `href` — a model-written `javascript:` never does.
+      const raw = t.href ?? "";
+      el.setAttribute("data-md-href", raw);
+      const safe = defaultUrlTransform(raw);
+      if (safe) el.setAttribute("href", safe);
       // The editor must not navigate on click — the card's read view owns links.
       el.setAttribute("data-md-link", "1");
       for (const n of inlineToNodes(t.text, doc)) el.appendChild(n);
@@ -131,7 +138,7 @@ export function inlineFromNode(node: Node): string {
     return inner.trim() ? `*${inner}*` : inner;
   }
   if (tag === "a") {
-    const href = el.getAttribute("href") ?? "";
+    const href = el.getAttribute("data-md-href") ?? el.getAttribute("href") ?? "";
     return href ? `[${kids()}](${href})` : kids();
   }
   return kids();

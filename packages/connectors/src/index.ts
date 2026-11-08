@@ -69,3 +69,4 @@ export function getConnector(id: string): Connector | undefined {
 }
 
 export * from "./files";
+export { decodeHtmlEntities } from "./htmlEntities";

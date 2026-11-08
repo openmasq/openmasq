@@ -1,3 +1,4 @@
+import { decodeHtmlEntities } from "@openmasq/connectors";
 import Debug from "debug";
 import { safeFetch } from "./net";
 
@@ -42,16 +43,6 @@ function cacheSet(url: string, v: LinkPreviewData | null): void {
   CACHE.set(url, v);
 }
 
-/** Decode the handful of HTML entities that show up in meta content. */
-function decodeEntities(s: string): string {
-  return s
-    .replace(/&amp;/g, "&")
-    .replace(/&lt;/g, "<")
-    .replace(/&gt;/g, ">")
-    .replace(/&quot;/g, '"')
-    .replace(/&#0*39;|&#x0*27;|&apos;/gi, "'")
-    .replace(/&nbsp;/g, " ");
-}
 
 /** Pull a `<meta>` content value by property/name, scanning attributes in any
  *  order. Pure string scan — no DOM, so no scripts run. */
@@ -61,14 +52,14 @@ function metaContent(html: string, keys: string[]): string | undefined {
     const key = tag.match(/\b(?:property|name)\s*=\s*["']([^"']+)["']/i)?.[1]?.toLowerCase();
     if (!key || !keys.includes(key)) continue;
     const content = tag.match(/\bcontent\s*=\s*["']([^"']*)["']/i)?.[1];
-    if (content) return decodeEntities(content).trim();
+    if (content) return decodeHtmlEntities(content).trim();
   }
   return undefined;
 }
 
 function titleTag(html: string): string | undefined {
   const m = html.match(/<title\b[^>]*>([\s\S]*?)<\/title>/i);
-  return m ? decodeEntities(m[1]).replace(/\s+/g, " ").trim() : undefined;
+  return m ? decodeHtmlEntities(m[1]).replace(/\s+/g, " ").trim() : undefined;
 }
 
 /** Best site-icon href from `<link rel="…icon…">` tags, preferring a BIGGER icon
@@ -80,7 +71,7 @@ function iconHref(html: string): string | undefined {
     const rel = tag.match(/\brel\s*=\s*["']([^"']+)["']/i)?.[1]?.toLowerCase();
     const href = tag.match(/\bhref\s*=\s*["']([^"']+)["']/i)?.[1];
     if (!rel || !href) continue;
-    if (/\bicon\b/.test(rel) && !byRel[rel]) byRel[rel] = decodeEntities(href).trim();
+    if (/\bicon\b/.test(rel) && !byRel[rel]) byRel[rel] = decodeHtmlEntities(href).trim();
   }
   return (
     byRel["apple-touch-icon"] ||
