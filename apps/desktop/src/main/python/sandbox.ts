@@ -1,7 +1,7 @@
 import { app } from "electron";
 import { spawn, spawnSync, type ChildProcess } from "node:child_process";
-import { createHash, randomUUID } from "node:crypto";
-import { lstat, mkdir, readdir, readFile, rm, writeFile } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
+import { mkdir, rm, writeFile } from "node:fs/promises";
 import { existsSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { startEgressProxy } from "./egressProxy";
@@ -11,6 +11,7 @@ import { winJailCmd, winJailExe } from "./winJail";
 import { jailBaseEnv } from "./jailEnv";
 import { ambientSecretDirs, ambientSecretFiles } from "../security/ambientSecrets"; import { BRAND } from "@openmasq/branding";
 import { devOnly } from "../security/devOnly";
+import { MAX_FILE_BYTES, MAX_FILES, OUTPUT_MIME, collectFiles, collectImages, extOf, sha256 } from "./collect";
 
 /**
  * Run model-generated Python in a jailed child process: writes confined to a per-run
@@ -39,29 +40,6 @@ const noNetwork = (): boolean => {
   if (process.platform === "win32") return true;
   return false;
 };
-const MAX_IMAGES = 8;
-const MAX_IMG_BYTES = 6 * 1024 * 1024;
-const MAX_FILES = 8;
-const MAX_FILE_BYTES = 25 * 1024 * 1024; // a generated PDF/xlsx can be a few MB
-
-/** Extensions the code runner is allowed to hand back as a DELIVERABLE file (a report
- *  the model generated). Curated so junk/temp binaries aren't surfaced; images go
- *  through the figure path instead. */
-const OUTPUT_MIME: Record<string, string> = {
-  ".pdf": "application/pdf",
-  ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-  ".xls": "application/vnd.ms-excel",
-  ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  ".pptx": "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-  ".csv": "text/csv",
-  ".tsv": "text/tab-separated-values",
-  ".json": "application/json",
-  ".txt": "text/plain",
-  ".md": "text/markdown",
-  ".html": "text/html",
-  ".zip": "application/zip",
-};
-
 export interface PythonResult {
   ok: boolean;
   stdout: string;
@@ -213,23 +191,6 @@ function withRlimits(cmd: string, args: string[], cpuSecs: number): { cmd: strin
   return { cmd: "/bin/sh", args: ["-c", script, "sh", cmd, ...args] };
 }
 
-/** Read a COLLECTED deliverable/figure safely. The collectors run in the UNJAILED main
- *  process, so a symlink the child dropped in the output dir would be FOLLOWED and a secret
- *  handed back as a "deliverable". lstat, regular files only, no path separator. */
-async function readCollected(dir: string, name: string, maxBytes: number): Promise<Buffer | null> {
-  if (name.includes("/") || name.includes("\\") || name.includes("\0")) return null;
-  const full = join(dir, name);
-  try {
-    const st = await lstat(full);
-    // Also refuse a HARDLINK (nlink>1): lstat sees a regular file, but it aliases another
-    // path; a real deliverable just written has nlink 1.
-    if (!st.isFile() || st.size > maxBytes || st.nlink > 1) return null;
-    return await readFile(full);
-  } catch {
-    return null;
-  }
-}
-
 function killTree(child: ChildProcess): void {
   try {
     if (process.platform === "win32" && child.pid) {
@@ -250,33 +211,12 @@ function killTree(child: ChildProcess): void {
   }
 }
 
-/** Collect saved figures (`fig_*.png`) as base64, bounded in count and size. */
-async function collectImages(figDir: string): Promise<{ name: string; base64: string }[]> {
-  const out: { name: string; base64: string }[] = [];
-  const names = (await readdir(figDir).catch(() => []))
-    .filter((n) => n.toLowerCase().endsWith(".png"))
-    .sort()
-    .slice(0, MAX_IMAGES);
-  for (const name of names) {
-    const bytes = await readCollected(figDir, name, MAX_IMG_BYTES);
-    if (bytes) out.push({ name, base64: bytes.toString("base64") });
-  }
-  return out;
-}
-
-const extOf = (name: string): string => {
-  const i = name.lastIndexOf(".");
-  return i < 0 ? "" : name.slice(i).toLowerCase();
-};
-
 /** A deliverable generated EARLIER in the conversation, seeded into the run's CWD so
  *  the code can LOAD and MODIFY it (« enrichis le rapport ») instead of starting over. */
 export interface SeedFile {
   name: string;
   base64: string;
 }
-
-const sha256 = (bytes: Buffer): string => createHash("sha256").update(bytes).digest("hex");
 
 /** Extensions accepted as SEEDS only, never collected as deliverables: the
  *  conversation's working SCRIPT (`analyse.py`) re-enters the CWD so the code can
@@ -301,26 +241,6 @@ export function sanitizeSeedFiles(files: unknown): { name: string; bytes: Buffer
     if (!bytes.length || bytes.length > MAX_FILE_BYTES) continue;
     seen.add(name);
     out.push({ name, bytes });
-  }
-  return out;
-}
-
-/** Collect DELIVERABLE files the code wrote to the (clean, dedicated) output dir —
- *  only curated document extensions, bounded in count + size. A SEEDED file whose
- *  bytes are UNCHANGED is skipped (it was already delivered in a previous turn);
- *  a modified one comes back as a fresh deliverable. */
-async function collectFiles(
-  outDir: string,
-  seeded: Map<string, string> = new Map(),
-): Promise<{ name: string; base64: string; mime: string }[]> {
-  const out: { name: string; base64: string; mime: string }[] = [];
-  const names = (await readdir(outDir).catch(() => [])).filter((n) => OUTPUT_MIME[extOf(n)]).sort();
-  for (const name of names) {
-    if (out.length >= MAX_FILES) break;
-    const bytes = await readCollected(outDir, name, MAX_FILE_BYTES);
-    if (!bytes) continue;
-    if (seeded.get(name) === sha256(bytes)) continue; // unchanged seed → not a new deliverable
-    out.push({ name, base64: bytes.toString("base64"), mime: OUTPUT_MIME[extOf(name)] });
   }
   return out;
 }
@@ -432,6 +352,10 @@ export async function runPython(
     });
     child.on("close", async (codeNum) => {
       clearTimeout(timer);
+      // The whole group goes BEFORE collecting, timeout or not: nothing the child forked may
+      // still be running to swap a path while main reads the outputs (`collect.ts`). POSIX
+      // only — on Windows a pid is soon reused, and the jail's Job Object holds the tree.
+      if (process.platform !== "win32") killTree(child);
       const [images, files] = await Promise.all([
         collectImages(figDir),
         collectFiles(outDir, seeded),
