@@ -23,7 +23,7 @@ export function pageItems(raw: any[]): PdfTextItem[] {
 }
 
 export interface PaintContext {
-  o: Pick<RenderRedactedPdfOptions, "ocrPages" | "collectWords" | "reveal">;
+  o: Pick<RenderRedactedPdfOptions, "ocrPages" | "collectWords" | "reveal" | "paintMode">;
   redacted: boolean;
   reps: PdfReplacement[];
   aborted: () => boolean | undefined;
@@ -109,6 +109,7 @@ export async function paintPage(page: any, p: number, c: PaintContext): Promise<
           revealed,
           canvasW: canvas.width,
           canvasH: canvas.height,
+          mode: o.paintMode,
         });
         boxes.push(box);
         if (patch) patches.push(patch);
@@ -129,7 +130,7 @@ export async function paintPage(page: any, p: number, c: PaintContext): Promise<
         o.reveal,
       );
       for (const deviceBox of fb.boxes) {
-        const { box, patch } = scanBoxPatch(ctx, deviceBox, dpr, canvas.width, canvas.height);
+        const { box, patch } = scanBoxPatch(ctx, deviceBox, dpr, canvas.width, canvas.height, o.paintMode);
         boxes.push(box);
         if (patch) patches.push(patch);
       }
@@ -160,6 +161,7 @@ export async function paintPage(page: any, p: number, c: PaintContext): Promise<
     cssW,
     cssH,
     covered,
+    paintMode: o.paintMode ?? "cover",
     applyReveal: (reveal) => applyRevealToPage(ctx, patches, reveal),
   };
 }

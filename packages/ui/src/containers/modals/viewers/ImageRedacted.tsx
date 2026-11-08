@@ -31,7 +31,7 @@ export function ImageRedacted({
     (async () => {
       try {
         const { renderRedactedImage } = await import("@openmasq/redact/image-redact");
-        const { canvas } = await renderRedactedImage({ bytes, words, replacements, reveal: new Set<string>() });
+        const { canvas } = await renderRedactedImage({ bytes, words, replacements, reveal: new Set<string>(), paintMode: "highlight" });
         if (alive) setSrc(canvas.toDataURL("image/png"));
       } catch {
         fallback.current = true;

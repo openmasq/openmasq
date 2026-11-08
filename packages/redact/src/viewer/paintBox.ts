@@ -42,6 +42,21 @@ export const PAD_Y_LINE = 0;
  *  is not "small", it is unreadable — and an unreadable fake is worse than a wrapped one. */
 const MIN_FONT = 7;
 
+/**
+ * HOW a box is painted.
+ * - `cover` (default): opaque fill over the real glyphs + the fake on top. The ONLY mode
+ *   whose pixels may leave the machine.
+ * - `highlight`: a translucent tone wash, `multiply`-blended, the REAL glyphs readable
+ *   through it and no label. For a local review surface (the before-send modal), where
+ *   hiding the text made the document unreadable. ⚠️ It hides nothing: a page painted this
+ *   way carries `paintMode: "highlight"` and `paintCoversReplacements` refuses it.
+ */
+export type PaintMode = "cover" | "highlight";
+
+/** Opacity of the `highlight` wash: strong enough to read the category hue, light enough
+ *  that black glyphs stay legible under `multiply`. */
+export const HIGHLIGHT_ALPHA = 0.45;
+
 export interface Rect {
   left: number;
   top: number;
@@ -148,12 +163,18 @@ export function boxLabel(fake: string): string {
 export function paintValueBox(
   ctx: CanvasRenderingContext2D,
   box: Rect & { fake: string; tone: string },
-  opts: { baseline?: number; idealFont?: number; padY?: number } = {},
+  opts: { baseline?: number; idealFont?: number; padY?: number; mode?: PaintMode } = {},
 ): void {
   const { fill, ink } = tonePaint(box.tone);
   const r = inflate(box, opts.padY);
   const radius = cornerRadius(box, opts.padY); // from the TIGHT box — see `cornerRadius`
+  const highlight = opts.mode === "highlight";
 
+  ctx.save();
+  if (highlight) {
+    ctx.globalAlpha = HIGHLIGHT_ALPHA;
+    ctx.globalCompositeOperation = "multiply";
+  }
   ctx.fillStyle = fill;
   ctx.beginPath();
   // `roundRect` is in every engine this ships to (Chromium ≥ 99); the guard keeps a
@@ -162,8 +183,10 @@ export function paintValueBox(
   if (typeof ctx.roundRect === "function") ctx.roundRect(r.left, r.top, r.w, r.h, radius);
   else ctx.rect(r.left, r.top, r.w, r.h);
   ctx.fill();
+  ctx.restore();
 
-  if (!box.fake) return;
+  // A highlight shows the REAL value: typesetting the fake over it would be noise.
+  if (highlight || !box.fake) return;
   const label = boxLabel(box.fake);
   ctx.save();
   ctx.beginPath();
@@ -185,6 +208,6 @@ export function paintValueBox(
 }
 
 /** Paint one NON-revealed OCR-geometry box (scan page, scanned image). */
-export function paintScanBox(ctx: CanvasRenderingContext2D, box: RedactBox): void {
-  paintValueBox(ctx, box);
+export function paintScanBox(ctx: CanvasRenderingContext2D, box: RedactBox, mode?: PaintMode): void {
+  paintValueBox(ctx, box, { mode });
 }

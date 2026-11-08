@@ -5,6 +5,7 @@ import type { PdfReplacement, RedactBox } from "./pdfMatch";
 import type { OcrWord } from "../ocr/layout";
 import type { PageWord } from "./pageWords";
 import type { ImageZone } from "./imageZones";
+import type { PaintMode } from "./paintBox";
 
 /** One rendered page: a painted canvas + the redacted regions to reveal on hover.
  *  `covered` = every REAL value accounted for by this page's paint (own box, or fully
@@ -38,6 +39,8 @@ export interface RenderedPage {
   cssW: number;
   cssH: number;
   covered: ReadonlySet<string>;
+  /** How the boxes were painted (`paintBox.ts` `PaintMode`). Only `cover` hides anything. */
+  paintMode: PaintMode;
 }
 
 export interface RenderRedactedPdfOptions {
@@ -74,6 +77,9 @@ export interface RenderRedactedPdfOptions {
   /** Also collect every page's WORD boxes (`RenderedPage.words`) — the consumer's
    *  click-to-redact hit-test. Off by default (a measureText per word). */
   collectWords?: boolean;
+  /** `highlight` = a LOCAL review paint (real text readable under a tone wash). Default
+   *  `cover`. A highlighted page never passes `paintCoversReplacements`. */
+  paintMode?: PaintMode;
   maxPages?: number;
   signal?: AbortSignal;
   /**

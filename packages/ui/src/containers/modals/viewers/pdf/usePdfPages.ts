@@ -126,6 +126,9 @@ export function usePdfPages(o: PdfPagesOptions) {
           ocrPages: first.ocrPages,
           collectWords: wantWords,
           reveal: first.revealed,
+          // A LOCAL review surface: the real text stays readable under the tone wash.
+          // These canvases never leave the machine (the desktop ships text, not pages).
+          paintMode: "highlight",
           pdfWorkerSrc: workerUrl,
           getReplacements: (text) => pdfReplacements(text, redact),
           signal: ctrl.signal,

@@ -11,7 +11,7 @@ import { ocrWordsToLayout, type OcrWord } from "../ocr/layout";
 // reuses it); re-exported here so this subpath's public API is unchanged.
 import { matchValueToBoxes, type PdfReplacement, type RedactBox } from "./pdfRedact";
 export { matchValueToBoxes };
-import { paintScanBox } from "./paintBox";
+import { paintScanBox, type PaintMode } from "./paintBox";
 
 export type { OcrWord } from "../ocr/layout";
 
@@ -25,11 +25,15 @@ export interface RenderRedactedImageOptions {
   /** REAL values the user chose to keep in clear (before-send un-redact). */
   reveal?: ReadonlySet<string>;
   minConfidence?: number;
+  /** `highlight` = LOCAL review paint (real text readable); default `cover`. Never ship it. */
+  paintMode?: PaintMode;
 }
 
 export interface RenderedImage {
   canvas: HTMLCanvasElement;
   boxes: RedactBox[];
+  /** How the boxes were painted — only `cover` hides anything (see `paintBox.ts`). */
+  paintMode: PaintMode;
 }
 
 /**
@@ -62,7 +66,7 @@ export async function renderRedactedImage(o: RenderRedactedImageOptions): Promis
 
   for (const box of boxes) {
     if (box.revealed) continue;
-    paintScanBox(ctx, box);
+    paintScanBox(ctx, box, o.paintMode);
   }
-  return { canvas, boxes };
+  return { canvas, boxes, paintMode: o.paintMode ?? "cover" };
 }

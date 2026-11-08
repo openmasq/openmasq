@@ -4,7 +4,7 @@
 // no full re-render, no skeleton flash. Apply is restore-THEN-repaint, so it is
 // idempotent whatever the previous state.
 import type { RedactBox } from "./pdfMatch";
-import { PAD_Y_LINE, inflate, paintScanBox, paintValueBox } from "./paintBox";
+import { PAD_Y_LINE, inflate, paintScanBox, paintValueBox, type PaintMode } from "./paintBox";
 import type { Matrix } from "./pageWords";
 import { mul } from "./pageWords";
 
@@ -13,7 +13,7 @@ export type PatchCtx = Pick<
   CanvasRenderingContext2D,
   | "fillRect" | "fillText" | "save" | "restore" | "beginPath" | "rect" | "clip" | "fill"
   | "getImageData" | "putImageData" | "measureText"
-> & { font: string; fillStyle: unknown; textBaseline: unknown };
+> & { font: string; fillStyle: unknown; textBaseline: unknown; globalAlpha?: number; globalCompositeOperation?: unknown };
 
 /** One redaction region: its device-px rect, the ORIGINAL pixels under it, the
  *  consumer box (CSS px) and how to re-paint the redaction over it. */
@@ -59,6 +59,7 @@ export function textSegmentPatch(
     revealed: boolean;
     canvasW: number;
     canvasH: number;
+    mode?: PaintMode;
   },
 ): { box: RedactBox; patch: RevealPatch | null } {
   const m = mul(a.vpTransform, (a.item.transform as number[]) ?? [1, 0, 0, 1, 0, 0]);
@@ -106,6 +107,7 @@ export function textSegmentPatch(
       // to grow into — padding it reaches into the next line's box. Horizontal padding
       // still applies. See `PAD_Y_LINE`.
       padY: PAD_Y_LINE,
+      mode: a.mode,
     });
   // Capture the INFLATED rect — SAME padY as the paint, or the reveal restores a rect
   // that differs from the painted one (a coloured halo, or an uncovered strip).
@@ -122,6 +124,7 @@ export function scanBoxPatch(
   dpr: number,
   canvasW: number,
   canvasH: number,
+  mode?: PaintMode,
 ): { box: RedactBox; patch: RevealPatch | null } {
   const box: RedactBox = {
     ...deviceBox,
@@ -130,7 +133,7 @@ export function scanBoxPatch(
     w: deviceBox.w / dpr,
     h: deviceBox.h / dpr,
   };
-  const paint = (c: PatchCtx) => paintScanBox(c as CanvasRenderingContext2D, deviceBox);
+  const paint = (c: PatchCtx) => paintScanBox(c as CanvasRenderingContext2D, deviceBox, mode);
   const cap = capture(
     ctx,
     inflate({ left: deviceBox.left, top: deviceBox.top, w: deviceBox.w, h: deviceBox.h }),

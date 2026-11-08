@@ -70,6 +70,7 @@ export function useImageCanvas(o: {
             words,
             replacements: displayReplacements ?? [],
             reveal: revealed,
+            paintMode: "highlight", // local review: the real text readable under the wash
           });
           paint(canvas);
           if (alive) buildImageMarks(boxes);

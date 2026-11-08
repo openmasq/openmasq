@@ -180,10 +180,13 @@ export function layoutValueHits(
  * found has no replacement, so no gate can see it — same bound as the text path.
  */
 export function paintCoversReplacements(
-  pages: { boxes: { real: string; revealed: boolean }[]; covered?: ReadonlySet<string> }[],
+  pages: { boxes: { real: string; revealed: boolean }[]; covered?: ReadonlySet<string>; paintMode?: string }[],
   replacements: PdfReplacement[],
   reveal?: ReadonlySet<string>,
 ): boolean {
+  // A page painted for REVIEW (`highlight`) shows every real glyph: its boxes cover
+  // nothing. Allow-listed: only an explicit or absent `cover` paint can ship.
+  if (pages.some((pg) => pg.paintMode !== undefined && pg.paintMode !== "cover")) return false;
   const expected = replacements.filter((r) => r.real && !(reveal && reveal.has(r.real)));
   if (expected.length === 0) return true; // nothing to redact → nothing to prove
   const painted = pages.reduce((n, pg) => n + pg.boxes.filter((b) => !b.revealed).length, 0);
