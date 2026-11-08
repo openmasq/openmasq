@@ -5,7 +5,7 @@
 // A comments-only batch carries the security rationale (rule 7) and must be VERIFIABLE.
 //
 //   node scripts/checks/check-comments-only.mjs [<ref>]     (default: HEAD)
-import { execSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import ts from "typescript";
 
@@ -13,7 +13,8 @@ import ts from "typescript";
 // sessions edit code at the same time, that list is exactly what may be staged.
 const listOk = process.argv.includes("--list-ok");
 const ref = process.argv.filter((a) => !a.startsWith("--"))[2] ?? "HEAD";
-const changed = execSync(`git diff --name-only ${ref}`, { encoding: "utf8" })
+// git, called with an argument LIST: a ref or a path is never read by a shell
+const changed = execFileSync("git", ["diff", "--name-only", ref], { encoding: "utf8" })
   .split("\n")
   .filter(Boolean);
 
@@ -53,7 +54,7 @@ let ok = 0;
 for (const f of changed) {
   let before;
   try {
-    before = execSync(`git show ${ref}:${f}`, { encoding: "utf8", maxBuffer: 1 << 28 });
+    before = execFileSync("git", ["show", `${ref}:${f}`], { encoding: "utf8", maxBuffer: 1 << 28 });
   } catch {
     if (!listOk) console.log(`  NEW  ${f} (new file — outside the "comments only" contract)`);
     bad++;
@@ -69,7 +70,7 @@ for (const f of changed) {
   }
   let same;
   if (/\.(ts|tsx|mts|cts|js|jsx|mjs|cjs)$/.test(f)) same = tokens(before, f) === tokens(after, f);
-  else if (/\.(ya?ml|toml|sh|env.*|editorconfig|npmrc)$/.test(f) || /Dockerfile|\/pre-commit$/.test(f))
+  else if (/\.(ya?ml|toml|sh|env.*|editorconfig|npmrc)$/.test(f) || /(?:^|\/)Dockerfile[^/]*$|\/pre-commit$/.test(f))
     same = lines(before, HASH) === lines(after, HASH);
   else if (/\.(css|json|rs)$/.test(f)) same = lines(before, SLASH) === lines(after, SLASH);
   else same = before === after;

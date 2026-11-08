@@ -41,7 +41,7 @@ function sheets() {
 /** `--name: value;` declarations, per selector we care about. `:root` is the light theme. */
 function declarations(css, selector) {
   const out = new Map();
-  const re = new RegExp(`${selector.replace(/[[\]"]/g, "\\$&")}\\s*\\{([^}]*)\\}`, "g");
+  const re = new RegExp(`${selector.replace(/[.*+?^${}()|[\]\\"]/g, "\\$&")}\\s*\\{([^}]*)\\}`, "g");
   for (const block of css.matchAll(re)) {
     for (const d of block[1].matchAll(/(--[\w-]+)\s*:\s*([^;]+);/g)) out.set(d[1], d[2].trim());
   }
