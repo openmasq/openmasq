@@ -20,8 +20,8 @@ import { join } from "node:path";
  * Pinned in `collect.test.ts`.
  */
 
-export const MAX_IMAGES = 8;
-export const MAX_IMG_BYTES = 6 * 1024 * 1024;
+const MAX_IMAGES = 8;
+const MAX_IMG_BYTES = 6 * 1024 * 1024;
 export const MAX_FILES = 8;
 export const MAX_FILE_BYTES = 25 * 1024 * 1024; // a generated PDF/xlsx can be a few MB
 

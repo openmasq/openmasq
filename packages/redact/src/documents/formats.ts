@@ -25,7 +25,7 @@ export const SUPPORTED_EXTENSIONS: string[] = [
 ];
 
 /** MIME type → file extension, to pick a format when a name has no extension. */
-export const MIME_EXT: Record<string, string> = {
+const MIME_EXT: Record<string, string> = {
   "application/pdf": ".pdf",
   "application/vnd.openxmlformats-officedocument.wordprocessingml.document": ".docx",
   "application/vnd.openxmlformats-officedocument.presentationml.presentation": ".pptx",
@@ -49,7 +49,7 @@ export function baseName(p: string): string {
   return p.replace(/[/\\]+$/, "").split(/[/\\]/).pop() || p;
 }
 /** lowercased extension (incl. dot), or "" — dotfiles (".env") count as no ext. */
-export function extOf(name: string): string {
+function extOf(name: string): string {
   const b = baseName(name);
   const i = b.lastIndexOf(".");
   return i > 0 ? b.slice(i).toLowerCase() : "";
