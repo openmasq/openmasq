@@ -50,6 +50,15 @@ kept in the French they were sent in, for the reason given above.
 
 ---
 
+## 0.17.4 — 2026-11-08
+> Masked values stand out on every page.
+
+### What's new
+- **Clearer highlights** — each masked value is boldly coloured and underlined in the preview.
+
+### Improvements & fixes
+- The read-text overlay is off by default, one click turns it back on.
+
 ## 0.17.3 — 2026-11-08
 > Masked values stay readable in the document preview.
 
