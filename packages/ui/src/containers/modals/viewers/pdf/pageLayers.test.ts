@@ -61,9 +61,20 @@ describe("buildImageZoneLayer", () => {
 
 describe("buildTextHaloLayer — la légende est l'interrupteur du halo", () => {
   const box = { left: 10, top: 20, w: 100, h: 12 };
-  beforeEach(() => localStorage.removeItem("openmasq.haloOff"));
+  beforeEach(() => localStorage.removeItem("openmasq.haloOn"));
 
-  it("la légende est un BOUTON qui masque toutes les pages, et la préférence survit au viewer", () => {
+  it("le halo est MASQUÉ par défaut, sa légende le dit et rappelle que le masquage tient", () => {
+    const wrap = document.createElement("div");
+    const p = document.createElement("div");
+    wrap.appendChild(p);
+    buildTextHaloLayer(p, [box], 600, 800, true, fr);
+    expect(wrap.classList.contains("pdfv-halo-off")).toBe(true);
+    const legend = p.querySelector<HTMLButtonElement>(".pdfv-halolegend")!;
+    expect(legend.getAttribute("aria-pressed")).toBe("false");
+    expect(legend.textContent).toMatch(/reste masqué avant envoi/);
+  });
+
+  it("la légende est un BOUTON qui affiche toutes les pages, et la préférence survit au viewer", () => {
     const wrap = document.createElement("div");
     document.body.appendChild(wrap);
     const p1 = document.createElement("div");
@@ -73,29 +84,26 @@ describe("buildTextHaloLayer — la légende est l'interrupteur du halo", () => 
     buildTextHaloLayer(p2, [box], 600, 800, false, fr);
     const legend = p1.querySelector<HTMLButtonElement>(".pdfv-halolegend")!;
     expect(legend.tagName).toBe("BUTTON");
-    expect(legend.getAttribute("aria-pressed")).toBe("true");
     // ⚠️ The state must be READABLE: halo off, an identical button would suggest nothing
     // was recognized — hence that nothing will be redacted (conclusion drawn in a run-through, 15/08).
+    expect(legend.textContent).toContain("Surlignage caché");
+    legend.click();
     expect(legend.textContent).toContain("Surligné\u00a0: texte lu");
+    expect(legend.getAttribute("aria-pressed")).toBe("true");
+    // The class lives on the pages' PARENT: p2 follows the same selector.
+    expect(wrap.classList.contains("pdfv-halo-off")).toBe(false);
     legend.click();
     expect(legend.textContent).toContain("Surlignage caché");
-    // …and the off-phrase reminds that redaction isn't affected.
-    expect(legend.textContent).toMatch(/reste masqué avant envoi/);
     legend.click();
-    expect(legend.textContent).toContain("Surligné\u00a0: texte lu");
-    legend.click();
-    // The class lives on the pages' PARENT: p2 is hidden by the same selector.
-    expect(wrap.classList.contains("pdfv-halo-off")).toBe(true);
-    expect(legend.getAttribute("aria-pressed")).toBe("false");
-    // A NEW viewer honors the stored preference, and the click makes it reversible.
+    // A NEW viewer honors the stored preference (on), and the click makes it reversible.
     const wrap2 = document.createElement("div");
     document.body.appendChild(wrap2);
     const q = document.createElement("div");
     wrap2.appendChild(q);
     buildTextHaloLayer(q, [box], 600, 800, true, fr);
-    expect(wrap2.classList.contains("pdfv-halo-off")).toBe(true);
-    wrap2.querySelector<HTMLButtonElement>(".pdfv-halolegend")!.click();
     expect(wrap2.classList.contains("pdfv-halo-off")).toBe(false);
+    wrap2.querySelector<HTMLButtonElement>(".pdfv-halolegend")!.click();
+    expect(wrap2.classList.contains("pdfv-halo-off")).toBe(true);
   });
 
   it("les recouvrements rendent l'UNION : bandes OPAQUES sous une opacité de GROUPE", () => {

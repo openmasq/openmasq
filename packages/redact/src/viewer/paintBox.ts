@@ -53,9 +53,12 @@ const MIN_FONT = 7;
  */
 export type PaintMode = "cover" | "highlight";
 
-/** Opacity of the `highlight` wash: strong enough to read the category hue, light enough
- *  that black glyphs stay legible under `multiply`. */
-export const HIGHLIGHT_ALPHA = 0.45;
+/** Opacity of the `highlight` wash. Under `multiply` dark glyphs stay dark whatever the
+ *  alpha, so it can be strong: the value must be spotted at a glance on a dense page. */
+export const HIGHLIGHT_ALPHA = 0.8;
+/** Thickness of the full-strength UNDERLINE drawn under a highlight, as a fraction of the box
+ *  height (floored at 2px): the wash says « here », the line says « this category ». */
+export const HIGHLIGHT_UNDERLINE = 0.12;
 
 export interface Rect {
   left: number;
@@ -183,6 +186,13 @@ export function paintValueBox(
   if (typeof ctx.roundRect === "function") ctx.roundRect(r.left, r.top, r.w, r.h, radius);
   else ctx.rect(r.left, r.top, r.w, r.h);
   ctx.fill();
+  if (highlight) {
+    // Full-strength bar along the bottom edge, still `multiply`: it darkens the paper and
+    // leaves a descender crossing it readable.
+    const u = Math.max(2, box.h * HIGHLIGHT_UNDERLINE);
+    ctx.globalAlpha = 1;
+    ctx.fillRect(r.left, r.top + r.h - u, r.w, u);
+  }
   ctx.restore();
 
   // A highlight shows the REAL value: typesetting the fake over it would be noise.

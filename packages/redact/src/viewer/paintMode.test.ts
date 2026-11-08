@@ -25,6 +25,7 @@ function stubCtx() {
     rect: () => {},
     clip: () => {},
     fill: () => fills.push({ alpha: ctx.globalAlpha, op: ctx.globalCompositeOperation }),
+    fillRect: () => fills.push({ alpha: ctx.globalAlpha, op: ctx.globalCompositeOperation }),
     fillText: (s: string) => texts.push(s),
     save: () => stack.push({ alpha: ctx.globalAlpha, op: ctx.globalCompositeOperation }),
     restore: () => {
@@ -41,10 +42,15 @@ function stubCtx() {
 const box = { left: 10, top: 10, w: 40, h: 12, fake: "[PERSON1]", tone: "sky" };
 
 describe("paintValueBox — mode highlight", () => {
-  it("un surlignage est translucide, multiplié, et ne peint aucun libellé par-dessus", () => {
+  it("un surlignage est un lavis multiplié + un soulignement plein, sans libellé par-dessus", () => {
     const { ctx, fills, texts } = stubCtx();
     paintValueBox(ctx as never, box, { mode: "highlight" });
-    expect(fills).toEqual([{ alpha: HIGHLIGHT_ALPHA, op: "multiply" }]);
+    expect(fills).toEqual([
+      { alpha: HIGHLIGHT_ALPHA, op: "multiply" },
+      { alpha: 1, op: "multiply" },
+    ]);
+    // Every highlight stroke is `multiply`: nothing is ever painted OVER the glyphs opaquely.
+    expect(fills.every((f) => f.op === "multiply")).toBe(true);
     expect(texts).toEqual([]);
     // The state is restored: a later cover paint on the same context stays opaque.
     expect(ctx.globalAlpha).toBe(1);

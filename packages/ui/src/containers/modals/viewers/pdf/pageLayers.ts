@@ -24,20 +24,22 @@ const BLEED = 4;
  * bands, `textHalo.ts`) follows the text's real extent; the CSS render is a flat fill with
  * sharp edges. The LAYER is `pointer-events: none` + `aria-hidden` (pure context); the
  * LEGEND, though, is a BUTTON: clicking hides/shows the halo again, and the preference is
- * remembered (`openmasq.haloOff`) — the legend stays visible so it can be turned back on.
+ * remembered (`openmasq.haloOn`) — the legend stays visible so it can be turned back on.
+ * OFF by default: the masked values are already highlighted on the page, and a second wash
+ * over every read line drowned them. Only an explicit click turns it on.
  */
-const HALO_OFF_KEY = "openmasq.haloOff";
+const HALO_ON_KEY = "openmasq.haloOn";
 const haloOff = (): boolean => {
   try {
-    return localStorage.getItem(HALO_OFF_KEY) === "1";
+    return localStorage.getItem(HALO_ON_KEY) !== "1";
   } catch {
-    return false;
+    return true;
   }
 };
 const setHaloOff = (off: boolean): void => {
   try {
-    if (off) localStorage.setItem(HALO_OFF_KEY, "1");
-    else localStorage.removeItem(HALO_OFF_KEY);
+    if (off) localStorage.removeItem(HALO_ON_KEY);
+    else localStorage.setItem(HALO_ON_KEY, "1");
   } catch {
     /* VIEW preference only — with no storage, the toggle applies for the session. */
   }
