@@ -1,8 +1,9 @@
 import { homedir } from "node:os";
 import { join } from "node:path";
-import { readdirSync, readFileSync, statSync } from "node:fs";
+import { closeSync, constants, fstatSync, openSync, readdirSync, readSync } from "node:fs";
 import { handle } from "./ipc/handle";
 import { getLiveFs } from "./fs/live";
+import { isWithin, realPathOrNull } from "./security/pathScope";
 
 /**
  * "Import my Claude skills" — the ENUMERATION, on the privileged side.
@@ -51,7 +52,36 @@ function siblingNames(dir: string): string[] {
   }
 }
 
-function scanRoot(root: string, from: RawSkill["from"], out: RawSkill[]): void {
+/**
+ * One SKILL.md, read through its open descriptor: a regular file only (never a pipe that would
+ * hold the enumeration), at most {@link MAX_BYTES} however it grows meanwhile.
+ * ⚠️ Under a GRANTED folder (`within`), the file must really live under that folder: a repo
+ * can ship `SKILL.md` as a link to any file of the machine, and this channel would hand it to
+ * the renderer. So its real path must stay under the folder's, and it is opened `O_NOFOLLOW`.
+ * The user's own `~/.claude/skills` keeps its links (dotfile managers link skills in).
+ */
+export function readSkillFile(file: string, within: string | null): string | null {
+  if (within) {
+    const root = realPathOrNull(within);
+    const real = realPathOrNull(file);
+    if (!root || !real || !isWithin(root, real)) return null;
+  }
+  let fd: number | undefined;
+  try {
+    fd = openSync(file, constants.O_RDONLY | (within ? (constants.O_NOFOLLOW ?? 0) : 0) | (constants.O_NONBLOCK ?? 0));
+    const st = fstatSync(fd);
+    if (!st.isFile() || st.size > MAX_BYTES) return null;
+    const buf = Buffer.alloc(st.size);
+    const n = readSync(fd, buf, 0, buf.length, 0);
+    return buf.subarray(0, n).toString("utf8");
+  } catch {
+    return null;
+  } finally {
+    if (fd !== undefined) closeSync(fd);
+  }
+}
+
+function scanRoot(root: string, from: RawSkill["from"], out: RawSkill[], within: string | null = null): void {
   let entries: string[];
   try {
     entries = readdirSync(root, { withFileTypes: true })
@@ -62,13 +92,9 @@ function scanRoot(root: string, from: RawSkill["from"], out: RawSkill[]): void {
   }
   for (const folder of entries) {
     if (out.length >= MAX_SKILLS) return;
-    const file = join(root, folder, "SKILL.md");
-    try {
-      if (statSync(file).size > MAX_BYTES) continue;
-      out.push({ folder, text: readFileSync(file, "utf8"), siblings: siblingNames(join(root, folder)), from });
-    } catch {
-      /* no SKILL.md in this subfolder: not a skill, skip it */
-    }
+    const text = readSkillFile(join(root, folder, "SKILL.md"), within);
+    // no readable SKILL.md in this subfolder: not a skill, skip it
+    if (text !== null) out.push({ folder, text, siblings: siblingNames(join(root, folder)), from });
   }
 }
 
@@ -79,7 +105,7 @@ function listClaudeSkills(): RawSkill[] {
   // live. Nothing is granted here — we re-read what was already granted.
   for (const root of getLiveFs()?.roots ?? []) {
     if (out.length >= MAX_SKILLS) break;
-    scanRoot(join(root, ".claude", "skills"), "project", out);
+    scanRoot(join(root, ".claude", "skills"), "project", out, root);
   }
   return out;
 }
