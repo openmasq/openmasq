@@ -60,7 +60,7 @@ export function fakeDigits(value: string, salt: number, convKey?: Uint8Array): s
   // and a reformatted fake no longer reverse-maps — so the fake is laid out
   // single-line (the wrap becomes one space). The REAL value in the vault keeps its
   // newline verbatim; only the fake's layout is flattened.
-  const flat = value.replace(/[ \t]*\r?\n[ \t]*/g, " ");
+  const flat = value.replace(/(?<![ \t])[ \t]*\r?\n[ \t]*/g, " ");
   // Seed on the DIGITS ONLY (not the raw value) so the SAME number written with
   // different spacing/grouping — "863 471 587 00015" vs "863 471 587 000 15" — yields
   // the SAME fake digits, re-laid-out under each spelling's own separators. Seeding on

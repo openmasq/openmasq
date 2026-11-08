@@ -46,7 +46,7 @@ const MIME_EXT: Record<string, string> = {
 
 /** basename without node:path (pure). */
 export function baseName(p: string): string {
-  return p.replace(/[/\\]+$/, "").split(/[/\\]/).pop() || p;
+  return p.replace(/(?<![/\\])[/\\]+$/, "").split(/[/\\]/).pop() || p;
 }
 /** lowercased extension (incl. dot), or "" — dotfiles (".env") count as no ext. */
 function extOf(name: string): string {

@@ -114,7 +114,7 @@ const hyphenModel = (w: string): boolean => {
  */
 export function isAiModelName(value: string, opts?: { allowBare?: boolean }): boolean {
   // A trailing parenthesized edition isn't the name: « (local) », « (gratuit) ».
-  const v = norm(value).replace(/\s*\([^)]*\)\s*$/, "");
+  const v = norm(value).replace(/(?<!\s)\s*\([^)]*\)\s*$/, "");
   if (!v) return false;
   if (opts?.allowBare !== false && BARE_MODELS.has(v)) return true;
   if (O_SERIES.test(v)) return true;

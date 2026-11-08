@@ -201,7 +201,7 @@ export function fakeGeo(category: string, value: string, h: number, country?: st
       // and a trailing CEDEX (+ its office number) is carried over verbatim.
       const postalIdx = realPostal !== undefined ? value.indexOf(realPostal) : -1;
       const origTail = postalIdx > 0 ? value.slice(postalIdx + realPostal!.length) : "";
-      const origCity = origTail.replace(/\bCEDEX\b\s*\d*\s*$/iu, "").trim();
+      const origCity = origTail.replace(/\bCEDEX\b(?:\s*\d+)?\s*$/iu, "").trim();
       const origStreet = (postalIdx > 0 ? value.slice(0, postalIdx) : value)
         .replace(/[\s,–—-]+$/u, "");
       const streetLine = matchCase(
@@ -220,7 +220,7 @@ export function fakeGeo(category: string, value: string, h: number, country?: st
         const sep = (postalIdx > 0 && /[-–—]\s*$/u.test(value.slice(0, postalIdx))
           ? value.slice(0, postalIdx).match(/\s*[-–—]\s*$/u)![0]
           : ", ");
-        const cedex = origTail.match(/\bCEDEX\b\s*\d*\s*$/iu)?.[0].trim();
+        const cedex = origTail.match(/\bCEDEX\b(?:\s*\d+)?\s*$/iu)?.[0].trim();
         const city = matchCase(place.city, origCity || value);
         return `${streetLine}${sep}${place.postal} ${city}${cedex ? ` ${cedex}` : ""}`;
       }
@@ -243,9 +243,9 @@ export function fakeGeo(category: string, value: string, h: number, country?: st
       // FR "CP Ville" (the code + its city, captured as one unit): a coherent
       // same-country place, city casing preserved — and a trailing CEDEX (+ office
       // number) carried over verbatim, exactly like the ADDRESS path above.
-      const cedexTail = value.match(/\bCEDEX\b\s*\d*\s*$/iu)?.[0].trim();
+      const cedexTail = value.match(/\bCEDEX\b(?:\s*\d+)?\s*$/iu)?.[0].trim();
       const cityTok = value
-        .replace(/\bCEDEX\b\s*\d*\s*$/iu, "")
+        .replace(/\bCEDEX\b(?:\s*\d+)?\s*$/iu, "")
         .replace(POSTAL_IN, "")
         .replace(/[\s,;.-]+$/u, "")
         .trim();

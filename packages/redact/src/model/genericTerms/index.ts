@@ -145,7 +145,7 @@ const ORG_AFFIX = new Set<string>([
 /** True when `word` is a company legal form / leading descriptor (see `ORG_AFFIX`).
  *  Surrounding punctuation ("SAS," / ".Groupe") is trimmed; case-insensitive. */
 export function isOrgAffix(word: string): boolean {
-  return ORG_AFFIX.has(word.trim().toLowerCase().replace(/^[.,]+|[.,]+$/g, ""));
+  return ORG_AFFIX.has(word.trim().toLowerCase().replace(/^[.,]+|(?<![.,])[.,]+$/g, ""));
 }
 
 // A connector left DANGLING at the end of a span once an affix is stripped ("KARL STUDIO

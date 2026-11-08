@@ -88,7 +88,7 @@ export function compactId(value: string): string {
  *  model normalises line breaks when echoing, and a fake carrying the
  *  original's newline no longer reverse-maps. */
 export function relayId(value: string, fakeCompact: string): string {
-  const laid = value.replace(/[ \t]*\r?\n[ \t]*/g, " ");
+  const laid = value.replace(/(?<![ \t])[ \t]*\r?\n[ \t]*/g, " ");
   let i = 0;
   return laid.replace(/[A-Za-z0-9]/g, () => fakeCompact[i++] ?? "");
 }

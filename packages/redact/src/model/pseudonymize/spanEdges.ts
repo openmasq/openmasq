@@ -17,7 +17,7 @@ import { BANK_OP_CODES } from "../vocab/life";
  */
 export function trimSpanEdges(value: string): string {
   // Re-trim AFTER: « Paris » leaves the spaces the quotes were hiding.
-  const t = value.trim().replace(/^[.,;:!?…"'«»“”‘’]+|[.,;:!?…"'«»“”‘’]+$/gu, "").trim();
+  const t = value.trim().replace(/^[.,;:!?…"'«»“”‘’]+|(?<![.,;:!?…"'«»“”‘’])[.,;:!?…"'«»“”‘’]+$/gu, "").trim();
   return t || value.trim();
 }
 

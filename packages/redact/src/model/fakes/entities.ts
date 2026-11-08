@@ -197,7 +197,7 @@ export function fakeIban(value: string, salt: number, convKey?: Uint8Array): str
   // Re-lay the fake under the ORIGINAL spacing — with a mid-value line WRAP flattened
   // to one space first, exactly like `fakeDigits`: a model normalises line breaks when
   // echoing, and a fake carrying the original's newline no longer reverse-maps.
-  const laid = value.replace(/[ \t]*\r?\n[ \t]*/g, " ");
+  const laid = value.replace(/(?<![ \t])[ \t]*\r?\n[ \t]*/g, " ");
   let j = 0;
   return laid.replace(/[A-Za-z0-9]/g, () => full[j++] ?? "");
 }
@@ -231,7 +231,7 @@ export function fakePhone(value: string, salt: number, convKey?: Uint8Array): st
   const h = seedFrom(convKey, `phone:${salt}`, digits, hashString(digits) + salt);
   let i = 0;
   let n = 0;
-  let out = value.replace(/[ \t]*\r?\n[ \t]*/g, " ").replace(/\d/g, (d) => {
+  let out = value.replace(/(?<![ \t])[ \t]*\r?\n[ \t]*/g, " ").replace(/\d/g, (d) => {
     n++;
     if (n <= keep) return d;
     return String(rehash(h ^ Math.imul(i++ + 1, 0x9e3779b1)) % 10);

@@ -18,7 +18,7 @@ export function longestValidPrefix(
   if (validate(match)) return match;
   let s = match;
   for (let guard = 0; guard < 12; guard++) {
-    const trimmed = s.replace(/\s+\S+\s*$/u, "").trimEnd();
+    const trimmed = s.replace(/(?<!\s)\s+\S+\s*$/u, "").trimEnd();
     if (trimmed === s || trimmed.length < 4) break;
     s = trimmed;
     if (validate(s)) return s;

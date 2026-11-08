@@ -43,7 +43,7 @@ const FIELDS: FieldRule[] = [
 
 /** Junk an OCR value run may drag in: trailing single letters / short particles. */
 function cleanCaps(v: string): string {
-  return v.replace(/\s+(?:RF|SR|GT|[A-Z])$/u, "").trim();
+  return v.replace(/(?<!\s)\s+(?:RF|SR|GT|[A-Z])$/u, "").trim();
 }
 
 /**

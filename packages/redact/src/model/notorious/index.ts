@@ -89,7 +89,7 @@ function withoutTrailingCountry(s: string): string | null {
  */
 function withoutLegalForm(s: string): string | null {
   // Edge punctuation first: the « , » of « Github, Inc. » glued to the first word.
-  const clean = s.trim().replace(/[,;.]+\s*$/u, "").replace(/,\s+/g, " ");
+  const clean = s.trim().replace(/(?<![,;.])[,;.]+\s*$/u, "").replace(/,\s+/g, " ");
   const core = stripOrgAffixes(clean).trim();
   return core && core !== clean ? core : null;
 }

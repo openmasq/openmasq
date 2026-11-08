@@ -219,7 +219,7 @@ export function detectOrgContext(text: string): Detection[] {
     // …nor be a LONE generic/stopword token ("la société ANONYME"). Two capitalized
     // tokens or one distinctive token = a denomination (« SCI DU VIEUX PORT »).
     if (!parts.length || !denomEvidence(parts.filter((t) => nameishToken(t)))) continue;
-    const name = parts.join(" ").replace(/[.,;:]+$/u, "");
+    const name = parts.join(" ").replace(/(?<![.,;:])[.,;:]+$/u, "");
     if (!name) continue;
     push(name, m.index + m[0].indexOf(name));
   }

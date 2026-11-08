@@ -60,11 +60,11 @@ const SELF_SECRET = new RegExp(
 export function detectSelfHandles(text: string): Detection[] {
   const out: Detection[] = [];
   for (const m of text.matchAll(SELF_HANDLE)) {
-    const value = m[1]?.replace(/[.,;:!?)\]]+$/u, "");
+    const value = m[1]?.replace(/(?<![.,;:!?)\]])[.,;:!?)\]]+$/u, "");
     if (value && value.length >= 3) out.push({ value, category: "USERNAME" });
   }
   for (const m of text.matchAll(SELF_SECRET)) {
-    const value = m[1]?.replace(/[.,;:!?)\]]+$/u, "");
+    const value = m[1]?.replace(/(?<![.,;:!?)\]])[.,;:!?)\]]+$/u, "");
     if (value && value.length >= 3 && /[\d\p{Lu}\p{P}\p{S}]/u.test(value))
       out.push({ value, category: "SECRET" });
   }
