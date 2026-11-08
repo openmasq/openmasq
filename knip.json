@@ -11,7 +11,8 @@
       ],
       "ignoreBinaries": [
         "sandbox-exec",
-        "biome"
+        "biome",
+        "mkfifo"
       ]
     },
     "packages/ui": {
