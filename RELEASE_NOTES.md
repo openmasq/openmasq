@@ -50,6 +50,16 @@ kept in the French they were sent in, for the reason given above.
 
 ---
 
+## 0.17.2 — 2026-11-08
+> Documents open in their own process, and Slack connects in one step.
+
+### Improvements & fixes
+- Documents are read in a separate process, cut off from the network.
+- Large spreadsheets preview without slowing the app down.
+- Scanned PDF pages are read more reliably.
+- Slack connects through the app's own sign-in page, like Google.
+- Better reliability when connecting your accounts.
+
 ## 0.17.1 — 2026-11-07
 > Documents open in their own process, and Slack connects in one step.
 
