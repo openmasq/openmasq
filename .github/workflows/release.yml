@@ -382,6 +382,10 @@ jobs:
       # come from the binary's table, at runtime.
       - run: pnpm exec turbo run build --filter=@openmasq/desktop...
         env:
+          # The main bundle's transform peaks near 2.8 GB of resident memory. Node's default
+          # heap on a macos-latest runner (7 GB) stops near 2 GB: the build died there with
+          # "JavaScript heap out of memory" (beta-v0.17.1). 4 GB fits every runner here.
+          NODE_OPTIONS: --max-old-space-size=4096
           # Service addresses arrive HERE, at build time, and nowhere in the repo
           # (`src/environments/index.ts`: no committed default — a fork that doesn't supply
           # any builds an app that runs on the machine). The artifact stays SINGLE:
