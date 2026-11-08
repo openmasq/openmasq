@@ -75,6 +75,19 @@ export function assertOwnerOnly(
     );
 }
 
+/** Write `data` to `path` only if no file is there yet (`wx`, 0600): true when THIS call created
+ *  it. Two processes starting together each mint a value; only the first write lands, and the
+ *  other reads it back — never two keys, one of which would leave its ciphertext unreadable. */
+export function createExclusive(path: string, data: string): boolean {
+  try {
+    writeFileSync(path, data, { mode: 0o600, flag: "wx" });
+    return true;
+  } catch (e) {
+    if ((e as NodeJS.ErrnoException).code === "EEXIST") return false;
+    throw e;
+  }
+}
+
 /** A 32-byte key from `envKey` (hex or base64), or a generated 0600 key file in `dir`. */
 export function loadKey(dir: string, envKey = ""): Buffer {
   if (envKey) {
@@ -91,7 +104,11 @@ export function loadKey(dir: string, envKey = ""): Buffer {
     return Buffer.from(readFileSync(keyPath, "utf8"), "base64");
   }
   const key = randomBytes(32);
-  writeFileSync(keyPath, key.toString("base64"), { mode: 0o600 });
+  if (!createExclusive(keyPath, key.toString("base64"))) {
+    // another process created it between the check and the write: ITS key is the key
+    assertOwnerOnly(keyPath);
+    return Buffer.from(readFileSync(keyPath, "utf8"), "base64");
+  }
   restrict(keyPath);
   return key;
 }

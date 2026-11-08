@@ -29,13 +29,41 @@ const usable = (s: string): boolean => /^[A-Za-z0-9_-]{32,}$/.test(s);
  */
 export function endpointToken(dir = openmasqDir()): string {
   const path = tokenPath(dir);
-  if (existsSync(path)) {
-    const found = readFileSync(path, "utf8").trim();
-    if (usable(found)) return found;
-  }
-  const token = mint();
+  const found = readUsable(path);
+  if (found) return found;
   mkdirSync(dir, { recursive: true, mode: 0o700 });
-  writeFileSync(path, `${token}\n`, { mode: 0o600 });
+  const token = claimToken(path, mint());
+  if (token !== null) return token;
+  // the file there is not a token (truncated, hand-edited): replaced
+  const fresh = mint();
+  writeFileSync(path, `${fresh}\n`, { mode: 0o600 });
+  try {
+    chmodSync(path, 0o600); // an existing file keeps its old mode without this
+  } catch {
+    // A filesystem with no permission model: the directory's ACL is what protects it.
+  }
+  return fresh;
+}
+
+const readUsable = (path: string): string | null => {
+  if (!existsSync(path)) return null;
+  const s = readFileSync(path, "utf8").trim();
+  return usable(s) ? s : null;
+};
+
+/**
+ * Create the token file with `token` unless a file is already there (`wx`): two proxies started
+ * together would otherwise each write their own, and a client configured with the first would
+ * be refused by the second. Returns the token in force — ours, or the one that won — or null
+ * when the file there holds no usable token.
+ */
+export function claimToken(path: string, token: string): string | null {
+  try {
+    writeFileSync(path, `${token}\n`, { mode: 0o600, flag: "wx" });
+  } catch (e) {
+    if ((e as NodeJS.ErrnoException).code !== "EEXIST") throw e;
+    return readUsable(path);
+  }
   try {
     chmodSync(path, 0o600); // an existing file keeps its old mode without this
   } catch {
