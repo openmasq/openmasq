@@ -50,6 +50,17 @@ kept in the French they were sent in, for the reason given above.
 
 ---
 
+## 0.17.3 — 2026-11-08
+> Masked values stay readable in the document preview.
+
+### What's new
+- **Readable document preview** — detected values are highlighted in their colour, no longer hidden.
+
+### Improvements & fixes
+- Files and links are read more safely.
+- Masking stays fast on very long texts.
+- Keys and sign-in tokens are stored more reliably.
+
 ## 0.17.2 — 2026-11-08
 > Documents open in their own process, and Slack connects in one step.
 
