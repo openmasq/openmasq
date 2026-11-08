@@ -1,4 +1,6 @@
 import { app } from "electron";
+import { constants } from "node:fs";
+import { open } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { resolve, sep } from "path";
 import { BRAND } from "@openmasq/branding";
@@ -62,5 +64,24 @@ function isReadAllowed(p: string): boolean {
 export function assertReadAllowed(p: string): void {
   if (!isReadAllowed(p)) {
     throw new Error("Accès fichier refusé : chemin non autorisé.");
+  }
+}
+
+/**
+ * A gated READ: the gate decides on the path's REAL path, and that real path is what is opened
+ * — `O_NOFOLLOW` (a link swapped in after the check is not followed), non-blocking, and sized on
+ * the descriptor. A regular file only: a FIFO would hold main forever. `tooLarge` past `maxBytes`.
+ */
+export async function readAllowedFile(p: string, maxBytes = Infinity, tooLarge = () => new Error("Fichier trop volumineux.")): Promise<Uint8Array> {
+  const real = normPath(p);
+  assertReadAllowed(real);
+  const fh = await open(real, constants.O_RDONLY | (constants.O_NOFOLLOW ?? 0) | (constants.O_NONBLOCK ?? 0));
+  try {
+    const st = await fh.stat();
+    if (!st.isFile()) throw new Error("Accès fichier refusé : ce n'est pas un fichier.");
+    if (st.size > maxBytes) throw tooLarge();
+    return new Uint8Array(await fh.readFile());
+  } finally {
+    await fh.close();
   }
 }

@@ -6,9 +6,10 @@
 // name can't land here (see `protocol.ts`). Two ops exist only on this surface —
 // raw-byte `read` (an aperçu of an image/PDF needs bytes, `read_file` is utf8-only) and,
 // in `mainOps.ts`, `trash`. Neither is an MCP tool, and neither should become one.
-import { readFile, mkdir, rename, stat, lstat, readdir } from "node:fs/promises";
+import { mkdir, rename, stat, lstat, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import type { Grant } from "./grant";
+import { openRegular } from "./fdRead";
 import type { FsBytes, FsEntry, FsListing } from "./protocol";
 import { setWatch } from "./watch";
 
@@ -92,13 +93,16 @@ export const UI_OPS: Record<string, UiOp> = {
 
   async read(g, a): Promise<FsBytes> {
     const p = g.resolve(str(a, "path"));
-    const st = await stat(p);
-    if (!st.isFile()) throw new Error("ce chemin n'est pas un fichier");
-    if (st.size > MAX_READ) {
-      throw new Error("fichier trop volumineux pour l'aperçu — ouvrez-le dans votre application");
+    const { fh, st } = await openRegular(p); // checked and read on one descriptor (`fdRead.ts`)
+    try {
+      if (st.size > MAX_READ) {
+        throw new Error("fichier trop volumineux pour l'aperçu — ouvrez-le dans votre application");
+      }
+      const buf = await fh.readFile();
+      return { base64: buf.toString("base64"), size: st.size };
+    } finally {
+      await fh.close();
     }
-    const buf = await readFile(p);
-    return { base64: buf.toString("base64"), size: st.size };
   },
 
   // NOTE: there is deliberately NO `write` op on the UI surface — in-app file editing

@@ -4,10 +4,11 @@
 // event-loop block). Kept in its own map so a model-supplied tool name can NEVER reach
 // the UI-only ops in `uiOps.ts` (see `protocol.ts`). Everything decidable from the
 // arguments alone lives in `fileEdit.ts`, pure and unit-tested.
-import { createReadStream } from "node:fs";
-import { copyFile, open, readFile, writeFile, mkdir, rename, rm, stat, readdir, chmod, unlink } from "node:fs/promises";
+import { copyFile, readFile, writeFile, mkdir, rename, rm, stat, readdir, chmod, unlink } from "node:fs/promises";
+import type { FileHandle } from "node:fs/promises";
 import { join, dirname, basename } from "node:path";
 import { applyEdit, revisionOf, takeLines } from "./fileEdit";
+import { openRegular } from "./fdRead";
 import { DOCX_OPS } from "./docxOps";
 import { readVerdict } from "./binaryGuard";
 import { FIND_TRUNCATED_MARKER } from "./protocol";
@@ -64,22 +65,18 @@ async function walkTree(
 }
 
 /** The first bytes of a file — enough to tell text from binary without reading it all. */
-async function headBytes(path: string): Promise<Uint8Array> {
-  const fh = await open(path, "r");
-  try {
-    const buf = Buffer.alloc(4096);
-    const { bytesRead } = await fh.read(buf, 0, buf.length, 0);
-    return buf.subarray(0, bytesRead);
-  } finally {
-    await fh.close();
-  }
+async function headBytes(fh: FileHandle): Promise<Uint8Array> {
+  const buf = Buffer.alloc(4096);
+  const { bytesRead } = await fh.read(buf, 0, buf.length, 0);
+  return buf.subarray(0, bytesRead);
 }
 
 /** Lines of a file, streamed. A trailing `\r` is kept, so `join("\n")` reconstructs the
  *  ORIGINAL bytes and an `edit_file` `oldText` can match. */
-async function* lineStream(path: string): AsyncGenerator<string> {
+async function* lineStream(fh: FileHandle): AsyncGenerator<string> {
   let carry = "";
-  for await (const chunk of createReadStream(path, { encoding: "utf8" })) {
+  // the caller's descriptor, from the start, left open for the caller to close
+  for await (const chunk of fh.createReadStream({ encoding: "utf8", start: 0, autoClose: false })) {
     const parts = (carry + (chunk as string)).split("\n");
     carry = parts.pop() ?? "";
     for (const part of parts) yield part;
@@ -137,33 +134,37 @@ export const TOOL_OPS: Record<string, ToolOp> = {
 
   async read_file(g, a) {
     const p = g.resolve(str(a, "path"));
-    const st = await stat(p);
-    if (!st.isFile()) throw new Error("ce chemin n'est pas un fichier");
-    // A binary read as utf8 is mojibake nothing errors on: refuse and NAME the tool that
-    // works (`binaryGuard.ts`).
-    const verdict = readVerdict(p, await headBytes(p));
-    if (verdict.kind !== "text") throw new Error(verdict.message);
-    const revision = revisionOf(st);
-    const offset = optNum(a, "offset");
-    const limit = optNum(a, "limit");
+    // every check and read below on ONE descriptor (`fdRead.ts`)
+    const { fh, st } = await openRegular(p);
+    try {
+      // A binary read as utf8 is mojibake nothing errors on: refuse and NAME the tool that
+      // works (`binaryGuard.ts`).
+      const verdict = readVerdict(p, await headBytes(fh));
+      if (verdict.kind !== "text") throw new Error(verdict.message);
+      const revision = revisionOf(st);
+      const offset = optNum(a, "offset");
+      const limit = optNum(a, "limit");
 
-    // Whole-file read, refused above the cap with the way out named.
-    if (offset === undefined && limit === undefined) {
-      if (st.size > MAX_READ)
-        throw new Error(
-          `fichier trop volumineux (> ${MAX_READ} octets) — relisez-le par tranches avec \`offset\` et \`limit\``,
-        );
-      return `[révision ${revision}]\n${await readFile(p, "utf8")}`;
+      // Whole-file read, refused above the cap with the way out named.
+      if (offset === undefined && limit === undefined) {
+        if (st.size > MAX_READ)
+          throw new Error(
+            `fichier trop volumineux (> ${MAX_READ} octets) — relisez-le par tranches avec \`offset\` et \`limit\``,
+          );
+        return `[révision ${revision}]\n${await fh.readFile({ encoding: "utf8" })}`;
+      }
+
+      // Paged read: memory is bounded by the SLICE, so any file size stays reachable.
+      const slice = await takeLines(lineStream(fh), offset ?? 1, Math.min(limit ?? MAX_LINES, MAX_LINES), MAX_READ);
+      if (!slice.from) return `[révision ${revision}] (aucune ligne à partir de ${offset ?? 1})`;
+      // Where the slice STOPS: a truncation the model can't see reads as the whole file.
+      const more = slice.reachedEnd
+        ? "fin du fichier"
+        : `suite à partir de la ligne ${slice.to + 1}${slice.cappedByBytes ? " (tranche plafonnée en octets)" : ""}`;
+      return `[révision ${revision} · lignes ${slice.from}-${slice.to} · ${more}]\n${slice.text}`;
+    } finally {
+      await fh.close();
     }
-
-    // Paged read: memory is bounded by the SLICE, so any file size stays reachable.
-    const slice = await takeLines(lineStream(p), offset ?? 1, Math.min(limit ?? MAX_LINES, MAX_LINES), MAX_READ);
-    if (!slice.from) return `[révision ${revision}] (aucune ligne à partir de ${offset ?? 1})`;
-    // Where the slice STOPS: a truncation the model can't see reads as the whole file.
-    const more = slice.reachedEnd
-      ? "fin du fichier"
-      : `suite à partir de la ligne ${slice.to + 1}${slice.cappedByBytes ? " (tranche plafonnée en octets)" : ""}`;
-    return `[révision ${revision} · lignes ${slice.from}-${slice.to} · ${more}]\n${slice.text}`;
   },
 
   async write_file(g, a) {

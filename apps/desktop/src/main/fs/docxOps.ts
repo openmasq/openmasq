@@ -1,7 +1,8 @@
-import { readFile, stat } from "node:fs/promises";
+import { stat } from "node:fs/promises";
 import { MAX_FILE_BYTES, safeUnzip } from "@openmasq/redact";
 import { applyDocxEdit, docxToText } from "./docxText";
 import type { Grant } from "./grant";
+import { openRegular } from "./fdRead";
 
 /**
  * The MODEL's two Word tools, on top of the pure `docxText.ts`.
@@ -28,8 +29,15 @@ const MAX_BODY = 8_000_000;
  *  it is inflated. The file itself is bounded by `MAX_FILE_BYTES` on its `stat`. */
 async function readBody(path: string, all = false): Promise<{ zip: Record<string, Uint8Array>; xml: string }> {
   const { strFromU8 } = await import("fflate");
-  if ((await stat(path)).size > MAX_FILE_BYTES) throw new Error("document trop volumineux");
-  const zip = safeUnzip(new Uint8Array(await readFile(path)), (m) => {
+  const { fh, st } = await openRegular(path); // checked and read on one descriptor (`fdRead.ts`)
+  let bytes: Uint8Array;
+  try {
+    if (st.size > MAX_FILE_BYTES) throw new Error("document trop volumineux");
+    bytes = new Uint8Array(await fh.readFile());
+  } finally {
+    await fh.close();
+  }
+  const zip = safeUnzip(bytes, (m) => {
     if (m.name === BODY_PART && m.originalSize > MAX_BODY) throw new Error("document trop volumineux");
     return all || m.name === BODY_PART;
   });

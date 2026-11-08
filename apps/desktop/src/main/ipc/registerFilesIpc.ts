@@ -1,4 +1,3 @@
-import { readFile, stat } from "node:fs/promises";
 import { MAX_FILE_BYTES } from "@openmasq/redact";
 import { mainMessages } from "../i18n";
 import { scrubInPlaceInWorker } from "../ocr/extractJobs";
@@ -18,7 +17,7 @@ import { safeOpenPath } from "../net/safeOpen";
 import { isFetchHostAllowed } from "../net/fetchAllow";
 import { previewLink } from "../net/linkPreview";
 import { withAgentBrowserHidden } from "../mcp/browser";
-import { grantRead, assertReadAllowed } from "./readGate";
+import { grantRead, readAllowedFile } from "./readGate";
 import { registerExtractIpc } from "./filesExtractIpc";
 import { handle, str, bool, obj, } from "./handle";
 import { devOnly } from "../security/devOnly";
@@ -93,8 +92,7 @@ export function registerFilesIpc(): void {
   // Raw bytes for an in-app preview. CONFINED: only a path the user granted this session
   // or one inside our own temp dir, so a renderer XSS can't read keys / the vault / ~/.ssh.
   handle("files:read", [str], async (_e, path) => {
-    assertReadAllowed(path);
-    return new Uint8Array(await readFile(path));
+    return readAllowedFile(path);
   });
 
   // Download a remote file (a tool-returned export URL) to a temp path; the renderer then
@@ -208,9 +206,7 @@ export function registerFilesIpc(): void {
       original = new Uint8Array(Buffer.from(p.data, "base64"));
     } else {
       if (!p.path) throw new Error("Accès fichier refusé : chemin ou données manquants.");
-      assertReadAllowed(p.path);
-      if ((await stat(p.path)).size > MAX_FILE_BYTES) throw tooLarge();
-      original = new Uint8Array(await readFile(p.path));
+      original = await readAllowedFile(p.path, MAX_FILE_BYTES, tooLarge);
     }
     // The scrub PARSES the file (SheetJS, fflate, the XML rewrite): it runs in the extraction
     // worker, never in main (`../ocr/inplaceScrub.ts`). The classifier must agree with the

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
-import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
+import { mkdtempSync, mkdirSync, symlinkSync, writeFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { BRAND } from "@openmasq/branding";
@@ -13,7 +14,7 @@ writeFileSync(join(USERDATA, "keys.enc"), "SECRET_KEYS");
 writeFileSync(join(USERDATA, "note.txt"), "ok"); // a NON-secret userData file
 vi.mock("electron", () => ({ app: { getPath: () => USERDATA } }));
 
-const { grantRead, assertReadAllowed } = await import("./readGate");
+const { grantRead, assertReadAllowed, readAllowedFile } = await import("./readGate");
 
 describe("read-gate (audit H-1) — files:read confinement", () => {
   it("REFUSES an arbitrary un-granted path (renderer-XSS exfil floor)", () => {
@@ -65,3 +66,34 @@ describe("read-gate (audit H-1) — files:read confinement", () => {
     },
   );
 });
+
+describe("readAllowedFile — the read itself, not only the check", () => {
+  it("reads a granted file", async () => {
+    const d = mkdtempSync(join(tmpdir(), "other-app-"));
+    const f = join(d, "picked.txt");
+    writeFileSync(f, "picked");
+    grantRead(f);
+    expect(Buffer.from(await readAllowedFile(f)).toString()).toBe("picked");
+  });
+
+  it("refuses what the gate refuses, through a link too", async () => {
+    const d = mkdtempSync(join(tmpdir(), `${BRAND.slug}-link-`));
+    const link = join(d, "innocent.txt");
+    symlinkSync(join(USERDATA, "keys.enc"), link);
+    await expect(readAllowedFile(link)).rejects.toThrow(/chemin non autorisé/);
+  });
+
+  it.runIf(process.platform !== "win32")("refuses a FIFO instead of blocking on it", async () => {
+    const d = mkdtempSync(join(tmpdir(), `${BRAND.slug}-fifo-`));
+    const fifo = join(d, "pipe");
+    execFileSync("mkfifo", [fifo]);
+    await expect(readAllowedFile(fifo)).rejects.toThrow(/pas un fichier/);
+  });
+
+  it("refuses past the size it is given", async () => {
+    const f = join(USERDATA, "big.txt");
+    writeFileSync(f, "x".repeat(100));
+    await expect(readAllowedFile(f, 10, () => new Error("TOO LARGE"))).rejects.toThrow("TOO LARGE");
+  });
+});
+

@@ -1,7 +1,7 @@
 import { app } from "electron";
 import { join } from "node:path";
 import { existsSync } from "node:fs";
-import { mkdir, copyFile, writeFile, rm } from "node:fs/promises";
+import { mkdir, copyFile, writeFile, rm, lstat } from "node:fs/promises";
 import type { Client } from "@libsql/client";
 import { loadDriver } from "./driver";
 import { dbEncryptionKey } from "../store/dbCrypto";
@@ -94,6 +94,8 @@ async function maybeAdoptLegacyDb(accountFile: string): Promise<void> {
       await writeFile(marker, "no-legacy\n"); // clean install → never look again
       return;
     }
+    // the legacy DB is a regular file of ours; a link in its place is not adopted
+    if (!(await lstat(legacy)).isFile()) return;
     await copyFile(legacy, accountFile); // the account file is freshly-created/empty
     await writeFile(marker, "adopted\n");
     // Only AFTER the copy AND the marker. Best-effort per file (a locked `-wal` on

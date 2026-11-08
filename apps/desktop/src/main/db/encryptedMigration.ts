@@ -1,5 +1,5 @@
 import { existsSync } from "node:fs";
-import { writeFile, readFile, rm, copyFile, rename, readdir } from "node:fs/promises";
+import { writeFile, readFile, rm, copyFile, rename, readdir, lstat } from "node:fs/promises";
 import { join } from "node:path";
 import { createClient, type Client } from "@libsql/client";
 import { dbEncryptionKey, encryptBytes, looksEncrypted } from "../store/dbCrypto";
@@ -28,9 +28,14 @@ export async function ensureBlobsEncrypted(): Promise<void> {
       if (name.startsWith(".")) continue;
       const p = join(dir, name);
       try {
+        // a blob is a regular file: a link or anything else in here is not one of ours
+        if (!(await lstat(p)).isFile()) continue;
         const raw = new Uint8Array(await readFile(p));
         if (looksEncrypted(raw)) continue; // already encrypted → leave as-is
-        await writeFile(p, encryptBytes(raw), { mode: 0o600 });
+        // beside it, then renamed over it: the NAME is replaced, never written through
+        const tmp = `${p}.${process.pid}.enc-tmp`;
+        await writeFile(tmp, encryptBytes(raw), { mode: 0o600, flag: "wx" });
+        await rename(tmp, p);
         converted++;
       } catch {
         /* unreadable / not a file → skip */
