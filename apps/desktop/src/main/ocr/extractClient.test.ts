@@ -159,4 +159,30 @@ describe("a worker the system's jail cannot start", () => {
     expect(children).toHaveLength(0);
     expect(extractIsolation().isolation).toBe("system");
   });
+
+  it("retires the worker after a job it answered `recycle` (a workbook), and keeps it otherwise", async () => {
+    const { runInWorker } = await client();
+    let next = 1;
+    onFork = (c) => {
+      queueMicrotask(() => c.emit("message", { ready: true }));
+      c.postMessage = (m: unknown) => {
+        c.posted.push(m);
+        const id = (m as { id: number }).id;
+        const workbook = (m as { name?: string }).name?.endsWith(".xlsx");
+        queueMicrotask(() => c.emit("message", { id, ok: true, file: fileOk, ...(workbook ? { recycle: true } : {}) }));
+      };
+      next++;
+    };
+    const pdf = { kind: "bytes" as const, data: "", name: "x.pdf", locale: "fr" };
+    await runInWorker(pdf);
+    await runInWorker(pdf);
+    expect(children).toHaveLength(1); // a PDF leaves the worker in place
+    await runInWorker(req); // x.xlsx → recycle
+    expect(children[0].killed).toBe(true);
+    await runInWorker(pdf);
+    expect(children).toHaveLength(2); // the next document gets a fresh worker
+    expect(children[1].killed).toBe(false);
+    expect(next).toBe(3);
+  });
 });
+

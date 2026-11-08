@@ -29,7 +29,7 @@ import { buildTextLayerPage, type TextLayerPage } from "./layers/geometry";
 import { pageNeedsOcr, pageOcrRegions } from "./layers/ocrSkip";
 import { scanPageImages, toPageFractions, type PageFractionRect } from "./layers/imageRegions";
 
-export { SUPPORTED_EXTENSIONS, OCR_LANGS, OCR_TRAINEDDATA_SHA256, hybridLayerText, spatialFieldLines, DEFAULT_OCR_MARKERS } from "./core";
+export { SUPPORTED_EXTENSIONS, readsWorkbook, OCR_LANGS, OCR_TRAINEDDATA_SHA256, hybridLayerText, spatialFieldLines, DEFAULT_OCR_MARKERS } from "./core";
 export type { ExtractedFile, RedactedDocument, TextLayerPage, OcrLayerPage, LayerGeometry, OcrMarkers } from "./core";
 export {
   isSafeThumbnail, pngSize, streamedPrefix, thumbScale, THUMB_MAX_BYTES, THUMB_MAX_HEIGHT_PX, THUMB_MAX_WIDTH_PX,

@@ -55,6 +55,19 @@ export function extOf(name: string): string {
   return i > 0 ? b.slice(i).toLowerCase() : "";
 }
 
+/** The format a file is READ as: its name's extension, else its MIME type's. */
+export function resolveExt(name: string, mime?: string): string {
+  const ext = extOf(name);
+  if (ext || !mime) return ext;
+  return MIME_EXT[mime.split(";")[0].trim().toLowerCase()] ?? "";
+}
+
+/** Will this file be read by SheetJS? The same decision the extraction (`core.ts`) and the
+ *  in-place scrub make — what the extraction worker answers with, to be recycled after it. */
+export function readsWorkbook(name: string, mime?: string): boolean {
+  return SHEET_EXT.has(resolveExt(name, mime));
+}
+
 /**
  * Serialize a parsed SheetJS workbook to HEADER-ANNOTATED text (approach A): each
  * sheet's grid → `header: value | header: value` rows, so the detector reads a

@@ -14,12 +14,12 @@ import type { ExtractStream, ThumbEvent } from "./pageStream";
 import type { TextLayerPage, OcrLayerPage } from "./layers/geometry";
 import type { PageFractionRect } from "./layers/imageRegions";
 import {
-  TEXT_EXT, SHEET_EXT, IMAGE_EXT, MIME_EXT,
-  baseName, extOf, sheetText, pptxText,
+  TEXT_EXT, SHEET_EXT, IMAGE_EXT,
+  baseName, resolveExt, sheetText, pptxText,
 } from "./formats";
 
 // Split-out pieces re-exported so every existing import path keeps resolving.
-export { SUPPORTED_EXTENSIONS, baseName } from "./formats";
+export { SUPPORTED_EXTENSIONS, baseName, readsWorkbook } from "./formats";
 export { OCR_LANGS, OCR_TRAINEDDATA_SHA256 } from "./ocrPins";
 export { redactExtracted, hybridLayerText, type RedactedDocument, type LayerGeometry } from "./layers/reconcile";
 export { spatialFieldLines } from "./layers/spatialFields";
@@ -196,8 +196,7 @@ export async function extractFromBytes(
 ): Promise<ExtractedFile> {
   const name = baseName(opts.name) || "file";
   const mime = opts.mime;
-  let ext = extOf(opts.name);
-  if (!ext && mime) ext = MIME_EXT[mime.split(";")[0].trim().toLowerCase()] ?? "";
+  const ext = resolveExt(opts.name, mime);
   // SAFETY GATE — reject an oversized / type-mismatched / bomb file BEFORE it
   // reaches a heavy parser (pdf.js / mammoth / SheetJS). Best-effort contract is
   // preserved: a rejection is a `{ error }` result with empty text, never a throw.

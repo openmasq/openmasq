@@ -12,7 +12,7 @@
 import "../security/offline";
 import { createRequire } from "node:module";
 import { pathToFileURL } from "node:url";
-import { extractText, extractBytes, type ExtractedFile, type ExtractStream, type PageEvent } from "@openmasq/redact/documents";
+import { extractText, extractBytes, readsWorkbook, type ExtractedFile, type ExtractStream, type PageEvent } from "@openmasq/redact/documents";
 import { DEFAULT_LOCALE, getMessages, isLocale } from "@openmasq/i18n";
 import { scrubInPlace } from "./inplaceScrub";
 import { workerPort } from "./workerPort";
@@ -64,8 +64,8 @@ type Res =
   | { id: number; progress: { done: number; pages: number } }
   | { id: number; page: PageEvent }
   | { id: number; thumb: { n: number; total: number; png: string } }
-  | { id: number; ok: true; file: ExtractedFile | InplaceReply }
-  | { id: number; ok: false; error: string };
+  | { id: number; ok: true; file: ExtractedFile | InplaceReply; recycle?: true }
+  | { id: number; ok: false; error: string; recycle?: true };
 // the utilityProcess's port, or frames on stdio inside a jail (`workerPort.ts`)
 const parentPort = workerPort<Req, Res>();
 
@@ -79,14 +79,17 @@ interface InplaceReply {
 
 parentPort.on("message", (e) => {
   const req = e.data;
+  // SheetJS read this file: whatever a crafted workbook wrote into this process's shared
+  // prototypes must not meet the next document. The parent retires this worker after the job.
+  const recycle = readsWorkbook(req.kind === "path" ? req.path : req.name, req.kind === "path" ? undefined : req.mime) ? (true as const) : undefined;
   if (req.kind === "inplace") {
     try {
       const { data, ...rest } = req;
       const r = scrubInPlace({ ...rest, bytes: new Uint8Array(Buffer.from(data, "base64")) });
       const scrubbed = r.scrubbed ? Buffer.from(r.scrubbed).toString("base64") : null;
-      parentPort.postMessage({ id: req.id, ok: true, file: { ...r, scrubbed } });
+      parentPort.postMessage({ id: req.id, ok: true, file: { ...r, scrubbed }, recycle });
     } catch (err) {
-      parentPort.postMessage({ id: req.id, ok: false, error: err instanceof Error ? err.message : String(err) });
+      parentPort.postMessage({ id: req.id, ok: false, error: err instanceof Error ? err.message : String(err), recycle });
     }
     return;
   }
@@ -123,7 +126,7 @@ parentPort.on("message", (e) => {
         req.kind === "path"
           ? await extractText(req.path, onProgress, markers, stream)
           : await extractBytes(Buffer.from(req.data, "base64"), req.name, req.mime, onProgress, markers, stream);
-      parentPort.postMessage({ id: req.id, ok: true, file });
+      parentPort.postMessage({ id: req.id, ok: true, file, recycle });
     } catch (err) {
       // A pinning failure makes EVERY PDF unreadable: say so HERE, with the error, rather
       // than leaving the user and the log to guess at a file-related cause.
@@ -132,6 +135,7 @@ parentPort.on("message", (e) => {
         id: req.id,
         ok: false,
         error: pinFailure ? `${base} (pdf.js workerSrc non épinglé : ${pinFailure})` : base,
+        recycle,
       });
     }
   })();

@@ -22,7 +22,7 @@ import { SandboxUnbornError, sandboxedWorker, type WorkerChild } from "./extract
  * be BORN (the bundle is missing, the fork throws, or the child dies/stalls before its
  * `ready`) fails CLOSED: the document is refused with a sentence saying the reader is
  * unavailable (`inWorkerOnly`). A job that fails AFTER `ready` (timeout, crash, OOM) failed
- * because of its FILE: that file is in error, and the next one gets a fresh worker.
+ * because of its FILE: that file is in error, and the next one gets a fresh worker — as after a WORKBOOK (`recycle`).
  */
 
 /** The worker could not be born (see the header): the document is refused, never read in main. */
@@ -38,8 +38,8 @@ type Reply =
   | { id: number; progress: { done: number; pages: number } }
   | { id: number; page: unknown }
   | { id: number; thumb: unknown }
-  | { id: number; ok: true; file: unknown }
-  | { id: number; ok: false; error: string };
+  | { id: number; ok: true; file: unknown; recycle?: true }
+  | { id: number; ok: false; error: string; recycle?: true };
 
 interface Pending {
   resolve: (f: never) => void;
@@ -138,10 +138,10 @@ function ensureChild(): WorkerChild {
       if (ev) p.onStream?.(ev);
       return;
     }
-    clearTimeout(p.timer);
-    pending.delete(msg.id);
+    clearTimeout(p.timer); pending.delete(msg.id);
     if (msg.ok) p.resolve(msg.file as never);
     else p.reject(new Error(msg.error));
+    if (msg.recycle && child === c) killChild(); // SheetJS read that file (`extractWorker.ts`)
   });
   c.on("exit", (code) => {
     if (child !== c) return; // detached by `killChild`, which already answered its jobs
