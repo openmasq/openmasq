@@ -50,6 +50,17 @@ kept in the French they were sent in, for the reason given above.
 
 ---
 
+## 0.17.5 — 2026-11-09
+> Social security and company numbers are recognised in more forms.
+
+### What's new
+- **More social security formats** — dashes, the number without its key, and scanned forms are masked.
+
+### Improvements & fixes
+- Company registration labels and numbers are read more accurately.
+
+---
+
 ## 0.17.4 — 2026-11-08
 > Masked values stand out on every page.
 
