@@ -63,7 +63,7 @@ beforeEach(() => {
   reconnects.length = 0;
 });
 
-function navRoute(callTool: ReturnType<typeof vi.fn>) {
+function navRoute(callTool: (c: unknown) => Promise<unknown>) {
   routes.set("browser__browser_navigate", { realName: "browser_navigate", server: { callTool } });
 }
 
