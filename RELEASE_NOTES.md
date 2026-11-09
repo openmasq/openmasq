@@ -51,12 +51,19 @@ kept in the French they were sent in, for the reason given above.
 ---
 
 ## 0.17.5 — 2026-11-09
-> Social security and company numbers are recognised in more forms.
+> See what the model saw, read your documents clearly, and mask more French ids.
 
 ### What's new
+- **See what the model saw, on every reply** — one click under any masked answer opens the side-by-side view.
+- **Readable document preview** — masked values are highlighted and underlined, the text stays readable.
 - **More social security formats** — dashes, the number without its key, and scanned forms are masked.
 
 ### Improvements & fixes
+- Undo in the Coffre: a removed term stays masked for a few seconds, with « Annuler ».
+- One button reports a blocked send and tells us why.
+- Documents are read in a separate process, cut off from the network.
+- Slack connects through the app's own sign-in page, like Google.
+- Large spreadsheets preview without slowing the app down.
 - Company registration labels and numbers are read more accurately.
 
 ---
