@@ -58,7 +58,7 @@ export type PaintMode = "cover" | "highlight";
 export const HIGHLIGHT_ALPHA = 0.8;
 /** Thickness of the full-strength UNDERLINE drawn under a highlight, as a fraction of the box
  *  height (floored at 2px): the wash says « here », the line says « this category ». */
-export const HIGHLIGHT_UNDERLINE = 0.12;
+const HIGHLIGHT_UNDERLINE = 0.12;
 
 export interface Rect {
   left: number;
