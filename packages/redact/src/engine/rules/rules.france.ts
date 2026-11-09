@@ -1,56 +1,24 @@
 import type { RedactionRule } from "../../types";
 import { frVat, sirenSiret } from "../validators";
 import { gate, WRAP, SP, maxOneWrap } from "./rules.international.util";
+import { NIR_RULES } from "./rules.franceNir";
+
+export { nirSpacedDistinct } from "./rules.franceNir";
 
 // French identity / tax / residency schemes, ONE family (rule 10): the coverage that meets
 // FR users' identity documents. Spread into `RULES` AFTER card/IBAN and BEFORE the
 // international spread. All → "national_id".
 // Precision bar (engine/CLAUDE.md): a banal digit/alnum run is CONTEXT-GATED; only the
-// structurally distinctive NIR forms fire bare. No checksum REQUIREMENT on the NIR key on
-// purpose: these numbers arrive through OCR, where one misread digit would fail the key
-// and LEAK the whole number — structure + separators carry the precision instead.
+// structurally distinctive NIR forms fire bare (`rules.franceNir.ts`).
 const nid = (pattern: RegExp, validate?: (m: string) => boolean): RedactionRule => ({
   type: "national_id",
   pattern,
   validate,
 });
 
-/** The SPACED/dotted NIR rule's guard: the optional separators also match a BARE 13-digit
- *  run, which collides with epoch-milliseconds. Accept only the distinctive forms: a
- *  separator present, the full 15 digits, or a Corsican 2A/2B département. */
-export function nirSpacedDistinct(match: string): boolean {
-  if (/[ \u00A0\u202F.\n]/.test(match)) return true;
-  if (/2[ABab]/.test(match)) return true;
-  return match.replace(/\D/g, "").length === 15;
-}
-
-/** The spaced schemes' separator: space/dot, or ONE mid-value line wrap (`WRAP`). */
-const S = String.raw`(?:${SP}|\.|${WRAP})?`;
-
 export const FRANCE_RULES: RedactionRule[] = [
-  {
-    // French INSEE / NIR — 15 digits (sex + year + valid month), the legacy GLUED form.
-    type: "national_id",
-    pattern: /\b[12]\d{2}(?:0[1-9]|1[0-2])\d{10}\b/g,
-  },
-  {
-    // NIR fully LETTER-SPACED by OCR ("1 8 4 0 3 7 5 1 2 0 0 0 5 1 2"): 15 single-spaced
-    // digits; the NIR structure (sex + valid month) on the glued digits carries the precision.
-    type: "national_id",
-    pattern: new RegExp(String.raw`\b[12](?:${SP}\d){14}\b`, "g"),
-    validate: (m) => /^[12]\d{2}(?:0[1-9]|1[0-2])\d{10}$/.test(m.replace(/\D/g, "")),
-  },
-  {
-    // NIR as actually WRITTEN: separator-grouped, Corsican 2A/2B, and the 13-digit form
-    // without its key. ONE mid-value line wrap tolerated (`WRAP` + `maxOneWrap`);
-    // `nirSpacedDistinct` rejects the bare-13 epoch-ms collision.
-    type: "national_id",
-    pattern: new RegExp(
-      String.raw`\b[12]${S}\d{2}${S}(?:0[1-9]|1[0-2])${S}(?:\d{2}|2[ABab])${S}\d{3}${S}\d{3}(?:${S}\d{2})?\b`,
-      "g",
-    ),
-    validate: (m) => maxOneWrap(m) && nirSpacedDistinct(m),
-  },
+  // NIR (sécurité sociale) — its own file, `rules.franceNir.ts`.
+  ...NIR_RULES,
   // French intra-community VAT — "FR <key> <SIREN>", spaces tolerated. Fires on SHAPE
   // because `frVat` double-checksums key + SIREN. BEFORE the SIREN/RCS rule so the WHOLE
   // number is ONE span, prefix included.

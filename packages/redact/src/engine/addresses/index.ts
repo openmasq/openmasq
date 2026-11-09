@@ -226,6 +226,10 @@ export function detectAddresses(text: string): Detection[] {
     out.push({ value, category: "PLACE", country: "FR", start: m.index });
   }
 
+  // A 5-digit group closing a SIRET (« 732 829 320 00074   Code NAF ») is the id's tail,
+  // never a postal code: the id is masked whole, and reading it as « CP Ville » faked the
+  // next word as a city.
+  const NOT_ID_TAIL = String.raw`(?<!\d{3}[ .\u00A0\u202F]\d{3}[ .\u00A0\u202F]\d{3}[ .\u00A0\u202F])`;
   // FR — a STANDALONE "CP + Ville" as ONE coherent PLACE, so code and city are faked
   // TOGETHER from ONE real place (split, the NER fakes them apart or mistypes an ALL-CAPS
   // city as a NAME). A bare 5-digit is ambiguous FR/DE/ES/IT — standalone assumes FR; a
@@ -233,7 +237,7 @@ export function detectAddresses(text: string): Detection[] {
   const PLACE_RE = new RegExp(
     // Separator HORIZONTAL and city ≥2 letters: a « CP Ville » is a one-line shape, and
     // `\\s+` would let a code take the next LINE's first character as its commune.
-    `\\b([0-9OoIl]{5})[ \\t\u00A0\u202F]+((?:(?:Le|La|Les|L['’]|Saint[e]?|Sainte|St[e]?|Mont)[ -])?\\p{L}[\\p{L}]+(?:[-'’]\\p{L}+)*)` +
+    `${NOT_ID_TAIL}\\b([0-9OoIl]{5})[ \\t\u00A0\u202F]+((?:(?:Le|La|Les|L['’]|Saint[e]?|Sainte|St[e]?|Mont)[ -])?\\p{L}[\\p{L}]+(?:[-'’]\\p{L}+)*)` +
       // SPACE-separated commune continuation, connector-led ("ST OUEN SUR SEINE" —
       // administrative docs drop the hyphens), else the tail narrows the real location
       // beside the faked city.
@@ -265,7 +269,7 @@ export function detectAddresses(text: string): Detection[] {
   // Fallback: a 5-digit code followed by a Capitalised word the PLACE rule didn't
   // consume (unusual city shape) → the CODE alone, so it never leaks (country
   // undefined → FR default). Plus UK alphanumeric (→ GB).
-  for (const m of text.matchAll(/\b(\d{5})\b(?=\s+\p{Lu})/gu)) {
+  for (const m of text.matchAll(new RegExp(`${NOT_ID_TAIL}\\b(\\d{5})\\b(?=\\s+\\p{Lu})`, "gu"))) {
     if (consumedCp.has(m[1])) continue;
     const key = `POSTAL_CODE::${m[1]}`;
     if (seen.has(key)) continue;

@@ -125,6 +125,11 @@ describe("detectOrgContext — family 4: financial-statement header pair", () =>
     expect(detect("Dossier : KARL STUDIO\n91186429738250\n")).toEqual([]);
     expect(detect("KARL STUDIO\nREF 91186429738250\n")).toEqual([]);
   });
+
+  it("a label abbreviation is not a name word: « N° SIRET » above its number is a LABEL", () => {
+    expect(orgs("N° SIRET\n732 829 320 00074")).toEqual([]);
+    expect(orgs("Nº SIREN\n\n732 829 320")).toEqual([]);
+  });
 });
 
 describe("« & Filles » / « & Frères » — le symétrique exact de « & Fils »", () => {

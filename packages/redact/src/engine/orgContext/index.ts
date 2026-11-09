@@ -270,7 +270,8 @@ function denominationLike(name: string): boolean {
   for (const tok of tokens) {
     if (isStopword(tok)) continue;
     if (!/^[\p{Lu}\d&'’.-]/u.test(tok)) return false; // a lowercase content word → prose/label
-    if (/\p{L}/u.test(tok) && !isGenericTerm(tok) && !isCountry(tok)) cased++;
+    // ≥2 letters: a label abbreviation (« N° », « Nº ») is not a name word.
+    if ((tok.replace(/[ºª]/g, "").match(/\p{L}/gu) ?? []).length >= 2 && !isGenericTerm(tok) && !isCountry(tok)) cased++;
   }
   return cased >= 1;
 }
