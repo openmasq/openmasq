@@ -42,6 +42,10 @@ export interface DesktopMainMessages {
     allowDisableGate: string;
     allowLeaveStrict: string;
     allowTool: string;
+    /** Why THIS write is asked in every mode: where it lands is run by other tools. */
+    runByTools: { hidden: string; orders: string; installed: string };
+    /** Label in front of the path concerned. */
+    runByToolsPath: string;
   };
   updates: {
     ok: string;
@@ -78,6 +82,19 @@ export interface DesktopMainMessages {
     detail: string;
     openSettings: string;
     cancel: string;
+  };
+  /** The main window stopped answering, or its page stopped (`main/windowHealth.ts`). */
+  windowHealth: {
+    hungTitle: string;
+    hungMessage: (brand: string) => string;
+    hungDetail: string;
+    goneTitle: string;
+    goneMessage: (brand: string) => string;
+    goneDetail: string;
+    goneMemoryDetail: string;
+    reload: string;
+    wait: string;
+    quit: string;
   };
   dbFatal: {
     title: (brand: string) => string;
@@ -145,6 +162,8 @@ export interface DesktopMainMessages {
     /** ⚠️ These two must keep matching `PERMANENT_RE` (`mcp/server/reconnectRetry.ts`). */
     urlRefused: (reason: string) => string;
     apiKeyRefused: string;
+    /** A stored connector whose address or folders are not what the app wrote. */
+    specAltered: string;
     noDynamicRegistration: string;
     accountAlreadyConnected: string;
     missingClientId: string;

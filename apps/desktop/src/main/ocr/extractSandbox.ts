@@ -3,10 +3,10 @@ import { createHash } from "node:crypto";
 import { EventEmitter } from "node:events";
 import { existsSync, mkdirSync, readFileSync, realpathSync, rmSync } from "node:fs";
 import { createRequire } from "node:module";
-import { homedir } from "node:os";
 import { basename, dirname, join, sep } from "node:path";
 import { app } from "electron";
-import { frame, Unframer } from "../runtime/frames";
+import { frame, TOO_LARGE, Unframer } from "../runtime/frames";
+import { watchProcess, type Over } from "../runtime/processWatch";
 import { windowsSystemEnv } from "../python/jailEnv";
 import { winJailExe } from "../python/winJail";
 import { SANDBOX_EXEC, workerCommand, type WorkerWay } from "./workerJail";
@@ -21,15 +21,17 @@ import { SANDBOX_EXEC, workerCommand, type WorkerWay } from "./workerJail";
  *
  * The bundle sits outside the asar (a plain Node cannot read inside it), so its SHA-256 is kept
  * INSIDE the sealed asar (`out/main/extractSandbox.sha256`) and checked before every start: a
- * bundle that does not match is never run, and the worker falls back to the utilityProcess,
- * which runs the sealed code.
+ * bundle that does not match is never run.
  *
- * `null` means « not available here » (no Node beside the app, no jail, no bundle, a bundle
- * that does not match): `extractClient.ts` then forks the utilityProcess, as before, and the
- * isolation it reports says so.
+ * `null` means « not available here », and `sandboxMissing()` says why (no jail, no Node beside
+ * the app, no bundle, a bundle that does not match). What happens then is `extractWall.ts`'s
+ * rule: a packaged app REFUSES the document; only an unpackaged run forks the utilityProcess.
+ *
+ * Its memory and its folder are capped by main's measure (`../runtime/processWatch.ts`), the
+ * Windows Job Object apart: past a cap the worker is killed and `stopped()` says which.
  */
 
-/** A worker the system's jail could not start: `extractClient.ts` tries the utilityProcess next. */
+/** A worker the system's jail could not start, in an unpackaged run: `extractClient.ts` tries the utilityProcess next. */
 export class SandboxUnbornError extends Error {}
 
 /** What `extractClient.ts` uses of a worker process, the utilityProcess's own surface. */
@@ -39,11 +41,19 @@ export interface WorkerChild {
   on(ev: "message", cb: (msg: never) => void): this;
   on(ev: "exit", cb: (code: number | null) => void): this;
   stderr?: NodeJS.ReadableStream | null;
+  /** why main stopped it itself (over its memory, its folder, an answer too large), if it did */
+  stopped?: () => Over | "answer" | null;
 }
 
 /** the externals the bundle loads from disk: natives and WASM, by path */
 const EXTERNALS = ["tesseract2.js", "tesseract.js-core", "onnxruntime-node", "@napi-rs/canvas"];
 const MEMORY_MB = 4096;
+/** V8's own heap, inside that: the rest is the natives' (the canvas, the inference runtime, WASM) */
+const HEAP_MB = 3072;
+/** what its folder may weigh: scratch for the OCR engines, never a document's size many times over */
+const DISK_MB = 2048;
+/** the largest answer main reads from it: a document's text and geometry fit well under it */
+const ANSWER_MAX_BYTES = 256 * 1024 * 1024;
 
 const real = (p: string): string => {
   try {
@@ -102,7 +112,16 @@ function grants(bundle: string, node: string, tmp: string): string[] {
   return [...new Set(all.flatMap((p) => [p, real(p)]))];
 }
 
-/** The worker started under the system's jail, or null when this machine has none for it. */
+/** Why the jail is not available here, or null when it is: said in the refusal and in its report. */
+export function sandboxMissing(): string | null {
+  if (!way()) return "no jail on this system";
+  if (!nodeCommand()) return "no Node beside the app";
+  const bundle = bundlePath();
+  if (!existsSync(bundle)) return "no sandboxed bundle";
+  return bundleIntact(bundle) ? null : "sandboxed bundle does not match its sealed digest";
+}
+
+/** The worker started under the system's jail, or null when this machine has none for it (`sandboxMissing`). */
 export function sandboxedWorker(): WorkerChild | null {
   const jail = way();
   const node = nodeCommand();
@@ -120,8 +139,8 @@ export function sandboxedWorker(): WorkerChild | null {
     script: bundle,
     read: grants(bundle, node.folder, tmp),
     write: [...new Set([tmp, tmpReal])],
-    home: homedir(),
     memoryMb: MEMORY_MB,
+    heapMb: HEAP_MB,
   });
   const ocrEnv = Object.fromEntries(
     ["OPENMASQ_TESSERACT_LANG_PATH", "OPENMASQ_DOCTR_MODEL_PATH", "OPENMASQ_DOCTR_INTEGRITY", "OPENMASQ_DOCTR_REQUIRE_PIN"].flatMap((k) => (process.env[k] ? [[k, process.env[k] as string]] : [])),
@@ -132,19 +151,32 @@ export function sandboxedWorker(): WorkerChild | null {
     cwd: tmpReal,
     windowsHide: true,
   });
-  return framed(child);
+  return framed(child, tmpReal);
 }
 
-/** A spawned worker that speaks in frames, behind the utilityProcess's surface. */
-function framed(child: ChildProcess): WorkerChild {
+/** A spawned worker that speaks in frames, behind the utilityProcess's surface, its memory and folder measured. */
+function framed(child: ChildProcess, folder: string): WorkerChild {
   const events = new EventEmitter();
-  const reader = new Unframer();
-  child.stdout?.on("data", (chunk: Buffer) => reader.push(chunk).forEach((m) => events.emit("message", m)));
+  const reader = new Unframer(ANSWER_MAX_BYTES);
+  let stopped: Over | "answer" | null = null;
+  const stop = (why: Over | "answer") => {
+    stopped ??= why;
+    child.kill("SIGKILL");
+  };
+  const unwatch = watchProcess(child.pid, { memoryMb: MEMORY_MB, folder, diskMb: DISK_MB }, stop);
+  child.stdout?.on("data", (chunk: Buffer) => {
+    for (const m of reader.push(chunk)) {
+      // an answer larger than main reads is never kept: the worker that sent it is stopped
+      if (m === TOO_LARGE) stop("answer");
+      else events.emit("message", m);
+    }
+  });
   // a program that cannot start, or a pipe that breaks, is an exit before `ready`
   let exited = false;
   const exit = (code: number | null) => {
     if (exited) return;
     exited = true;
+    unwatch();
     events.emit("exit", code);
   };
   child.on("exit", (code) => exit(code));
@@ -152,12 +184,16 @@ function framed(child: ChildProcess): WorkerChild {
   child.stdin?.on("error", () => exit(127));
   const worker = {
     postMessage: (msg: unknown) => void child.stdin?.write(frame(msg)),
-    kill: () => child.kill("SIGKILL"),
+    kill: () => {
+      unwatch();
+      return child.kill("SIGKILL");
+    },
     on: (ev: string, cb: (...args: never[]) => void) => {
       events.on(ev, cb as (...args: unknown[]) => void);
       return worker;
     },
     stderr: child.stderr,
+    stopped: () => stopped,
   };
   return worker as WorkerChild;
 }

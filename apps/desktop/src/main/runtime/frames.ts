@@ -124,12 +124,29 @@ function decode(body: Buffer): unknown {
   return unpack(JSON.parse(json), bins);
 }
 
-/** Reads frames out of a stream's chunks, in order. */
+/** What `Unframer.push` hands over in place of a frame larger than its reader accepts. */
+export const TOO_LARGE = Symbol("frame too large");
+
+/**
+ * Reads frames out of a stream's chunks, in order. A frame begun and not all there yet keeps its
+ * chunks as they come and joins them ONCE (joining at every chunk copied a large answer again
+ * and again, on main's thread). `limit` is what THIS reader accepts (an answer's cap, below the
+ * format's own): a larger frame is said at once (`TOO_LARGE`) and its bytes dropped as they come.
+ */
 export class Unframer {
   private buffer: Buffer = Buffer.alloc(0);
+  private pending: { parts: Buffer[]; size: number; need: number } | null = null;
+
+  constructor(private readonly limit: number = MAX_FRAME) {}
 
   push(chunk: Buffer): unknown[] {
-    this.buffer = this.buffer.length ? Buffer.concat([this.buffer, chunk]) : chunk;
+    if (this.pending) {
+      this.pending.parts.push(chunk);
+      this.pending.size += chunk.length;
+      if (this.pending.size < this.pending.need) return [];
+      this.buffer = Buffer.concat(this.pending.parts, this.pending.size);
+      this.pending = null;
+    } else this.buffer = this.buffer.length ? Buffer.concat([this.buffer, chunk]) : chunk;
     const out: unknown[] = [];
     for (;;) {
       const at = this.buffer.indexOf(MARK);
@@ -141,11 +158,16 @@ export class Unframer {
       if (at > 0) this.buffer = this.buffer.subarray(at);
       if (this.buffer.length < HEAD) return out;
       const length = this.buffer.readUInt32LE(4);
-      if (length > MAX_FRAME) {
+      if (length > Math.min(this.limit, MAX_FRAME)) {
         this.buffer = this.buffer.subarray(MARK.length);
+        if (length <= MAX_FRAME) out.push(TOO_LARGE);
         continue;
       }
-      if (this.buffer.length < HEAD + length) return out;
+      if (this.buffer.length < HEAD + length) {
+        this.pending = { parts: [this.buffer], size: this.buffer.length, need: HEAD + length };
+        this.buffer = Buffer.alloc(0);
+        return out;
+      }
       const body = this.buffer.subarray(HEAD, HEAD + length);
       if (crc32(body) !== this.buffer.readUInt32LE(8)) {
         // not a frame after all (a mark inside other bytes): look past this mark

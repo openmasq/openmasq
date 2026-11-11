@@ -36,6 +36,10 @@ export const documents = {
     "Le texte de l'image n'a pas pu être lu. Réessayez avec une image plus nette. Si cela continue, signalez-le depuis « Votre avis ».",
   readerUnavailable:
     "Le lecteur de documents n'a pas pu démarrer : le fichier n'est pas lu. Redémarrez l'application ; si cela continue, réinstallez-la.",
+  readerOverMemory:
+    "Ce fichier demande plus de mémoire que le lecteur de documents ne peut en utiliser : il n'est pas lu. Essayez avec un fichier plus léger, ou découpez-le.",
+  readerOverDisk:
+    "La lecture de ce fichier demande plus de place sur le disque que le lecteur de documents ne peut en utiliser : il n'est pas lu. Essayez avec un fichier plus léger, ou découpez-le.",
   unsupportedType: (ext) =>
     ext ? `Type de fichier non pris en charge : ${ext}` : "Type de fichier non pris en charge (aucune extension).",
   markers: {

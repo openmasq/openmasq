@@ -1,6 +1,6 @@
 import { strict as assert } from "node:assert";
 import { test } from "vitest";
-import { frame, Unframer } from "./frames";
+import { frame, TOO_LARGE, Unframer } from "./frames";
 
 test("messages cross as frames, whole, in order, however the pipe cuts them", () => {
   const messages = [{ id: 1, kind: "mail", bytes: new Uint8Array([1, 2, 3]) }, { ready: true }, { id: 2, ok: false, code: "refused", message: "é ✓" }];
@@ -50,3 +50,22 @@ test("what else reaches the pipe is skipped, and a damaged frame is dropped", ()
   assert.deepEqual(got, [{ id: 1 }, { id: 2 }]);
 });
 
+
+test("a frame that comes in many chunks is joined once and read whole, the next one after it", () => {
+  const reader = new Unframer();
+  const big = frame({ id: 1, text: "x".repeat(300_000) });
+  const all = Buffer.concat([big, frame({ id: 2 })]);
+  const got: unknown[] = [];
+  for (let at = 0; at < all.length; at += 4096) got.push(...reader.push(all.subarray(at, at + 4096)));
+  assert.equal(got.length, 2);
+  assert.equal((got[0] as { text: string }).text.length, 300_000);
+  assert.deepEqual(got[1], { id: 2 });
+});
+
+test("a frame larger than its reader accepts is said at once, never kept, and the next frame is read", () => {
+  const reader = new Unframer(1024);
+  const big = frame({ id: 1, text: "x".repeat(50_000) });
+  // said on its first bytes, before the rest has come
+  assert.deepEqual(reader.push(big.subarray(0, 64)), [TOO_LARGE]);
+  assert.deepEqual(reader.push(Buffer.concat([big.subarray(64), frame({ id: 2 })])), [{ id: 2 }]);
+});

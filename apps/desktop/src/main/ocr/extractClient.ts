@@ -1,13 +1,12 @@
-import { existsSync } from "node:fs";
-import { join } from "node:path";
-import { app, utilityProcess } from "electron";
+import { app } from "electron";
 import type { ExtractedFile, ExtractStreamEvent } from "@openmasq/redact/documents";
 import { reportMainError } from "../runtime/errorReport";
 import { isAppQuitting } from "../runtime/quitState";
-import { BRAND } from "@openmasq/branding";
 import { extractTimeoutMs } from "@openmasq/redact";
+import { checkExtracted, checkInplace } from "./extractAnswer";
 import { checkStreamMessage } from "./extractStream";
-import { SandboxUnbornError, sandboxedWorker, type WorkerChild } from "./extractSandbox";
+import { SandboxUnbornError, type WorkerChild } from "./extractSandbox";
+import { bornWorker, unwalledAllowed, WorkerUnbornError } from "./extractWall";
 
 /**
  * CLIENT of the extraction worker (`extractWorker.ts`) — the documents counterpart of
@@ -17,19 +16,24 @@ import { SandboxUnbornError, sandboxedWorker, type WorkerChild } from "./extract
  * `{id, progress|result}` relay, idle eviction (tesseract WASM + docTR onnxruntime
  * sessions = a RAM floor we give back), an unexpected death reported NAMED.
  *
- * ⛔ NO IN-PROCESS FALLBACK. Main never parses a document: a crafted file meets the parsers
- * (pdf.js, the office readers, the image decoders) only in the worker. A worker that cannot
- * be BORN (the bundle is missing, the fork throws, or the child dies/stalls before its
- * `ready`) fails CLOSED: the document is refused with a sentence saying the reader is
- * unavailable (`inWorkerOnly`). A job that fails AFTER `ready` (timeout, crash, OOM) failed
- * because of its FILE: that file is in error, and the next one gets a fresh worker — as after a WORKBOOK (`recycle`).
+ * ⛔ NO IN-PROCESS FALLBACK, AND NO UNWALLED ONE IN A PACKAGED APP. Main never parses a document:
+ * a crafted file meets the parsers (pdf.js, the office readers, the image decoders) only in the
+ * worker, and a packaged app's worker runs inside the system's jail or not at all
+ * (`extractWall.ts`). A worker that cannot be BORN (no jail, the bundle is missing or changed,
+ * the start throws, or the child dies/stalls before its `ready`) fails CLOSED: the document is
+ * refused with a sentence saying the reader is unavailable (`inWorkerOnly`). A job that fails
+ * AFTER `ready` (timeout, crash) failed because of its FILE: that file is in error, and the next
+ * one gets a fresh worker — as after a WORKBOOK (`recycle`). A worker main STOPPED for passing
+ * its memory or its folder's cap says so (`WorkerOverError`): the person is told the true reason.
+ * Its final answer is rebuilt before use (`extractAnswer.ts`); messages nothing asked for stop it.
  */
+export { WorkerUnbornError };
 
-/** The worker could not be born (see the header): the document is refused, never read in main. */
-export class WorkerUnbornError extends Error {
-  constructor(cause: string) {
-    super(`worker d'extraction indisponible (${cause})`);
-    this.name = "WorkerUnbornError";
+/** Main stopped the worker: this document needs more memory, or more room, than the reader may use. */
+export class WorkerOverError extends Error {
+  constructor(readonly why: "memory" | "disk") {
+    super(`worker d'extraction arrêté (${why})`);
+    this.name = "WorkerOverError";
   }
 }
 
@@ -42,6 +46,8 @@ type Reply =
   | { id: number; ok: false; error: string; recycle?: true };
 
 interface Pending {
+  /** the answer's shape, rebuilt (`extractAnswer.ts`); null refuses it */
+  check: (file: unknown) => unknown | null;
   resolve: (f: never) => void;
   reject: (e: Error) => void;
   onProgress?: (done: number, pages: number) => void;
@@ -66,8 +72,11 @@ let stderrRing = "";
 let child: WorkerChild | null = null;
 /** how the running worker is shut in: by the system (`extractSandbox.ts`), or a process apart only */
 let isolation: "system" | "process" | null = null;
-/** the system's jail did not start once: the utilityProcess for the session, and why */
+/** UNPACKAGED runs only: the system's jail did not start once, so the utilityProcess for the session, and why */
 let sandboxFailed: string | null = null;
+/** messages no job asked for, per worker: past this many the worker is stopped */
+const STRAY_MAX = 32;
+const strays = new WeakMap<WorkerChild, number>();
 const sandboxedChildren = new WeakSet<WorkerChild>();
 let seq = 0;
 let inflight = 0;
@@ -104,16 +113,8 @@ export const extractIsolation = () => ({ isolation, sandboxFailed });
 
 function ensureChild(): WorkerChild {
   if (child) return child;
-  // shut in by the system when this machine can; else the utilityProcess, as before
-  const shut = sandboxFailed ? null : sandboxedWorker();
-  const worker = join(__dirname, "extractWorker.js"); // emitted by electron-vite (main entry)
-  if (!shut && !existsSync(worker)) throw new WorkerUnbornError("bundle absent");
-  let c: WorkerChild;
-  try {
-    c = shut ?? forkWorker(worker);
-  } catch (e) {
-    throw new WorkerUnbornError(e instanceof Error ? e.message : String(e));
-  }
+  // shut in by the system; a packaged app that cannot is refused there (`extractWall.ts`)
+  const { child: c, shut } = bornWorker(!!sandboxFailed);
   if (shut) sandboxedChildren.add(c);
   isolation = shut ? "system" : "process";
   if (app.isPackaged || shut) {
@@ -122,13 +123,21 @@ function ensureChild(): WorkerChild {
     });
   }
   c.on("message", (msg: Reply) => {
+    if (!msg || typeof msg !== "object") return;
     if ("ready" in msg) {
       readyChildren.add(c);
       return;
     }
     const p = pending.get(msg.id);
-    if (!p) return;
+    if (!p) {
+      // nothing asked for it: a worker that keeps talking is no longer ours to listen to
+      const n = (strays.get(c) ?? 0) + 1;
+      strays.set(c, n);
+      if (n > STRAY_MAX && child === c) killChild();
+      return;
+    }
     if ("progress" in msg) {
+      if (typeof msg.progress?.done !== "number" || typeof msg.progress.pages !== "number") return;
       if (msg.progress.pages > p.scaledFor) p.rescale(msg.progress.pages);
       p.onProgress?.(msg.progress.done, msg.progress.pages);
       return;
@@ -139,8 +148,9 @@ function ensureChild(): WorkerChild {
       return;
     }
     clearTimeout(p.timer); pending.delete(msg.id);
-    if (msg.ok) p.resolve(msg.file as never);
-    else p.reject(new Error(msg.error));
+    const file = msg.ok ? p.check(msg.file) : null;
+    if (msg.ok && file) p.resolve(file as never);
+    else p.reject(new Error(msg.ok ? "réponse du lecteur refusée" : String(msg.error).slice(0, 2000)));
     if (msg.recycle && child === c) killChild(); // SheetJS read that file (`extractWorker.ts`)
   });
   c.on("exit", (code) => {
@@ -153,39 +163,19 @@ function ensureChild(): WorkerChild {
       );
     }
     child = null;
-    if (!readyChildren.has(c) && sandboxedChildren.has(c)) sandboxFailed = `code ${code}: ${stderrRing.slice(-300)}`;
-    rejectAll(
-      readyChildren.has(c)
-        ? new Error("le worker d'extraction s'est arrêté")
-        : sandboxedChildren.has(c)
-          ? new SandboxUnbornError(`arrêté avant d'être prêt (code ${code})`)
-          : new WorkerUnbornError(`arrêté avant d'être prêt (code ${code})`),
-    );
+    const over = c.stopped?.();
+    rejectAll(over === "memory" || over === "disk" ? new WorkerOverError(over) : readyChildren.has(c) ? new Error("le worker d'extraction s'est arrêté") : unborn(c, `arrêté avant d'être prêt (code ${code}${stderrRing ? `: ${stderrRing.slice(-300)}` : ""})`));
   });
   child = c;
   return c;
 }
 
-function forkWorker(worker: string): WorkerChild {
-  const proc = utilityProcess.fork(worker, [], {
-    serviceName: `${BRAND.slug}-extract`,
-    // MINIMAL env: only the OCR asset paths/pins that `runtime/ocrAssets.ts` set
-    // on process.env at whenReady — NEVER the whole env (secrets). Absent (dev without
-    // a bake) ⇒ the worker follows the same fallbacks as main (dev CDN / Tesseract-only).
-    env: {
-      ...Object.fromEntries(
-        ["OPENMASQ_TESSERACT_LANG_PATH", "OPENMASQ_DOCTR_MODEL_PATH", "OPENMASQ_DOCTR_INTEGRITY", "OPENMASQ_DOCTR_REQUIRE_PIN"]
-          .filter((k) => process.env[k])
-          .map((k) => [k, process.env[k] as string]),
-      ),
-      // packaged: its OCR assets are baked, so it never needs the network (`../security/offline.ts`)
-      ...(app.isPackaged ? { OPENMASQ_OFFLINE: "1" } : {}),
-    },
-    // Same contract as the NER worker: the worker NEVER writes the extracted text to
-    // stdout/stderr — the bounded ring is only read back in the report of an abnormal death.
-    stdio: app.isPackaged ? "pipe" : "inherit",
-  });
-  return proc as unknown as WorkerChild;
+/** A worker that never said `ready`. Packaged: the document is refused, and the next one tries
+ *  the jail again. Unpackaged, a jailed one falls back to the utilityProcess for the session. */
+function unborn(c: WorkerChild, cause: string): Error {
+  if (!sandboxedChildren.has(c) || !unwalledAllowed()) return new WorkerUnbornError(cause);
+  sandboxFailed = cause;
+  return new SandboxUnbornError(cause);
 }
 
 function armIdleEviction(): void {
@@ -211,8 +201,9 @@ export function runInWorker(
   return runJob<ExtractedFile>(req, onProgress, onStream, signal);
 }
 
-/** One job on the worker; its result is the worker's `file` field, typed by the caller. A worker
- *  the system's jail could not start is tried once more, as the utilityProcess. */
+/** One job on the worker; its result is the worker's `file` field, checked and typed by the caller.
+ *  In an UNPACKAGED run a worker the system's jail could not start is tried once more, as the
+ *  utilityProcess (`SandboxUnbornError` is never thrown by a packaged app: `unborn`). */
 export async function runJob<T>(
   req: WorkerRequest,
   onProgress?: (done: number, pages: number) => void,
@@ -250,11 +241,11 @@ async function runJobOnce<T>(
       const arm = (pages: number) =>
         setTimeout(() => {
           pending.delete(id);
-          if (!readyChildren.has(c) && sandboxedChildren.has(c)) sandboxFailed = "pas prêt à temps";
-          reject(readyChildren.has(c) ? new Error("extraction : délai dépassé") : sandboxedChildren.has(c) ? new SandboxUnbornError("pas prêt à temps") : new WorkerUnbornError("pas prêt à temps"));
+          reject(readyChildren.has(c) ? new Error("extraction : délai dépassé") : unborn(c, "pas prêt à temps"));
           if (child === c) killChild();
         }, Math.max(0, startedAt + extractTimeoutMs(pages) - Date.now()));
       const entry: Pending = {
+        check: req.kind === "inplace" ? checkInplace : checkExtracted,
         resolve: resolve as (f: never) => void,
         reject,
         onProgress,
@@ -287,11 +278,16 @@ async function runJobOnce<T>(
 }
 
 /** The worker path, and only it: a worker that cannot be born refuses the document with
- *  `unavailable` (fail closed, see the header); any other failure is the job's, rethrown. */
-export async function inWorkerOnly<T>(viaWorker: () => Promise<T>, unavailable: string): Promise<T> {
+ *  `unavailable`, one main stopped for its memory or its folder with `over`'s sentence (fail
+ *  closed, see the header); any other failure is the job's, rethrown. */
+export async function inWorkerOnly<T>(viaWorker: () => Promise<T>, unavailable: string, over?: Record<"memory" | "disk", string>): Promise<T> {
   try {
     return await viaWorker();
   } catch (e) {
+    if (e instanceof WorkerOverError) {
+      reportMainError("ocr", `worker-over-${e.why}`, e);
+      throw new Error(over?.[e.why] ?? unavailable);
+    }
     if (!(e instanceof WorkerUnbornError)) throw e;
     if (!unbornReported) reportMainError("ocr", "worker-unborn", e);
     unbornReported = true;

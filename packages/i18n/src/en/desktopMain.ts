@@ -36,6 +36,14 @@ export const desktopMain = {
     allowDisableGate: "Turn off",
     allowLeaveStrict: "Switch to standard",
     allowTool: "Always for this tool",
+    runByTools: {
+      hidden:
+        "This location is hidden. Git, your editor or a coding assistant read what they run from it: what the assistant writes there can run without you reading it.",
+      orders:
+        "Other tools read this file as instructions (a package manager, an automation, a coding assistant): what the assistant writes there can run without you reading it.",
+      installed: "This folder holds installed code, which your projects run without anyone reading it.",
+    },
+    runByToolsPath: "Location",
   },
   updates: {
     ok: "OK",
@@ -74,6 +82,21 @@ export const desktopMain = {
       "Allow microphone access in System Settings › Privacy & Security › Microphone, then try dictation again.",
     openSettings: "Open System Settings",
     cancel: "Cancel",
+  },
+  windowHealth: {
+    hungTitle: "The window is not responding",
+    hungMessage: (brand) => `${brand} is not responding`,
+    hungDetail:
+      "You can wait a little longer, or reload the window. Your saved conversations stay on this computer; a message you were writing may be lost.",
+    goneTitle: "The window stopped",
+    goneMessage: (brand) => `The ${brand} window stopped`,
+    goneDetail:
+      "Reload the window to continue. Your saved conversations stay on this computer; a message you were writing may be lost.",
+    goneMemoryDetail:
+      "The window ran out of memory. Reload it to continue; closing other apps or a very long conversation can help. Your saved conversations stay on this computer.",
+    reload: "Reload",
+    wait: "Wait",
+    quit: "Quit",
   },
   dbFatal: {
     title: (brand) => `${brand} can't start`,
@@ -145,6 +168,8 @@ export const desktopMain = {
     privateAddress: "Address refused: this server is on an internal or private network.",
     urlRefused: (reason) => `URL refused (internal or private host): ${reason}`,
     apiKeyRefused: "API key refused",
+    specAltered:
+      "This connector could not be verified: its address or its folders changed outside the app, or the keychain is locked. Remove it, then connect it again.",
     noDynamicRegistration:
       "This service does not offer one-click sign-in. If it gives you an access key, add it with “Manual connection” at the bottom of the connector list. Otherwise, it is not supported yet.",
     accountAlreadyConnected: "This account is already connected.",

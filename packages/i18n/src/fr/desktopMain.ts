@@ -36,6 +36,15 @@ export const desktopMain = {
     allowDisableGate: "Désactiver",
     allowLeaveStrict: "Passer en standard",
     allowTool: "Toujours pour cet outil",
+    runByTools: {
+      hidden:
+        "Cet emplacement est caché. Git, votre éditeur ou un assistant de code y lisent ce qu'ils exécutent : ce que l'assistant y écrit peut s'exécuter sans que vous le relisiez.",
+      orders:
+        "Ce fichier est lu comme des instructions par d'autres outils (gestionnaire de paquets, automatisation, assistant de code) : ce que l'assistant y écrit peut s'exécuter sans que vous le relisiez.",
+      installed:
+        "Ce dossier contient du code installé, que vos projets exécutent sans que personne le relise.",
+    },
+    runByToolsPath: "Emplacement",
   },
   updates: {
     ok: "OK",
@@ -75,6 +84,21 @@ export const desktopMain = {
       "Autorisez le micro dans Réglages Système › Confidentialité et sécurité › Micro, puis relancez la dictée.",
     openSettings: "Ouvrir les Réglages",
     cancel: "Annuler",
+  },
+  windowHealth: {
+    hungTitle: "La fenêtre ne répond plus",
+    hungMessage: (brand) => `${brand} ne répond plus`,
+    hungDetail:
+      "Vous pouvez attendre encore un peu, ou recharger la fenêtre. Vos conversations enregistrées restent sur cet ordinateur ; un message en cours d'écriture peut être perdu.",
+    goneTitle: "La fenêtre s'est arrêtée",
+    goneMessage: (brand) => `La fenêtre de ${brand} s'est arrêtée`,
+    goneDetail:
+      "Rechargez la fenêtre pour continuer. Vos conversations enregistrées restent sur cet ordinateur ; un message en cours d'écriture peut être perdu.",
+    goneMemoryDetail:
+      "La fenêtre a manqué de mémoire. Rechargez-la pour continuer ; fermer d'autres applications ou une conversation très longue peut aider. Vos conversations enregistrées restent sur cet ordinateur.",
+    reload: "Recharger",
+    wait: "Attendre",
+    quit: "Quitter",
   },
   dbFatal: {
     title: (brand) => `${brand} ne peut pas démarrer`,
@@ -147,6 +171,8 @@ export const desktopMain = {
     privateAddress: "Adresse refusée : ce serveur est sur un réseau interne ou privé.",
     urlRefused: (reason) => `URL refusée (hôte interne ou privé) : ${reason}`,
     apiKeyRefused: "Clé API refusée",
+    specAltered:
+      "Ce connecteur n'a pas pu être vérifié : son adresse ou ses dossiers ont changé en dehors de l'application, ou le trousseau est verrouillé. Retirez-le, puis connectez-le de nouveau.",
     noDynamicRegistration:
       "Ce service ne permet pas la connexion en un clic. S'il vous fournit une clé d'accès, ajoutez-le avec « Connexion manuelle », en bas de la liste des connecteurs. Sinon, il n'est pas encore pris en charge.",
     accountAlreadyConnected: "Ce compte est déjà connecté.",

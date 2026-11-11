@@ -42,7 +42,7 @@ vi.mock("./extractStream", () => ({ checkStreamMessage: () => null }));
 vi.mock("../runtime/quitState", () => ({ isAppQuitting: () => false }));
 // the system's jail (`extractSandbox.ts`): absent here, unless a test hands one over
 let sandboxed: (() => unknown) | null = null;
-vi.mock("./extractSandbox", () => ({ SandboxUnbornError: class SandboxUnbornError extends Error {}, sandboxedWorker: () => sandboxed?.() ?? null }));
+vi.mock("./extractSandbox", () => ({ SandboxUnbornError: class SandboxUnbornError extends Error {}, sandboxedWorker: () => sandboxed?.() ?? null, sandboxMissing: () => "no jail on this system" }));
 
 const req = { kind: "bytes" as const, data: "", name: "x.xlsx", locale: "fr" };
 const fileOk = { name: "x.xlsx", kind: "xlsx", text: "ok", chars: 2 };
@@ -122,7 +122,8 @@ describe("a job past its deadline is killed with its worker", () => {
   });
 });
 
-describe("a worker the system's jail cannot start", () => {
+// UNPACKAGED runs (`app.isPackaged: false` above): what a packaged app does instead is `extractWall.test.ts`
+describe("a worker the system's jail cannot start, in an unpackaged run", () => {
   it("is tried once, then the job runs on the utilityProcess, for the rest of the session", async () => {
     const { runInWorker, extractIsolation } = await client();
     let jailed = 0;

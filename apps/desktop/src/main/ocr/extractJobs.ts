@@ -34,7 +34,7 @@ const queue = createExtractQueue(1);
 
 async function inWorker(viaWorker: () => Promise<ExtractedFile>): Promise<ExtractedFile> {
   const t = mainMessages().documents;
-  return localizeExtracted(await inWorkerOnly(viaWorker, t.readerUnavailable), t);
+  return localizeExtracted(await inWorkerOnly(viaWorker, t.readerUnavailable, { memory: t.readerOverMemory, disk: t.readerOverDisk }), t);
 }
 
 /**

@@ -33,6 +33,8 @@ export const documents = {
       : `This PDF isn't attached: its ${pages} image pages couldn't be read. ${cause}`,
   imageOcrFailed: "The image text could not be read. Text recognition failed. The technical cause is in the debug log.",
   readerUnavailable: "The document reader could not start: the file is not read. Restart the app; if this goes on, reinstall it.",
+  readerOverMemory: "This file needs more memory than the document reader may use: it is not read. Try a lighter file, or split it.",
+  readerOverDisk: "Reading this file needs more disk space than the document reader may use: it is not read. Try a lighter file, or split it.",
   unsupportedType: (ext) => (ext ? `Unsupported file type: ${ext}` : "Unsupported file type (no extension)."),
   markers: {
     pageTooLarge: (page) => `[… page ${page} not read: image too large]`,

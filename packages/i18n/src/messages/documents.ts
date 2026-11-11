@@ -37,6 +37,10 @@ export interface DocumentsMessages {
   imageOcrFailed: string;
   /** The document reader could not start: the file is refused, never read elsewhere. */
   readerUnavailable: string;
+  /** The reader was stopped while reading THIS file: it needed more memory, or more room on
+   *  disk, than the reader may use. The file is not read; the true reason, never « damaged ». */
+  readerOverMemory: string;
+  readerOverDisk: string;
   /** `ext` with its dot (« .xyz »), or "" when the file has none. */
   unsupportedType: (ext: string) => string;
   /** Written INTO the extracted text, where OCR skipped pages. */

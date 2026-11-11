@@ -1,5 +1,5 @@
 import { app } from "electron";
-import { spawn, spawnSync, type ChildProcess } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { randomUUID } from "node:crypto";
 import { mkdir, rm, writeFile } from "node:fs/promises";
 import { existsSync, writeFileSync } from "node:fs";
@@ -11,6 +11,8 @@ import { winJailCmd, winJailExe } from "./winJail";
 import { jailBaseEnv } from "./jailEnv";
 import { ambientSecretDirs, ambientSecretFiles } from "../security/ambientSecrets"; import { BRAND } from "@openmasq/branding";
 import { devOnly } from "../security/devOnly";
+import { watchProcess, type Over } from "../runtime/processWatch";
+import { killTree } from "./killTree";
 import { MAX_FILE_BYTES, MAX_FILES, OUTPUT_MIME, collectFiles, collectImages, extOf, sha256 } from "./collect";
 
 /**
@@ -24,8 +26,10 @@ import { MAX_FILE_BYTES, MAX_FILES, OUTPUT_MIME, collectFiles, collectImages, ex
  */
 
 const MAX_OUT = 200_000; // cap stdout/stderr chars
-// Address-space cap (`ulimit -v`, KB): honoured on Linux, best-effort on macOS.
+// Address-space cap (`ulimit -v`, KB): honoured on Linux, NOT on macOS. What holds there is main's
+// measure of the tree's resident memory and of the scratch's weight (`../runtime/processWatch.ts`).
 const MAX_ADDRESS_SPACE_KB = 4 * 1024 * 1024; // 4 GB
+const MAX_SCRATCH_MB = 2048; // outputs are 8 × 25 MB at most (`collect.ts`); the rest is temp files
 /** Whether the sandbox child gets NO network at all.
  *  - `OPENMASQ_SANDBOX_NO_NET=1` forces it everywhere.
  *  - Linux: NO network by DEFAULT. `--share-net` leaves egress enforced only by cooperative
@@ -191,26 +195,6 @@ function withRlimits(cmd: string, args: string[], cpuSecs: number): { cmd: strin
   return { cmd: "/bin/sh", args: ["-c", script, "sh", cmd, ...args] };
 }
 
-function killTree(child: ChildProcess): void {
-  try {
-    if (process.platform === "win32" && child.pid) {
-      spawnSync("taskkill", ["/pid", String(child.pid), "/T", "/F"], { stdio: "ignore" });
-    } else if (child.pid) {
-      // Kill the whole PROCESS GROUP (the child is spawned `detached`), so forked
-      // grandchildren don't survive the wall-clock kill.
-      try {
-        process.kill(-child.pid, "SIGKILL");
-      } catch {
-        child.kill("SIGKILL");
-      }
-    } else {
-      child.kill("SIGKILL");
-    }
-  } catch {
-    /* already gone */
-  }
-}
-
 /** A deliverable generated EARLIER in the conversation, seeded into the run's CWD so
  *  the code can LOAD and MODIFY it (« enrichis le rapport ») instead of starting over. */
 export interface SeedFile {
@@ -326,6 +310,7 @@ export async function runPython(
     let stdout = "";
     let stderr = "";
     let timedOut = false;
+    const stopped: { why: Over | null } = { why: null };
     // `detached` on posix → own process group, so `killTree` reaches forked grandchildren.
     const child = spawn(cmd, args, {
       cwd: outDir,
@@ -337,6 +322,10 @@ export async function runPython(
       timedOut = true;
       killTree(child);
     }, timeoutMs);
+    const unwatch = watchProcess(child.pid, { memoryMb: MAX_ADDRESS_SPACE_KB / 1024, folder: scratch, diskMb: MAX_SCRATCH_MB }, (why) => {
+      stopped.why = why;
+      killTree(child);
+    });
 
     child.stdout?.on("data", (d) => {
       const s = String(d);
@@ -347,11 +336,11 @@ export async function runPython(
       if (stderr.length < MAX_OUT) stderr += String(d);
     });
     child.on("error", (e) => {
-      clearTimeout(timer);
+      clearTimeout(timer); unwatch();
       resolve({ ok: false, stdout, stderr: `${stderr}\n${e.message}`, images: [], files: [] });
     });
     child.on("close", async (codeNum) => {
-      clearTimeout(timer);
+      clearTimeout(timer); unwatch();
       // The whole group goes BEFORE collecting, timeout or not: nothing the child forked may
       // still be running to swap a path while main reads the outputs (`collect.ts`). POSIX
       // only — on Windows a pid is soon reused, and the jail's Job Object holds the tree.
@@ -361,7 +350,9 @@ export async function runPython(
         collectFiles(outDir, seeded),
       ]);
       if (timedOut) stderr += `\n[${BRAND.name}] délai dépassé (${timeoutMs} ms) — interrompu.`;
-      resolve({ ok: !timedOut && codeNum === 0, stdout: stdout.slice(0, MAX_OUT), stderr: stderr.slice(0, MAX_OUT), images, files });
+      // the true reason, said to whoever reads the run: never left to look like a crash of the code
+      if (stopped.why) stderr += `\n[${BRAND.name}] ${stopped.why === "memory" ? `mémoire dépassée (${MAX_ADDRESS_SPACE_KB / 1024 / 1024} Go)` : `espace disque dépassé (${MAX_SCRATCH_MB / 1024} Go)`} — interrompu.`;
+      resolve({ ok: !timedOut && !stopped.why && codeNum === 0, stdout: stdout.slice(0, MAX_OUT), stderr: stderr.slice(0, MAX_OUT), images, files });
     });
   });
 

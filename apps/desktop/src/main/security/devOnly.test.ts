@@ -79,13 +79,13 @@ const BENIGN: Record<string, string> = {
   OPENMASQ_AGENT_NONCE: "set BY main per spawn; a TIGHTENING (the child refuses without the stdin match)",
   OPENMASQ_AGENT_NO_STEALTH: "UA/stealth toggle inside the agent browser; grants no access",
   OPENMASQ_SANDBOX_NO_NET: "tightening: removes network from the jail",
-  OPENMASQ_DISABLE_DB: "runs without persistence; opens nothing",
+  OPENMASQ_DISABLE_DB: "runs without persistence: opens nothing, reads nothing back, relaxes no check",
   OPENMASQ_PWMCP: "selects the bundled Playwright-MCP entry",
   OPENMASQ_PWMCP_OUTPUT_DIR: "output dir for the bundled Playwright-MCP",
   OPENMASQ_TEST_SUBSCRIPTION_CLI: "test double for the subscription CLI probe",
   OPENMASQ_TEST_SUBSCRIPTION_CODEX: "test double for the subscription CLI probe",
   OPENMASQ_TEST_SUBSCRIPTION_ANTIGRAVITY: "test double for the subscription CLI probe",
-  OPENMASQ_USER_DATA_DIR: "relocates userData; the read gate is rooted on it either way",
+  OPENMASQ_USER_DATA_DIR: "relocates userData; a packaged build takes it only for a folder holding NO profile (profile.ts)",
   // Read inside `@openmasq/redact`, in main's process or the OCR/NER child it spawns.
   OPENMASQ_DOCTR_INT8: "picks the int8 weights; both variants are pinned the same way",
   OPENMASQ_DOCTR_THREADS: "onnxruntime thread count; a performance knob",
@@ -134,8 +134,8 @@ const BENIGN: Record<string, string> = {
  * why the read grants nothing; a new one fails until it is explained here.
  */
 const DYNAMIC: Record<string, string> = {
-  "apps/desktop/src/main/ocr/extractClient.ts":
-    "forwards a LITERAL list of four OCR-asset names (all classified above) into the worker's minimal env",
+  "apps/desktop/src/main/ocr/extractWall.ts":
+    "forwards a LITERAL list of four OCR-asset names (all classified above) into the unpackaged worker's minimal env",
   "apps/desktop/src/main/ocr/extractSandbox.ts":
     "forwards the same LITERAL list of four OCR-asset names into the jailed worker's minimal env",
   "apps/desktop/src/main/python/jailEnv.ts":

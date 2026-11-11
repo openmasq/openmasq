@@ -5,8 +5,7 @@
   "apps/desktop/src/renderer/src/auth.ts": 436,
   "packages/ui/src/agent/toolCatalog.ts": 428,
   "packages/ui/src/pages/Settings/mcp/useMcpConnectors.ts": 383,
-  "apps/desktop/src/main/python/sandbox.ts": 371,
+  "apps/desktop/src/main/python/sandbox.ts": 362,
   "packages/llm/src/tools/openai.ts": 357,
-  "apps/desktop/src/renderer/src/main.tsx": 345,
-  "apps/desktop/src/main/mcp/persist.ts": 307
+  "apps/desktop/src/renderer/src/main.tsx": 345
 }
