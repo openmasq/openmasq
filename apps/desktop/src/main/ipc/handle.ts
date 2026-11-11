@@ -1,5 +1,6 @@
 import { ipcMain, type IpcMainInvokeEvent } from "electron";
 import { assertTrustedSender } from "./senderGate";
+import { guardFaults } from "./hostFault";
 
 /**
  * `handle(channel, shape, fn)`: the ONE way this process accepts a renderer call.
@@ -9,7 +10,7 @@ import { assertTrustedSender } from "./senderGate";
  * type, NEVER the value (it can be a provider key). A floor, not a schema language: the
  * capability gates decide what a well-formed call may touch. The SENDER is checked first
  * (`./senderGate.ts`): only the app window's top frame on the app page reaches a body.
- * Pinned by `handle.test.ts`.
+ * A body's OWN fault is reported from main (`./hostFault.ts`). Pinned by `handle.test.ts`.
  */
 
 export interface Check<T> {
@@ -74,7 +75,8 @@ export function handle<const A extends readonly Check<unknown>[]>(
         throw err;
       }
     }
-    // Extra arguments are dropped rather than forwarded.
-    return fn(event, ...(raw.slice(0, shape.length) as Values<A>));
+    // Extra arguments are dropped rather than forwarded. A fault of the body itself is heard
+    // in main, without its arguments (`./hostFault.ts`), and reaches the caller unchanged.
+    return guardFaults(channel, () => fn(event, ...(raw.slice(0, shape.length) as Values<A>)));
   });
 }

@@ -5,6 +5,8 @@ import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import type { BrowserWindow } from "electron";
 import type { TrackEvent } from "@openmasq/ui";
+import { setFaultReporter } from "../ipc/hostFault";
+import { onPlaintextRefused } from "../store/plainMarker";
 
 /**
  * Main-process → renderer TELEMETRY bridge: the anonymised `$exception` channel
@@ -91,6 +93,11 @@ export function installErrorReporting(win: () => BrowserWindow | null): void {
   // `onUnhandledRejection` (`sentry/main.ts`) ALREADY capture these same errors to
   // Sentry, with the correct `mechanism.handled:false` — re-capturing them here counted every
   // crash TWICE, one copy marked « handled » (observability audit 13/08).
+  // A fault inside an IPC body (`ipc/hostFault.ts`): the channel is the code, no argument
+  // ever reaches this call. And cleartext refused for a sealed store (`store/plainMarker.ts`):
+  // a code only — the file's path carries the account id.
+  setFaultReporter((channel, err) => reportMainError("ipc", channel, err));
+  onPlaintextRefused(() => reportMainError("store", "plaintext-refused", new Error("store: plaintext-refused")));
   process.on("uncaughtException", (err) => bridgeMainError("uncaught", "main-exception", err));
   process.on("unhandledRejection", (reason) => bridgeMainError("uncaught", "main-rejection", reason));
 }

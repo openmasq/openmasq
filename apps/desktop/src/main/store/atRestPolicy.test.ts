@@ -51,7 +51,7 @@ describe("every store that can write a secret in cleartext asks the policy first
     ["store/keys.ts", "storing API keys unencrypted"],
     ["store/authStore.ts", "storing session unencrypted"],
     ["store/secretFile.ts", "unencrypted"],
-    ["mcp/persist.ts", "storing credentials unencrypted"],
+    ["mcp/credCrypto.ts", "storing credentials unencrypted"], // the connector store's seal (`persist.ts` calls it)
   ];
 
   for (const [rel, warning] of STORES) {

@@ -1,7 +1,8 @@
 import { app, safeStorage } from "electron";
 import { readFileSync, writeFileSync, existsSync, mkdirSync, copyFileSync, unlinkSync } from "node:fs";
 import { join } from "node:path";
-import { decodeEncryptedBlob, encryptionAvailable } from "./safeStore";
+import { decodeStore, encryptionAvailable } from "./safeStore";
+import { notePlaintextWrite, noteSealedWrite } from "./plainMarker";
 import { BRAND } from "@openmasq/branding";
 import { assertPlaintextAllowed } from "./atRestPolicy";
 
@@ -48,11 +49,14 @@ function read(): KeyMap {
     if ((e as NodeJS.ErrnoException).code === "ENOENT") return (cache = {});
     return {};
   }
-  const map = decodeEncryptedBlob(buf);
-  // PRESENT but undecryptable this session (keychain briefly unavailable): do NOT cache {},
-  // so a later read recovers the keys once the keychain unlocks.
-  if (!map) return {};
-  return (cache = map);
+  const decoded = decodeStore(buf, path);
+  // PRESENT but undecryptable this session (keychain briefly unavailable), or cleartext this
+  // install never wrote: do NOT cache {}, so a later read recovers the keys.
+  if (!decoded) return {};
+  cache = decoded.map;
+  // Written in the clear during a keychain miss, and the keychain is back: seal it now.
+  if (!decoded.sealed && encryptionAvailable()) write(decoded.map);
+  return cache;
 }
 
 function write(map: KeyMap): void {
@@ -72,7 +76,9 @@ function write(map: KeyMap): void {
       ? safeStorage.encryptString(json).toString("base64")
       : (console.warn("[keys] safeStorage unavailable — storing API keys unencrypted"),
         Buffer.from(json, "utf8").toString("base64"));
+    if (!canEncrypt) notePlaintextWrite(path); // before the bytes (`plainMarker.ts`)
     writeFileSync(path, enc, { mode: 0o600 });
+    if (canEncrypt) noteSealedWrite(path);
   } catch (err) {
     console.error("[keys] failed to write keys.enc:", err);
     return; // the cache must not claim a key the next launch will not find

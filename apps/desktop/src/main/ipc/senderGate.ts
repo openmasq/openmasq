@@ -1,6 +1,7 @@
 import { ipcMain, type IpcMainEvent, type IpcMainInvokeEvent } from "electron";
 import { getMainWindow } from "../mainWindowRef";
 import { isAppPageUrl } from "../appPage";
+import { guardFaults } from "./hostFault";
 
 /**
  * WHO may call a privileged channel: the TOP frame of THE main window, showing the app's
@@ -45,7 +46,7 @@ export function assertTrustedSender(channel: string, event: Event): void {
 export function trustedHandle(channel: string, fn: (event: IpcMainInvokeEvent, ...args: any[]) => unknown): void {
   ipcMain.handle(channel, (event, ...args: unknown[]) => {
     assertTrustedSender(channel, event);
-    return fn(event, ...args);
+    return guardFaults(channel, () => fn(event, ...args));
   });
 }
 

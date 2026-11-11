@@ -1,7 +1,8 @@
 import { app, safeStorage } from "electron";
 import { copyFileSync, existsSync, mkdirSync, readFileSync, unlinkSync, writeFileSync, rmSync } from "node:fs";
 import { join } from "node:path";
-import { encryptionAvailable } from "./safeStore";
+import { decodeSecret, encryptionAvailable } from "./safeStore";
+import { notePlaintextWrite, noteSealedWrite } from "./plainMarker";
 import { safeUid } from "./keys";
 import { BRAND } from "@openmasq/branding";
 import { assertPlaintextAllowed } from "./atRestPolicy";
@@ -31,9 +32,7 @@ export function secretFile(name: string, label: string): SecretFile {
     get() {
       try {
         if (!existsSync(path())) return null;
-        const buf = Buffer.from(readFileSync(path(), "utf8"), "base64");
-        const s = encryptionAvailable() ? safeStorage.decryptString(buf) : buf.toString("utf8");
-        return s || null;
+        return decodeSecret(Buffer.from(readFileSync(path(), "utf8"), "base64"), path());
       } catch {
         return null;
       }
@@ -51,7 +50,9 @@ export function secretFile(name: string, label: string): SecretFile {
           ? safeStorage.encryptString(v).toString("base64")
           : (console.warn(`[sync] safeStorage unavailable — storing ${label} unencrypted`),
             Buffer.from(v, "utf8").toString("base64"));
+        if (!canEncrypt) notePlaintextWrite(path()); // before the bytes (`plainMarker.ts`)
         writeFileSync(path(), enc, { mode: 0o600 });
+        if (canEncrypt) noteSealedWrite(path());
       } catch (err) {
         console.error(`[sync] failed to write ${name}.enc:`, err);
       }
@@ -136,9 +137,7 @@ export function accountSecretFile(name: string, label: string): AccountSecretFil
       if (!p) return null;
       try {
         if (!existsSync(p)) return null;
-        const buf = Buffer.from(readFileSync(p, "utf8"), "base64");
-        const s = encryptionAvailable() ? safeStorage.decryptString(buf) : buf.toString("utf8");
-        return s || null;
+        return decodeSecret(Buffer.from(readFileSync(p, "utf8"), "base64"), p);
       } catch {
         return null;
       }
@@ -158,7 +157,9 @@ export function accountSecretFile(name: string, label: string): AccountSecretFil
           ? safeStorage.encryptString(v).toString("base64")
           : (console.warn(`[sync] safeStorage unavailable — storing ${label} unencrypted`),
             Buffer.from(v, "utf8").toString("base64"));
+        if (!canEncrypt) notePlaintextWrite(p); // before the bytes (`plainMarker.ts`)
         writeFileSync(p, enc, { mode: 0o600 });
+        if (canEncrypt) noteSealedWrite(p);
       } catch (err) {
         console.error(`[sync] failed to write ${name}-<uid>.enc:`, err);
         throw err; // the caller MUST be able to say it wasn't set

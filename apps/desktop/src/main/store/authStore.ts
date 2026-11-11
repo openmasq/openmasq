@@ -1,7 +1,8 @@
 import { app, safeStorage } from "electron";
 import { readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { decodeEncryptedBlob, encryptionAvailable } from "./safeStore";
+import { decodeStore, encryptionAvailable } from "./safeStore";
+import { notePlaintextWrite, noteSealedWrite } from "./plainMarker";
 import { assertPlaintextAllowed } from "./atRestPolicy";
 
 /**
@@ -24,11 +25,14 @@ function read(): Store {
     if ((e as NodeJS.ErrnoException).code === "ENOENT") return (cache = {});
     return {};
   }
-  const map = decodeEncryptedBlob(buf);
-  // PRESENT but undecryptable this session: do NOT cache {} (a needless re-login while the
-  // file is intact); recover once the keychain unlocks.
-  if (!map) return {};
-  return (cache = map);
+  const decoded = decodeStore(buf, file());
+  // PRESENT but undecryptable this session, or cleartext this install never wrote: do NOT
+  // cache {} (a needless re-login while the file is intact); recover once the keychain unlocks.
+  if (!decoded) return {};
+  cache = decoded.map;
+  // Written in the clear during a keychain miss, and the keychain is back: seal it now.
+  if (!decoded.sealed && encryptionAvailable()) write(decoded.map);
+  return cache;
 }
 
 function write(map: Store): void {
@@ -42,7 +46,9 @@ function write(map: Store): void {
       ? safeStorage.encryptString(json).toString("base64")
       : (console.warn("[auth] safeStorage unavailable — storing session unencrypted"),
         Buffer.from(json, "utf8").toString("base64"));
+    if (!canEncrypt) notePlaintextWrite(file()); // before the bytes (`plainMarker.ts`)
     writeFileSync(file(), enc, { mode: 0o600 });
+    if (canEncrypt) noteSealedWrite(file());
   } catch (err) {
     console.error("[auth] failed to write auth.enc:", err);
     return; // the cache must not report a session that never reached the disk

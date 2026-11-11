@@ -16,10 +16,7 @@ vi.mock("electron", () => ({
     decryptString: (b: Buffer) => b.toString().replace(/^ENC:/, ""),
   },
 }));
-vi.mock("./safeStore", () => ({
-  encryptionAvailable: () => encAvailable,
-  decodeEncryptedBlob: () => null,
-}));
+
 
 import {
   getSyncPass,
@@ -29,6 +26,7 @@ import {
   getDeviceSecret,
   setDeviceSecret,
 } from "./syncPass";
+import { resetEncryptionProbe } from "./safeStore";
 import { BRAND } from "@openmasq/branding";
 
 const b64 = (s: string): string => Buffer.from(s, "utf8").toString("base64");
@@ -37,6 +35,7 @@ const marker = () => join(USERDATA, `.${BRAND.slug}-legacy-sync-pass-adopted`);
 
 beforeEach(() => {
   encAvailable = false;
+  resetEncryptionProbe(); // the real probe memoizes a TRUE
   rmSync(join(USERDATA, "accounts"), { recursive: true, force: true });
   rmSync(legacy(), { force: true });
   rmSync(marker(), { force: true });
@@ -130,6 +129,7 @@ describe("mode strict au repos : on refuse, on ne fait pas semblant", () => {
 
   it("le secret d'appareil lève et ne laisse rien sur le disque", () => {
     encAvailable = false;
+    resetEncryptionProbe(); // the real probe memoizes a TRUE
     process.env.OPENMASQ_REQUIRE_DB_ENCRYPTION = "1";
     expect(() => setDeviceSecret("appareil-en-clair")).toThrow(/refusing to persist/);
     expect(existsSync(join(USERDATA, "sync-device-secret.enc"))).toBe(false);
@@ -138,6 +138,7 @@ describe("mode strict au repos : on refuse, on ne fait pas semblant", () => {
 
   it("la phrase par compte lève aussi, et rien n'est écrit sous le compte", () => {
     encAvailable = false;
+    resetEncryptionProbe(); // the real probe memoizes a TRUE
     process.env.OPENMASQ_REQUIRE_DB_ENCRYPTION = "1";
     setSyncPassUser("strict");
     expect(() => setSyncPass("phrase-en-clair")).toThrow(/refusing to persist/);

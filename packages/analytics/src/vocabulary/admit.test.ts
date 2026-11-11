@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { admit, CONTEXT_KEYS, EXCEPTION_KEYS } from "./admit";
+import { admit, CONTEXT_KEYS, EXCEPTION_KEYS, MAX_LIST_ITEMS, MAX_VALUE_CHARS } from "./admit";
 import { DESKTOP_EVENTS, SOURCES, VOCABULARY } from "./index";
 
 describe("admit — what the relay lets through", () => {
@@ -34,6 +34,64 @@ describe("admit — what the relay lets through", () => {
       const a = admit({ source, event: "$exception", properties: { $exception_list: [], scope: "auth", code: "x", stack: "…" } });
       expect(a.ok).toBe(true);
       if (a.ok) expect(Object.keys(a.properties)).toEqual(["$exception_list", "scope", "code"]);
+    }
+  });
+
+  // A forger may post under a declared key: the key is declared, its SHAPE is the sink's.
+  it("keeps a declared key only as a bounded primitive or a short string[]", () => {
+    const a = admit({
+      source: "desktop",
+      event: "send_message",
+      properties: {
+        chars: { text: "the whole conversation" },
+        provider: "x".repeat(5000),
+        env: ["a".repeat(900), ...Array.from({ length: 200 }, () => "b")],
+        app_version: Number.NaN,
+        $session_id: [["nested"]],
+      },
+    });
+    expect(a.ok).toBe(true);
+    if (!a.ok) return;
+    expect(a.properties.chars).toBeUndefined();
+    expect((a.properties.provider as string).length).toBe(MAX_VALUE_CHARS);
+    expect((a.properties.env as string[]).length).toBe(MAX_LIST_ITEMS);
+    expect((a.properties.env as string[])[0].length).toBe(MAX_VALUE_CHARS);
+    expect(a.properties.app_version).toBeUndefined();
+    expect(a.properties.$session_id).toBeUndefined();
+  });
+
+  it("rebuilds $exception_list as the sink's one entry, its message reduced", () => {
+    const forged = admit({
+      source: "desktop",
+      event: "$exception",
+      properties: {
+        scope: "mcp",
+        code: "tool-loop",
+        $exception_list: [
+          { type: "<script>", value: "Bonjour, je suis Marie Morvan, voici mon dossier", mechanism: { handled: "yes" }, stacktrace: { frames: ["x"] }, extra: { a: 1 } },
+          { type: "Second", value: "ignored" },
+        ],
+      },
+    });
+    expect(forged.ok).toBe(true);
+    if (!forged.ok) return;
+    const list = forged.properties.$exception_list as Record<string, unknown>[];
+    expect(list).toHaveLength(1);
+    expect(Object.keys(list[0])).toEqual(["type", "value", "mechanism"]);
+    expect(list[0].type).toBe("Error");
+    expect(list[0].value).toMatch(/^‹msg:[0-9a-f]{8}›$/);
+    expect(list[0].mechanism).toEqual({ handled: false, type: "generic" });
+  });
+
+  it("leaves what an honest sink sent as it was", () => {
+    const entry = (value: string) => ({ type: "TypeError", value, mechanism: { handled: true, type: "generic" } });
+    for (const value of ["mcp: tool-loop", "‹msg:0a1b2c3d›", "spawn npx ENOENT", "Cannot read properties of undefined (reading 'x')"]) {
+      const a = admit({ source: "desktop", event: "$exception", properties: { scope: "mcp", code: "tool-loop", $exception_list: [entry(value)] } });
+      expect(a.ok && (a.properties.$exception_list as unknown[])[0]).toEqual(entry(value));
+    }
+    for (const bad of ["oops", null, 3, [null], [[1]], ["text"]]) {
+      const a = admit({ source: "desktop", event: "$exception", properties: { $exception_list: bad } });
+      expect(a.ok && a.properties.$exception_list).toEqual([]);
     }
   });
 

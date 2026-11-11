@@ -15,30 +15,16 @@ vi.mock("electron", () => ({
     decryptString: (b: Buffer) => b.toString().replace(/^ENC:/, ""),
   },
 }));
-vi.mock("./safeStore", () => ({
-  encryptionAvailable: () => encAvailable,
-  decodeEncryptedBlob: (buf: Buffer): Record<string, string> | null => {
-    const candidates: string[] = [];
-    if (encAvailable) candidates.push(buf.toString().replace(/^ENC:/, ""));
-    candidates.push(buf.toString("utf8"));
-    for (const s of candidates) {
-      try {
-        const p = JSON.parse(s) as unknown;
-        if (p && typeof p === "object" && !Array.isArray(p)) return p as Record<string, string>;
-      } catch {
-        /* next candidate */
-      }
-    }
-    return null;
-  },
-}));
+
 
 import { authStoreGet, authStoreSet } from "./authStore";
+import { resetEncryptionProbe } from "./safeStore";
 
 const file = () => join(USERDATA, "auth.enc");
 
 beforeEach(() => {
   encAvailable = false;
+  resetEncryptionProbe(); // the real probe memoizes a TRUE
   rmSync(file(), { force: true });
 });
 

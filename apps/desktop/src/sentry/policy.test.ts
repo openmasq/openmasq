@@ -280,9 +280,16 @@ describe("sentryBeforeSend — le bruit d'exploitation n'est pas envoyé", () =>
 
   it("passe la main au redaction : ce qui survit est toujours reconstruit", () => {
     const out = sentryBeforeSend(evt("Error", "ENOENT: /Users/jean.rebour/bilan.pdf"));
-    expect((out as { exception: { values: { value: string }[] } }).exception.values[0].value).toBe(
-      "ENOENT: ~/bilan.pdf",
-    );
+    // the system's code leaves; the file's name behind it does not
+    expect((out as { exception: { values: { value: string }[] } }).exception.values[0].value).toBe("ENOENT");
+  });
+
+  it("un message qui CITE son entrée ne part que comme empreinte", () => {
+    const value = (v: string): string =>
+      (sentryBeforeSend(evt("SyntaxError", v)) as { exception: { values: { value: string }[] } }).exception.values[0].value;
+    const out = value(`Unexpected token 'M', "Marie Morvan, 12 rue des Lilas" is not valid JSON`);
+    expect(out).toMatch(/^‹msg:[0-9a-f]{8}›$/);
+    expect(value("le fournisseur a refusé : Bonjour je suis Marie Morvan")).not.toContain("Marie");
   });
 
   it("cap anti-inondation : la même signature ne part que 5 fois par session", () => {

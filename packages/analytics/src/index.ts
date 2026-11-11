@@ -34,7 +34,7 @@ export * from "./web";
 // the list each app sanitises against and the list the relay admits are ONE object.
 export * from "./vocabulary/index";
 export * from "./vocabulary/admit";
-export { scrubMessage } from "./errorTracking";
+export { reduceMessage, scrubMessage } from "./errorTracking";
 // `isOperationalError` steps outside the barrel because it has a SECOND channel: the desktop's
 // Sentry `beforeSend` (`apps/desktop/src/sentry/policy.ts`). What counts as "operational
 // failure, not a bug" is ONE fact, shared by both channels.

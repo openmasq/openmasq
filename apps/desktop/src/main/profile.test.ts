@@ -1,5 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { applyProfilePath, profileSuffix, type ProfileApp } from "./profile";
+import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { applyProfilePath, holdsProfile, profileSuffix, type ProfileApp } from "./profile";
 import type { EnvName } from "../environments";
 import { BRAND } from "@openmasq/branding";
 
@@ -58,6 +61,36 @@ describe("applyProfilePath — ce qui est réellement écrit dans `userData`", (
     const { env } = applyProfilePath(app, { OPENMASQ_USER_DATA_DIR: "/tmp/profil-jetable" }, stagingPointer);
     expect(path()).toBe("/tmp/profil-jetable");
     expect(env).toBe("staging");
+  });
+
+  // The property: a launch environment cannot point a PACKAGED build at a folder someone
+  // prepared. An empty folder is taken (the packaged smoke test); one holding a profile is not.
+  it("⛔ empaqueté, un dossier nommé qui contient DÉJÀ un profil est ignoré : le profil de l'install s'ouvre", () => {
+    const { app, path } = fakeApp(true);
+    const before = path();
+    const { env } = applyProfilePath(app, { OPENMASQ_USER_DATA_DIR: "/tmp/dossier-préparé" }, noPointer, () => true);
+    expect(path()).toBe(before);
+    expect(env).toBe("production");
+  });
+
+  it("empaqueté, un dossier nommé VIDE est pris (le test de fumée) ; hors paquet, le crochet reste entier", () => {
+    const packaged = fakeApp(true);
+    applyProfilePath(packaged.app, { OPENMASQ_USER_DATA_DIR: "/tmp/vide" }, noPointer, () => false);
+    expect(packaged.path()).toBe("/tmp/vide");
+    const dev = fakeApp(false);
+    applyProfilePath(dev.app, { OPENMASQ_USER_DATA_DIR: "/tmp/dossier-préparé" }, noPointer, () => true);
+    expect(dev.path()).toBe("/tmp/dossier-préparé");
+  });
+
+  it("holdsProfile reconnaît un profil à ses magasins, et rien dans un dossier neuf", () => {
+    const dir = mkdtempSync(join(tmpdir(), "openmasq-profile-test-"));
+    expect(holdsProfile(dir)).toBe(false);
+    for (const name of ["accounts", "db-key.enc", "auth.enc", "keys.enc"]) {
+      const d = mkdtempSync(join(tmpdir(), "openmasq-profile-test-"));
+      if (name === "accounts") mkdirSync(join(d, name));
+      else writeFileSync(join(d, name), "x");
+      expect(holdsProfile(d), name).toBe(true);
+    }
   });
 
   it("le dossier de BASE rendu est celui d'AVANT le suffixe — c'est là que vit le pointeur", () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { createSink, scrubMessage } from "@openmasq/analytics";
+import { createSink, reduceMessage, scrubMessage } from "@openmasq/analytics";
 
 const flush = () => new Promise((r) => setTimeout(r, 0));
 
@@ -39,6 +39,56 @@ describe("scrubMessage", () => {
   it("ne mange pas une suite trop courte pour être un numéro de compte", () => {
     // Trois groupes = une date, une version, des coordonnées — pas un IBAN.
     expect(scrubMessage("étape 12 34 56")).toBe("étape 12 34 56");
+  });
+});
+
+// The property: of a free-form message, only what an engine or the system wrote leaves; any
+// other text leaves as a fingerprint. A scrubber cannot know that a word is a name.
+describe("reduceMessage", () => {
+  it("garde la phrase d'un moteur, et rien de ce qui la suit", () => {
+    expect(reduceMessage("Cannot read properties of undefined (reading 'vault')")).toBe(
+      "Cannot read properties of undefined (reading 'vault')",
+    );
+    expect(reduceMessage("TypeError: store.flush is not a function")).toBe("TypeError: store.flush is not a function");
+    expect(reduceMessage("spawn npx ENOENT")).toBe("spawn npx ENOENT");
+    expect(reduceMessage("SQLITE_CONSTRAINT: UNIQUE constraint failed: conversations.id")).toBe("SQLITE_CONSTRAINT");
+    // the code and the call, never the file name behind them
+    const enoent = reduceMessage(String.raw`ENOENT: no such file or directory, open 'C:\Users\Jean Dupont\Documents\Contrat Marie Morvan.pdf'`);
+    expect(enoent).toBe("ENOENT: no such file or directory, open");
+  });
+
+  it("garde la ligne de contexte que la mise à jour écrit elle-même, pas la raison brute qui suit", () => {
+    expect(reduceMessage("running=0.17.5 target=0.18.0 ch=desktop-beta http=404 · Cannot download https://x/y?token=abc")).toBe(
+      "running=0.17.5 target=0.18.0 ch=desktop-beta http=404",
+    );
+  });
+
+  it("une erreur qui CITE son entrée ne sort que comme empreinte", () => {
+    const out = reduceMessage(`Unexpected token 'M', "Marie Morvan, 12 rue des Lilas" is not valid JSON`);
+    expect(out).toMatch(/^‹msg:[0-9a-f]{8}›$/);
+    // same failure, another quoted value: ONE fingerprint
+    expect(reduceMessage(`Unexpected token 'J', "Jean Dupont, 4 allée du Parc" is not valid JSON`)).toBe(out);
+  });
+
+  it("un refus de fournisseur qui renvoie la demande ne sort que comme empreinte", () => {
+    const out = reduceMessage("Invalid request: the prompt Bonjour, je suis Marie Morvan et mon dossier médical was flagged");
+    expect(out).toMatch(/^‹msg:[0-9a-f]{8}›$/);
+    expect(out).not.toContain("Marie");
+  });
+
+  it("une prose qui IMITE un code système n'est pas prise pour lui", () => {
+    for (const prose of [
+      "ERREUR: le contrat de marie morvan est introuvable",
+      "Erreur: bonjour marie morvan",
+      "marie morvan request timed out",
+      "Error: Marie Morvan a refusé",
+    ]) {
+      expect(reduceMessage(prose)).toMatch(/^‹msg:[0-9a-f]{8}›$/);
+    }
+  });
+
+  it("un message vide reste vide", () => {
+    expect(reduceMessage("")).toBe("");
   });
 });
 

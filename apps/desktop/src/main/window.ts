@@ -18,6 +18,7 @@ import { markWindowShown } from "./store/safeStore";
 import { markRendererListening, RENDERER_LISTEN_MS } from "./runtime/errorReport";
 import { loadWindowTone } from "./windowTone";
 import { smokeExtraction } from "./ocr/extractSmoke";
+import { watchWindowHealth } from "./windowHealth";
 
 export function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -40,6 +41,9 @@ export function createWindow(): void {
       sandbox: true,
       contextIsolation: true,
       nodeIntegration: false,
+      // No `alert`/`confirm`/`prompt` native boxes from the page: the app's own dialogs are
+      // React, so only injected script would ever raise one (and block the window with it).
+      disableDialogs: true,
     },
   });
 
@@ -136,6 +140,13 @@ export function createWindow(): void {
     });
     mainWindow.loadFile(indexHtml);
   }
+
+  // Hung, or its page gone: the person is told and offered a reload (`windowHealth.ts`).
+  // The reload target is the SAME page this function loaded, never one named elsewhere.
+  watchWindowHealth(mainWindow, () => {
+    if (devUrl) void mainWindow.loadURL(devUrl);
+    else void mainWindow.loadFile(APP_INDEX_HTML);
+  });
 
   // Publish the window so the magic-link deep-link handlers can reach it.
   setMainWindow(mainWindow);

@@ -1,3 +1,4 @@
+import { reduceMessage } from "../errorTracking";
 import { VOCABULARY, type Source } from "./index";
 
 /**
@@ -10,7 +11,10 @@ import { VOCABULARY, type Source } from "./index";
  * authenticate the sender; it limits what a sender can DO. An envelope is admitted only if
  * its `source` is a declared surface, its `event` is in that surface's vocabulary (or
  * `$exception`, whose shape is fixed), and only the DECLARED keys survive — a forger can
- * inflate a count that exists, never inject a property that does not. Damage limitation
+ * inflate a count that exists, never inject a property that does not — nor a VALUE of a shape
+ * the sink never sends: a declared key keeps a primitive or a short `string[]`, bounded in
+ * length, and an `$exception_list` is REBUILT as the one `{type, value, mechanism}` entry
+ * the sink builds, its message through `reduceMessage`. Damage limitation
  * (with the rate limits and PostHog's own billing cap) is the honest design; identity is
  * a label, `source`, and it is treated as one.
  */
@@ -55,7 +59,43 @@ export function admit(input: AdmitInput): Admission {
     typeof raw === "object" && raw !== null && !Array.isArray(raw) ? (raw as Record<string, unknown>) : {};
   const properties: Record<string, unknown> = {};
   for (const key of [...allowed, ...CONTEXT_KEYS]) {
-    if (Object.prototype.hasOwnProperty.call(props, key)) properties[key] = props[key];
+    if (!Object.prototype.hasOwnProperty.call(props, key)) continue;
+    const value = key === EXCEPTION_LIST ? exceptionList(props[key], props) : admitValue(props[key]);
+    if (value !== undefined) properties[key] = value;
   }
   return { ok: true, source, event, properties };
+}
+
+const EXCEPTION_LIST = "$exception_list";
+/** The longest string a declared key keeps; the sink's values are codes and buckets. */
+export const MAX_VALUE_CHARS = 200;
+/** The most entries a `string[]` keeps. */
+export const MAX_LIST_ITEMS = 50;
+
+/** What the sanitise walk can produce (`sanitize.ts`): a primitive or a `string[]`, bounded.
+ *  Anything else (an object, a nested array, a non-finite number) is dropped. */
+function admitValue(v: unknown): unknown {
+  if (typeof v === "string") return v.slice(0, MAX_VALUE_CHARS);
+  if (typeof v === "boolean") return v;
+  if (typeof v === "number") return Number.isFinite(v) ? v : undefined;
+  if (Array.isArray(v) && v.every((x) => typeof x === "string")) {
+    return v.slice(0, MAX_LIST_ITEMS).map((x) => (x as string).slice(0, MAX_VALUE_CHARS));
+  }
+  return undefined;
+}
+
+/**
+ * The ONE entry `sink.ts` `captureError` builds, rebuilt field by field. The message is the
+ * sink's own default (`scope: code`), else whatever `reduceMessage` lets through — which is
+ * the identity on what an honest sink sent, and a fingerprint on anything else.
+ */
+function exceptionList(v: unknown, props: Record<string, unknown>): unknown[] {
+  const first = Array.isArray(v) ? (v[0] as Record<string, unknown> | null | undefined) : undefined;
+  if (!first || typeof first !== "object" || Array.isArray(first)) return [];
+  const type = typeof first.type === "string" && /^[\w$.-]{1,80}$/.test(first.type) ? first.type : "Error";
+  const raw = typeof first.value === "string" ? first.value : "";
+  const own = typeof props.scope === "string" && typeof props.code === "string" && raw === `${props.scope}: ${props.code}`;
+  const value = own ? raw.slice(0, MAX_VALUE_CHARS) : reduceMessage(raw);
+  const mech = first.mechanism as { handled?: unknown } | null | undefined;
+  return [{ type, value, mechanism: { handled: mech?.handled === true, type: "generic" } }];
 }

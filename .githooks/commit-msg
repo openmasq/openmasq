@@ -8,3 +8,21 @@ for needle in "proxy""chat" "kav""iar" "cav""iar" "openr""edact"; do
     exit 1
   fi
 done
+
+# A commit has ONE author, the human answering for it (CLAUDE.md, Conventions): no assistant
+# co-author trailer, no "generated with" line, no session link. Only the TRACE of a tool is
+# refused, not its name: a provider or a model is a legitimate subject of a commit here.
+# Comment lines (`#`) are git's own and are not part of the message.
+msg=$(grep -v '^#' "$1")
+refuse() {
+  echo "commit-msg: $1 — a commit carries no trace of a tool; remove it." >&2
+  exit 1
+}
+ASSISTANT='claude|anthropic|copilot|cursor|codex|gemini|chatgpt|openai|gpt-|aider|devin|windsurf|\[bot\]|noreply@'
+printf '%s\n' "$msg" | grep -iE '^[[:space:]]*co-authored-by:' | grep -qiE "$ASSISTANT" \
+  && refuse "an assistant is named as co-author"
+printf '%s\n' "$msg" | grep -qiE '(generated|written|created|authored)[[:space:]]+(with|by)[[:space:]]+(\[?)('"$ASSISTANT"'|an? (ai|llm|assistant))' \
+  && refuse "the message says a tool wrote it"
+printf '%s\n' "$msg" | grep -qiE 'claude\.ai/code|claude\.com/claude-code|chatgpt\.com/(share|c)/|🤖' \
+  && refuse "the message carries a tool's signature or session link"
+exit 0

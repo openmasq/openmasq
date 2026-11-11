@@ -3,6 +3,7 @@ import type { WebContents } from "electron";
 import { BRAND } from "@openmasq/branding";
 import { mainMessages } from "../i18n";
 import { trustedHandle } from "../ipc/senderGate";
+import { isAppPageUrl } from "../appPage";
 
 // Without a permission handler Electron DENIES `getUserMedia` by default, so the
 // composer's dictation mic (renderer → MediaRecorder) would never get audio. We
@@ -14,19 +15,15 @@ const ALLOWED = new Set([
   "clipboard-sanitized-write", // navigator.clipboard.writeText (copy buttons)
 ]);
 
-// SECURITY: only ever grant these to the app's OWN page (packaged `file://` bundle or
-// the loopback dev server) — never to remote content. Defense in depth behind the main
-// window's navigation guard, so even a navigated-away page can't inherit mic/clipboard.
-function isAppWebContents(wc: WebContents | null | undefined): boolean {
+// SECURITY: only ever grant these to the app's OWN page, by the ONE definition the
+// navigation guard and the IPC sender gate use (`../appPage.ts`): packaged, EXACTLY the
+// bundled `index.html` — not "any `file://`" (a downloaded HTML file) and not "any page on
+// localhost" (another program's local server); in dev, the dev server's origin. Defense in
+// depth behind the main window's navigation guard. Pinned by `permissions.test.ts`.
+export function isAppWebContents(wc: Pick<WebContents, "getURL"> | null | undefined): boolean {
   try {
     const url = wc?.getURL();
-    if (!url) return false;
-    if (url.startsWith("file:")) return true;
-    const u = new URL(url);
-    return (
-      (u.protocol === "http:" || u.protocol === "https:") &&
-      (u.hostname === "localhost" || u.hostname === "127.0.0.1")
-    );
+    return !!url && isAppPageUrl(url);
   } catch {
     return false;
   }

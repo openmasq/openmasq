@@ -7,6 +7,8 @@
  * empty folder. The suffix applies only to the other environments, whose installs start
  * over with a fresh profile (test data, the stated price).
  */
+import { existsSync } from "node:fs";
+import { join } from "node:path";
 import { DEFAULT_ENV, readEnvPointer, type EnvName } from "./environment";
 
 /** What the profile can be worth. `""` = Electron's default path. */
@@ -48,24 +50,43 @@ export interface ProfileApp {
   setPath(name: "userData", path: string): void;
 }
 
+/** What a folder holds once an account has lived in it: the per-account stores, the DB key,
+ *  the session, the pre-isolation key store (`store/CLAUDE.md`). */
+const PROFILE_SECRETS = ["accounts", "db-key.enc", "auth.enc", "keys.enc"] as const;
+
+/** Has someone's profile already lived in `dir`? */
+export function holdsProfile(dir: string): boolean {
+  return PROFILE_SECRETS.some((name) => existsSync(join(dir, name)));
+}
+
 /**
  * Set THIS instance's profile. The BASE folder is captured BEFORE `setPath` (the pointer
  * lives there, not in the suffixed profile). ⚠️ Must run before `whenReady`.
  * `OPENMASQ_USER_DATA_DIR` (the e2e hook) overrides the folder, not the environment.
  * The production path is never rewritten with its own value.
+ *
+ * ⚠️ A PACKAGED build takes that folder only when it holds NO profile yet (the packaged
+ * smoke test starts from an empty one). A launch environment anyone can set must not point
+ * the signed app — and its keychain entry — at a folder prepared with stores of someone's
+ * choosing: a named folder that already holds a profile is IGNORED and the install's own
+ * profile opens. Unpackaged runs (dev, e2e) keep the hook whole.
  */
 export function applyProfilePath(
   app: ProfileApp,
   vars: { OPENMASQ_USER_DATA_DIR?: string },
   readPointer: (base: string, fallback: EnvName) => EnvName = readEnvPointer,
+  prepared: (dir: string) => boolean = holdsProfile,
 ): ResolvedProfile {
   const baseUserData = app.getPath("userData");
   // Without a pointer, PRODUCTION: never inferred from the channel.
   const env = readPointer(baseUserData, DEFAULT_ENV);
 
   if (vars.OPENMASQ_USER_DATA_DIR) {
-    app.setPath("userData", vars.OPENMASQ_USER_DATA_DIR);
-    return { env, baseUserData };
+    if (!app.isPackaged || !prepared(vars.OPENMASQ_USER_DATA_DIR)) {
+      app.setPath("userData", vars.OPENMASQ_USER_DATA_DIR);
+      return { env, baseUserData };
+    }
+    console.warn("[profile] the named data folder already holds a profile — ignored, opening this install's own");
   }
   const suffix = profileSuffix({ env, isPackaged: app.isPackaged });
   if (suffix) app.setPath("userData", `${baseUserData}${suffix}`);

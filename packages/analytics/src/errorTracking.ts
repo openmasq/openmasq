@@ -35,6 +35,74 @@ export function scrubMessage(raw: string): string {
   );
 }
 
+/** An identifier as an engine prints it (`foo.bar`, `#x`, `Symbol(a)`): never prose. */
+const ID = String.raw`[\w$.#<>\[\]]{1,60}`;
+const ERRNO =
+  "E(?:NOENT|ACCES|PERM|EXIST|ISDIR|NOTDIR|NOSPC|BUSY|MFILE|NFILE|PIPE|CONNRESET|CONNREFUSED|TIMEDOUT|ADDRINUSE|NOTFOUND|HOSTUNREACH|NETUNREACH|ROFS|IO|INVAL|XDEV|NOTEMPTY|AGAIN)";
+const KIND = String.raw`^(?:Uncaught )?(?:[A-Z]\w{0,40}Error: )?`;
+
+/**
+ * The sentences an engine or the system writes with NO text of the person in them. Each is
+ * matched at the START of the scrubbed message and ONLY the match leaves: an `ENOENT` keeps
+ * its code and its call, not the file name behind it.
+ */
+const KNOWN_SENTENCES: RegExp[] = [
+  `Cannot (?:read|set) propert(?:y|ies) of (?:undefined|null)(?: \\((?:reading|setting) '${ID}'\\))?`,
+  `${ID} is not (?:a function|defined|iterable|a constructor)`,
+  "Maximum call stack size exceeded",
+  "Invalid (?:array|string) length",
+  "Unexpected end of (?:JSON )?input",
+  "(?:JavaScript heap )?out of memory",
+  "Cannot find (?:module|package)",
+  // A REAL system code, then the system's own lower-case words and the call: never a
+  // capitalised word followed by prose (`ERREUR: le contrat de…` must not pass for one).
+  `(?:${ERRNO})\\b(?:: [a-z ]{3,40}(?:, [a-z]{2,12})?)?`,
+  `spawn [\\w.-]{1,40} (?:${ERRNO})\\b`,
+  "SQLITE_[A-Z_]{2,40}",
+  "net::ERR_[A-Z_]{2,60}",
+  "MCP error -?\\d{1,6}",
+  "(?:HTTP|status(?: code)?) \\d{3}\\b",
+  "The operation was aborted|The user aborted a request",
+  "(?:[Rr]equest|[Cc]onnection|[Oo]peration|[Ss]ocket) timed out",
+  // The updater's OWN context line (versions, channel, HTTP status): the app wrote it.
+  "running=[\\w.+-]{1,30}(?: target=[\\w.+-]{1,30})?(?: ch=[\\w-]{1,30})?(?: http=\\d{3})?",
+].map((body) => new RegExp(`${KIND}(?:${body})`));
+
+/** FNV-1a, 32 bits, as 8 hex digits. */
+function fnv32(s: string): string {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) h = Math.imul(h ^ s.charCodeAt(i), 0x01000193);
+  return (h >>> 0).toString(16).padStart(8, "0");
+}
+
+/**
+ * WHAT OF A MESSAGE LEAVES THE MACHINE. A pattern scrubber cannot know that a word is a
+ * name, and an error message is written by whoever threw it: a `JSON.parse` failure quotes
+ * its input, a provider's refusal echoes the prompt. So the rule is an ALLOW list (rule 7):
+ * the part matching a known sentence leaves; anything else leaves as a FINGERPRINT only,
+ * `‹msg:xxxxxxxx›`, which still groups a failure and says nothing of its text. The
+ * fingerprint is taken on the message's SHAPE (quoted runs and digits removed), so two
+ * failures differing only by the value they quote are one. `scope`/`code`/`name` carry the
+ * meaning; a failure worth reading in clear earns a code, not a longer message.
+ * Pinned by `errorTracking.test.ts` (ui) and `sentry/policy.test.ts` (desktop).
+ */
+export function reduceMessage(raw: string): string {
+  // Already reduced (the relay re-applies this rule to what a client sent): unchanged.
+  if (/^‹msg:[0-9a-f]{8}›$/.test(raw ?? "")) return raw;
+  const scrubbed = scrubMessage(raw);
+  if (!scrubbed) return "";
+  for (const re of KNOWN_SENTENCES) {
+    const m = re.exec(scrubbed);
+    if (m) return m[0];
+  }
+  const shape = (raw ?? "")
+    .slice(0, 2000)
+    .replace(/"[^"]*"|'[^']*'|`[^`]*`|«[^»]*»/g, "")
+    .replace(/\d+/g, "")
+    .toLowerCase();
+  return `‹msg:${fnv32(shape)}›`;
+}
+
 // Error-class names that are always TRANSIENT/OPERATIONAL, not code bugs: a flaky
 // network or an expired/rate-limited auth token refresh. Reporting these floods the
 // $exception channel with non-actionable noise (offline users retrying).

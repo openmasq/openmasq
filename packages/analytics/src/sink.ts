@@ -1,5 +1,5 @@
 import type { CleanEvent, ConfigureOptions, ErrorReport, Sink, SinkOptions } from "./types";
-import { isOperationalError, MAX_PER_SIGNATURE, REPORTED_ERRORS, scrubMessage } from "./errorTracking";
+import { isOperationalError, MAX_PER_SIGNATURE, REPORTED_ERRORS, reduceMessage } from "./errorTracking";
 import { dntEnabled, isLoopbackHost } from "./gates";
 import { fetchRelayFlags } from "./flags";
 
@@ -238,7 +238,7 @@ export function createSink(options: SinkOptions): Sink {
     // Drop transient/operational failures (offline fetch, token-refresh) — they're
     // not bugs and flooded the channel with non-actionable noise.
     if (isOperationalError(e)) return log("skip", "$exception", "operational/transient");
-    const value = e.message ? scrubMessage(e.message) : `${e.scope}: ${e.code}`;
+    const value = (e.message && reduceMessage(e.message)) || `${e.scope}: ${e.code}`;
     // Flood cap: report each distinct signature at most a few times per session, so a
     // retry loop can't post the same error hundreds of times. Still keeps the signal.
     const sig = `${e.scope}|${e.code}|${e.name ?? ""}|${value}`;

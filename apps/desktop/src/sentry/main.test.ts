@@ -85,7 +85,8 @@ describe("the Sentry init options are a decision, not a default", () => {
       breadcrumbs: [{ message: "https://drive.example.com/x/Marie.pdf" }],
       server_name: "MacBook-de-Marie",
     }) as Record<string, unknown>;
-    expect(out.message).toBe("boom");
+    // free text leaves as a fingerprint, never as written (`reduceMessage`)
+    expect(out.message).toMatch(/^‹msg:[0-9a-f]{8}›$/);
     expect(out.breadcrumbs).toBeUndefined();
     expect(out.server_name).toBeUndefined();
   });

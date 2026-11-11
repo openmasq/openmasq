@@ -18,32 +18,15 @@ vi.mock("electron", () => ({
     decryptString: (b: Buffer) => b.toString().replace(/^ENC:/, ""),
   },
 }));
-vi.mock("./safeStore", () => ({
-  encryptionAvailable: () => encAvailable,
-  // Mirror of the real decodeEncryptedBlob (safeStore.ts) against this file's electron
-  // mock: try the keychain decrypt first (strip the ENC: prefix), then plaintext; accept
-  // the first candidate that parses to a JSON object, else null (undecryptable this session).
-  decodeEncryptedBlob: (buf: Buffer): Record<string, string> | null => {
-    const candidates: string[] = [];
-    if (encAvailable) candidates.push(buf.toString().replace(/^ENC:/, ""));
-    candidates.push(buf.toString("utf8"));
-    for (const s of candidates) {
-      try {
-        const p = JSON.parse(s) as unknown;
-        if (p && typeof p === "object" && !Array.isArray(p)) return p as Record<string, string>;
-      } catch {
-        /* next candidate */
-      }
-    }
-    return null;
-  },
-}));
+
 
 import { setKeysUser, setKey, getKey, configuredKeys, safeUid } from "./keys";
+import { resetEncryptionProbe } from "./safeStore";
 import { BRAND } from "@openmasq/branding";
 
 beforeEach(() => {
   encAvailable = false;
+  resetEncryptionProbe(); // the real probe memoizes a TRUE
   encryptString.mockClear();
 });
 
@@ -108,7 +91,7 @@ describe("encrypted at rest (keychain available)", () => {
   /* The "keys gone after restart" report: a key written ENCRYPTED, then read while the
      keychain is briefly UNAVAILABLE, used to be read as ciphertext-as-UTF-8 → JSON.parse
      threw → the store cached {} → every key vanished for the whole session even though the
-     file was intact. The fix (decodeEncryptedBlob + no-cache-on-unreadable) must (a) not
+     file was intact. The fix (decodeStore + no-cache-on-unreadable) must (a) not
      LOSE the file, and (b) RECOVER the keys the moment the keychain is back — no restart. */
   it("does not permanently drop encrypted keys on a transient keychain miss (recovers same session)", () => {
     encAvailable = true;
@@ -119,6 +102,7 @@ describe("encrypted at rest (keychain available)", () => {
     setKeysUser(null);
     setKeysUser("blip-user");
     encAvailable = false;
+    resetEncryptionProbe(); // the real probe memoizes a TRUE
     // Can't decrypt right now — but the read must NOT poison the cache with {}.
     expect(getKey("openai")).toBeUndefined();
     // Keychain recovers mid-session (no account switch, no restart): the key comes back.
@@ -192,7 +176,8 @@ describe("strict at-rest refuses the write instead of reporting success", () => 
   });
 
   it("throws, persists nothing, and the cache does NOT report the key as set", () => {
-    encAvailable = false; // no keychain → the base64 fallback is what strict mode forbids
+    encAvailable = false;
+    resetEncryptionProbe(); // the real probe memoizes a TRUE // no keychain → the base64 fallback is what strict mode forbids
     process.env.OPENMASQ_REQUIRE_DB_ENCRYPTION = "1";
     setKeysUser("strict-user");
     expect(() => setKey("openai", "sk-MUST-NOT-PERSIST")).toThrow(/refusing to persist/);

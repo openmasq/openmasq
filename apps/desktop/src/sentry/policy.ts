@@ -6,13 +6,14 @@
  * RECONSTRUCTS an event from only the fields enumerated here; a future SDK field carrying
  * content is simply not copied.
  *
- * The accepted RESIDUAL: the exception message and frame names are FREE text, so they go
- * through `scrubText` (a deny list of patterns + truncation): a mitigation, not a
- * guarantee. The real defense is upstream — never interpolate user data into an error
- * message. `policy.test.ts` pins the covered patterns.
+ * The exception MESSAGE is free text written by whoever threw it, so it does not go through
+ * a pattern scrubber: only a known engine/system sentence leaves, anything else leaves as a
+ * fingerprint (`reduceMessage`, `@openmasq/analytics`). The accepted RESIDUAL is what is
+ * left of free text: the exception TYPE and the frame names, which go through `scrubText`
+ * (a deny list of patterns + truncation). `policy.test.ts` pins both.
  */
 
-import { isOperationalError } from "@openmasq/analytics";
+import { isOperationalError, reduceMessage } from "@openmasq/analytics";
 import { scrubText } from "./scrubText";
 
 // Re-exported: `policy.ts` stays the one door to the scrubber.
@@ -112,7 +113,9 @@ export function scrubEvent(event: RawEvent | null | undefined): Record<string, u
         const mech = r.mechanism as { type?: unknown; handled?: unknown } | undefined;
         return {
           type: scrubText(r.type ?? "Error"),
-          value: scrubText(r.value ?? ""),
+          // The MESSAGE is whoever-threw-it's text: an allow-list of known sentences, else a
+          // fingerprint (`reduceMessage`, the ONE rule shared with the analytics channel).
+          value: reduceMessage(typeof r.value === "string" ? r.value : ""),
           stacktrace: { frames: cleanFrames(frames) },
           // `mechanism.handled` is a BOOLEAN, never content, and it is what populates
           // the "Unhandled" / crash-rate views.
@@ -123,7 +126,7 @@ export function scrubEvent(event: RawEvent | null | undefined): Record<string, u
       }),
     };
   } else if (typeof event.message === "string") {
-    out.message = scrubText(event.message);
+    out.message = reduceMessage(event.message);
   } else {
     // Neither exception nor message: nothing usable is left, so we don't send.
     return null;
