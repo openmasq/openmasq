@@ -1,15 +1,14 @@
-import { app, safeStorage } from "electron";
+import { app } from "electron";
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import type { StoredOAuthState } from "@openmasq/mcp/transport"; import { BRAND } from "@openmasq/branding"; import type { CredMode } from "./credMode";
-import { encryptionAvailable } from "../store/safeStore";
 import { withCatalogUrl } from "./presetUrl";
-import { assertPlaintextAllowed } from "../store/atRestPolicy";
+import { decryptCred, encryptCred } from "./credCrypto";
+import { sealSpec, vetSpecs } from "./specSeal";
 
 /**
- * Durable, PER-ACCOUNT storage for MCP connectors. Specs are plain; OAuth state, tokens
- * and keys are `safeStorage`-encrypted, base64. Plaintext fallback only where the at-rest
- * policy allows it.
+ * Durable, PER-ACCOUNT storage for MCP connectors. Specs are plain and TAGGED (`specSeal.ts`);
+ * OAuth state, tokens and keys are `safeStorage`-encrypted, base64 (`credCrypto.ts`).
  */
 export interface ServerSpec {
   /** The connection INSTANCE id: the connector id for the first account, then
@@ -41,6 +40,9 @@ export interface ServerSpec {
   /** OAuth client secret for a `byo` connector that needs one ("Desktop app" secrets are
    *  NON-confidential; PKCE is the real protection). */
   clientSecret?: string;
+  /** NEVER stored: set on read when the spec's tag is missing or wrong (`specSeal.ts`). Its
+   *  `url` and `params` are then withheld and nothing connects with it. */
+  altered?: boolean;
 }
 
 /** A stored OAuth token for a desktop-direct connector; refresh fields only where the
@@ -67,6 +69,8 @@ interface Raw {
   tokens?: Record<string, string>;
   /** id → encrypted API key (header-auth remote connectors, e.g. Fireflies). */
   apiKeys?: Record<string, string>;
+  /** id → tag of the spec's `url` and `params` (`specSeal.ts`). */
+  seals?: Record<string, string>;
 }
 
 /**
@@ -108,6 +112,7 @@ function read(): Raw {
       ports: parsed.ports ?? {},
       tokens: parsed.tokens ?? {},
       apiKeys: parsed.apiKeys ?? {},
+      seals: parsed.seals ?? {},
     };
   } catch {
     cache = emptyRaw();
@@ -157,18 +162,32 @@ function maybeAdoptLegacy(userId: string): void {
 
 // A catalog preset's endpoint URL is refreshed from the catalog on every read, so a vendor
 // moving its endpoint doesn't strand already-connected users (`presetUrl.ts`).
+/** The specs as they may be USED: each one's tag checked, a store older than the tag sealed
+ *  once (`specSeal.ts`). */
+function vetted(): ServerSpec[] {
+  const r = read();
+  const v = vetSpecs(currentUserId && `mcp-${currentUserId}`, r.servers, r.seals ?? {});
+  if (v.seals) write({ ...r, seals: v.seals });
+  return v.servers;
+}
+
 export function listServers(): ServerSpec[] {
-  return read().servers.map(withCatalogUrl);
+  return vetted().map(withCatalogUrl);
 }
 
 export function getServer(id: string): ServerSpec | undefined {
-  const spec = read().servers.find((s) => s.id === id);
+  const spec = vetted().find((s) => s.id === id);
   return spec && withCatalogUrl(spec);
 }
 
 export function addServer(spec: ServerSpec): void {
+  const stored = { ...spec };
+  delete stored.altered;
+  vetted(); // a store is adopted BEFORE its first tagged write, never by it
   const r = read();
-  write({ ...r, servers: [...r.servers.filter((s) => s.id !== spec.id), spec] });
+  const tag = sealSpec(stored);
+  const seals = { ...(r.seals ?? {}), ...(tag ? { [spec.id]: tag } : {}) };
+  write({ ...r, servers: [...r.servers.filter((s) => s.id !== spec.id), stored], seals });
 }
 
 export function removeServer(id: string): void {
@@ -178,48 +197,19 @@ export function removeServer(id: string): void {
   const ports = { ...(r.ports ?? {}) };
   const tokens = { ...(r.tokens ?? {}) };
   const apiKeys = { ...(r.apiKeys ?? {}) };
+  const seals = { ...(r.seals ?? {}) };
+  delete seals[id];
   delete oauth[id];
   delete secrets[id];
   delete ports[id];
   delete tokens[id];
   delete apiKeys[id];
-  write({ servers: r.servers.filter((s) => s.id !== id), oauth, secrets, ports, tokens, apiKeys });
+  write({ servers: r.servers.filter((s) => s.id !== id), oauth, secrets, ports, tokens, apiKeys, seals });
 }
 
-/** Encrypt a JSON-serialisable value to base64 (OS keychain via safeStorage). */
-function encrypt(value: unknown): string {
-  const json = JSON.stringify(value);
-  if (encryptionAvailable()) {
-    return safeStorage.encryptString(json).toString("base64");
-  }
-  assertPlaintextAllowed("MCP connector credentials");
-  console.warn("[mcp] safeStorage unavailable — storing credentials unencrypted");
-  return Buffer.from(json, "utf8").toString("base64");
-}
-
-function decrypt<T>(enc: string | undefined, label: string, onCorrupt?: () => void): T | undefined {
-  if (!enc) return undefined;
-  const keychain = encryptionAvailable();
-  try {
-    const buf = Buffer.from(enc, "base64");
-    const json = keychain ? safeStorage.decryptString(buf) : buf.toString("utf8");
-    return JSON.parse(json) as T;
-  } catch (err) {
-    // (a) A PLAINTEXT-FALLBACK entry (written without a keychain) is readable as
-    //     base64-JSON: recover it, never drop it.
-    try {
-      return JSON.parse(Buffer.from(enc, "base64").toString("utf8")) as T;
-    } catch {
-      /* not plaintext JSON either — fall through */
-    }
-    // (b) DROP only when the keychain IS available and still can't decrypt (a real
-    //     key↔ciphertext mismatch). A keychain MISS is transient: keep the entry, skip
-    //     it this session (non-destructive, like dbCrypto).
-    console.warn(`[mcp] unreadable ${label}: ${err instanceof Error ? err.message : String(err)}`);
-    if (keychain) onCorrupt?.();
-    return undefined;
-  }
-}
+const encrypt = (value: unknown): string => encryptCred(value, file());
+const decrypt = <T>(enc: string | undefined, label: string, onCorrupt?: () => void): T | undefined =>
+  decryptCred<T>(enc, label, file(), onCorrupt);
 
 /** Remove a permanently-unreadable encrypted entry. */
 function dropStored(section: "oauth" | "secrets" | "tokens" | "apiKeys", id: string): void {

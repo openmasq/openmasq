@@ -14,7 +14,10 @@ import {
   setWriteAutoApprove,
   __setWriteConfirmImpl,
   __resetWriteConfirmImpl,
+  ARM_MS,
+  sentinelExit,
 } from "./writeConfirmWindow";
+import { ALLOW_TOOL_URL, ALLOW_URL, DENY_URL } from "./writeConfirmHtml";
 
 beforeEach(() => __resetWriteConfirmImpl());
 
@@ -133,5 +136,46 @@ describe("the confirmation page (data: URL — sentinel-only exits, escaped args
     });
     expect(html).not.toContain("<img src=x");
     expect(html).not.toContain("<script>");
+  });
+});
+
+describe("the window takes no approval in its first instants", () => {
+  it("an approval before it is armed decides NOTHING; a refusal is always taken", () => {
+    expect(ARM_MS).toBeGreaterThanOrEqual(400);
+    // a click or an Enter already on its way when the window appeared
+    expect(sentinelExit(ALLOW_URL, false)).toBe("stay");
+    expect(sentinelExit(ALLOW_TOOL_URL, false)).toBe("stay");
+    expect(sentinelExit(DENY_URL, false)).toBe(false);
+  });
+
+  it("once armed, each sentinel means what its button says", () => {
+    expect(sentinelExit(ALLOW_URL, true)).toBe(true);
+    expect(sentinelExit(ALLOW_TOOL_URL, true)).toBe("allow-tool"); // tested before its ALLOW prefix
+    expect(sentinelExit(DENY_URL, true)).toBe(false);
+  });
+
+  it("any other navigation is cancelled, the page's own document passes", () => {
+    expect(sentinelExit("https://evil.example/", true)).toBe("stay");
+    expect(sentinelExit("file:///etc/passwd", true)).toBe("stay");
+    expect(sentinelExit("data:text/html;charset=utf-8,x", true)).toBe("pass");
+  });
+});
+
+describe("a write other tools run — what the window says", () => {
+  it("names the reason and the path, escaped, and offers no memory for the tool", () => {
+    const html = __buildHtml({
+      toolName: "write_file",
+      args: { path: "/p/.vscode/tasks.json" },
+      runByTools: { path: "/p/.vscode/<b>tasks.json", why: "hidden" },
+    });
+    expect(html).toContain("class=\"warn\"");
+    expect(html).toContain("/p/.vscode/&lt;b&gt;tasks.json");
+    expect(html).not.toContain(ALLOW_TOOL_URL);
+  });
+
+  it("an « always for this tool » answer is not remembered for such a write", async () => {
+    __setWriteConfirmImpl(async () => "allow-tool");
+    expect(await confirmWrite({ toolName: "write_file", args: {}, runByTools: { path: "/p/package.json", why: "orders" } })).toBe(true);
+    expect(isToolWriteApproved("write_file")).toBe(false);
   });
 });

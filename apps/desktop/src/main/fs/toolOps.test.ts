@@ -127,6 +127,37 @@ describe("écriture atomique", () => {
   });
 });
 
+describe("ce que d'autres outils exécutent", () => {
+  it("un fichier déplacé n'est jamais exécutable à son nouveau nom", async () => {
+    // the sample hook git ships is 755: renamed, it would be a hook armed
+    const { chmodSync } = await import("node:fs");
+    const p = file("hook.sample", "#!/bin/sh\necho hi\n");
+    chmodSync(p, 0o755);
+    const to = join(root, "hook");
+    await TOOL_OPS.move_file!(g(), { source: p, destination: to });
+    expect(statSync(to).mode & 0o111).toBe(0);
+    expect(readFileSync(to, "utf8")).toContain("echo hi");
+  });
+
+  it("refuse une écriture qu'un lien mène là où d'autres outils exécutent, sans rien écrire", async () => {
+    const { symlinkSync } = await import("node:fs");
+    mkdirSync(join(root, ".git", "hooks"), { recursive: true });
+    symlinkSync(join(root, ".git", "hooks"), join(root, "notes"));
+    await expect(TOOL_OPS.write_file!(g(), { path: join(root, "notes", "pre-commit"), content: "#!/bin/sh\n" })).rejects.toThrow(/lien/);
+    expect(readdirSync(join(root, ".git", "hooks"))).toEqual([]);
+    // and the same for a move whose destination hides behind the link
+    const p = file("a.txt", "x");
+    await expect(TOOL_OPS.move_file!(g(), { source: p, destination: join(root, "notes", "pre-push") })).rejects.toThrow(/lien/);
+    expect(readdirSync(join(root, ".git", "hooks"))).toEqual([]);
+  });
+
+  it("laisse passer le chemin nommé tel quel : c'est main qui a demandé", async () => {
+    mkdirSync(join(root, ".vscode"));
+    await TOOL_OPS.write_file!(g(), { path: join(root, ".vscode", "tasks.json"), content: "{}" });
+    expect(readFileSync(join(root, ".vscode", "tasks.json"), "utf8")).toBe("{}");
+  });
+});
+
 describe("read_file — la lecture par tranches", () => {
   const lines = Array.from({ length: 10 }, (_, i) => `ligne ${i + 1}`).join("\n");
 

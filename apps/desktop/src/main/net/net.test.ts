@@ -40,6 +40,29 @@ describe("isPrivateIp", () => {
     expect(isPrivateIp("2606:4700::1111")).toBe(false); // public
   });
 
+  it("judges NAT64, 6to4 and Teredo by the IPv4 they carry", () => {
+    for (const ip of [
+      "64:ff9b::7f00:1", // NAT64 → 127.0.0.1
+      "64:ff9b::169.254.169.254", // NAT64 → cloud metadata
+      "64:ff9b::c0a8:101", // NAT64 → 192.168.1.1
+      "64:ff9b:1::808:808", // local-use NAT64 prefix: never a public route
+      "2002:7f00:1::1", // 6to4 → 127.0.0.1
+      "2002:a00:1::", // 6to4 → 10.0.0.1
+      "2001:0:7f00:1::1", // Teredo, private SERVER
+      "2001:0:808:808:0:0:f5ff:fffe", // Teredo, CLIENT 10.0.0.1 (XOR ffff)
+    ]) {
+      expect(isPrivateIp(ip), ip).toBe(true);
+    }
+    for (const ip of [
+      "64:ff9b::808:808", // NAT64 → 8.8.8.8
+      "2002:808:808::1", // 6to4 → 8.8.8.8
+      "2001:0:808:808:0:0:f7f7:f7f7", // Teredo, public server AND client (8.8.8.8)
+      "2001:db9::1", // 2001:db9, not Teredo's 2001:0
+    ]) {
+      expect(isPrivateIp(ip), ip).toBe(false);
+    }
+  });
+
   // Audit H-7: the HEX-notation embedded-v4 forms used to slip through as "public".
   it("flags IPv4-mapped/compatible IPv6 in HEX notation (H-7)", () => {
     for (const ip of [

@@ -20,6 +20,8 @@ import { outputLinkBasenames, inlineOutputLinks } from "../browser/snapshotInlin
 import { noteFetchHostsFromText } from "../../net/fetchAllow";
 import { assertPublicUrl } from "../../net/net";
 import { devOnly } from "../../security/devOnly";
+import { getLiveFs } from "../../fs/live";
+import { writeHazard } from "../../fs/toolOrders";
 
 /** @playwright/mcp externalises a page snapshot to a file in our output dir and returns
  *  ONLY a link; fold the content back into the result, then delete the file (an
@@ -80,9 +82,18 @@ function resultErrorText(result: McpToolResult): string {
  */
 export async function assertWriteAllowed(
   call: McpToolCall,
-  route: { realName: string; annotations?: McpTool["annotations"] },
+  route: { realName: string; annotations?: McpTool["annotations"]; server?: unknown },
 ): Promise<void> {
   if (call.name.startsWith(`${BROWSER_ID}__`)) return; // browser: gated elsewhere
+  // A FLOOR, before the policy: the filesystem tool writing or moving where OTHER tools run
+  // what is written (a hidden folder, a manifest, a hook, a coding agent's instructions).
+  // Asked on this window in EVERY mode, covered by NO session allowance, never remembered:
+  // the standard mode's residual (an unconfirmed write) must not become code execution.
+  const hazard = route.server && route.server === getLiveFs() ? writeHazard(route.realName, call.arguments) : null;
+  if (hazard) {
+    if (!(await confirmWrite({ toolName: route.realName, args: call.arguments, runByTools: hazard }))) throw refused(route.realName);
+    return;
+  }
   if (!isWriteToolName(route.realName, route.annotations)) return; // read-only: no gate
   // Main's own facts only, never a renderer flag. Main knows only `risk` (absent counters
   // read as 0): enough to answer the one question it owns. The renderer's copy is UX.
@@ -96,14 +107,15 @@ export async function assertWriteAllowed(
   // Session auto-approve, armed ONLY via the un-spoofable window (not a renderer bypass).
   if (isWriteAutoApproved() || isToolWriteApproved(route.realName)) return;
   const approved = await confirmWrite({ toolName: route.realName, args: call.arguments });
-  if (!approved) {
-    throw new Error(
-      `Action d'écriture refusée par l'utilisateur : ${route.realName}. Ne relance pas ` +
-        `cette écriture sans nouvelle instruction — propose une alternative ou demande ` +
-        `à l'utilisateur comment procéder.`,
-    );
-  }
+  if (!approved) throw refused(route.realName);
 }
+
+const refused = (realName: string): Error =>
+  new Error(
+    `Action d'écriture refusée par l'utilisateur : ${realName}. Ne relance pas ` +
+      `cette écriture sans nouvelle instruction — propose une alternative ou demande ` +
+      `à l'utilisateur comment procéder.`,
+  );
 
 export async function mcpCallTool(call: McpToolCall): Promise<McpToolResult> {
   // Browser tools first SELF-HEAL a stale @playwright/mcp connection (the child can be

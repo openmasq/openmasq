@@ -1,6 +1,7 @@
 import { BrowserWindow } from "electron";
 import { DEVTOOLS_PREF } from "../devtools";
 import { buildHtml, ALLOW_URL, ALLOW_TOOL_URL, DENY_URL } from "./writeConfirmHtml";
+import type { WriteHazard } from "../fs/toolOrders";
 
 /**
  * SECURITY: a MAIN-OWNED write-confirmation surface, neither the app renderer (anything in
@@ -23,9 +24,31 @@ export interface WriteConfirmRequest {
    *  `"leave-renforce"` asks to leave the Mode renforcé. Same window: DOWNGRADING the
    *  posture must be a real click on a surface the renderer can't script. */
   mode?: "write" | "disable-gate" | "leave-renforce";
+  /** The write lands where other tools RUN what is written (`../fs/toolOrders.ts`): the
+   *  window says so, shows the path, and offers no memory for the tool. */
+  runByTools?: WriteHazard;
 }
 
 const TIMEOUT_MS = 2 * 60_000;
+
+/**
+ * How long after the window SHOWS an approval is not taken. Whoever drives the model picks
+ * the instant this window appears; a click or a key already on its way (the user was typing,
+ * double-clicking, pressing Enter in the conversation) must not land as « Autoriser ».
+ * Enforced in MAIN, on the navigation: the page stays script-less, and a refusal is always
+ * taken at once.
+ */
+export const ARM_MS = 500;
+
+/** What a navigation of the confirmation page means. `"stay"`: cancelled, nothing decided;
+ *  `"pass"`: the page's own `data:` document. Pure, so the arming rule is tested without a window. */
+export function sentinelExit(url: string, armed: boolean): WriteConfirmOutcome | "stay" | "pass" {
+  // ⚠️ ALLOW_TOOL_URL shares the ALLOW_URL prefix: it MUST be tested first.
+  if (url.startsWith(ALLOW_TOOL_URL)) return armed ? "allow-tool" : "stay";
+  if (url.startsWith(ALLOW_URL)) return armed ? true : "stay";
+  if (url.startsWith(DENY_URL)) return false;
+  return url.startsWith("data:") ? "pass" : "stay";
+}
 
 /** One-shot approval, approval that ALSO remembers the tool for the session, or refusal.
  *  `boolean` stays in the union so test stubs (`async () => true`) stay valid. */
@@ -38,7 +61,8 @@ let impl: (req: WriteConfirmRequest) => Promise<WriteConfirmOutcome> = confirmIn
  *  tool for the session; recorded HERE so the memory is armed only by a real click. */
 export async function confirmWrite(req: WriteConfirmRequest): Promise<boolean> {
   const outcome = await impl(req);
-  if (outcome === "allow-tool" && req.toolName) sessionAllowedTools.add(req.toolName);
+  // never remembered for a write other tools run: each one is its own decision
+  if (outcome === "allow-tool" && req.toolName && !req.runByTools) sessionAllowedTools.add(req.toolName);
   return outcome === true || outcome === "allow-tool";
 }
 
@@ -125,24 +149,19 @@ function confirmInWindow(req: WriteConfirmRequest): Promise<WriteConfirmOutcome>
       win.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
       // The ONLY way out: a click navigating to a sentinel URL; the page never leaves
       // its own data: document.
+      let shownAt = 0; // 0: not shown yet, nothing can be approved
       win.webContents.on("will-navigate", (e, url) => {
-        // ⚠️ ALLOW_TOOL_URL shares the ALLOW_URL prefix: it MUST be tested first.
-        if (url.startsWith(ALLOW_TOOL_URL)) {
-          e.preventDefault();
-          finish("allow-tool");
-        } else if (url.startsWith(ALLOW_URL)) {
-          e.preventDefault();
-          finish(true);
-        } else if (url.startsWith(DENY_URL)) {
-          e.preventDefault();
-          finish(false);
-        } else if (!url.startsWith("data:")) {
-          e.preventDefault();
-        }
+        const exit = sentinelExit(url, shownAt > 0 && performance.now() - shownAt >= ARM_MS);
+        if (exit === "pass") return;
+        e.preventDefault();
+        if (exit !== "stay") finish(exit);
       });
       win.on("closed", () => finish(false)); // closing the window ⇒ refuse
       win.webContents.on("render-process-gone", () => finish(false));
-      win.once("ready-to-show", () => win?.show());
+      win.once("ready-to-show", () => {
+        win?.show();
+        shownAt = performance.now();
+      });
       void win.loadURL("data:text/html;charset=utf-8," + encodeURIComponent(buildHtml(req))).catch(() => finish(false));
     } catch {
       finish(false); // any window-creation failure ⇒ refuse

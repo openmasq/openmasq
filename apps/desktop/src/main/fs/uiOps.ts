@@ -9,6 +9,7 @@
 import { mkdir, rename, stat, lstat, readdir } from "node:fs/promises";
 import { join } from "node:path";
 import type { Grant } from "./grant";
+import { assertNotHiddenByLink } from "./toolOrders";
 import { openRegular } from "./fdRead";
 import type { FsBytes, FsEntry, FsListing } from "./protocol";
 import { setWatch } from "./watch";
@@ -111,6 +112,7 @@ export const UI_OPS: Record<string, UiOp> = {
 
   async mkdir(g, a): Promise<{ path: string }> {
     const p = g.resolve(str(a, "path"));
+    assertNotHiddenByLink(str(a, "path"), p, g.roots);
     await mkdir(p, { recursive: true });
     return { path: p };
   },
@@ -120,6 +122,8 @@ export const UI_OPS: Record<string, UiOp> = {
   async rename(g, a): Promise<{ path: string }> {
     const source = g.resolve(str(a, "source"));
     const destination = g.resolve(str(a, "destination"));
+    assertNotHiddenByLink(str(a, "source"), source, g.roots);
+    assertNotHiddenByLink(str(a, "destination"), destination, g.roots);
     await rename(source, destination);
     return { path: destination };
   },

@@ -12,6 +12,7 @@ import { openRegular } from "./fdRead";
 import { DOCX_OPS } from "./docxOps";
 import { readVerdict } from "./binaryGuard";
 import { FIND_TRUNCATED_MARKER } from "./protocol";
+import { assertNotHiddenByLink } from "./toolOrders";
 import type { Grant } from "./grant"; import { BRAND } from "@openmasq/branding";
 
 const MAX_READ = 2_000_000; // cap read_file (bytes) — bound memory
@@ -29,6 +30,15 @@ const optStr = (a: Record<string, unknown>, k: string): string | undefined =>
   typeof a[k] === "string" && a[k] ? (a[k] as string) : undefined;
 const optNum = (a: Record<string, unknown>, k: string): number | undefined =>
   typeof a[k] === "number" && Number.isFinite(a[k] as number) ? (a[k] as number) : undefined;
+
+/** A path this call will WRITE at or move: resolved, and never a place a link hid from the
+ *  confirmation main shows (`toolOrders.ts`). */
+const writeTarget = (g: Grant, a: Record<string, unknown>, k: string): string => {
+  const given = str(a, k);
+  const real = g.resolve(given);
+  assertNotHiddenByLink(given, real, g.roots);
+  return real;
+};
 
 export type ToolOp = (g: Grant, a: Record<string, unknown>) => Promise<string>;
 
@@ -168,7 +178,7 @@ export const TOOL_OPS: Record<string, ToolOp> = {
   },
 
   async write_file(g, a) {
-    const p = g.resolve(str(a, "path"));
+    const p = writeTarget(g, a, "path");
     const content = str(a, "content");
     if (Buffer.byteLength(content, "utf8") > MAX_WRITE) throw new Error("contenu trop volumineux");
     const before = await statFile(p);
@@ -178,7 +188,7 @@ export const TOOL_OPS: Record<string, ToolOp> = {
   },
 
   async edit_file(g, a) {
-    const p = g.resolve(str(a, "path"));
+    const p = writeTarget(g, a, "path");
     const st = await stat(p);
     if (!st.isFile()) throw new Error("ce chemin n'est pas un fichier");
     if (st.size > MAX_READ) throw new Error(`fichier trop volumineux pour être édité (> ${MAX_READ} octets)`);
@@ -198,7 +208,7 @@ export const TOOL_OPS: Record<string, ToolOp> = {
   },
 
   async create_directory(g, a) {
-    const p = g.resolve(str(a, "path"));
+    const p = writeTarget(g, a, "path");
     await mkdir(p, { recursive: true });
     return `Dossier créé : ${p}`;
   },
@@ -213,8 +223,8 @@ export const TOOL_OPS: Record<string, ToolOp> = {
   },
 
   async move_file(g, a) {
-    const source = g.resolve(str(a, "source"));
-    const destination = g.resolve(str(a, "destination"));
+    const source = writeTarget(g, a, "source");
+    const destination = writeTarget(g, a, "destination");
     try {
       await rename(source, destination);
     } catch (e) {
@@ -227,6 +237,9 @@ export const TOOL_OPS: Record<string, ToolOp> = {
       await copyFile(source, destination);
       await unlink(source);
     }
+    // a moved file is never executable at its new name: `hook.sample` (755) renamed is a hook armed
+    const moved = await stat(destination);
+    if (moved.isFile() && moved.mode & 0o111) await chmod(destination, moved.mode & 0o666);
     return `Déplacé ${source} → ${destination}`;
   },
 

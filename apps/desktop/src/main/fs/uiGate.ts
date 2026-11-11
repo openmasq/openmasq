@@ -5,6 +5,7 @@ import {
   isToolWriteApproved,
   isWriteAutoApproved,
 } from "../mcp/writeConfirmWindow";
+import { writeHazard } from "./toolOrders";
 
 /**
  * The confirmation gate for the folder browser's MUTATING ops.
@@ -52,9 +53,18 @@ export async function assertLocalFsWriteAllowed(
   op: LocalFsWriteOp,
   args: Record<string, unknown>,
 ): Promise<void> {
+  const toolName = LABEL[op];
+  // The same FLOOR as the model's tools (`mcp/server/callTool.ts`): a folder made or a file
+  // renamed where other tools run what they find is asked in every mode, never remembered.
+  // (This IPC is reachable by a renderer XSS: « rename notes.json to package.json » is the
+  // one-step version of the write the model's path guards.)
+  const hazard = writeHazard(op, args);
+  if (hazard) {
+    if (!(await confirmWrite({ toolName, args, runByTools: hazard }))) throw new Error("Action refusée.");
+    return;
+  }
   const rule = confirmationSurface(getConfirmationMode(), { risk: RISK[op] });
   if (rule?.surface !== "system-modal") return;
-  const toolName = LABEL[op];
   if (isWriteAutoApproved() || isToolWriteApproved(toolName)) return;
   const approved = await confirmWrite({ toolName, args });
   if (!approved) throw new Error("Action refusée.");

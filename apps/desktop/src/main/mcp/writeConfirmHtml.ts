@@ -90,17 +90,23 @@ export function buildHtml(req: WriteConfirmRequest, copy?: { locale: Locale; t: 
   const linesHtml = lines.length
     ? `<ul class="acts">${lines.map((l) => `<li>${escapeHtml(l)}</li>`).join("")}</ul>`
     : "";
+  // A write where other tools RUN what is written: said in words, the path in full, and no
+  // « toujours pour cet outil » (the next such write is asked again, whatever was allowed).
+  const hazard = gateChange ? undefined : req.runByTools;
+  const hazardHtml = hazard
+    ? `<p class="warn">${e(c.runByTools[hazard.why])}<br><strong>${e(c.runByToolsPath)}</strong>&nbsp;: <span class="path">${e(hazard.path)}</span></p>`
+    : "";
   const bodyHtml = leaveRenforce
     ? `<p>${e(c.leaveStrictBody)}</p>`
     : disableGate
       ? `<p>${e(c.disableGateLead)} <strong>${e(c.disableGateStrong)}</strong>${e(c.disableGateTail)}</p>`
       : `<p>${e(c.allowLead)}&nbsp;<span class="tool">${tool}</span>${e(c.allowTail)}</p>
-    ${linesHtml}
+    ${hazardHtml}${linesHtml}
     <details><summary>${e(c.technicalDetails)}</summary><pre>${summary}</pre></details>
-    <p class="scope">${e(c.scopeLead)} <span class="tool">${tool}</span>${e(c.scopeTail)}</p>`;
+    ${hazard ? "" : `<p class="scope">${e(c.scopeLead)} <span class="tool">${tool}</span>${e(c.scopeTail)}</p>`}`;
   const denyLabel = e(leaveRenforce ? c.denyLeaveStrict : disableGate ? c.denyDisableGate : c.deny);
   const allowLabel = e(leaveRenforce ? c.allowLeaveStrict : disableGate ? c.allowDisableGate : c.allow);
-  const allowToolBtn = gateChange
+  const allowToolBtn = gateChange || hazard
     ? ""
     : `<a class="btn tool-allow" href="${ALLOW_TOOL_URL}">${e(c.allowTool)}</a>`;
   // Brand tokens (mirrors the design-system `tokens/colors.css` — this page can't load
@@ -137,10 +143,15 @@ export function buildHtml(req: WriteConfirmRequest, copy?: { locale: Locale; t: 
   details summary { font-size:11.5px; color:var(--muted); cursor:pointer; }
   details summary::marker { color:var(--sky); }
   p.scope { font-size:11px; margin-top:10px; }
+  p.warn { color:var(--ink); background:#fff6e5; border:1px solid #f0c36d; border-radius:10px; padding:8px 10px; }
+  p.warn .path { font-family:ui-monospace,"SF Mono",monospace; font-size:11px; word-break:break-all; }
   .row { display:flex; gap:10px; margin-top:14px; }
   a.btn { flex:1; text-align:center; text-decoration:none; font-size:13px; font-weight:700; padding:10px 12px; border-radius:10px; border:1px solid var(--line); color:var(--ink); background:#fff; }
   a.allow { background:var(--ink); color:var(--lime); border-color:var(--ink); }
   a.tool-allow { background:var(--sky-soft); border-color:var(--sky); color:var(--blue); }
+  /* Main takes no approval for the first 500 ms (writeConfirmWindow ARM_MS): shown, not enforced, here. */
+  a.allow, a.tool-allow { animation:arm .5s steps(1,end); }
+  @keyframes arm { from { opacity:.45; } to { opacity:1; } }
 </style></head><body>
   <div class="card">
     <div class="head">

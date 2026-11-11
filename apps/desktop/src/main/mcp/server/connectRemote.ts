@@ -14,6 +14,7 @@ import {
 import { startLoopback } from "../oauthLoopback";
 import { focusMainWindow } from "../focusApp";
 import { assertPublicUrl } from "../../net/net";
+import { makePinnedFetch } from "../../net/pinnedFetch";
 import { safeOpenExternal } from "../../net/safeOpen";
 import {
   connected,
@@ -76,6 +77,10 @@ export async function connectRemoteHttp(
   } catch (err) {
     return { ...infoFor(spec), error: mainMessages().desktopMain.mcp.urlRefused((err as Error).message) };
   }
+  // That check is one moment; the SERVER then names more hosts (a redirect, its OAuth
+  // metadata, its token endpoint) and its name is resolved again on every request. So every
+  // request of this connection leaves through the fetch that verifies and PINS each host.
+  const fetch = makePinnedFetch("mcp-remote");
 
   // Header-auth API-key connectors: a static bearer (stored encrypted), no OAuth.
   const apiKey = loadApiKey(id);
@@ -84,6 +89,7 @@ export async function connectRemoteHttp(
       id,
       url: spec.url,
       headers: { Authorization: `Bearer ${apiKey}` },
+      fetch,
       onClose: handleConnectorClosed,
     });
     const outcome = await server.connect();
@@ -126,7 +132,7 @@ export async function connectRemoteHttp(
         if (cid && /^https?:/i.test(s)) emitMcpOauthUrl(cid, s);
       },
     });
-    const server = new HttpMcpServer({ id, url: spec.url, authProvider: provider, onClose: handleConnectorClosed });
+    const server = new HttpMcpServer({ id, url: spec.url, authProvider: provider, fetch, onClose: handleConnectorClosed });
 
     let outcome = await server.connect();
     if (!outcome.authorized) {

@@ -13,6 +13,8 @@ vi.mock("@sentry/electron/main", () => ({ captureException: vi.fn(), init: vi.fn
 import { __setWriteConfirmImpl, __resetWriteConfirmImpl, setWriteAutoApprove } from "./writeConfirmWindow";
 import { _resetConfirmationMode, setConfirmationMode } from "./confirmationMode";
 import { assertWriteAllowed } from "./server/callTool";
+import { setLiveFs, clearLiveFs } from "../fs/live";
+import type { LocalFsConnection } from "../fs/connection";
 
 /**
  * WHICH SURFACE confirms a write — now decided by `CONFIRMATION_POLICY` fed with main's
@@ -114,5 +116,58 @@ describe("both modes — untouched paths", () => {
     await assertWriteAllowed(call("gmail__list_messages"), route("gmail__list_messages"));
     await assertWriteAllowed(call("browser__browser_click"), route("browser_click"));
     expect(asked).toEqual([]);
+  });
+});
+
+describe("what other tools run — asked in EVERY mode, never remembered", () => {
+  // the in-process filesystem connection, by identity (a tool merely NAMED write_file on
+  // another server is that server's business, judged by the ordinary policy)
+  const fs = { id: "fs-1" } as unknown as LocalFsConnection;
+  const fsRoute = (realName: string) => ({ realName, server: fs });
+  let seen: { toolName: string; why?: string }[] = [];
+
+  beforeEach(() => {
+    setLiveFs(fs);
+    seen = [];
+    __setWriteConfirmImpl(async (req) => {
+      seen.push({ toolName: req.toolName, why: req.runByTools?.why });
+      return "allow-tool"; // the worst answer a page could give: « always for this tool »
+    });
+    return () => clearLiveFs(fs);
+  });
+
+  it("standard mode: an ordinary note goes out unasked, a write under .vscode does not", async () => {
+    await assertWriteAllowed(call("fs-1__write_file", { path: "/p/notes.md" }), fsRoute("write_file"));
+    expect(seen).toEqual([]);
+    await assertWriteAllowed(call("fs-1__write_file", { path: "/p/.vscode/tasks.json" }), fsRoute("write_file"));
+    expect(seen).toEqual([{ toolName: "write_file", why: "hidden" }]);
+  });
+
+  it("asks for the move that turns a note into a manifest or a hook", async () => {
+    await assertWriteAllowed(call("fs-1__move_file", { source: "/p/a.json", destination: "/p/package.json" }), fsRoute("move_file"));
+    await assertWriteAllowed(call("fs-1__move_file", { source: "/p/.git/hooks/pre-commit.sample", destination: "/p/.git/hooks/pre-commit" }), fsRoute("move_file"));
+    await assertWriteAllowed(call("fs-1__edit_file", { path: "/p/CLAUDE.md" }), fsRoute("edit_file"));
+    expect(seen.map((s) => s.why)).toEqual(["orders", "hidden", "orders"]);
+  });
+
+  it("no session allowance covers it, and its approval arms none", async () => {
+    await setWriteAutoApprove(true); // armed on the window (the stub approves)
+    seen = [];
+    await assertWriteAllowed(call("fs-1__write_file", { path: "/p/.github/workflows/ci.yml" }), fsRoute("write_file"));
+    await assertWriteAllowed(call("fs-1__write_file", { path: "/p/.github/workflows/ci.yml" }), fsRoute("write_file"));
+    // asked BOTH times: neither the session switch nor « always for this tool » spared the second
+    expect(seen).toHaveLength(2);
+  });
+
+  it("a refusal stops the write (fail closed)", async () => {
+    __setWriteConfirmImpl(async () => false);
+    await expect(
+      assertWriteAllowed(call("fs-1__write_file", { path: "/p/package.json" }), fsRoute("write_file")),
+    ).rejects.toThrow(/refusée/);
+  });
+
+  it("only the in-process filesystem connection is judged by path", async () => {
+    await assertWriteAllowed(call("custom-1__write_file", { path: "/p/.vscode/tasks.json" }), { realName: "write_file", server: {} });
+    expect(seen.every((s) => s.why === undefined)).toBe(true);
   });
 });

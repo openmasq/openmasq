@@ -109,7 +109,7 @@ function hostAllowed(host: string, allow: string[]): boolean {
 // doesn't re-resolve the hostname (a TTL-0 rebinding record could hand a private IP to the
 // connect). undici's `connect.lookup` hook; the hostname is kept so TLS SNI/cert validation
 // is unchanged. `undici` is a DIRECT dependency so the control can't vanish on a dep bump;
-// the import stays guarded (degrades to the per-hop re-check) rather than crashing main.
+// and if it ever does, the fetch is REFUSED: a per-hop check without the pin is the TOCTOU.
 
 /**
  * The undici `connect.lookup` RESULT: its callback takes an ARRAY of `{address, family}`
@@ -123,10 +123,10 @@ export function verifiedLookupAddresses(verified: string[]): { address: string; 
 
 let pinAgentFactory: ((addrs: string[]) => unknown) | null | undefined;
 /** An undici dispatcher pinned to ALREADY-VERIFIED public addresses, for every main-side
- *  fetch that must resist DNS-rebinding. `undefined` when undici is unavailable (the caller
- *  falls back to a plain fetch, host still checked). `.close()` when done. */
-async function pinnedDispatcher(addrs: string[]): Promise<{ close?: () => Promise<void> } | undefined> {
-  if (!addrs.length) return undefined;
+ *  fetch that must resist DNS-rebinding. FAIL CLOSED: no verified address, or undici
+ *  unavailable, THROWS (never a plain fetch that re-resolves the name). `.close()` when done. */
+export async function pinnedDispatcher(addrs: string[]): Promise<{ close?: () => Promise<void> }> {
+  if (!addrs.length) throw new Error("Refused: no verified address to pin");
   if (pinAgentFactory === undefined) {
     try {
       const { Agent } = (await import("undici")) as { Agent: new (o: unknown) => unknown };
@@ -141,10 +141,11 @@ async function pinnedDispatcher(addrs: string[]): Promise<{ close?: () => Promis
           },
         });
     } catch {
-      pinAgentFactory = null; // undici unavailable → no pinning (per-hop re-check stands)
+      pinAgentFactory = null;
     }
   }
-  return pinAgentFactory ? (pinAgentFactory(addrs) as { close?: () => Promise<void> }) : undefined;
+  if (!pinAgentFactory) throw new Error("Refused: the address pin is unavailable");
+  return pinAgentFactory(addrs) as { close?: () => Promise<void> };
 }
 
 export async function safeFetch(url: string, opts: SafeFetchOpts): Promise<SafeFetchResult> {
@@ -165,13 +166,13 @@ export async function safeFetch(url: string, opts: SafeFetchOpts): Promise<SafeF
       // Verify EVERY hop AND pin the connection to the verified IP.
       const verified = await assertPublicUrl(current, opts.source ?? "safe-fetch");
       const dispatcher = await pinnedDispatcher(verified);
-      if (dispatcher) agents.push(dispatcher as { close?: () => Promise<void> });
+      agents.push(dispatcher);
       const init: RequestInit & { dispatcher?: unknown } = {
         signal: controller.signal,
         redirect: "manual",
         headers: { "User-Agent": BROWSER_UA },
+        dispatcher,
       };
-      if (dispatcher) init.dispatcher = dispatcher;
       const res = await fetch(current, init);
       // Manual redirect: resolve Location against the current URL and loop.
       if (res.status >= 300 && res.status < 400 && res.headers.get("location")) {

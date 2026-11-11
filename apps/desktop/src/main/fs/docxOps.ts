@@ -1,4 +1,5 @@
 import { stat } from "node:fs/promises";
+import { assertNotHiddenByLink } from "./toolOrders";
 import { MAX_FILE_BYTES, safeUnzip } from "@openmasq/redact";
 import { applyDocxEdit, docxToText } from "./docxText";
 import type { Grant } from "./grant";
@@ -78,6 +79,7 @@ export const DOCX_OPS: Record<string, DocxOp> = {
    */
   async edit_document(g, a, write) {
     const p = g.resolve(str(a, "path"));
+    assertNotHiddenByLink(str(a, "path"), p, g.roots);
     const { zipSync, strToU8 } = await import("fflate");
     const { zip, xml } = await readBody(p, true);
     const { xml: next, paragraph } = applyDocxEdit(xml, str(a, "oldText"), str(a, "newText"));

@@ -82,6 +82,20 @@ function isPrivateIpv6(ip: string): boolean {
     return isPrivateIpv4(`${h[6] >> 8}.${h[6] & 0xff}.${h[7] >> 8}.${h[7] & 0xff}`);
   }
   const head = h[0];
+  // Transition prefixes that CARRY an IPv4 destination: a gateway (NAT64, a 6to4 relay, a
+  // Teredo client) delivers the packet to the embedded v4, so the address is as private as
+  // that v4 is. Pinned by `net.test.ts`.
+  const v4 = (hi: number, lo: number) => `${hi >> 8}.${hi & 0xff}.${lo >> 8}.${lo & 0xff}`;
+  if (head === 0x64 && h[1] === 0xff9b) {
+    // 64:ff9b::/96 well-known NAT64 (RFC 6052); 64:ff9b:1::/48 is LOCAL-use (RFC 8215).
+    if (h[2] !== 0 || h[3] !== 0 || h[4] !== 0 || h[5] !== 0) return true;
+    return isPrivateIpv4(v4(h[6], h[7]));
+  }
+  if (head === 0x2002) return isPrivateIpv4(v4(h[1], h[2])); // 2002::/16 6to4
+  if (head === 0x2001 && h[1] === 0) {
+    // 2001:0::/32 Teredo: the server v4 in clear, the client v4 XOR-ed with all ones.
+    return isPrivateIpv4(v4(h[2], h[3])) || isPrivateIpv4(v4(h[6] ^ 0xffff, h[7] ^ 0xffff));
+  }
   if ((head & 0xfe00) === 0xfc00) return true; // fc00::/7 ULA
   if ((head & 0xffc0) === 0xfe80) return true; // fe80::/10 link-local
   if ((head & 0xffc0) === 0xfec0) return true; // fec0::/10 site-local (deprecated)

@@ -42,6 +42,7 @@ import { connectRemoteHttp } from "./connectRemote";
 import { browserConnStale } from "./browserHeal";
 import { reconnectRemoteWithRetry, shouldFlagForReconnect } from "./reconnectRetry";
 import { BROWSER_ID, type McpServerInfo } from "./types";
+import { mainMessages } from "../../i18n";
 
 /** Spawn a local stdio server from the catalog with its (decrypted) env. */
 async function connectStdioServer(spec: ServerSpec): Promise<McpServerInfo> {
@@ -165,6 +166,11 @@ export async function connectServer(id: string, interactive: boolean): Promise<M
   if (connected.has(id)) {
     await refreshRoutes();
     return infoFor(spec);
+  }
+  // Its `url` or granted folders are not what the app wrote (`../specSeal.ts`): nothing
+  // connects, no stored credential is sent anywhere. Removed and added again, it is the user's.
+  if (spec.altered) {
+    return { ...infoFor(spec), connected: false, authorized: false, error: mainMessages().desktopMain.mcp.specAltered };
   }
   if (spec.kind === "stdio") return connectStdioServer(spec);
   if (spec.kind === "local-oauth") return connectDirectServer(spec, interactive);

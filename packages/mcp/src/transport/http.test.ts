@@ -85,6 +85,25 @@ describe("HttpMcpServer OAuth reconnect", () => {
     expect(h.connectCalls[1]).not.toBe(h.connectCalls[0]);
   });
 
+  it("sends every request through the host's fetch, the post-auth transport included", async () => {
+    // The server names the hosts (redirects, OAuth metadata, token endpoint): the host's
+    // fetch is the one place they are verified, so the global one must never be reached.
+    const global = vi.spyOn(globalThis, "fetch").mockRejectedValue(new Error("global fetch reached"));
+    const host = vi.fn(async (_input: unknown, init?: RequestInit) => new Response(new Headers(init?.headers).get("user-agent")));
+    const server = new HttpMcpServer({ id: "custom-1", url: "https://mcp.example/mcp", fetch: host as unknown as typeof fetch });
+    await server.connect();
+    await server.finishAuth("auth-code");
+    for (const t of h.transports) {
+      const via = (t.opts as { fetch: typeof fetch }).fetch;
+      const res = await via("https://as.example/.well-known/oauth-authorization-server");
+      expect(await res.text()).toMatch(/Mozilla/); // the browser UA still rides on it
+    }
+    expect(h.transports).toHaveLength(2);
+    expect(host).toHaveBeenCalledTimes(2);
+    expect(global).not.toHaveBeenCalled();
+    global.mockRestore();
+  });
+
   it("would throw 'already started' if the transport were reused (guards the fix)", async () => {
     // Sanity: prove the fake reproduces the real SDK invariant.
     const t = new h.FakeTransport(new URL("https://x/mcp"), undefined);

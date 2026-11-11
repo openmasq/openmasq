@@ -15,6 +15,8 @@ import { registerCloudFsIpc } from "./ipc/registerCloudFsIpc";
 import { registerLocalFsIpc } from "./ipc/registerLocalFsIpc";
 import { flushEgressLog } from "./net/egressLog";
 import { initConfirmationMode } from "./mcp/confirmationMode";
+import { initPostureSeal } from "./mcp/postureSeal";
+import { postureKeyStore } from "./mcp/postureKey";
 import { registerPostureIpc } from "./ipc/registerPostureIpc";
 import { registerSubscriptionIpc } from "./ipc/registerSubscriptionIpc";
 import { registerSubscriptionSetupIpc } from "./ipc/registerSubscriptionSetupIpc";
@@ -120,6 +122,7 @@ app.whenReady().then(async () => {
   // A HELPER process (agent browser / playwright-mcp) runs its OWN logic — never the app.
   if (HELPER_MODE) return;
   // BEFORE any IPC can land: an un-inited store would not persist a change.
+  initPostureSeal(postureKeyStore()); // before the mode and the connector specs it authenticates
   initConfirmationMode(app.getPath("userData"));
   // The local DB is opened PER-ACCOUNT (`db:set-user`), NOT here, so a shared machine
   // never surfaces one account's chats to another.

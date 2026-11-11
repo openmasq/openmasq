@@ -17,10 +17,10 @@ import { CLIENT_INFO, callToolVia, listToolsVia } from "./wrap";
 // auth module (`fetchFn`), so one wrapper covers both paths.
 const BROWSER_UA =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36";
-const uaFetch: typeof fetch = (input, init) => {
+const withUa = (base: typeof fetch): typeof fetch => (input, init) => {
   const headers = new Headers(init?.headers);
   if (!headers.has("user-agent")) headers.set("User-Agent", BROWSER_UA);
-  return fetch(input, { ...init, headers });
+  return base(input, { ...init, headers });
 };
 
 /** Spec for a remote Streamable-HTTP MCP server (the "connector" model). */
@@ -31,6 +31,11 @@ export interface HttpServerSpec {
   headers?: Record<string, string>;
   /** OAuth provider for connectors that authorise via the provider's own login. */
   authProvider?: OAuthClientProvider;
+  /** The `fetch` EVERY request goes out through: the MCP endpoint AND the OAuth discovery,
+   *  registration and token URLs the server's metadata names. The host supplies the one
+   *  that verifies and pins each host (the server chooses those URLs, not us); the global
+   *  `fetch` is the default for a caller that owns its own network boundary. */
+  fetch?: typeof fetch;
   /** Called when the underlying transport closes UNEXPECTEDLY (the remote backend
    *  dropped the SSE/stream) — NOT on an intentional {@link HttpMcpServer.close}.
    *  Lets the owner drop the dead connector so nothing keeps probing it (which
@@ -81,16 +86,19 @@ export class HttpMcpServer implements McpConnection {
    *  whoever asked for it. The error is re-thrown untouched. */
   private readonly fetchImpl: typeof fetch = async (input, init) => {
     try {
-      return await uaFetch(input, init);
+      return await this.uaFetch(input, init);
     } catch (err) {
       this.netError = networkErrorText(err);
       throw err;
     }
   };
 
+  private readonly uaFetch: typeof fetch;
+
   constructor(spec: HttpServerSpec) {
     this.id = spec.id;
     this.spec = spec;
+    this.uaFetch = withUa(spec.fetch ?? ((input, init) => fetch(input, init)));
     this.client = new Client(CLIENT_INFO);
     this.wireHandlers();
     this.transport = this.newTransport();
