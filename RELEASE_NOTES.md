@@ -50,6 +50,18 @@ kept in the French they were sent in, for the reason given above.
 
 ---
 
+## 0.17.6 — 2026-11-12
+> Documents, connectors and local data are handled more safely.
+
+### Improvements & fixes
+- Documents are always read inside the system's sandbox, or not opened at all.
+- Remote connectors are reached more safely.
+- An action another tool would carry out always asks you first.
+- Local data and error reports are stored and sent more carefully.
+- If you share usage statistics, they now show where setting up Claude Code or Codex stops.
+
+---
+
 ## 0.17.5 — 2026-11-09
 > See what the model saw, read your documents clearly, and mask more French ids.
 
