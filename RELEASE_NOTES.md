@@ -50,7 +50,7 @@ kept in the French they were sent in, for the reason given above.
 
 ---
 
-## 0.17.6 — 2026-11-12
+## 0.17.7 — 2026-11-12
 > Documents, connectors and local data are handled more safely.
 
 ### Improvements & fixes
