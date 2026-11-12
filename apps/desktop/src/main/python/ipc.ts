@@ -2,6 +2,8 @@ import { trustedHandle } from "../ipc/senderGate";
 import { ensureRuntime, type Progress } from "./runtime";
 import { runPython, type PythonResult, type SeedFile } from "./sandbox";
 import { mainMessages } from "../i18n";
+import { reportMainEvent } from "../runtime/errorReport";
+import { trackPythonRuntime } from "../runtime/installTrack";
 
 /**
  * IPC surface for the sandboxed Python engine: `python:run` ensures the runtime
@@ -60,7 +62,7 @@ export function registerPythonIpc(): void {
     // First call downloads the runtime (slow); subsequent calls are instant. Errors
     // (no network on first use, unsupported platform) surface as a failed result.
     try {
-      const { pythonBin } = await ensureRuntime((prog) => emit(phaseLabel(prog)));
+      const { pythonBin } = await trackPythonRuntime(reportMainEvent, ensureRuntime, (prog) => emit(phaseLabel(prog)));
       emit(mainMessages().desktopMain.python.running);
       return await runPython(String(p.code ?? ""), {
         pythonBin,

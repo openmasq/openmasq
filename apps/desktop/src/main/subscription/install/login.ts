@@ -26,6 +26,7 @@ import type {
   SubscriptionLoginEvent,
   SubscriptionSetupResult,
 } from "@openmasq/llm";
+import type { TrackEvent } from "@openmasq/ui";
 import { minimalChildEnv } from "../../childEnv";
 
 const STATUS_TIMEOUT_MS = 8_000;
@@ -166,12 +167,21 @@ const LOGIN_ARGS: Record<SubscriptionCli, string[] | null> = {
 
 const sessions = new Map<SubscriptionCli, LoginSession>();
 
-/** Start the CLI's own sign-in; `emit` relays what it prints. One session per CLI. */
+/** HOW a sign-in ended — what the interface's single `login` error cannot say. */
+export interface LoginEnd {
+  outcome: Exclude<Extract<TrackEvent, { name: "cli_login" }>["outcome"], "no_cli" | "unsupported">;
+  /** The sign-in page was relayed: `failed` without it = the CLI died before printing one. */
+  urlShown: boolean;
+}
+
+/** Start the CLI's own sign-in; `emit` relays what it prints, `onEnd` says how it ended
+ *  (telemetry). One session per CLI: a new one CANCELS the previous. */
 export function startLogin(
   cli: SubscriptionCli,
   binPath: string,
   cwd: string,
   emit: (e: SubscriptionLoginEvent) => void,
+  onEnd?: (end: LoginEnd) => void,
 ): LoginSession | null {
   const args = LOGIN_ARGS[cli];
   if (!args) return null;
@@ -185,19 +195,25 @@ export function startLogin(
   let sentUrl = false;
   let sentCode = false;
   let settled = false;
+  let cancelled = false;
   const done = new Promise<SubscriptionSetupResult>((resolve) => {
-    const finish = (ok: boolean) => {
+    const finish = (ok: boolean, why: LoginEnd["outcome"] = ok ? "ok" : cancelled ? "cancelled" : "failed") => {
       if (settled) return;
       settled = true;
       clearTimeout(timer);
       sessions.delete(cli);
       const result: SubscriptionSetupResult = ok ? { ok } : { ok, error: "login" };
       emit({ cli, kind: "done", ...result });
+      try {
+        onEnd?.({ outcome: why, urlShown: sentUrl });
+      } catch {
+        /* telemetry never changes the sign-in's result */
+      }
       resolve(result);
     };
     const timer = setTimeout(() => {
       child.kill("SIGTERM");
-      finish(false);
+      finish(false, "timeout");
     }, LOGIN_TIMEOUT_MS);
     // Both streams: claude prints on stdout, codex's `login` on stderr.
     const onData = (c: string) => {
@@ -216,7 +232,7 @@ export function startLogin(
     child.stdout?.on("data", onData);
     child.stderr?.setEncoding("utf8");
     child.stderr?.on("data", onData);
-    child.on("error", () => finish(false));
+    child.on("error", () => finish(false, "spawn_error"));
     // `close`, not `exit`: a sign-in URL printed just before the CLI ends must reach `emit`.
     child.on("close", (code) => finish(code === 0));
   });
@@ -231,7 +247,9 @@ export function startLogin(
       return true;
     },
     cancel() {
-      if (!settled) child.kill("SIGTERM");
+      if (settled) return;
+      cancelled = true;
+      child.kill("SIGTERM");
     },
   };
   sessions.set(cli, session);

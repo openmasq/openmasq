@@ -13,6 +13,8 @@ import {
   startLogin,
   submitLoginCode,
 } from "../subscription/install";
+import { reportMainEvent } from "../runtime/errorReport";
+import { trackCliInstall, trackCliLogin, trackCliStatus, trackLoginWithoutCli } from "../runtime/installTrack";
 
 /**
  * The SET-UP half of the subscription family: install a CLI here, sign it in, say where
@@ -31,52 +33,72 @@ import {
 const CLIS: readonly SubscriptionCli[] = ["claude", "codex", "antigravity"];
 const asCli = (v: string): SubscriptionCli | null => (CLIS.includes(v as SubscriptionCli) ? (v as SubscriptionCli) : null);
 
+/** What a set-up card shows for `raw`: installed, signed in, installable. */
+async function readStatus(raw: string): Promise<SubscriptionCliStatus | null> {
+  const cli = asCli(raw);
+  if (!cli) return null;
+  const bin = subscriptionCliPath(cli);
+  const pin = installPin(cli, process.platform, process.arch);
+  const base = {
+    cli,
+    installable: pin !== null,
+    connectable: loginSupported(cli),
+    ...(pin ? { downloadBytes: pin.size } : {}),
+  };
+  if (!bin) return { ...base, installed: false, loggedIn: null };
+  if (cli === "antigravity") {
+    // No status command: the account is signed in when the CLI lists its models
+    // (`account.ts`, the same read the account card does). Nothing listed says
+    // nothing — `null`, never « not connected ».
+    const account = await readSubscriptionAccount(cli, bin, subscriptionCwd(cli));
+    return { ...base, installed: true, loggedIn: account ? true : null };
+  }
+  const login = await readLoginStatus(cli, bin, subscriptionCwd(cli));
+  return { ...base, installed: true, ...login };
+}
+
 export function registerSubscriptionSetupIpc(): void {
   handle("subscription:status", [str], async (_e, raw): Promise<SubscriptionCliStatus | null> => {
-    const cli = asCli(raw);
-    if (!cli) return null;
-    const bin = subscriptionCliPath(cli);
-    const pin = installPin(cli, process.platform, process.arch);
-    const base = {
-      cli,
-      installable: pin !== null,
-      connectable: loginSupported(cli),
-      ...(pin ? { downloadBytes: pin.size } : {}),
-    };
-    if (!bin) return { ...base, installed: false, loggedIn: null };
-    if (cli === "antigravity") {
-      // No status command: the account is signed in when the CLI lists its models
-      // (`account.ts`, the same read the account card does). Nothing listed says
-      // nothing — `null`, never « not connected ».
-      const account = await readSubscriptionAccount(cli, bin, subscriptionCwd(cli));
-      return { ...base, installed: true, loggedIn: account ? true : null };
-    }
-    const login = await readLoginStatus(cli, bin, subscriptionCwd(cli));
-    return { ...base, installed: true, ...login };
+    const status = await readStatus(raw);
+    trackCliStatus(status, reportMainEvent);
+    return status;
   });
 
   handle("subscription:install", [str], async (_e, raw): Promise<SubscriptionSetupResult> => {
     const cli = asCli(raw);
     if (!cli) return { ok: false, error: "unsupported" };
-    return installSubscriptionCli(cli, {
-      platform: process.platform,
-      arch: process.arch,
-      userData: app.getPath("userData"),
-      home: app.getPath("home"),
-      onProgress: (p) => withMainWindow((w) => w.webContents.send("subscription:install-progress", p)),
-    });
+    return trackCliInstall(cli, reportMainEvent, (onPhase) =>
+      installSubscriptionCli(cli, {
+        platform: process.platform,
+        arch: process.arch,
+        userData: app.getPath("userData"),
+        home: app.getPath("home"),
+        onProgress: (p) => {
+          onPhase(p);
+          withMainWindow((w) => w.webContents.send("subscription:install-progress", p));
+        },
+      }),
+    );
   });
 
   handle("subscription:login", [str], async (_e, raw): Promise<SubscriptionSetupResult> => {
     const cli = asCli(raw);
     if (!cli) return { ok: false, error: "unsupported" };
     const bin = subscriptionCliPath(cli);
-    if (!bin) return { ok: false, error: "install" };
-    const session = startLogin(cli, bin, subscriptionCwd(cli), (ev) =>
-      withMainWindow((w) => w.webContents.send("subscription:login-event", ev)),
+    if (!bin) {
+      trackLoginWithoutCli(cli, reportMainEvent);
+      return { ok: false, error: "install" };
+    }
+    const result = await trackCliLogin(cli, reportMainEvent, (onEnd) =>
+      startLogin(
+        cli,
+        bin,
+        subscriptionCwd(cli),
+        (ev) => withMainWindow((w) => w.webContents.send("subscription:login-event", ev)),
+        onEnd,
+      )?.done ?? null,
     );
-    if (!session) return { ok: false, error: "unsupported" };
-    return session.done;
+    return result ?? { ok: false, error: "unsupported" };
   });
 
   handle("subscription:login-code", [str, str], (_e, raw, code) => {

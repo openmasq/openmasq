@@ -65,6 +65,12 @@ export const EVENT_TIER = {
   onboarding_step: "usage",
   onboarding_blocked: "usage",
   agent_detected: "usage",
+  // Setting an agent up is USAGE wherever the build came from: the CLI is the vendor's.
+  cli_status: "usage",
+  cli_install_start: "usage",
+  cli_install: "usage",
+  cli_login_start: "usage",
+  cli_login: "usage",
   debug_mode_toggle: "diagnostic",
   analytics_consent: "usage",
   update_check: "diagnostic",
@@ -73,6 +79,8 @@ export const EVENT_TIER = {
   update_install_deferred: "diagnostic",
   update_installed: "diagnostic",
   update_install_failed: "diagnostic",
+  // Bundled or downloaded depends on how the build was PACKAGED: a diagnostic of the build.
+  python_runtime: "diagnostic",
 } as const satisfies Record<EventName, EventTier>;
 
 /** The names a `usage`-tier sink lets through — derived, never a second list. */

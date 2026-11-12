@@ -16,6 +16,7 @@ import type { ConnectorErrorFamily } from "../pages/Settings/mcp/connectorErrorT
 import type { LoginMethod, LoginOutcome, LoginStep } from "../pages/Login/loginErrors";
 // Likewise: the language is a catalogue enum, never a free string.
 import type { Locale } from "@openmasq/i18n";
+import type { InstallEvent } from "./installEvents";
 
 /** Why a chat send failed — a BOUNDED code (never the raw error text). */
 export type SendErrorReason =
@@ -267,7 +268,9 @@ export type TrackEvent =
       reason: "in_use" | "busy_main" | "busy_renderer" | "no_answer";
     }
   | { name: "update_installed"; channel: string; from: string; to: string }
-  | { name: "update_install_failed"; channel: string; version: string; running: string };
+  | { name: "update_install_failed"; channel: string; version: string; running: string }
+  // ── what the app installs while it runs (CLIs, their sign-in, the Python runtime) ──
+  | InstallEvent;
 
 export type EventName = TrackEvent["name"];
 

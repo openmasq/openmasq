@@ -18,7 +18,13 @@ export const ALLOWED = DESKTOP_EVENTS satisfies Record<EventName, readonly strin
 /** Per-field quantisers: `chars` (a count) and `ms` (a latency) are bucketed to
  *  coarse ranges so exact values can't fingerprint a user; every other field keeps
  *  its raw primitive. Passed to the shared allow-list walk (`makeSanitize`). */
-const bucketers: Bucketers = { chars: bucket, ms: bucketMs, ttftMs: bucketMs, routerMs: bucketMs };
+const bucketers: Bucketers = {
+  chars: bucket,
+  ms: bucketMs,
+  ttftMs: bucketMs,
+  routerMs: bucketMs,
+  duration: bucketDuration,
+};
 
 /** Quantise a count into a coarse bucket label (avoids exact-length fingerprints). */
 export function bucket(n: number): string {
@@ -46,6 +52,17 @@ export function bucketMs(n: number): string {
   if (n < 40000) return "20-40s";
   if (n < 60000) return "40-60s";
   return "60s+";
+}
+
+/** Quantise a SET-UP duration (an install, a sign-in): minutes, not latencies. `bucketMs`
+ *  stops at "60s+", where a 110 MB download and a sign-in page left open both land. */
+export function bucketDuration(n: number): string {
+  if (n < 10_000) return "<10s";
+  if (n < 30_000) return "10-30s";
+  if (n < 60_000) return "30-60s";
+  if (n < 180_000) return "1-3min";
+  if (n < 600_000) return "3-10min";
+  return "10min+";
 }
 
 /**

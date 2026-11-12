@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { sanitize, bucket, bucketMs } from "./sanitize";
+import { sanitize, bucket, bucketMs, bucketDuration } from "./sanitize";
 import type { TrackEvent } from "./events";
 
 describe("analytics sanitize (privacy guard)", () => {
@@ -73,6 +73,16 @@ describe("analytics sanitize (privacy guard)", () => {
     expect(bucketMs(25000)).toBe("20-40s");
     expect(bucketMs(50000)).toBe("40-60s");
     expect(bucketMs(120000)).toBe("60s+");
+  });
+
+  // A set-up lasts minutes: `bucketMs` would put a download and a sign-in left open in one "60s+".
+  it("an install's `duration` is bucketed in minutes, never sent raw", () => {
+    expect(bucketDuration(4000)).toBe("<10s");
+    expect(bucketDuration(45_000)).toBe("30-60s");
+    expect(bucketDuration(120_000)).toBe("1-3min");
+    expect(bucketDuration(900_000)).toBe("10min+");
+    const out = sanitize({ name: "cli_install", cli: "codex", outcome: "ok", stage: "done", duration: 95_000 });
+    expect(out.props).toEqual({ cli: "codex", outcome: "ok", stage: "done", duration: "1-3min" });
   });
 
   it("drops nested objects even on an allow-listed key (no content leak)", () => {

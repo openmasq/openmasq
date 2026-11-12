@@ -13,6 +13,7 @@ import {
   parseLoginOutput,
   readLoginStatus,
   startLogin,
+  type LoginEnd,
   stripAnsi,
 } from "./login";
 
@@ -89,6 +90,48 @@ describe("startLogin", () => {
     const session = startLogin("codex", bin, dir, (e) => events.push(e.kind === "url" ? e.url : e.kind));
     expect(await session!.done).toEqual({ ok: true });
     expect(events).toEqual(["https://auth.openai.com/oauth/authorize?x=1", "done"]);
+  });
+});
+
+// The interface gets one `login` error for every failure; telemetry needs HOW it ended, or a
+// refused account, a callback never reached and a person who gave up all read the same.
+describe("startLogin — how it ended (onEnd)", () => {
+  const fake = (script: string) => {
+    const dir = mkdtempSync(join(tmpdir(), "om-login-"));
+    const bin = join(dir, "codex");
+    writeFileSync(bin, `#!/bin/sh\n${script}\n`);
+    chmodSync(bin, 0o755);
+    return { dir, bin };
+  };
+  const ends = () => {
+    const got: LoginEnd[] = [];
+    return { got, onEnd: (e: LoginEnd) => got.push(e) };
+  };
+
+  it.skipIf(process.platform === "win32")("ok, with the page shown", async () => {
+    const { dir, bin } = fake('echo "https://auth.openai.com/oauth/authorize?x=1" 1>&2');
+    const { got, onEnd } = ends();
+    await startLogin("codex", bin, dir, () => {}, onEnd)!.done;
+    expect(got).toEqual([{ outcome: "ok", urlShown: true }]);
+  });
+
+  it.skipIf(process.platform === "win32")("failed BEFORE any page: the CLI died without printing one", async () => {
+    const { dir, bin } = fake("exit 3");
+    const { got, onEnd } = ends();
+    expect(await startLogin("codex", bin, dir, () => {}, onEnd)!.done).toEqual({ ok: false, error: "login" });
+    expect(got).toEqual([{ outcome: "failed", urlShown: false }]);
+  });
+
+  it.skipIf(process.platform === "win32")("cancelled is not failed", async () => {
+    const { dir, bin } = fake('echo "https://auth.openai.com/oauth/authorize?x=1" 1>&2\nexec sleep 30');
+    const { got, onEnd } = ends();
+    let shown!: () => void;
+    const urlShown = new Promise<void>((r) => (shown = r));
+    const session = startLogin("codex", bin, dir, (e) => e.kind === "url" && shown(), onEnd)!;
+    await urlShown;
+    session.cancel();
+    await session.done;
+    expect(got).toEqual([{ outcome: "cancelled", urlShown: true }]);
   });
 });
 
