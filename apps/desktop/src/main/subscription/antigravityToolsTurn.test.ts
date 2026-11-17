@@ -3,7 +3,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import type { ToolDef } from "@openmasq/llm";
-import { ANTIGRAVITY_APP_DATA_DIR, ANTIGRAVITY_BRIDGE_RULE, ANTIGRAVITY_SETTINGS } from "./antigravityEngine";
+import { ANTIGRAVITY_BRIDGE_RULE, ANTIGRAVITY_SETTINGS } from "./antigravityEngine";
 import { ANTIGRAVITY_PLUGIN_DIR, antigravityPluginFiles } from "./antigravityToolsTurn";
 import { completeSubscriptionTools } from "./toolsTurn";
 
@@ -67,8 +67,8 @@ describe("le tour outillé sur la CLI Antigravity", () => {
     // ⚠️ Boundary: the token NEVER passes through argv (readable via `ps`) — the fake CLI
     // found it only in the plugin file, which the capture above proves.
     expect(argv.join(" ")).not.toMatch(/[0-9a-f]{48}/);
-    // …and the text turn's isolation holds: our data dir, never the machine handed over.
-    expect(argv).toContain(`--app_data_dir=${ANTIGRAVITY_APP_DATA_DIR}`);
+    // …and the text turn's isolation holds: Default mode + our ONE grant, never the machine.
+    expect(JSON.parse(argv[argv.indexOf("--settings") + 1])).toEqual(ANTIGRAVITY_SETTINGS);
     expect(argv).not.toContain("--dangerously-skip-permissions");
     // The plugin folder is DISPOSABLE: distinct from the cwd, gone once the turn ends.
     const addDir = readFileSync(dirDump, "utf8");
@@ -107,8 +107,10 @@ describe("le plugin et la règle — le pont, et rien d'autre", () => {
     expect(ANTIGRAVITY_PLUGIN_DIR).toBe(join(".agents", "plugins", "openmasq"));
   });
 
-  it("la SEULE permission accordée est celle du pont — grammaire `mcp(server/tool)` mesurée", () => {
-    expect(ANTIGRAVITY_BRIDGE_RULE).toBe("mcp(openmasq/*)");
+  // Measured on 1.5.10: a plugin's server is named `<plugin>_<server>`; the bare
+  // `mcp(openmasq/*)` matched nothing and every bridge call was denied.
+  it("la SEULE permission accordée est celle du pont — `mcp(<plugin>_<serveur>/*)` mesurée", () => {
+    expect(ANTIGRAVITY_BRIDGE_RULE).toBe("mcp(openmasq_openmasq/*)");
     expect(ANTIGRAVITY_SETTINGS.permissions.allow).toEqual([ANTIGRAVITY_BRIDGE_RULE]);
     // No command, no file, no URL: anything else stays auto-denied by headless mode.
     expect(JSON.stringify(ANTIGRAVITY_SETTINGS)).not.toMatch(/command|read_file|write_file|read_url|unsandboxed/);

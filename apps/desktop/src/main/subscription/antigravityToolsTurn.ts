@@ -13,8 +13,10 @@
  * - **`serverUrl` + `headers`** is the CLI's HTTP shape (its docs say SSE; measured, it
  *   speaks streamable HTTP: `server/discover`, `initialize`, a `GET` it tolerates being
  *   refused, then `tools/list` and `tools/call`, the Bearer on every request). The bridge
- *   receives the BARE tool name — the `openmasq/` prefix exists only in the permission
- *   rule (`ANTIGRAVITY_BRIDGE_RULE`).
+ *   receives the BARE tool name — the server prefix (`openmasq_openmasq/`, plugin + server
+ *   since 1.5) exists only in the permission rule (`ANTIGRAVITY_BRIDGE_RULE`). The CLI
+ *   mirrors the tool SCHEMAS (names, descriptions — never the token) under its own
+ *   `~/.gemini/antigravity-cli/mcp/`: residual, said.
  * - **The token lives in the plugin file (0600, disposable folder)**, never in argv: a
  *   process's command line is readable by any local process (`ps`). Same boundary as
  *   claude's config file.
@@ -26,7 +28,7 @@ import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { BRAND } from "@openmasq/branding";
-import { buildAntigravityArgs } from "./antigravityEngine";
+import { antigravityStdin, buildAntigravityArgs } from "./antigravityEngine";
 import { interpretAntigravityEvent } from "./antigravityStream";
 import { promptWithSystem } from "./bridge";
 import { TOOLS_SERVER_NAME } from "./toolsBridge";
@@ -61,10 +63,8 @@ export const antigravityToolsRecipe = {
       await writeFile(join(pluginDir, name), body, { mode: 0o600 });
     }
     return {
-      args: buildAntigravityArgs({
-        prompt: promptWithSystem(input.system, input.prompt),
-        addDir: dir,
-      }),
+      args: buildAntigravityArgs({ addDir: dir }),
+      stdin: antigravityStdin(promptWithSystem(input.system, input.prompt)),
       cleanup: () => rm(dir, { recursive: true, force: true }).catch(() => {}),
     };
   },

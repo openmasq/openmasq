@@ -4,7 +4,7 @@ import {
   antigravityUsage,
   interpretAntigravityEvent,
 } from "./antigravityStream";
-import { buildAntigravityArgs, ANTIGRAVITY_APP_DATA_DIR } from "./antigravityEngine";
+import { antigravityStdin, buildAntigravityArgs, ANTIGRAVITY_SETTINGS } from "./antigravityEngine";
 
 /**
  * The events below are REAL CAPTURES from CLI 1.1.21 (31/08/2026), reduced to the strict
@@ -92,20 +92,35 @@ describe("interpretAntigravityEvent — le flux mesuré de la CLI agy", () => {
 });
 
 describe("buildAntigravityArgs — l'isolement est dans les drapeaux", () => {
-  const args = buildAntigravityArgs({ prompt: "bonjour" });
+  const args = buildAntigravityArgs({});
 
   it("sert le tour en NDJSON, sans expansion de commandes slash", () => {
     expect(args).toContain("stream-json");
     expect(args).toContain("--disable-slash-commands");
-    expect(args[args.length - 2]).toBe("-p");
-    expect(args[args.length - 1]).toBe("bonjour");
   });
 
-  it("isole les réglages ET l'historique dans un dossier de données à nous", () => {
-    // The flag only accepts a RELATIVE path (measured): passing it absolute makes the
-    // start-up refuse (« must not be absolute »).
-    expect(args).toContain(`--app_data_dir=${ANTIGRAVITY_APP_DATA_DIR}`);
-    expect(ANTIGRAVITY_APP_DATA_DIR.startsWith("/")).toBe(false);
+  // Regression: `-p <prompt>` died on the OS command-line cap (Windows ≈ 32 767 chars).
+  it("le prompt part sur STDIN (une ligne stream-json), jamais en argv", () => {
+    expect(args).not.toContain("-p");
+    expect(args[args.indexOf("--input-format") + 1]).toBe("stream-json");
+    const line = antigravityStdin("ligne 1\nligne 2 « / »");
+    expect(line.endsWith("\n")).toBe(true);
+    expect(line.trimEnd().includes("\n")).toBe(false); // ONE line, whatever the prompt holds
+    expect(JSON.parse(line)).toEqual({ event: "user", message: { content: "ligne 1\nligne 2 « / »" } });
+  });
+
+  // Measured on 1.5.10: a session with no saved mode starts in AUTO, which approves tools
+  // itself — the model wrote a file in the cwd. Default mode is what makes headless deny.
+  it("⛔ force le mode Default (`agentMode: \"\"`) : sans lui, Auto approuve les outils seul", () => {
+    expect(ANTIGRAVITY_SETTINGS.agentMode).toBe("");
+    expect(JSON.parse(args[args.indexOf("--settings") + 1])).toEqual(ANTIGRAVITY_SETTINGS);
+  });
+
+  // This CLI's parser STOPS at an unknown flag and drops the rest (measured with the retired
+  // `--app_data_dir`): the newest flag goes LAST, and a retired one never comes back.
+  it("`--settings` en DERNIER, et plus jamais `--app_data_dir` (retiré, il coupait l'analyse)", () => {
+    expect(args[args.length - 2]).toBe("--settings");
+    expect(args.some((a) => a.startsWith("--app_data_dir"))).toBe(false);
   });
 
   it("⛔ ne rend JAMAIS la machine au modèle", () => {
@@ -116,7 +131,7 @@ describe("buildAntigravityArgs — l'isolement est dans les drapeaux", () => {
     // Measured: `--add-dir` is the only path print mode reads customizations from — the
     // bare cwd, `.git` or not, trusted or not, is never scanned (`antigravityEngine.ts`).
     expect(args).not.toContain("--add-dir");
-    const tooled = buildAntigravityArgs({ prompt: "x", addDir: "/tmp/plug" });
+    const tooled = buildAntigravityArgs({ addDir: "/tmp/plug" });
     expect(tooled[tooled.indexOf("--add-dir") + 1]).toBe("/tmp/plug");
   });
 });

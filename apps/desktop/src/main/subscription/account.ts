@@ -11,8 +11,8 @@
  *   `model/list` (`id`, `displayName`, `isDefault`, `hidden`) and `account/read`
  *   (`planType`). `initialize` must come first, then the `initialized` notification.
  * - **antigravity 1.1.23**: `agy models` prints `id<TAB>label` lines after a
- *   « Fetching… » banner — the account's live ids. Run with `--app_data_dir` like a turn,
- *   so the listing leaves no trace in the user's own data dir. No quota exposed.
+ *   « Fetching… » banner — the account's live ids, read by a BARE `agy models` (1.5.10
+ *   dropped `--app_data_dir`; an unknown flag opens the TUI instead). No quota exposed.
  * - **claude 2.1.252**: nothing to ASK. Its `/usage` goes through `api/oauth/usage` with
  *   ITS OAuth — reading that would be reading its token. What it gives is the
  *   `rate_limit_event` of each turn (`claudeStream.ts`): we REMEMBER the last one here,
@@ -24,7 +24,6 @@
  */
 import { spawn } from "node:child_process";
 import type { SubscriptionAccount, SubscriptionQuota } from "@openmasq/llm";
-import { ANTIGRAVITY_APP_DATA_DIR } from "./antigravityEngine";
 import type { SubscriptionCliId } from "./resolveCli";
 import { minimalChildEnv } from "../childEnv";
 
@@ -138,7 +137,8 @@ export function parseAgyModels(stdout: string): SubscriptionAccount["models"] {
 
 function readAntigravityAccount(binPath: string, cwd: string): Promise<SubscriptionAccount | null> {
   return new Promise((resolve) => {
-    const child = spawn(binPath, [`--app_data_dir=${ANTIGRAVITY_APP_DATA_DIR}`, "models"], {
+    // Bare `models`: a flag this CLI does not know stops its parser and opens the TUI (1.5.10).
+    const child = spawn(binPath, ["models"], {
       cwd,
       env: minimalChildEnv(),
       stdio: ["ignore", "pipe", "ignore"],

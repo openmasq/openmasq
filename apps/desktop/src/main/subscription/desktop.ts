@@ -5,12 +5,11 @@
  * stay pure and testable without Electron.
  */
 import { app } from "electron";
-import { mkdirSync, writeFileSync } from "node:fs";
+import { mkdirSync } from "node:fs";
 import { join } from "node:path";
-import { subscriptionCliOfProvider } from "@openmasq/llm";
-import { ANTIGRAVITY_APP_DATA_DIR, ANTIGRAVITY_SETTINGS } from "./antigravityEngine";
+import { cliFailWire, subscriptionCliOfProvider } from "@openmasq/llm";
 import { appCliRoots } from "./install";
-import { resolveCli, type SubscriptionCliId } from "./resolveCli";
+import { CLI_LABEL, resolveCli, type SubscriptionCliId } from "./resolveCli";
 import type { SubscriptionTurnEnv } from "./turn";
 import { mainMessages } from "../i18n";
 
@@ -30,12 +29,6 @@ export function subscriptionCliFor(provider: string): SubscriptionCliId | null {
 export function subscriptionToolsCli(provider: string): SubscriptionCliId | null {
   return subscriptionCliFor(provider);
 }
-
-const CLI_LABEL: Record<SubscriptionCliId, string> = {
-  claude: "Claude Code",
-  codex: "Codex",
-  antigravity: "Antigravity",
-};
 
 /**
  * The binary for a CLI, or `null` (NORMAL state: not installed — the UI shows it as
@@ -73,21 +66,6 @@ function cliMissing(cli: SubscriptionCliId): string {
   return { claude: t.missingClaude, codex: t.missingCodex, antigravity: t.missingAntigravity }[cli];
 }
 
-/**
- * The Antigravity CLI's ISOLATED data folder, and the settings written into it before
- * every turn. The `--app_data_dir` flag only accepts a RELATIVE path (resolved under
- * `~/.gemini`, measured): this folder therefore cannot live in `userData` like the cwd.
- * What is written there — ONE allow rule, the app's bridge (`ANTIGRAVITY_SETTINGS`) — is
- * what holds the isolation: headless mode refuses every other tool that needs a
- * permission, and the rules the user set for THEIR own sessions do not apply here.
- * Rewritten on every turn (idempotent) so that a hand edit never leaves a wider grant
- * behind.
- */
-function prepareAntigravityAppData(): void {
-  const dir = join(app.getPath("home"), ".gemini", ANTIGRAVITY_APP_DATA_DIR);
-  mkdirSync(dir, { recursive: true });
-  writeFileSync(join(dir, "settings.json"), JSON.stringify(ANTIGRAVITY_SETTINGS, null, 2));
-}
 
 /** A turn's environment, or an EXPLAINED error if the CLI is missing (fail-closed). */
 /**
@@ -115,10 +93,9 @@ export function isSubscriptionCliEnabled(cli: SubscriptionCliId): boolean {
 
 export function subscriptionTurnEnv(cli: SubscriptionCliId = "claude"): SubscriptionTurnEnv {
   if (!enabledClis.has(cli)) {
-    throw new Error(mainMessages().desktopMain.subscription.notEnabled(CLI_LABEL[cli]));
+    throw new Error(cliFailWire(cli, "not_enabled", mainMessages().desktopMain.subscription.notEnabled(CLI_LABEL[cli])));
   }
   const binPath = subscriptionCliPath(cli);
-  if (!binPath) throw new Error(cliMissing(cli));
-  if (cli === "antigravity") prepareAntigravityAppData();
+  if (!binPath) throw new Error(cliFailWire(cli, "missing", cliMissing(cli)));
   return { cli, label: CLI_LABEL[cli], binPath, cwd: subscriptionCwd(cli) };
 }
