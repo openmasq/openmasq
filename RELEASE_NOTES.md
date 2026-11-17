@@ -50,6 +50,14 @@ kept in the French they were sent in, for the reason given above.
 
 ---
 
+## 0.17.9 — 2026-11-17
+> Usage statistics tell app errors apart from account issues.
+
+### Improvements & fixes
+- If you share usage statistics, an issue with your own provider account is no longer reported as an app error.
+
+---
+
 ## 0.17.8 — 2026-11-17
 > Your Claude, Codex and Antigravity subscriptions handle long conversations.
 
