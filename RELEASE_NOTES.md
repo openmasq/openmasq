@@ -50,6 +50,17 @@ kept in the French they were sent in, for the reason given above.
 
 ---
 
+## 0.17.8 — 2026-11-17
+> Your Claude, Codex and Antigravity subscriptions handle long conversations.
+
+### Improvements & fixes
+- Long conversations and large documents reach your Claude, Codex and Antigravity subscriptions.
+- Antigravity works with the latest version of its app.
+- When a subscription app cannot start, the message says why and what to do next.
+- If you share usage statistics, they now include your system type, to spot issues tied to one.
+
+---
+
 ## 0.17.7 — 2026-11-12
 > Documents, connectors and local data are handled more safely.
 
