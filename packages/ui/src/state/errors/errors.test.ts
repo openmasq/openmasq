@@ -275,3 +275,20 @@ describe("a model the provider reserves for other apps", () => {
     expect(sendErrorReason(new Error("403 Forbidden"))).toBe("auth");
   });
 });
+
+describe("a subscription CLI failure main NAMED (CLI_FAIL)", () => {
+  const t = getMessages("fr");
+  const wire = "Error invoking remote method 'chat:stream-tools': Error: CLI_FAIL:claude:prompt_too_long · La conversation est trop longue.";
+
+  it("the bubble shows main's sentence, never the wire code", () => {
+    expect(humanizeSendError(wire, t)).toBe("La conversation est trop longue.");
+  });
+
+  it("analytics gets the bounded code instead of « unknown »", () => {
+    expect(sendErrorReason(wire)).toBe("cli_prompt_too_long");
+    expect(sendErrorReason("CLI_FAIL:codex:spawn_missing · x")).toBe("cli_spawn_missing");
+    // A code this build does not know stays out of the bounded field.
+    expect(sendErrorReason("CLI_FAIL:claude:made_up · x")).toBe("unknown");
+  });
+});
+

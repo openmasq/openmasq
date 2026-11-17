@@ -171,3 +171,35 @@ describe("`$session_id` — stamped from the injected source, read when the even
     expect("$session_id" in props()[0]).toBe(false);
   });
 });
+
+describe("the platform context — `os` / `arch` on every event", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  function wirePlatform(os?: string, arch?: string) {
+    const fetchFn = vi.fn(async (_url: string, _init: { body: string }) => ({ ok: true }));
+    vi.stubGlobal("fetch", fetchFn);
+    vi.stubGlobal("navigator", {});
+    vi.stubGlobal("location", undefined);
+    const s = createSink({ getAnonId: () => "anon-x", defaultSource: "test" });
+    s.configureAnalytics({ relayUrl: "https://relay.test/e", os, arch });
+    s.setAnalyticsConsent(true);
+    const props = () => fetchFn.mock.calls.map(([, init]) => JSON.parse(init.body).properties);
+    return { s, props };
+  }
+
+  it("stamps the OS and CPU on events AND on `$exception` (a Windows-only failure becomes visible)", async () => {
+    const { s, props } = wirePlatform("win32", "x64");
+    s.sink({ name: "app_open", props: {} });
+    s.captureError({ scope: "mcp", code: "cli-prompt-too-long", name: "Error" });
+    await flush();
+    expect(props().map((p) => [p.os, p.arch])).toEqual([["win32", "x64"], ["win32", "x64"]]);
+  });
+
+  it("a value that is not a coarse platform name is dropped, never stamped", async () => {
+    const { s, props } = wirePlatform("Windows 11 Pro (build 22631)", "x64");
+    s.sink({ name: "app_open", props: {} });
+    await flush();
+    expect("os" in props()[0]).toBe(false);
+    expect(props()[0].arch).toBe("x64");
+  });
+});

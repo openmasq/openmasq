@@ -10,7 +10,8 @@ import type { ModelAccess } from "../../state/auth/modelAccess";
  *  - `agent_detected`, once per agent when its probe answers: the share of people who
  *    HAVE Claude Code or Codex, whether or not they switch it on here;
  *  - `onboarding_blocked`, each press of « Suivant » with no road to a model: the step
- *    cannot be left without one, so this is where a person without access stops;
+ *    cannot be left without one, so this is where a person without access stops — with
+ *    the agents switched on and the ones found, so the cause can be told apart;
  *  - `choices()`, the access the person left with (`modelAccess`, the gate's own verdict),
  *    stamped by the caller on `done` AND on every skip. Ids only: the key itself never
  *    reaches the onboarding.
@@ -69,7 +70,12 @@ export function useOnboardingTelemetry({
     };
   }
 
-  const blocked = () => captureEvent({ name: "onboarding_blocked" });
+  const blocked = () =>
+    captureEvent({
+      name: "onboarding_blocked",
+      agents: agents.filter((a) => a.enabled).map((a) => a.cli).join(",") || "none",
+      detected: agents.filter((a) => a.detected).map((a) => a.cli).join(",") || "none",
+    });
 
   return { choices, connectOpenRouter, blocked, markTuned: () => setTuned(true) };
 }

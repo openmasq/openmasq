@@ -50,6 +50,8 @@ export function initRendererTelemetry(): void {
     env: BUILD_ENV,
     runtimeEnv: RUNTIME_ENV,
     appVersion: APP_VERSION,
+    os: window.openmasq.env?.platform,
+    arch: window.openmasq.env?.arch,
     tier: BUILD_ENV === "local" ? "usage" : "full",
     usageEvents: USAGE_EVENTS, // a package built outside CI reports usage only
     debug: ANALYTICS_DEBUG,

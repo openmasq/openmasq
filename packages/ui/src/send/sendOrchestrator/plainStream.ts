@@ -7,6 +7,7 @@ import { httpStatus, requestIdOf, retriesOf } from "../../state/errors/fields";
 import { cleanErrorText, failureKindOf, humanizeSendError, sendErrorAction, sendErrorReason } from "../../state/errors";
 import { uid } from "../../state/storePersistence";
 import { estimateTurnUsage } from "../estimateUsage";
+import { wireChars } from "../sendAnalytics";
 import type { Routing } from "./platformGate";
 import type { RedactionSetup } from "./redactionSetup";
 import type { TurnContext } from "./turnSetup";
@@ -135,6 +136,7 @@ export function runPlainStream(
         status: httpStatus(message),
         requestId: requestIdOf(message),
         retries: retriesOf(message),
+        chars: wireChars(history),
       });
       // Persisted ON the bubble with any partial reply: survives a reload, offers a
       // « Réessayer » that regenerates in place. Only a turn that never streamed cost nothing.

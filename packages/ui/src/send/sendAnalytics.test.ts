@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import type { RedactionMatch } from "@openmasq/redact";
-import { deriveRedactedSpans, buildSendAnalyticsEvents } from "./sendAnalytics";
+import { deriveRedactedSpans, buildSendAnalyticsEvents, wireChars } from "./sendAnalytics";
 
 const m = (over: Record<string, unknown>): RedactionMatch =>
   ({ value: "v", type: "email", placeholder: "p", ...over }) as unknown as RedactionMatch;
@@ -74,3 +74,11 @@ describe("buildSendAnalyticsEvents", () => {
     expect(ev.some((e) => e.name === "redaction_fallback_regex")).toBe(false);
   });
 });
+
+describe("wireChars", () => {
+  it("counts every message the turn hands over, system prompt and documents included", () => {
+    expect(wireChars([{ content: "abc" }, { content: "" }, { content: "de" }])).toBe(5);
+    expect(wireChars([])).toBe(0);
+  });
+});
+

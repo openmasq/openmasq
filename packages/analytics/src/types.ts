@@ -81,6 +81,14 @@ export interface ConfigureOptions {
   /** App version stamped on EVERY event's `properties.app_version`. Not sensitive. */
   appVersion?: string;
   /**
+   * The OS and CPU the app RUNS on (`darwin`/`win32`/`linux`, `arm64`/`x64`), stamped on
+   * EVERY event as `properties.os` / `properties.arch`. Without it a failure that only one
+   * OS has (a command-line cap, a binary per arch) cannot be told apart. A coarse platform
+   * name, never a version string; anything else is dropped.
+   */
+  os?: string;
+  arch?: string;
+  /**
    * How much this build may report. `full` (default) — every declared event and the
    * `$exception` channel. `usage` — ONLY the names in `usageEvents`, and NO `$exception`:
    * a build packaged outside the CI runs code that may differ from any release, so its

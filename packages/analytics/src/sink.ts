@@ -20,6 +20,9 @@ interface SinkConfig {
   runtimeEnv?: string;
   /** Stamped on every event's `properties.app_version`. */
   appVersion?: string;
+  /** Stamped as `properties.os` / `properties.arch` (`types.ts`). */
+  os?: string;
+  arch?: string;
   /** `usage` = only `usageEvents` leave, and no `$exception` (`types.ts`). */
   tier?: "full" | "usage";
   usageEvents?: ReadonlySet<string>;
@@ -109,6 +112,8 @@ export function createSink(options: SinkOptions): Sink {
     const out: Record<string, unknown> = { ...props };
     if (config?.env) out.env = config.env;
     if (config?.appVersion) out.app_version = config.appVersion;
+    if (config?.os) out.os = config.os;
+    if (config?.arch) out.arch = config.arch;
     if (sessionId) out.$session_id = sessionId;
     return out;
   };
@@ -128,6 +133,8 @@ export function createSink(options: SinkOptions): Sink {
         env: opts.env,
         runtimeEnv: opts.runtimeEnv,
         appVersion: opts.appVersion,
+        os: platformToken(opts.os),
+        arch: platformToken(opts.arch),
         tier: opts.tier,
         usageEvents: opts.usageEvents,
       };
@@ -283,4 +290,9 @@ export function createSink(options: SinkOptions): Sink {
   };
 
   return { configureAnalytics, setAnalyticsConsent, awaitAnalyticsConsent, setAnalyticsSuspended, sink, captureError, fetchFlags };
+}
+
+/** A platform name as the OS reports it (`darwin`, `win32`, `arm64`…), or nothing: never free text. */
+function platformToken(v: string | undefined): string | undefined {
+  return v && /^[a-z0-9_]{1,16}$/.test(v) ? v : undefined;
 }

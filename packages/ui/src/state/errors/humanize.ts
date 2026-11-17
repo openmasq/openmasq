@@ -6,6 +6,7 @@ import {
   SUBSCRIPTION_CLI_IN_APP_LOGIN,
   SUBSCRIPTION_CLI_PROVIDER,
   cliAuthOf,
+  cliFailOf,
   providerCreditsExhausted,
   rateLimitInfo,
   type ProviderId,
@@ -86,6 +87,10 @@ export function humanizeSendError(
     const cli = providerLabel(SUBSCRIPTION_CLI_PROVIDER[signedOut], t);
     return SUBSCRIPTION_CLI_IN_APP_LOGIN[signedOut] ? e.cliSessionExpired(cli) : e.cliSessionExpiredExternal(cli);
   }
+  // A named CLI failure: main already wrote the sentence, in the user's language. The
+  // code before it is for analytics, never for the bubble.
+  const cliFail = cliFailOf(m);
+  if (cliFail?.text) return cliFail.text;
   if (/CREDITS_EXHAUSTED/.test(m)) return new CreditsExhaustedError(opts?.personal ?? false, t).message;
   if (/CREDITS_UNVERIFIABLE/.test(m)) {
     // Deliberate fail-closed by the gateway (unreadable balance ≠ zero balance): the
@@ -201,6 +206,8 @@ export function sendErrorReason(e: unknown): SendErrorReason {
   // 400, meanwhile, used to count as `bad_request` for a billing problem.
   const rawText = e instanceof Error ? e.message : String(e);
   if (cliAuthOf(rawText)) return "auth";
+  const cliFail = cliFailOf(rawText);
+  if (cliFail) return `cli_${cliFail.code}`;
   if (providerCreditsExhausted(rawText)) return "provider_credits";
   if (e instanceof RateLimitError || isRateLimitError(e)) return "rate_limit";
   // Before the 403 → "auth": a model the provider reserves for other apps is not a key problem.

@@ -57,3 +57,12 @@ export function redactionFailReason(e: unknown): "timeout" | "unreachable" | "au
   if (/fetch failed|network|econnrefused|enotfound|err_network|err_internet/.test(m)) return "unreachable";
   return "error";
 }
+
+/**
+ * How many characters a turn hands to the model: every message's content, system prompt
+ * and folded documents included (pure). A COUNT — the sanitize walk buckets it
+ * (`chars`), so no exact length fingerprints a document.
+ */
+export function wireChars(history: ReadonlyArray<{ content: string }>): number {
+  return history.reduce((n, m) => n + (m.content?.length ?? 0), 0);
+}

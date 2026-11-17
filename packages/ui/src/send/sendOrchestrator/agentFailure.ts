@@ -1,4 +1,6 @@
+import { cliFailOf } from "@openmasq/llm";
 import { captureError, captureEvent } from "../../analytics";
+import { wireChars } from "../sendAnalytics";
 import { httpStatus, requestIdOf, retriesOf } from "../../state/errors/fields";
 import { cleanErrorText, failureKindOf, humanizeSendError, isRateLimitError, sendErrorAction, sendErrorReason } from "../../state/errors";
 import { noteCliAuthFailure } from "../../state/effects/cliSession";
@@ -62,9 +64,12 @@ export function failAgentTurn(ctx: TurnContext, r: RedactionSetup, routing: Rout
     scope: `tool · ${model.id}`,
     message: isRateLimitError(f.err) ? `rate limit (429) — ${detail}` : detail,
   });
+  // The code is the ONLY part of an `$exception` the relay keeps readable (the message is
+  // fingerprinted): a CLI failure main named must not hide behind « tool-loop ».
+  const cliFail = cliFailOf(detail);
   captureError({
     scope: "mcp",
-    code: isRateLimitError(f.err) ? "rate-limit" : "tool-loop",
+    code: cliFail ? `cli-${cliFail.code.replace(/_/g, "-")}` : isRateLimitError(f.err) ? "rate-limit" : "tool-loop",
     name: f.err instanceof Error ? f.err.name : undefined,
     message: detail,
   });
@@ -76,6 +81,7 @@ export function failAgentTurn(ctx: TurnContext, r: RedactionSetup, routing: Rout
     status: httpStatus(detail),
     requestId: requestIdOf(detail),
     retries: retriesOf(detail),
+    chars: wireChars(f.history),
   });
   // `humanizeSendError` FIRST, 429 included; the action follows the cause.
   const act = sendErrorAction(detail, model.provider);

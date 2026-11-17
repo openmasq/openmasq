@@ -224,6 +224,10 @@ export const env = {
   isE2e: (): Promise<boolean> => ipcRenderer.invoke("app:is-e2e"),
   /** Retired flag, kept a constant `false` so the preload has ZERO Node dependency. */
   disableCfWatchdog: false,
+  /** The OS and CPU this app runs on, for analytics context only (`telemetry.ts`). A
+   *  sandboxed preload keeps `process.platform`/`arch` (no Node import involved). */
+  platform: typeof process !== "undefined" ? process.platform : undefined,
+  arch: typeof process !== "undefined" ? process.arch : undefined,
   /**
    * The RESOLVED environment, read SYNCHRONOUSLY: `appEnv.ts` needs it at load, before
    * the auth client is built. Nothing secret transits. `null` ⇒ the baked values.

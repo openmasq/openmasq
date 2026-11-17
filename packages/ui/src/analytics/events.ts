@@ -17,6 +17,7 @@ import type { LoginMethod, LoginOutcome, LoginStep } from "../pages/Login/loginE
 // Likewise: the language is a catalogue enum, never a free string.
 import type { Locale } from "@openmasq/i18n";
 import type { InstallEvent } from "./installEvents";
+import type { CliFailureCode } from "@openmasq/llm";
 
 /** Why a chat send failed — a BOUNDED code (never the raw error text). */
 export type SendErrorReason =
@@ -34,6 +35,9 @@ export type SendErrorReason =
   | "provider_credits"
   // The provider reserves the model for some apps only (a 403 that is not about the key).
   | "model_unavailable"
+  // A subscription CLI failed for a reason main NAMED (`cliFailWire`, `@openmasq/llm`):
+  // the prompt outgrew the command line, the binary would not launch, the opt-in is off…
+  | `cli_${CliFailureCode}`
   | "unknown";
 
 /** Why a tool call failed — bounded. `arg_error` = the model malformed the call
@@ -83,7 +87,9 @@ export type TrackEvent =
   // A send failed — provider/model + a BOUNDED reason code (no raw message) + the HTTP
   // status when the failure was an API response. `requestId` = the platform's opaque,
   // server-minted correlation id; `retries` = attempts the provider client made.
-  | { name: "send_error"; provider: string; model: string; reason: SendErrorReason; status?: number; requestId?: string; retries?: number }
+  // `chars`: the size of what the turn tried to send (whole wire history, bucketed) — a
+  // failure that only big turns hit (a command-line cap, a context window) shows up here.
+  | { name: "send_error"; provider: string; model: string; reason: SendErrorReason; status?: number; requestId?: string; retries?: number; chars?: number }
   // How the turn ENDED, once per send, with the road it took (`send/sendResult.ts`): the
   // success rate per access. `refusal` names the gate when `outcome` is `refused`.
   | { name: "send_result"; provider: string; model: string; access: Exclude<ModelAccess, "none">; outcome: SendOutcome; refusal?: SendRefusal }
@@ -244,7 +250,9 @@ export type TrackEvent =
   // One per screen SHOWN ("1"…"3", "regler") — the funnel `onboarding` alone can't draw.
   | { name: "onboarding_step"; step: string }
   // « Suivant » pressed on the access step with no road to a model: the step holds them.
-  | { name: "onboarding_blocked" }
+  // WHY no road to a model: which agents were switched on, which were found on the machine
+  // (comma-separated CLI ids, `none`). « nothing detected » and « detected but off » are two cures.
+  | { name: "onboarding_blocked"; agents: string; detected: string }
   // A subscription CLI probed during the onboarding: is it on this machine at all?
   | { name: "agent_detected"; agent: string; found: boolean }
   | { name: "debug_mode_toggle"; on: boolean }

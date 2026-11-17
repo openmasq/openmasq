@@ -129,6 +129,8 @@ describe("onboarding — la télémétrie du premier lancement", () => {
     await m.click(".ob-next");
     await m.click(".ob-next");
     expect(events("onboarding_blocked")).toHaveLength(1);
+    // Codex switched on, only Claude on the machine: the two halves of the cause, told apart.
+    expect(events("onboarding_blocked")[0]).toMatchObject({ agents: "codex", detected: "claude" });
   });
 
   it("sans rien pour ouvrir une route (ni trousseau, ni agent), l'écran ne piège personne", async () => {
