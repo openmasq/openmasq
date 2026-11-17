@@ -17,3 +17,4 @@ export {
   sendErrorAction,
 } from "./humanize";
 export { failureKindOf } from "./failureKind";
+export { turnExceptionCode } from "./exceptionCode";

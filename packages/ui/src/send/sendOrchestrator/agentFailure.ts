@@ -1,8 +1,15 @@
-import { cliFailOf } from "@openmasq/llm";
 import { captureError, captureEvent } from "../../analytics";
 import { wireChars } from "../sendAnalytics";
 import { httpStatus, requestIdOf, retriesOf } from "../../state/errors/fields";
-import { cleanErrorText, failureKindOf, humanizeSendError, isRateLimitError, sendErrorAction, sendErrorReason } from "../../state/errors";
+import {
+  cleanErrorText,
+  failureKindOf,
+  humanizeSendError,
+  isRateLimitError,
+  sendErrorAction,
+  sendErrorReason,
+  turnExceptionCode,
+} from "../../state/errors";
 import { noteCliAuthFailure } from "../../state/effects/cliSession";
 import { estimateTurnUsage } from "../estimateUsage";
 import type { ChatMessage } from "@openmasq/llm";
@@ -64,20 +71,17 @@ export function failAgentTurn(ctx: TurnContext, r: RedactionSetup, routing: Rout
     scope: `tool · ${model.id}`,
     message: isRateLimitError(f.err) ? `rate limit (429) — ${detail}` : detail,
   });
-  // The code is the ONLY part of an `$exception` the relay keeps readable (the message is
-  // fingerprinted): a CLI failure main named must not hide behind « tool-loop ».
-  const cliFail = cliFailOf(detail);
-  captureError({
-    scope: "mcp",
-    code: cliFail ? `cli-${cliFail.code.replace(/_/g, "-")}` : isRateLimitError(f.err) ? "rate-limit" : "tool-loop",
-    name: f.err instanceof Error ? f.err.name : undefined,
-    message: detail,
-  });
+  // ONE classification for both channels; an account state raises no exception.
+  const reason = sendErrorReason(detail);
+  const code = turnExceptionCode(reason);
+  if (code) {
+    captureError({ scope: "mcp", code, name: f.err instanceof Error ? f.err.name : undefined, message: detail });
+  }
   captureEvent({
     name: "send_error",
     provider: model.provider,
     model: model.id,
-    reason: sendErrorReason(detail),
+    reason,
     status: httpStatus(detail),
     requestId: requestIdOf(detail),
     retries: retriesOf(detail),
