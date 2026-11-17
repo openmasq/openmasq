@@ -51,10 +51,13 @@ kept in the French they were sent in, for the reason given above.
 ---
 
 ## 0.17.9 — 2026-11-17
-> Usage statistics tell app errors apart from account issues.
+> Your Claude, Codex and Antigravity subscriptions handle long conversations.
 
 ### Improvements & fixes
-- If you share usage statistics, an issue with your own provider account is no longer reported as an app error.
+- Long conversations and large documents reach your Claude, Codex and Antigravity subscriptions.
+- Antigravity works with the latest version of its app.
+- When a subscription app cannot start, the message says why and what to do next.
+- If you share usage statistics, they include your system type and tell app errors apart from account issues.
 
 ---
 
