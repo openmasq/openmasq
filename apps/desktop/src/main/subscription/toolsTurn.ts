@@ -19,7 +19,7 @@
  * `--add-dir` folder). A 4th CLI only adds a recipe.
  */
 import { randomUUID } from "node:crypto";
-import type { ChatMessage, CompleteToolsResult, StreamDone, ToolDef } from "@openmasq/llm";
+import { cliFailWire, type ChatMessage, type CompleteToolsResult, type StreamDone, type ToolDef } from "@openmasq/llm";
 import { antigravityToolsRecipe } from "./antigravityToolsTurn";
 import { flattenForCli, hasUnsupportedAttachments } from "./bridge";
 import { claudeToolsRecipe } from "./claudeToolsTurn";
@@ -87,12 +87,18 @@ export async function completeSubscriptionTools(
   }
   if (hasUnsupportedAttachments(opts.messages)) {
     throw new Error(
-      `Le modèle « ${env.label ?? recipe.label} » ne prend pas encore les pièces jointes — ` +
-        "envoyez du texte, ou choisissez un modèle avec vision.",
+      cliFailWire(
+        env.cli ?? "claude",
+        "attachments",
+        `Le modèle « ${env.label ?? recipe.label} » ne prend pas encore les pièces jointes — ` +
+          "envoyez du texte, ou choisissez un modèle avec vision.",
+      ),
     );
   }
   const { system, prompt } = flattenForCli(renderToolHistory(opts.messages));
-  if (!prompt) throw new Error("Rien à envoyer : la conversation ne contient aucun message.");
+  if (!prompt) {
+    throw new Error(cliFailWire(env.cli ?? "claude", "empty", "Rien à envoyer : la conversation ne contient aucun message."));
+  }
 
   const bridge = await startToolsBridge(opts.tools);
   let plan: ToolsSpawnPlan;
@@ -122,6 +128,8 @@ export async function completeSubscriptionTools(
       cli: env.cli ?? "claude",
       binPath: env.binPath,
       args: plan.args,
+      stdin: plan.stdin,
+      onStarted: plan.onStarted,
       cwd: env.cwd,
       extraEnv: plan.extraEnv,
       interpret: recipe.interpret,

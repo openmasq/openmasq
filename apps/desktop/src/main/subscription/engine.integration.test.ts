@@ -9,8 +9,9 @@
 // do NOT prevent subscription auth from working.
 import { randomUUID } from "node:crypto";
 import { tmpdir } from "node:os";
-import { mkdtempSync } from "node:fs";
+import { mkdtempSync, readdirSync } from "node:fs";
 import { join } from "node:path";
+import { BRAND } from "@openmasq/branding";
 import { describe, expect, it } from "vitest";
 import type { ChatMessage } from "@openmasq/llm";
 import { resolveCli } from "./resolveCli";
@@ -107,4 +108,30 @@ describe.skipIf(!enabled)("streamClaudeSubscription (CLI réelle)", () => {
     expect(chunks.join("")).toContain("BANANE42");
     expect(r.value.finish).toBe("stop");
   }, 120_000);
+
+  // Regression: a document folded into the turn outgrew Windows' 32 767-char command line
+  // when the prompt rode in argv. On stdin, the size no longer depends on the OS; the
+  // system prompt goes by a private file that is gone once the turn is over.
+  it("un tour bien plus long que la ligne de commande Windows passe, prompt système compris", async () => {
+    const bin = resolveCli("claude", { platform: process.platform, home: process.env.HOME ?? "", path: process.env.PATH });
+    const filler = "Ligne de document sans intérêt particulier pour la question. ".repeat(700); // ~44 000 caractères
+    const chunks: string[] = [];
+    const gen = streamClaudeSubscription({
+      binPath: bin as string,
+      prompt: `${filler}\n\nLe mot de passe est KIWI77. Redonne le mot de passe.`,
+      system: "Réponds en UN seul mot, en MAJUSCULES, sans ponctuation.",
+      model: "haiku",
+      sessionId: randomUUID(),
+      cwd: mkdtempSync(join(tmpdir(), "openmasq-sub-")),
+    });
+    let r = await gen.next();
+    while (!r.done) {
+      chunks.push(r.value);
+      r = await gen.next();
+    }
+    expect(filler.length).toBeGreaterThan(40_000);
+    expect(chunks.join("")).toContain("KIWI77");
+    const left = readdirSync(tmpdir()).filter((n) => n.startsWith(`${BRAND.slug}-cli-input-`));
+    expect(left, "aucun fichier de prompt système laissé derrière").toEqual([]);
+  }, 180_000);
 });

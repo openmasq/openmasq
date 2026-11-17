@@ -123,7 +123,6 @@ describe("renderToolHistory — l'historique d'outils survit à l'aplatissement"
 describe("buildToolsArgs", () => {
   it("chaque outil du tour est allow-listé sous son préfixe MCP, rien d'autre n'ouvre", () => {
     const args = buildToolsArgs({
-      prompt: "p",
       sessionId: "s",
       mcpConfigPath: "/tmp/x.json",
       toolNames: ["a", "b__c"],
@@ -136,7 +135,6 @@ describe("buildToolsArgs", () => {
   // doesn't bound the perimeter — so it cannot hold this place (rule 7).
   it("borne le périmètre par ALLOW-LIST : aucun outil intégré, le pont reste (--tools \"\")", () => {
     const args = buildToolsArgs({
-      prompt: "p",
       sessionId: "s",
       mcpConfigPath: "/tmp/x.json",
       toolNames: ["a"],
@@ -145,5 +143,12 @@ describe("buildToolsArgs", () => {
     expect(at).toBeGreaterThan(-1);
     expect(args[at + 1]).toBe("");
     expect(args).toContain("--mcp-config");
+  });
+
+  it("le prompt système passe par fichier ; aucun texte de conversation en argv", () => {
+    const args = buildToolsArgs({ systemFile: "/tmp/s.txt", sessionId: "s", mcpConfigPath: "/tmp/x.json", toolNames: ["a"] });
+    expect(args[args.indexOf("--system-prompt-file") + 1]).toBe("/tmp/s.txt");
+    expect(args).not.toContain("--system-prompt");
+    expect(args[args.indexOf("-p") + 1]).toMatch(/^--/);
   });
 });

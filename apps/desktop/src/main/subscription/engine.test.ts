@@ -9,16 +9,24 @@ const base: ClaudeTurnOptions = {
 };
 
 describe("buildClaudeArgs", () => {
-  it("passe le prompt système en --system-prompt, jamais concaténé dans le prompt", () => {
-    const args = buildClaudeArgs({ ...base, system: "Tu es concis." });
-    const at = args.indexOf("--system-prompt");
+  it("passe le prompt système par FICHIER (--system-prompt-file), jamais son texte en argv", () => {
+    const args = buildClaudeArgs({ ...base, systemFile: "/tmp/openmasq-cli-x/system.txt" });
+    const at = args.indexOf("--system-prompt-file");
     expect(at).toBeGreaterThan(-1);
-    expect(args[at + 1]).toBe("Tu es concis.");
-    expect(args[args.indexOf("-p") + 1]).toBe("Bonjour");
+    expect(args[at + 1]).toBe("/tmp/openmasq-cli-x/system.txt");
+    expect(args).not.toContain("--system-prompt");
   });
 
-  it("omet --system-prompt quand il n'y a pas de prompt système", () => {
-    expect(buildClaudeArgs(base)).not.toContain("--system-prompt");
+  // Regression: the whole conversation used to ride as `-p <prompt>` and died on the OS
+  // command-line cap (Windows 32 767 chars, `spawnFailure.ts`). It now rides on stdin.
+  it("ne met JAMAIS le prompt en argv : -p sans argument positionnel (lu sur stdin)", () => {
+    const args = buildClaudeArgs(base);
+    expect(args).not.toContain("Bonjour");
+    expect(args[args.indexOf("-p") + 1]).toMatch(/^--/);
+  });
+
+  it("omet --system-prompt-file quand il n'y a pas de prompt système", () => {
+    expect(buildClaudeArgs(base)).not.toContain("--system-prompt-file");
   });
 
   it("passe l'alias de famille en --model, et aucun drapeau sans choix (défaut abonnement)", () => {

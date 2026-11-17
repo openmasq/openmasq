@@ -7,12 +7,14 @@
  * FAIL-CLOSED: a CLI that's absent, unauthenticated, or that dies REJECTS. We never
  * return a silent empty stream, which would read as « the model didn't answer ».
  */
-import { spawn } from "node:child_process";
-import { cliAuthWire, type StreamDone, type StreamFinish, type TokenUsage } from "@openmasq/llm";
+import { spawn, type ChildProcessByStdio } from "node:child_process";
+import type { Readable, Writable } from "node:stream";
+import { cliAuthWire, cliFailWire, type StreamDone, type StreamFinish, type TokenUsage } from "@openmasq/llm";
 import { minimalChildEnv } from "../childEnv";
 import { cliAuthFailureLine } from "./authFailure";
 import { NdjsonLineBuffer } from "./claudeStream";
 import type { SubscriptionCliId } from "./resolveCli";
+import { argvOverBudget, launchFailure, spawnFailureCode } from "./spawnFailure";
 
 /** What an interpreter surfaces. Everything else in the stream is deliberately ignored. */
 export type CliAction =
@@ -72,6 +74,12 @@ export interface CliProcessOptions {
   cwd: string;
   /** Variables ADDED to the minimal environment (e.g. a neutral `GEMINI_CLI_HOME`). */
   extraEnv?: Record<string, string>;
+  /** Written to the child's stdin, then closed — how a PROMPT travels when argv would cap
+   *  it (`spawnFailure.ts`). Absent ⇒ stdin is `ignore` (codex blocks on an open stdin). */
+  stdin?: string;
+  /** Called ONCE, on the CLI's first output — it has read its inputs by then — and in any
+   *  case when the turn ends: where a private input file is deleted (`privateFile.ts`). */
+  onStarted?: () => void;
   /** JSON event (one NDJSON line) → action, or null (ignored). `sawDelta` lets an
    *  interpreter treat a final recap differently (claude pitfall #3). */
   interpret: (event: unknown, sawDelta: boolean) => CliAction | null;
@@ -89,11 +97,30 @@ export interface CliProcessOptions {
 export async function* streamCliProcess(
   opts: CliProcessOptions,
 ): AsyncGenerator<string, StreamDone> {
-  const child = spawn(opts.binPath, opts.args, {
-    cwd: opts.cwd,
-    env: { ...minimalChildEnv(), ...(opts.extraEnv ?? {}) },
-    stdio: ["ignore", "pipe", "pipe"],
-  });
+  let startedFired = false;
+  const started = () => {
+    if (startedFired) return;
+    startedFired = true;
+    opts.onStarted?.();
+  };
+  // Refused BEFORE the spawn, in words: past the OS limit, `spawn` dies on « E2BIG ».
+  if (argvOverBudget(process.platform, opts.binPath, opts.args)) {
+    started();
+    throw launchFailure(opts.cli, "prompt_too_long");
+  }
+  let child: ChildProcessByStdio<Writable | null, Readable, Readable>;
+  try {
+    child = spawnPiped(opts);
+  } catch (err) {
+    // macOS throws E2BIG synchronously (measured); other errnos arrive as `error` below.
+    const errno = (err as NodeJS.ErrnoException).code;
+    started();
+    throw launchFailure(opts.cli, spawnFailureCode(errno), errno);
+  }
+  if (opts.stdin !== undefined && child.stdin) {
+    child.stdin.on("error", () => {}); // a CLI that exits early closes the pipe: its exit says why
+    child.stdin.end(opts.stdin, "utf8");
+  }
 
   const onAbort = () => child.kill("SIGTERM");
   opts.signal?.addEventListener("abort", onAbort, { once: true });
@@ -144,6 +171,7 @@ export async function* streamCliProcess(
 
   child.stdout.setEncoding("utf8");
   child.stdout.on("data", (chunk: string) => {
+    started();
     for (const line of lines.push(chunk)) consume(line);
     wake();
   });
@@ -153,8 +181,9 @@ export async function* streamCliProcess(
   });
 
   const exited = new Promise<number | null>((resolve) => {
-    child.on("error", (err) => {
-      failure = new SubscriptionCliError(err.message, stderrTail, null);
+    child.on("error", (err: NodeJS.ErrnoException) => {
+      const launch = launchFailure(opts.cli, spawnFailureCode(err.code), err.code);
+      failure = new SubscriptionCliError(launch.message, stderrTail, null);
       resolve(null);
     });
     child.on("close", (code) => {
@@ -191,12 +220,25 @@ export async function* streamCliProcess(
 
     if (opts.signal?.aborted) return { finish: "cut" };
     if (code !== 0 && !done) {
-      throw cliFailure(opts.cli, `La CLI s'est arrêtée avec le code ${code ?? "inconnu"}.`, stderrTail, stderrTail, code);
+      const exit = `La CLI s'est arrêtée avec le code ${code ?? "inconnu"}.`;
+      const err = cliFailure(opts.cli, exit, stderrTail, stderrTail, code);
+      // A lost session keeps its own code; any other death is counted as `exit`.
+      throw err.code ? err : new SubscriptionCliError(cliFailWire(opts.cli, "exit", exit), stderrTail, code);
     }
     // Clean exit but no `result`: the stream was cut, the response is truncated.
     return done ?? { finish: "cut" };
   } finally {
+    started();
     opts.signal?.removeEventListener("abort", onAbort);
     if (!child.killed && child.exitCode === null) child.kill("SIGTERM");
   }
+}
+
+/** The spawn itself: stdin piped only when a prompt rides on it (stdout/stderr always). */
+function spawnPiped(opts: CliProcessOptions): ChildProcessByStdio<Writable | null, Readable, Readable> {
+  return spawn(opts.binPath, opts.args, {
+    cwd: opts.cwd,
+    env: { ...minimalChildEnv(), ...(opts.extraEnv ?? {}) },
+    stdio: [opts.stdin !== undefined ? "pipe" : "ignore", "pipe", "pipe"],
+  }) as ChildProcessByStdio<Writable | null, Readable, Readable>;
 }

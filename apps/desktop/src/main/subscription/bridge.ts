@@ -34,7 +34,7 @@ const ROLE_LABEL: Record<string, string> = {
 };
 
 export interface FlattenedTurn {
-  /** The `system` messages, joined — passed as `--system-prompt`. */
+  /** The `system` messages, joined — claude reads them from `--system-prompt-file` (`privateFile.ts`). */
   system?: string;
   /** The rest, as transcript. Empty = nothing to send (the caller must refuse the turn). */
   prompt: string;

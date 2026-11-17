@@ -25,6 +25,10 @@ export interface ToolsSpawnInput {
 /** What a recipe returns: enough to launch the CLI, and enough to leave nothing behind. */
 export interface ToolsSpawnPlan {
   args: string[];
+  /** The prompt, when this CLI reads it on stdin rather than argv (claude — measured). */
+  stdin?: string;
+  /** The CLI has started answering: its private input files can go (`privateFile.ts`). */
+  onStarted?: () => void;
   /** Variables ADDED to the child's minimal environment (never a secret in argv). */
   extraEnv?: Record<string, string>;
   cleanup?: () => Promise<unknown>;

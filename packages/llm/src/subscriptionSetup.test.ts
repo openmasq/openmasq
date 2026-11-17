@@ -3,6 +3,8 @@ import {
   SUBSCRIPTION_CLI_PROVIDER,
   cliAuthOf,
   cliAuthWire,
+  cliFailOf,
+  cliFailWire,
   subscriptionCliOfProvider,
 } from "./subscriptionSetup";
 
@@ -38,5 +40,20 @@ describe("subscription CLI ↔ provider", () => {
       expect(subscriptionCliOfProvider(provider)).toBe(cli);
     }
     expect(subscriptionCliOfProvider("anthropic")).toBeNull();
+  });
+});
+
+describe("CLI_FAIL wire code", () => {
+  it("round-trips every code and keeps main's sentence for the bubble", () => {
+    const wire = cliFailWire("claude", "prompt_too_long", "Trop long pour la CLI.");
+    expect(cliFailOf(wire)).toEqual({ cli: "claude", code: "prompt_too_long", text: "Trop long pour la CLI." });
+    // As it reaches the renderer: wrapped by Electron's IPC rejection.
+    expect(cliFailOf(`Error invoking remote method 'chat:stream-tools': Error: ${wire}`)?.code).toBe("prompt_too_long");
+  });
+
+  it("refuses a code this build does not know and any other error", () => {
+    expect(cliFailOf("CLI_FAIL:claude:anything_else · x")).toBeNull();
+    expect(cliFailOf("spawn E2BIG")).toBeNull();
+    expect(cliFailOf("")).toBeNull();
   });
 });

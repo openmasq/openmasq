@@ -141,6 +141,10 @@ export const desktopMain = {
       "L'application Codex n'est pas installée sur cet ordinateur. Réglages → Modèles vous guide pour l'installer et vous connecter avec votre compte ChatGPT. Vous pouvez aussi choisir un autre modèle. (Pour les experts : `npm i -g @openai/codex`, puis `codex login`.)",
     missingAntigravity:
       "Antigravity n'est pas installé sur cet ordinateur. Réglages → Modèles vous guide pour l'installer et vous connecter avec votre compte Google. Vous pouvez aussi choisir un autre modèle.",
+    promptTooLong: (label) =>
+      `La conversation est trop longue pour être transmise à ${label}. Ouvrez une nouvelle conversation, joignez moins de documents, ou choisissez un modèle avec clé d'API.`,
+    spawnFailed: (label) =>
+      `Impossible de lancer ${label} sur cet ordinateur. Réinstallez-le depuis Réglages → Modèles, ou choisissez un autre modèle.`,
   },
   oauth: {
     pageTitle: (brand) => `${brand} : connexion réussie`,

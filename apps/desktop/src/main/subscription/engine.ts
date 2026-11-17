@@ -19,7 +19,8 @@
  */
 import type { StreamDone } from "@openmasq/llm";
 import { interpretClaudeEvent } from "./claudeStream";
-import { streamCliProcess, } from "./spawnStream";
+import { writePrivateFile } from "./privateFile";
+import { streamCliProcess } from "./spawnStream";
 
 // The generic spawn/NDJSON loop is `spawnStream.ts`; this file keeps the claude-SPECIFIC part.
 
@@ -46,7 +47,7 @@ export interface ClaudeTurnOptions {
   /** Absolute path resolved by `resolveCli`. */
   binPath: string;
   prompt: string;
-  /** Passed as `--system-prompt`, never concatenated into the user prompt. */
+  /** Passed as `--system-prompt-file` (`privateFile.ts`), never in argv nor in the user prompt. */
   system?: string;
   /** The OpenMasq conversation id, reused as `--session-id` (must be a UUID). */
   sessionId: string;
@@ -62,11 +63,14 @@ export interface ClaudeTurnOptions {
   onRateLimit?: (info: { status: string; resetsAt?: number; windowType?: string }) => void;
 }
 
-export function buildClaudeArgs(opts: ClaudeTurnOptions): string[] {
+/** The prompt is NOT here: it rides on stdin (`-p` with no positional reads it), because
+ *  argv is capped by the OS and a conversation with documents outgrows it (`spawnFailure.ts`). */
+export function buildClaudeArgs(
+  opts: Pick<ClaudeTurnOptions, "model" | "resume" | "sessionId"> & { systemFile?: string },
+): string[] {
   return [
     "-p",
-    opts.prompt,
-    ...(opts.system ? ["--system-prompt", opts.system] : []),
+    ...(opts.systemFile ? ["--system-prompt-file", opts.systemFile] : []),
     ...(opts.model ? ["--model", opts.model] : []),
     "--output-format",
     "stream-json",
@@ -89,14 +93,21 @@ export function buildClaudeArgs(opts: ClaudeTurnOptions): string[] {
 export async function* streamClaudeSubscription(
   opts: ClaudeTurnOptions,
 ): AsyncGenerator<string, StreamDone> {
-  return yield* streamCliProcess({
-    cli: "claude",
-    binPath: opts.binPath,
-    args: buildClaudeArgs(opts),
-    cwd: opts.cwd,
-    interpret: interpretClaudeEvent,
-    signal: opts.signal,
-    onReasoning: opts.onReasoning,
-    onRateLimit: opts.onRateLimit,
-  });
+  const sys = opts.system ? writePrivateFile("system.txt", opts.system) : null;
+  try {
+    return yield* streamCliProcess({
+      cli: "claude",
+      binPath: opts.binPath,
+      args: buildClaudeArgs({ ...opts, systemFile: sys?.path }),
+      stdin: opts.prompt,
+      cwd: opts.cwd,
+      interpret: interpretClaudeEvent,
+      signal: opts.signal,
+      onReasoning: opts.onReasoning,
+      onRateLimit: opts.onRateLimit,
+      onStarted: () => sys?.remove(),
+    });
+  } finally {
+    sys?.remove();
+  }
 }

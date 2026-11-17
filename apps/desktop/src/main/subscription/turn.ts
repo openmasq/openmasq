@@ -8,7 +8,7 @@
  * keeps no state between two turns.
  */
 import { randomUUID } from "node:crypto";
-import type { ChatMessage, StreamDone } from "@openmasq/llm";
+import { cliFailWire, type ChatMessage, type StreamDone } from "@openmasq/llm";
 import { flattenForCli, hasUnsupportedAttachments, promptWithSystem } from "./bridge";
 import { streamClaudeSubscription } from "./engine";
 import { streamCodexSubscription } from "./codexEngine";
@@ -71,12 +71,18 @@ export async function* streamSubscriptionTurn(
 ): AsyncGenerator<string, StreamDone> {
   if (hasUnsupportedAttachments(opts.messages)) {
     throw new Error(
-      `Le modèle « ${env.label ?? "Claude Code"} » ne prend pas encore les pièces jointes — ` +
-        "envoyez du texte, ou choisissez un modèle avec vision.",
+      cliFailWire(
+        env.cli ?? "claude",
+        "attachments",
+        `Le modèle « ${env.label ?? "Claude Code"} » ne prend pas encore les pièces jointes — ` +
+          "envoyez du texte, ou choisissez un modèle avec vision.",
+      ),
     );
   }
   const { system, prompt } = flattenForCli(opts.messages);
-  if (!prompt) throw new Error("Rien à envoyer : la conversation ne contient aucun message.");
+  if (!prompt) {
+    throw new Error(cliFailWire(env.cli ?? "claude", "empty", "Rien à envoyer : la conversation ne contient aucun message."));
+  }
 
   if (env.cli === "codex") {
     return yield* streamCodexSubscription({

@@ -95,3 +95,40 @@ export function cliAuthOf(message: string): SubscriptionCli | null {
   const m = CLI_AUTH_RE.exec(message || "");
   return m ? (m[1] as SubscriptionCli) : null;
 }
+
+/**
+ * The wire CODE of a subscription-CLI turn that failed for a reason the APP can name —
+ * the prompt does not fit the command line, the binary cannot be launched, the opt-in is
+ * off, the turn carries what the CLI cannot take. Same shape and same reason as
+ * `CLI_AUTH`: a typed error does not survive IPC, and the bounded code is all analytics
+ * may read (the message itself is reduced to a fingerprint by the relay). What follows
+ * ` · ` is the sentence main already composed in the user's language, shown as-is.
+ * Anything the CLI itself answers (a quota, a model off the plan) keeps its own text.
+ */
+export const CLI_FAILURE_CODES = [
+  "prompt_too_long",
+  "spawn_missing",
+  "spawn_denied",
+  "spawn_other",
+  "not_enabled",
+  "missing",
+  "attachments",
+  "empty",
+  "exit",
+] as const;
+export type CliFailureCode = (typeof CLI_FAILURE_CODES)[number];
+
+const CLI_FAIL_RE = /\bCLI_FAIL:(claude|codex|antigravity):([a-z_]+)(?: · )?/;
+
+export function cliFailWire(cli: SubscriptionCli, code: CliFailureCode, text: string): string {
+  return `CLI_FAIL:${cli}:${code} · ${text}`;
+}
+
+/** The named failure read back from an error message — `null` for any other error, and
+ *  for a code this build does not know (never a free string into a bounded field). */
+export function cliFailOf(message: string): { cli: SubscriptionCli; code: CliFailureCode; text: string } | null {
+  const s = message || "";
+  const m = CLI_FAIL_RE.exec(s);
+  if (!m || !(CLI_FAILURE_CODES as readonly string[]).includes(m[2])) return null;
+  return { cli: m[1] as SubscriptionCli, code: m[2] as CliFailureCode, text: s.slice(m.index + m[0].length).trim() };
+}

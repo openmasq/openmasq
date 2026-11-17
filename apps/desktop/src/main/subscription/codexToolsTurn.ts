@@ -58,9 +58,9 @@ export const codexToolsRecipe = {
   // the secret in the child's environment.
   prepare: async (input: ToolsSpawnInput): Promise<ToolsSpawnPlan> => ({
     args: buildCodexArgs({
-      prompt: codexPrompt(input.system, input.prompt),
       mcpServerConfig: codexToolsServerConfig(input.bridge.url, input.toolNames),
     }),
+    stdin: codexPrompt(input.system, input.prompt),
     extraEnv: { [CODEX_TOOLS_TOKEN_ENV]: input.bridge.token },
   }),
 };

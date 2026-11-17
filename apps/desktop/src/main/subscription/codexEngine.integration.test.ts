@@ -83,4 +83,22 @@ describe.skipIf(!enabled)("streamCodexSubscription (CLI réelle)", () => {
     const { done } = await drain(gen);
     expect(done.finish).toBe("cut");
   }, 300_000);
+
+  // Regression: the prompt rode in argv and a folded document outgrew Windows' 32 767-char
+  // command line. On stdin (`-`), its size no longer depends on the OS.
+  it("un tour bien plus long que la ligne de commande Windows passe, par stdin", async (ctx) => {
+    const bin = codexPath();
+    if (!bin) return ctx.skip();
+    const filler = "Ligne de document sans intérêt particulier pour la question. ".repeat(700); // ~44 000 caractères
+    const { text, done } = await drain(
+      streamCodexSubscription({
+        binPath: bin,
+        prompt: `${filler}\n\nLe mot de passe est KIWI77. Réponds uniquement par le mot de passe.`,
+        cwd: mkdtempSync(join(tmpdir(), "openmasq-cx-")),
+      }),
+    );
+    expect(filler.length).toBeGreaterThan(40_000);
+    expect(text).toContain("KIWI77");
+    expect(done.finish).toBe("stop");
+  }, 300_000);
 });

@@ -132,6 +132,10 @@ export interface DesktopMainMessages {
     missingClaude: string;
     missingCodex: string;
     missingAntigravity: string;
+    /** The conversation no longer fits the CLI's command line (Windows caps it near 32 000 characters). */
+    promptTooLong: (label: string) => string;
+    /** The binary was found but the system refused to launch it. */
+    spawnFailed: (label: string) => string;
   };
   oauth: {
     pageTitle: (brand: string) => string;

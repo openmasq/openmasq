@@ -22,6 +22,13 @@ import { posix, win32 } from "node:path";
 
 export type SubscriptionCliId = "claude" | "codex" | "antigravity";
 
+/** The name a refusal shows for each CLI — one home for main's messages. */
+export const CLI_LABEL: Record<SubscriptionCliId, string> = {
+  claude: "Claude Code",
+  codex: "Codex",
+  antigravity: "Antigravity",
+};
+
 /** The binary name per CLI. Windows resolves via `WINDOWS_EXTS`. */
 const BIN_NAME: Record<SubscriptionCliId, string> = {
   claude: "claude",

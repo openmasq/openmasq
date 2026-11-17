@@ -27,6 +27,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { BRAND } from "@openmasq/branding";
 import { CHAT_DISALLOWED_TOOLS } from "./engine";
+import { writePrivateFile } from "./privateFile";
 import { interpretClaudeEvent } from "./claudeStream";
 import { TOOLS_SERVER_NAME } from "./toolsBridge";
 import { cliModelAlias } from "./turn";
@@ -45,9 +46,10 @@ function toolsMcpConfig(url: string, token: string): string {
   });
 }
 
+/** The prompt rides on stdin, never argv (OS-capped — `spawnFailure.ts`). */
 export function buildToolsArgs(opts: {
-  prompt: string;
-  system?: string;
+  /** `--system-prompt-file` (`privateFile.ts`): the system prompt never rides in argv. */
+  systemFile?: string;
   model?: string;
   sessionId: string;
   mcpConfigPath: string;
@@ -55,8 +57,7 @@ export function buildToolsArgs(opts: {
 }): string[] {
   return [
     "-p",
-    opts.prompt,
-    ...(opts.system ? ["--system-prompt", opts.system] : []),
+    ...(opts.systemFile ? ["--system-prompt-file", opts.systemFile] : []),
     ...(opts.model ? ["--model", opts.model] : []),
     "--output-format",
     "stream-json",
@@ -90,16 +91,28 @@ export const claudeToolsRecipe = {
     await writeFile(mcpConfigPath, toolsMcpConfig(input.bridge.url, input.bridge.token), {
       mode: 0o600,
     });
+    let sys: ReturnType<typeof writePrivateFile> | null = null;
+    try {
+      sys = input.system ? writePrivateFile("system.txt", input.system) : null;
+    } catch (err) {
+      await rm(dir, { recursive: true, force: true }).catch(() => {});
+      throw err;
+    }
     return {
       args: buildToolsArgs({
-        prompt: input.prompt,
-        system: input.system,
+        systemFile: sys?.path,
         model: cliModelAlias(input.modelId),
         sessionId: randomUUID(),
         mcpConfigPath,
         toolNames: input.toolNames,
       }),
-      cleanup: () => rm(dir, { recursive: true, force: true }).catch(() => {}),
+      stdin: input.prompt,
+      // Read by the time the CLI first speaks (measured): gone before the turn even runs.
+      onStarted: () => sys?.remove(),
+      cleanup: () => {
+        sys?.remove();
+        return rm(dir, { recursive: true, force: true }).catch(() => {});
+      },
     };
   },
 };

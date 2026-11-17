@@ -11,8 +11,11 @@
  * - `--disable shell_tool`: THE flag that matters. Without it `read-only` still EXECUTES
  *   commands through a LOGIN shell, so it can read any readable file into context.
  *
- * ⚠️ `codex exec` READS STDIN even with the prompt as an argument: without
- * `stdio[0] = "ignore"` the turn never returns. The generic loop ignores stdin; don't "fix" it.
+ * ⚠️ `codex exec` READS STDIN to its end: an open, never-closed stdin and the turn never
+ * returns. The prompt therefore rides on it as `-` (« read from stdin », its own `--help`,
+ * measured 0.149.1), written whole then CLOSED by `spawnStream.ts` — never in argv, which
+ * the OS caps (`spawnFailure.ts`). Never pass the prompt AND pipe stdin: codex would append
+ * stdin as a `<stdin>` block.
  * ⚠️ `web_search` CANNOT be disabled. It runs SERVER-SIDE on the REDACTED text, to the same
  * recipient as the prompt: not a new egress class (rule 11).
  * ⚠️ No deltas: the text arrives as one COMPLETE message. The CLI's limitation.
@@ -57,14 +60,14 @@ export interface CodexTurnOptions {
   signal?: AbortSignal;
 }
 
+/** No prompt here: `-` = read it from stdin (see the header). */
 export function buildCodexArgs(opts: {
-  prompt: string;
   /** The TOOLED turn's `-c mcp_servers.…` override; absent ⇒ NO MCP server at all. */
   mcpServerConfig?: string;
 }): string[] {
   return [
     "exec",
-    opts.prompt,
+    "-",
     "--json",
     "--ephemeral",
     "--ignore-user-config",
@@ -84,7 +87,8 @@ export async function* streamCodexSubscription(
   return yield* streamCliProcess({
     cli: "codex",
     binPath: opts.binPath,
-    args: buildCodexArgs(opts),
+    args: buildCodexArgs({}),
+    stdin: opts.prompt,
     cwd: opts.cwd,
     interpret: interpretCodexEvent,
     signal: opts.signal,
