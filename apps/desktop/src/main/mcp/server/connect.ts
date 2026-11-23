@@ -110,8 +110,8 @@ async function connectBrowserServer(spec: ServerSpec): Promise<McpServerInfo> {
   }
 }
 
-// The CDP endpoint the CONNECTED @playwright/mcp child was spawned against (read from env
-// ONCE, at spawn: it can never follow a new endpoint).
+// The CDP endpoint the CONNECTED @playwright/mcp child was spawned against (handed ONCE, at
+// spawn, on its stdin: it can never follow a new endpoint).
 let browserConnEndpoint: string | null = null;
 let browserHeal: Promise<void> | null = null;
 

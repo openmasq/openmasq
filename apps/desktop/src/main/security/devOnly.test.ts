@@ -116,7 +116,6 @@ const BENIGN: Record<string, string> = {
   FS_DENY: "the deny-list, handed to the fs worker at fork (fs/connection.ts)",
   NER_BUNDLED_DIR: "bundled model dir, handed to the NER worker at fork (localNer.ts)",
   EMBED_BUNDLED_DIR: "bundled model dir, handed to the embed worker at fork (embed/client.ts)",
-  PLAYWRIGHT_MCP_CDP_ENDPOINT: "the CDP address, handed to the pw-mcp child (mcp/browserTools.ts)",
   // OS-provided ambient state. Not app hooks: every process has them, and the app cannot
   // refuse them without losing the thing it needs them for.
   PATH: "the process's own PATH — forwarded to the Python jail, and probed to find an installed CLI",

@@ -75,11 +75,11 @@ const sleepMs = (ms: number) => Atomics.wait(new Int32Array(new SharedArrayBuffe
 
 /** Read ONE line from `read`, byte by byte (so nothing past the newline is consumed — the
  *  control channel continues on the same stdin). null on EOF, error, overlong or timeout. */
-export function readLineSync(read: ReadFn, timeoutMs = 10_000, now = Date.now): string | null {
+export function readLineSync(read: ReadFn, timeoutMs = 10_000, now = Date.now, maxLine = MAX_LINE): string | null {
   const deadline = now() + timeoutMs;
   const one = Buffer.alloc(1);
   let line = "";
-  while (line.length <= MAX_LINE) {
+  while (line.length <= maxLine) {
     let n: number;
     try {
       n = read(one);

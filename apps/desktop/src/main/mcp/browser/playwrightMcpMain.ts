@@ -1,4 +1,6 @@
 import { app } from "electron";
+import { readSync } from "node:fs";
+import { isLoopbackCdpEndpoint, readCdpPreamble } from "./cdpPreamble";
 
 // Runs @playwright/mcp inside THIS app binary re-entered in "playwright-mcp mode"
 // (B1: no ELECTRON_RUN_AS_NODE). Selected by the OPENMASQ_PWMCP env flag — NOT an argv
@@ -9,22 +11,17 @@ export function isPlaywrightMcpProcess(): boolean {
   return process.env.OPENMASQ_PWMCP === "1";
 }
 
-/** `http(s)://127.0.0.1:<port>…` or `ws(s)://…` — the shape of the endpoint main hands over. */
-export function isLoopbackCdpEndpoint(url: string | undefined): boolean {
-  if (!url) return false;
-  try {
-    const u = new URL(url);
-    return ["http:", "https:", "ws:", "wss:"].includes(u.protocol) && u.hostname === "127.0.0.1" && !!u.port;
-  } catch {
-    return false;
-  }
-}
+export { isLoopbackCdpEndpoint } from "./cdpPreamble";
 
 /** Entry for the re-entered playwright-mcp process. MUST run before the normal app init
  *  and MUST NOT write to stdout (the MCP stdio transport owns it for JSON-RPC). */
 export function runPlaywrightMcpMain(): void {
   // Headless MCP server: no window, no Dock icon (a 2nd icon would otherwise show).
   if (process.platform === "darwin") app.dock?.hide();
+  // FIRST, before anything touches `process.stdin`: the endpoint line main writes ahead of
+  // the JSON-RPC stream (`cdpPreamble.ts`). Consumed byte by byte, so the MCP server below
+  // starts reading at `initialize`.
+  const cdpEndpoint = readCdpPreamble((b) => readSync(0, b, 0, 1, null));
   // SELF-TERMINATE when the parent goes away. This is a full Electron instance of the
   // SAME app bundle, so if it outlives main it makes Squirrel.Mac (ShipIt) count >1
   // running instance and abort the update swap ("App Still Running Error"). The parent
@@ -34,7 +31,6 @@ export function runPlaywrightMcpMain(): void {
   process.stdin.on("close", () => app.quit());
   process.on("SIGTERM", () => app.quit());
   process.on("SIGHUP", () => app.quit());
-  const cdpEndpoint = process.env.PLAYWRIGHT_MCP_CDP_ENDPOINT;
   const outputDir = process.env.OPENMASQ_PWMCP_OUTPUT_DIR;
   // A packaged build only ever DRIVES the app's own agent browser (a loopback CDP endpoint
   // main hands over): never a browser @playwright/mcp would launch for whoever preset the env.

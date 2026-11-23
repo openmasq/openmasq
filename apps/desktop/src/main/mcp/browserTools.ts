@@ -3,6 +3,8 @@ import { minimalChildEnv } from "../childEnv";
 import { join } from "node:path";
 import { helperSpawnArgs } from "../appEntry";
 import type { NodeSpawn } from "./nodeSpawn";
+import { cdpPreamble } from "./browser/cdpPreamble";
+import type { JSONRPCMessage } from "@modelcontextprotocol/sdk/types.js";
 import { BRAND } from "@openmasq/branding";
 import { isGoogleSearchHost } from "@openmasq/catalog/mcp";
 
@@ -16,14 +18,16 @@ export function browserMcpOutputDir(): string {
 }
 
 // @playwright/mcp drives the ISOLATED agent-browser process over CDP.
-export function playwrightMcpSpawn(cdpEndpoint: string): NodeSpawn {
+export function playwrightMcpSpawn(cdpEndpoint: string): NodeSpawn & { preamble: JSONRPCMessage } {
   // PRIVACY: by default @playwright/mcp writes the authenticated page's snapshots to
   // `<cwd>/.playwright-mcp`, unencrypted and, in a dev tree, inside the repo.
   const outputDir = browserMcpOutputDir();
   // Electron APP mode (NO ELECTRON_RUN_AS_NODE, so no reliance on the RunAsNode fuse),
   // re-entering THIS binary via the OPENMASQ_PWMCP env flag, NOT an argv script (a
   // PACKAGED Electron ignores an argv entry and relaunches the app). The child runs
-  // @playwright/mcp PROGRAMMATICALLY over stdio; endpoint + output dir via env (not in `ps`).
+  // @playwright/mcp PROGRAMMATICALLY over stdio. The endpoint carries the CDP broker's
+  // SECRET path: it goes as the first stdin line (`browser/cdpPreamble.ts`), never in the env —
+  // a process's exec environment is readable by any process of the same user.
   return {
     command: process.execPath,
     args: helperSpawnArgs(),
@@ -31,9 +35,9 @@ export function playwrightMcpSpawn(cdpEndpoint: string): NodeSpawn {
     // tools below it receives ITS three variables and the bare minimum (childEnv.ts).
     env: minimalChildEnv({
       OPENMASQ_PWMCP: "1",
-      PLAYWRIGHT_MCP_CDP_ENDPOINT: cdpEndpoint,
       OPENMASQ_PWMCP_OUTPUT_DIR: outputDir,
     }),
+    preamble: cdpPreamble(cdpEndpoint),
   };
 }
 

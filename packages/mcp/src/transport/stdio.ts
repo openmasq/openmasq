@@ -1,5 +1,7 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
 import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
+import type { JSONRPCMessage } from "@modelcontextprotocol/sdk/types.js";
 import type { McpConnection } from "../types";
 import { CLIENT_INFO, callToolVia, listToolsVia } from "./wrap";
 
@@ -20,15 +22,42 @@ export interface StdioServerSpec {
    * browser does) turned that gap into 1366 identical reports in eight days.
    */
   onClose?: (id: string) => void;
+  /**
+   * A message written as the FIRST line on the child's stdin, before `initialize`: how a
+   * spawner hands the child a secret without its exec environment (readable by any process
+   * of the same user, e.g. `ps -E`). The child must consume that line itself before its MCP
+   * server reads stdin.
+   */
+  preamble?: JSONRPCMessage;
+}
+
+/** `t`, with `preamble` sent right after `start` — so before the Client's `initialize`. */
+export function withPreamble(t: Transport, preamble: JSONRPCMessage): Transport {
+  return new Proxy(t, {
+    get(target, prop) {
+      if (prop === "start") {
+        return async () => {
+          await target.start();
+          await target.send(preamble);
+        };
+      }
+      const v = Reflect.get(target, prop, target);
+      return typeof v === "function" ? v.bind(target) : v;
+    },
+    set(target, prop, value) {
+      return Reflect.set(target, prop, value, target);
+    },
+  });
 }
 
 /** Connect over stdio (spawns `command`). */
 export async function connectStdio(spec: StdioServerSpec): Promise<McpConnection> {
-  const transport = new StdioClientTransport({
+  const stdio = new StdioClientTransport({
     command: spec.command,
     args: spec.args,
     env: spec.env,
   });
+  const transport = spec.preamble ? withPreamble(stdio, spec.preamble) : stdio;
   const client = new Client(CLIENT_INFO);
   // Set by our own `close()` so the resulting transport-close doesn't fire `onClose`
   // (meant for UNEXPECTED deaths only) — the flag the HTTP server calls `closing`.
