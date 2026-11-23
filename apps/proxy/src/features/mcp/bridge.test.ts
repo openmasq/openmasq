@@ -88,3 +88,30 @@ describe("bridge — a tool that throws", () => {
     expect(err.message).not.toContain(REAL);
   });
 });
+
+describe("bridge — the per-server policy is the one of the server that ADVERTISED the tool", () => {
+  it("applies the owning server's deny, not a re-parse of the name", async () => {
+    const upstream = await connectUpstream(
+      [{ id: "crm-x", transport: "stdio", command: "unused", args: [], env: {} }],
+      {
+        connect: async () => ({
+          id: "crm-x",
+          listTools: async () => [{ name: "update_contact", inputSchema: { type: "object" }, serverId: "crm-x" }],
+          callTool: async () => ({ content: [{ type: "text", text: "done" }] }),
+          close: async () => {},
+        }),
+      },
+    );
+    const asked: string[] = [];
+    const bridge = createBridge({
+      upstream,
+      masker,
+      policy: "allow",
+      confirm: async () => true,
+      perServer: (id) => (asked.push(id), id === "crm-x" ? { writes: "deny" } : {}),
+    });
+    const out = (await bridge.callTool("crm-x__update_contact", {}, session())) as { refused?: boolean };
+    expect(asked).toEqual(["crm-x"]);
+    expect(out.refused).toBe(true);
+  });
+});

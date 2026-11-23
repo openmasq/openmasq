@@ -43,6 +43,15 @@ describe("the servers file", () => {
     expect(specs.map((s) => s.id)).toEqual(["a"]);
   });
 
+  it("refuses an id ENDING in _ — `crm_` + `x` would split as `crm` + `_x`, another server's policy", () => {
+    for (const id of ["crm_", "a_"]) {
+      expect(() => parseServers(JSON.stringify({ mcpServers: { [id]: { command: "x" } } }))).toThrow(
+        /not a usable server id/,
+      );
+    }
+    expect(parseServers(JSON.stringify({ mcpServers: { "crm_2": { command: "x" } } })).map((s) => s.id)).toEqual(["crm_2"]);
+  });
+
   it("refuses an id carrying the namespace separator — it would break tool routing", () => {
     expect(() => parseServers(JSON.stringify({ mcpServers: { a__b: { command: "x" } } }))).toThrow(
       /not a usable server id/,

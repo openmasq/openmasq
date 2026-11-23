@@ -38,10 +38,12 @@ export type ServerSpec = StdioSpec | HttpSpec;
 export const DEFAULT_MCP_CONFIG = join(openmasqDir(), "mcp.json");
 
 /** A server id prefixes every tool name as `${id}__${tool}`, and the routing splits on the
- *  FIRST `__`. So an id containing one would silently route `a__b__send` to a server called
- *  `a` — hence the second test, which the character class alone does not give. */
+ *  FIRST `__`. That split is unambiguous only if no `__` can start before the separator: the id
+ *  holds none (`a__b__send` would route to `a`), and it does not END with `_` (`crm_` + `x`
+ *  gives `crm___x`, which splits as `crm` + `_x` — another server's policy, and a name a server
+ *  `crm` advertising `_x` would collide with). The character class alone gives neither. */
 const ID = /^[a-z0-9][a-z0-9_-]{0,31}$/;
-const usableId = (id: string): boolean => ID.test(id) && !id.includes("__");
+const usableId = (id: string): boolean => ID.test(id) && !id.includes("__") && !id.endsWith("_");
 
 const isRecord = (v: unknown): v is Record<string, unknown> =>
   typeof v === "object" && v !== null && !Array.isArray(v);
@@ -86,7 +88,7 @@ export function parseServerMap(map: Record<string, unknown>): ServerSpec[] {
   const specs: ServerSpec[] = [];
   for (const [id, raw] of Object.entries(map)) {
     if (!usableId(id))
-      throw new Error(`"${id}" is not a usable server id (lowercase, digits, - and _, no "__")`);
+      throw new Error(`"${id}" is not a usable server id (lowercase, digits, - and _, no "__", not ending in "_")`);
     if (!isRecord(raw)) throw new Error(`${id}: must be an object`);
     if (raw.disabled === true) continue;
     const url = raw.url ?? raw.href;

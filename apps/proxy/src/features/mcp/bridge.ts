@@ -104,7 +104,10 @@ export function createBridge(deps: BridgeDeps): McpBridge {
 
     // The server's own policy, when it has one: its results through ITS masker, its writes
     // behind ITS gate. Everything else — vault, key, restore — is the session's.
-    const scoped = deps.perServer?.(splitToolName(name).serverId) ?? {};
+    // The server is the one that ADVERTISED this tool (`upstream.tools()` sets it), never a
+    // re-parse of the name: the gate below decides on that same entry.
+    const owner = tools.find((t) => t.name === name)?.serverId ?? splitToolName(name).serverId;
+    const scoped = deps.perServer?.(owner) ?? {};
     const masker = scoped.masker ?? deps.masker;
     const stop = await gateTool(
       name,
