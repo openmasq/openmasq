@@ -3,6 +3,7 @@ import electronUpdater from "electron-updater";
 import type { TrackEvent } from "@openmasq/ui";
 import { getConfig, updateConfig } from "./config";
 import { logUpdate } from "./log";
+import { humanizeUpdateError } from "./disk";
 
 // electron-updater is CommonJS; destructure after a default import.
 const { autoUpdater } = electronUpdater;
@@ -45,6 +46,18 @@ export function trackCheckStalled(): void {
 /** A placeholder, so an event with no version still counts in the funnel. */
 const UNKNOWN = "unknown";
 
+/** `up` / `down` / `same` by numeric segments (`0.17.10` > `0.17.9`); a suffix is ignored. */
+export function versionDirection(from: string, to: string): "up" | "down" | "same" {
+  const parts = (v: string) => v.split(/[-+]/)[0]!.split(".").map((n) => Number.parseInt(n, 10) || 0);
+  const a = parts(from);
+  const b = parts(to);
+  for (let i = 0; i < Math.max(a.length, b.length); i++) {
+    const d = (b[i] ?? 0) - (a[i] ?? 0);
+    if (d !== 0) return d > 0 ? "up" : "down";
+  }
+  return "same";
+}
+
 
 
 /**
@@ -64,7 +77,16 @@ export function lastSessionEvents(state: {
   const events: TrackEvent[] = [];
   if (pendingInstall) events.push({ name: "update_install", channel, version: pendingInstall });
   if (lastVersion && lastVersion !== current)
-    events.push({ name: "update_installed", channel, from: lastVersion, to: current });
+    events.push({
+      name: "update_installed",
+      channel,
+      from: lastVersion,
+      to: current,
+      // `updater` = the swap this app staged; `manual` = the version changed without one (a
+      // download from the site, a reinstall) — so a rollback by hand never reads as an update.
+      via: pendingInstall === current ? "updater" : "manual",
+      direction: versionDirection(lastVersion, current),
+    });
   else if (pendingInstall && lastVersion && pendingInstall !== current)
     events.push({ name: "update_install_failed", channel, version: pendingInstall, running: current });
   return events;
@@ -100,7 +122,27 @@ function flushLastSession(): void {
  *  only; `index.ts` owns the log and the status stream. */
 export function setupUpdateTracking(report?: ReportEvent): void {
   if (report) emit = report;
+  // A CHECK that failed is an `update_check` too (`result: "error"`), with the bounded code
+  // and the HTTP status: without it a feed answering 500 reads as no check at all. An error
+  // after `update-available` belongs to the download, already reported as `$exception`.
+  let checking = false;
+  autoUpdater.on("checking-for-update", () => {
+    checking = true;
+  });
+  autoUpdater.on("error", (err: unknown) => {
+    if (!checking) return;
+    checking = false;
+    const status = (err as { statusCode?: unknown } | null)?.statusCode;
+    emit({
+      name: "update_check",
+      channel: getConfig().channel,
+      result: "error",
+      error: humanizeUpdateError(err).code,
+      ...(typeof status === "number" ? { http: status } : {}),
+    });
+  });
   autoUpdater.on("update-available", (info) => {
+    checking = false;
     emit({
       name: "update_check",
       channel: getConfig().channel,
@@ -111,6 +153,7 @@ export function setupUpdateTracking(report?: ReportEvent): void {
     });
   });
   autoUpdater.on("update-not-available", (info) => {
+    checking = false;
     emit({
       name: "update_check",
       channel: getConfig().channel,

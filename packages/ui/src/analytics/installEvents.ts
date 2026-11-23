@@ -25,7 +25,9 @@ type PythonRuntimeStage = "start" | "download" | "extract" | "install" | "ready"
 export type InstallEvent =
   // What a set-up card READ for a CLI: is it here, is it signed in. Once per distinct answer
   // per session — the step `access: agent` cannot tell (an agent counts as access unsigned).
-  | { name: "cli_status"; cli: SubscriptionCli; installed: boolean; logged_in: "yes" | "no" | "unknown" }
+  // `plan` = the CLI's own plan name, allow-listed (`installTrack.ts` `planBucket`): « none »
+  // when it printed none — signed in without a subscription reads differently from a refusal.
+  | { name: "cli_status"; cli: SubscriptionCli; installed: boolean; logged_in: "yes" | "no" | "unknown"; plan: string }
   | { name: "cli_install_start"; cli: SubscriptionCli }
   | {
       name: "cli_install";

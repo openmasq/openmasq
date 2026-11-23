@@ -92,15 +92,27 @@ export function trackLoginWithoutCli(cli: SubscriptionCli, emit: Emit): void {
 
 const seenStatus = new Set<string>();
 
+/** The plan names the CLIs print (`claude auth status` → `subscriptionType`, codex →
+ *  `planType`), ALLOW-listed: anything else is `other`, an absent one `none` — a plan is
+ *  a product fact, never free text from the CLI. It tells « signed in but no paid plan »
+ *  apart from « signed in and refused for another reason ». */
+const PLANS = new Set(["free", "pro", "max", "plus", "team", "business", "enterprise", "edu"]);
+export function planBucket(plan: string | undefined): string {
+  if (!plan) return "none";
+  const p = plan.toLowerCase();
+  return PLANS.has(p) ? p : "other";
+}
+
 /** Report what a set-up card read, once per distinct answer per session (cards re-read on
  *  every window focus). */
 export function trackCliStatus(status: SubscriptionCliStatus | null, emit: Emit): void {
   if (!status) return;
   const logged_in = status.loggedIn === true ? "yes" : status.loggedIn === false ? "no" : "unknown";
-  const key = `${status.cli}:${status.installed}:${logged_in}`;
+  const plan = planBucket(status.plan);
+  const key = `${status.cli}:${status.installed}:${logged_in}:${plan}`;
   if (seenStatus.has(key)) return;
   seenStatus.add(key);
-  safe(emit, { name: "cli_status", cli: status.cli, installed: status.installed, logged_in });
+  safe(emit, { name: "cli_status", cli: status.cli, installed: status.installed, logged_in, plan });
 }
 
 let pythonReported = false;

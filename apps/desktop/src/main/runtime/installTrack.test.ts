@@ -4,7 +4,7 @@ import {
   resetInstallTracking,
   trackCliInstall,
   trackCliLogin,
-  trackCliStatus,
+  trackCliStatus, planBucket,
   trackLoginWithoutCli,
   trackPythonRuntime,
 } from "./installTrack";
@@ -116,16 +116,23 @@ describe("trackCliStatus", () => {
     trackCliStatus({ ...base, installed: true, loggedIn: false }, emit);
     trackCliStatus({ ...base, installed: true, loggedIn: true, email: "a@b.c", plan: "plus" }, emit);
     expect(events).toEqual([
-      { name: "cli_status", cli: "codex", installed: true, logged_in: "no" },
-      { name: "cli_status", cli: "codex", installed: true, logged_in: "yes" },
+      { name: "cli_status", cli: "codex", installed: true, logged_in: "no", plan: "none" },
+      { name: "cli_status", cli: "codex", installed: true, logged_in: "yes", plan: "plus" },
     ]);
+  });
+
+  it("the plan is allow-listed: a known name as is, anything else `other`, none `none`", () => {
+    expect(planBucket("Max")).toBe("max");
+    expect(planBucket("free")).toBe("free");
+    expect(planBucket("someone@example.com")).toBe("other");
+    expect(planBucket(undefined)).toBe("none");
   });
 
   it("`null` (the CLI did not answer) is `unknown`, never `no`", () => {
     const { events, emit } = sink();
     trackCliStatus({ ...base, installed: false, loggedIn: null }, emit);
     trackCliStatus(null, emit);
-    expect(events).toEqual([{ name: "cli_status", cli: "codex", installed: false, logged_in: "unknown" }]);
+    expect(events).toEqual([{ name: "cli_status", cli: "codex", installed: false, logged_in: "unknown", plan: "none" }]);
   });
 });
 

@@ -20,6 +20,7 @@ vi.mock("./log", () => ({ logUpdate: () => {} }));
 
 import {
   lastSessionEvents,
+  versionDirection,
   setupUpdateTracking,
   takeJustUpdated,
   trackInstallDeferred,
@@ -40,7 +41,7 @@ describe("lastSessionEvents", () => {
   it("reports the attempt AND the landing when the swap worked", () => {
     expect(lastSessionEvents({ ...base, lastVersion: "0.3.2", pendingInstall: "0.3.3" })).toEqual([
       { name: "update_install", channel: "desktop-production", version: "0.3.3" },
-      { name: "update_installed", channel: "desktop-production", from: "0.3.2", to: "0.3.3" },
+      { name: "update_installed", channel: "desktop-production", from: "0.3.2", to: "0.3.3", via: "updater", direction: "up" },
     ]);
   });
 
@@ -59,8 +60,16 @@ describe("lastSessionEvents", () => {
 
   it("reports a landing the app never asked for (an out-of-band swap / manual replace)", () => {
     expect(lastSessionEvents({ ...base, lastVersion: "0.3.2" })).toEqual([
-      { name: "update_installed", channel: "desktop-production", from: "0.3.2", to: "0.3.3" },
+      { name: "update_installed", channel: "desktop-production", from: "0.3.2", to: "0.3.3", via: "manual", direction: "up" },
     ]);
+  });
+
+  it("a version that went DOWN is a rollback, never an update", () => {
+    expect(lastSessionEvents({ ...base, current: "0.16.0", lastVersion: "0.17.0" })).toEqual([
+      { name: "update_installed", channel: "desktop-production", from: "0.17.0", to: "0.16.0", via: "manual", direction: "down" },
+    ]);
+    expect(versionDirection("0.17.9", "0.17.10")).toBe("up");
+    expect(versionDirection("1.0.0", "1.0.0-beta.1")).toBe("same");
   });
 });
 
@@ -75,6 +84,21 @@ describe("setupUpdateTracking", () => {
       { name: "update_check", channel: "desktop-production", result: "available", found_version: "0.3.4" },
       { name: "update_check", channel: "desktop-production", result: "up_to_date", found_version: "0.3.3" },
       { name: "update_downloaded", channel: "desktop-production", version: "0.3.4" },
+    ]);
+  });
+
+  it("a CHECK that fails is an update_check with its code and HTTP status; a download error is not", () => {
+    const events: TrackEvent[] = [];
+    setupUpdateTracking((e) => events.push(e));
+    handlers.get("checking-for-update")?.(undefined);
+    handlers.get("error")?.(Object.assign(new Error("500 Internal Server Error"), { statusCode: 500 }));
+    // a download failure after `update-available` stays out of the check funnel
+    handlers.get("checking-for-update")?.(undefined);
+    handlers.get("update-available")?.({ version: "0.3.4" });
+    handlers.get("error")?.(Object.assign(new Error("404"), { statusCode: 404 }));
+    expect(events.filter((e) => e.name === "update_check")).toEqual([
+      { name: "update_check", channel: "desktop-production", result: "error", error: "download-500", http: 500 },
+      { name: "update_check", channel: "desktop-production", result: "available", found_version: "0.3.4" },
     ]);
   });
 

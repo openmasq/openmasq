@@ -263,7 +263,15 @@ export type TrackEvent =
   // found the running version changed; `update_install_failed` = it relaunched on the SAME
   // version (`running`), the failure unobservable in-process. No feed URL, no installId, no device id.
   // `found_version` = what the feed PROPOSES (≠ `app_version`, which is running).
-  | { name: "update_check"; channel: string; result: "available" | "up_to_date" | "stalled"; found_version?: string }
+  // `result: "error"` = the check itself failed: `error` is the bounded updater code, `http` the feed's status.
+  | {
+      name: "update_check";
+      channel: string;
+      result: "available" | "up_to_date" | "stalled" | "error";
+      found_version?: string;
+      error?: string;
+      http?: number;
+    }
   | { name: "update_downloaded"; channel: string; version: string }
   | { name: "update_install"; channel: string; version: string }
   // A staged build the AUTOMATIC install is holding back, and why — once per version and
@@ -275,7 +283,9 @@ export type TrackEvent =
       version: string;
       reason: "in_use" | "busy_main" | "busy_renderer" | "no_answer";
     }
-  | { name: "update_installed"; channel: string; from: string; to: string }
+  // `via` = staged by this app's updater, or `manual` (the version changed without a staged swap);
+  // `direction` = `up` / `down` / `same`, so a rollback is never counted as an update.
+  | { name: "update_installed"; channel: string; from: string; to: string; via: "updater" | "manual"; direction: "up" | "down" | "same" }
   | { name: "update_install_failed"; channel: string; version: string; running: string }
   // ── what the app installs while it runs (CLIs, their sign-in, the Python runtime) ──
   | InstallEvent;
