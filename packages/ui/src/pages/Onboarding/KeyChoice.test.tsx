@@ -236,6 +236,7 @@ describe("KeyChoice — l'accès aux modèles au premier lancement", () => {
     cli: "claude",
     copy: getMessages("fr").modelPicker.cli.claude,
     detected: true,
+    signedOut: false,
     enabled: false,
     onEnabled: () => {},
     ...over,

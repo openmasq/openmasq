@@ -15,6 +15,15 @@ describe("modelAccess", () => {
     expect(modelAccess({ ...base, agents: [{ enabled: true, detected: true }] })).toBe("agent");
   });
 
+  it("does NOT count an agent its own status says is signed out — it would answer nothing", () => {
+    expect(modelAccess({ ...base, agents: [{ enabled: true, detected: true, signedOut: true }] })).toBe("none");
+    expect(modelAccess({ ...base, agents: [{ enabled: true, detected: true, signedOut: false }] })).toBe("agent");
+    // a signed-out agent beside a key: the key is the road
+    expect(
+      modelAccess({ ...base, agents: [{ enabled: true, detected: true, signedOut: true }], keyConfigured: new Set(["openai"]) }),
+    ).toBe("key");
+  });
+
   it("counts a provider key, never a key that answers nothing", () => {
     expect(modelAccess({ ...base, keyConfigured: new Set(["redactModel"]) })).toBe("none");
     expect(modelAccess({ ...base, keyConfigured: new Set(["openrouter"]) })).toBe("key");

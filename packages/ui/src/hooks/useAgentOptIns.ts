@@ -1,7 +1,7 @@
 import type { ProviderId, SubscriptionAccount } from "@openmasq/llm";
 import { useHost } from "../host";
 import { useT } from "../i18n";
-import { useCliDetected } from "../state/effects/useAvailabilityProbes";
+import { useCliAgentState } from "../state/effects/useAvailabilityProbes";
 
 /** The CLI behind an agent provider — what the account card asks by name. */
 export type AgentCli = SubscriptionAccount["cli"];
@@ -22,6 +22,8 @@ export interface AgentOptIn {
   copy: AgentCopy;
   /** `false` = binary absent from this machine, `null` = not (yet) probed. */
   detected: boolean | null;
+  /** Switched on, found, and its own status says it is NOT signed in (`cliSession.ts`). */
+  signedOut: boolean;
   enabled: boolean;
   onEnabled: (on: boolean) => void;
 }
@@ -48,9 +50,9 @@ export interface AgentOptInInput {
 export function useAgentOptIns(input: AgentOptInInput): AgentOptIn[] {
   const t = useT();
   const host = useHost();
-  const claudeDetected = useCliDetected(host, "probeClaudeCli");
-  const codexDetected = useCliDetected(host, "probeCodexCli");
-  const antigravityDetected = useCliDetected(host, "probeAntigravityCli");
+  const claude = useCliAgentState(host, "probeClaudeCli", input.claudeCliEnabled);
+  const codex = useCliAgentState(host, "probeCodexCli", input.codexCliEnabled);
+  const antigravity = useCliAgentState(host, "probeAntigravityCli", input.antigravityCliEnabled);
 
   const agents: AgentOptIn[] = [];
   if (host.probeClaudeCli && input.onClaudeCliEnabled)
@@ -58,7 +60,8 @@ export function useAgentOptIns(input: AgentOptInInput): AgentOptIn[] {
       pid: "claude-cli",
       cli: "claude",
       copy: t.modelPicker.cli.claude,
-      detected: claudeDetected,
+      detected: claude.detected,
+      signedOut: claude.signedOut,
       enabled: !!input.claudeCliEnabled,
       onEnabled: input.onClaudeCliEnabled,
     });
@@ -67,7 +70,8 @@ export function useAgentOptIns(input: AgentOptInInput): AgentOptIn[] {
       pid: "codex-cli",
       cli: "codex",
       copy: t.modelPicker.cli.codex,
-      detected: codexDetected,
+      detected: codex.detected,
+      signedOut: codex.signedOut,
       enabled: !!input.codexCliEnabled,
       onEnabled: input.onCodexCliEnabled,
     });
@@ -76,7 +80,8 @@ export function useAgentOptIns(input: AgentOptInInput): AgentOptIn[] {
       pid: "antigravity-cli",
       cli: "antigravity",
       copy: t.modelPicker.cli.antigravity,
-      detected: antigravityDetected,
+      detected: antigravity.detected,
+      signedOut: antigravity.signedOut,
       enabled: !!input.antigravityCliEnabled,
       onEnabled: input.onAntigravityCliEnabled,
     });

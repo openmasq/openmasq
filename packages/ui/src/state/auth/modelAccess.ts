@@ -14,8 +14,10 @@ export interface ModelAccessInput {
   /** Does this build serve included models (`send/platformAccess.ts`)? */
   served: boolean;
   /** The subscription CLIs: only one switched ON *and* found on this machine opens a road
-   *  (`null` = not probed yet, which opens nothing). */
-  agents: ReadonlyArray<{ enabled: boolean; detected: boolean | null }>;
+   *  (`null` = not probed yet, which opens nothing), unless its own status says it is
+   *  signed OUT (`signedOut`; an unknown session never blocks): an installed CLI nobody is
+   *  logged into answers nothing, and a person let through lands in a chat that cannot reply. */
+  agents: ReadonlyArray<{ enabled: boolean; detected: boolean | null; signedOut?: boolean }>;
   /** Ids holding a key. Only a PROVIDER id counts: the store also holds keys that answer
    *  nothing (the redaction model's). */
   keyConfigured: ReadonlySet<string>;
@@ -25,7 +27,7 @@ export interface ModelAccessInput {
 }
 
 export function modelAccess(p: ModelAccessInput): ModelAccess {
-  if (p.agents.some((a) => a.enabled && a.detected === true)) return "agent";
+  if (p.agents.some((a) => a.enabled && a.detected === true && !a.signedOut)) return "agent";
   if ([...p.keyConfigured].some((id) => Object.hasOwn(PROVIDERS, id))) return "key";
   if (p.localReachable === true) return "local";
   if (p.served) return "platform";

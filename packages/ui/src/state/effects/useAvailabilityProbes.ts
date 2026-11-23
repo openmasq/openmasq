@@ -138,11 +138,13 @@ export function useAntigravityCliProbe(host: Host, enabled: boolean | undefined)
 }
 
 /**
- * DETECTION alone (without the opt-in), for Réglages → Modèles: an agent's badge
- * must be able to say "not found on this machine" BEFORE the setting is enabled.
- * Same probe, same slot, one single core (rule 9) — a second copy would drift.
- * `null` = not probeable here (host without this slot: web preview) or not answered yet.
+ * The agents list (`hooks/useAgentOptIns.ts`, Réglages → Modèles and the onboarding): DETECTION
+ * even before the opt-in (a badge says « not found on this machine »), the same probe and slot
+ * (rule 9) — and, once the opt-in is on and the binary found, the SESSION (`signedOut`): the
+ * onboarding's access verdict must not call a CLI that is installed but known signed out a
+ * road to a model (`state/auth/modelAccess.ts`). Unknown (`null`, antigravity) never blocks.
  */
-export function useCliDetected(host: Host, slot: CliProbeSlot) {
-  return useCliProbe(host, slot, false).detected;
+export function useCliAgentState(host: Host, slot: CliProbeSlot, enabled: boolean | undefined) {
+  const { detected, ready } = useCliProbe(host, slot, enabled);
+  return { detected, signedOut: ready === "signed_out" };
 }
