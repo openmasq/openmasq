@@ -1,4 +1,4 @@
-import { open } from "node:fs/promises";
+import { openPinned } from "../security/pinnedOpen";
 import { basename } from "node:path";
 import { MAX_FILE_BYTES } from "@openmasq/redact";
 import type { ExtractedFile, ExtractStreamEvent } from "@openmasq/redact/documents";
@@ -26,6 +26,9 @@ export interface ExtractCallbacks {
   /** The preview stream (pages, thumbnails). */
   onStream?: (ev: ExtractStreamEvent) => void;
   signal?: AbortSignal;
+  /** The caller's gate, re-checked on the OPEN descriptor (`openPinned`). Absent ⇒ any path
+   *  (the native picker's own choice); the descriptor is still pinned to the resolved file. */
+  allowed?: (realPath: string) => boolean;
 }
 
 /** ONE document at a time (why: `extractQueue.ts`). The worker timeout is armed inside
@@ -42,10 +45,10 @@ async function inWorker(viaWorker: () => Promise<ExtractedFile>): Promise<Extrac
  * reads none of the user's files (`extractSandbox.ts`). The size gate runs on the open handle's
  * stat before a byte is read, as the engine's own path entry does; past it, the engine's refusal.
  */
-async function fileBytes(filePath: string): Promise<Uint8Array | ExtractedFile> {
-  const fh = await open(filePath, "r");
+async function fileBytes(filePath: string, allowed: (realPath: string) => boolean = () => true): Promise<Uint8Array | ExtractedFile> {
+  const { fh, st } = await openPinned(filePath, allowed);
   try {
-    if ((await fh.stat()).size > MAX_FILE_BYTES) {
+    if (st.size > MAX_FILE_BYTES) {
       const mb = Math.round(MAX_FILE_BYTES / 1024 / 1024);
       return { name: basename(filePath), kind: "file", text: "", chars: 0, error: `File too large (${mb} MB max)`, errorCode: "file_too_large", errorParams: { mb }, blocked: true };
     }
@@ -62,7 +65,7 @@ export function extractTextInWorker(filePath: string, cb: ExtractCallbacks = {})
   const locale = mainLocale();
   return queue.run(
     async (signal) => {
-      const bytes = await fileBytes(filePath);
+      const bytes = await fileBytes(filePath, cb.allowed);
       if (!(bytes instanceof Uint8Array)) return localizeExtracted(bytes, mainMessages().documents);
       const data = Buffer.from(bytes).toString("base64");
       return inWorker(() => runInWorker({ kind: "bytes", data, name: basename(filePath), locale }, cb.onOcrProgress, cb.onStream, signal));

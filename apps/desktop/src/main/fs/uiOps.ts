@@ -120,8 +120,8 @@ export const UI_OPS: Record<string, UiOp> = {
   /** Rename/move. BOTH ends are resolved, so a destination outside the grant is refused
    *  — moving a file out of the authorized folders is not a rename, it is an escape. */
   async rename(g, a): Promise<{ path: string }> {
-    const source = g.resolve(str(a, "source"));
-    const destination = g.resolve(str(a, "destination"));
+    const source = g.resolveRelocatable(str(a, "source"));
+    const destination = g.resolveRelocatable(str(a, "destination"));
     assertNotHiddenByLink(str(a, "source"), source, g.roots);
     assertNotHiddenByLink(str(a, "destination"), destination, g.roots);
     await rename(source, destination);

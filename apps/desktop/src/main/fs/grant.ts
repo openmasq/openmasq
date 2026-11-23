@@ -21,6 +21,12 @@ import { isWithin, isWithinDenied, realPathOrNull } from "../security/pathScope"
 export interface Grant {
   /** Resolve + authorize a path; throws if it escapes the grant or hits a deny path. */
   resolve(target: string): string;
+  /** {@link resolve} for an op that RELOCATES or removes a whole subtree (move, rename, trash):
+   *  also refuses a path that CONTAINS a denied entry. Renaming `~/Library/Application Support/X`
+   *  would otherwise carry a denied `X/…` to an undenied name (then readable), and moving a
+   *  crafted folder onto that name would plant files inside the denied subtree. Listing and
+   *  searching a broad root (`~`) keep {@link resolve}: they relocate nothing. */
+  resolveRelocatable(target: string): string;
   /** The granted roots (real paths), for `list_allowed_directories`. */
   readonly roots: readonly string[];
 }
@@ -101,5 +107,13 @@ export function makeGrant(rawRoots: string[], rawDeny: string[] = []): Grant {
     return real;
   };
 
-  return { resolve: authorize, roots };
+  const authorizeRelocatable = (target: string): string => {
+    const real = authorize(target);
+    if (deny.some((d) => isWithinDenied(real, d))) {
+      throw new Error(`accès refusé (contient un chemin protégé) : ${target}`);
+    }
+    return real;
+  };
+
+  return { resolve: authorize, resolveRelocatable: authorizeRelocatable, roots };
 }

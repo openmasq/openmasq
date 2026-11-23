@@ -13,7 +13,7 @@ vi.mock("./handle", () => ({
   str: "str",
   optional: (c: unknown) => c,
 }));
-vi.mock("./readGate", () => ({ assertReadAllowed: () => {} }));
+vi.mock("./readGate", () => ({ assertReadAllowed: () => {}, isReadAllowed: () => true }));
 vi.mock("./registerFilesIpc", () => ({ progressTo: () => () => {} }));
 const extractBytes = vi.fn();
 const extractPaths = vi.fn();

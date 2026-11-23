@@ -17,7 +17,7 @@ import { safeOpenPath } from "../net/safeOpen";
 import { isFetchHostAllowed } from "../net/fetchAllow";
 import { previewLink } from "../net/linkPreview";
 import { withAgentBrowserHidden } from "../mcp/browser";
-import { grantRead, readAllowedFile } from "./readGate";
+import { grantRead, isReadAllowed, readAllowedFile } from "./readGate";
 import { registerExtractIpc } from "./filesExtractIpc";
 import { handle, str, bool, obj, } from "./handle";
 import { devOnly } from "../security/devOnly";
@@ -71,7 +71,7 @@ export function registerFilesIpc(): void {
     if (attach) {
       const paths = attach.split(":");
       paths.forEach(grantRead); // E2E fixture paths → grant (env-set, trusted)
-      return extractPaths(paths, progressTo(e.sender));
+      return extractPaths(paths, progressTo(e.sender), undefined, undefined, isReadAllowed);
     }
     return withAgentBrowserHidden(() => pickAndExtract(progressTo(e.sender))).then((files) => {
       // The user chose these via the native dialog → grant reading them this session.

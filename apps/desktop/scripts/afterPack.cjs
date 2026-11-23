@@ -123,6 +123,9 @@ exports.default = async function afterPack(context) {
     [FuseV1Options.EnableNodeCliInspectArguments]: false, // no --inspect on the packaged app
     [FuseV1Options.OnlyLoadAppFromAsar]: true, // only load the app entry from app.asar
     [FuseV1Options.EnableCookieEncryption]: true, // encrypt the cookie store at rest
+    // GrantFileProtocolExtraPrivileges stays at its default: the renderer IS a file:// page
+    // (module scripts, workers). What a file:// page may READ is bounded in main instead —
+    // src/main/rendererFileScope.ts serves the renderer directory only.
 
     // asar integrity validation — macOS/Windows only (Linux has no support). electron-
     // builder injects the asar integrity hashes; a tampered asar then fails to load.

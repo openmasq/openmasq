@@ -33,9 +33,9 @@ const optNum = (a: Record<string, unknown>, k: string): number | undefined =>
 
 /** A path this call will WRITE at or move: resolved, and never a place a link hid from the
  *  confirmation main shows (`toolOrders.ts`). */
-const writeTarget = (g: Grant, a: Record<string, unknown>, k: string): string => {
+const writeTarget = (g: Grant, a: Record<string, unknown>, k: string, relocates = false): string => {
   const given = str(a, k);
-  const real = g.resolve(given);
+  const real = relocates ? g.resolveRelocatable(given) : g.resolve(given);
   assertNotHiddenByLink(given, real, g.roots);
   return real;
 };
@@ -223,8 +223,8 @@ export const TOOL_OPS: Record<string, ToolOp> = {
   },
 
   async move_file(g, a) {
-    const source = writeTarget(g, a, "source");
-    const destination = writeTarget(g, a, "destination");
+    const source = writeTarget(g, a, "source", true);
+    const destination = writeTarget(g, a, "destination", true);
     try {
       await rename(source, destination);
     } catch (e) {

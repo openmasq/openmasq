@@ -1,10 +1,9 @@
 import { app } from "electron";
-import { constants } from "node:fs";
-import { open } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { resolve, sep } from "path";
 import { BRAND } from "@openmasq/branding";
 import { isWithin, isWithinDenied, realPathOrNull } from "../security/pathScope";
+import { openPinned } from "../security/pinnedOpen";
 
 // ── files:read confinement ───────────────────────────────────────────────────
 // The renderer may only read a path the USER granted this session, or one inside our own
@@ -40,7 +39,8 @@ function secretReadPaths(): { files: string[]; dirs: string[] } {
   };
   return secretRead;
 }
-function isReadAllowed(p: string): boolean {
+/** The gate as a predicate, for a read that re-checks it on the open descriptor (`openPinned`). */
+export function isReadAllowed(p: string): boolean {
   const n = normPath(p);
   const secret = secretReadPaths();
   // A secret FILE is matched like a dir: a path beneath a file cannot exist, so this only
@@ -68,17 +68,14 @@ export function assertReadAllowed(p: string): void {
 }
 
 /**
- * A gated READ: the gate decides on the path's REAL path, and that real path is what is opened
- * — `O_NOFOLLOW` (a link swapped in after the check is not followed), non-blocking, and sized on
- * the descriptor. A regular file only: a FIFO would hold main forever. `tooLarge` past `maxBytes`.
+ * A gated READ: the gate decides on the REAL path and is re-checked on the open descriptor
+ * (`../security/pinnedOpen.ts`: no link in any component, same dev/ino), sized on the
+ * descriptor. A regular file only: a FIFO would hold main forever. `tooLarge` past `maxBytes`.
  */
 export async function readAllowedFile(p: string, maxBytes = Infinity, tooLarge = () => new Error("Fichier trop volumineux.")): Promise<Uint8Array> {
-  const real = normPath(p);
-  assertReadAllowed(real);
-  const fh = await open(real, constants.O_RDONLY | (constants.O_NOFOLLOW ?? 0) | (constants.O_NONBLOCK ?? 0));
+  assertReadAllowed(p);
+  const { fh, st } = await openPinned(p, isReadAllowed);
   try {
-    const st = await fh.stat();
-    if (!st.isFile()) throw new Error("Accès fichier refusé : ce n'est pas un fichier.");
     if (st.size > maxBytes) throw tooLarge();
     return new Uint8Array(await fh.readFile());
   } finally {

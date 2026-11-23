@@ -68,11 +68,19 @@ export function makeMainFsOps(roots: string[], deny: string[]): MainFsOps {
   // Built lazily and once: `makeGrant` realpath-resolves every root, which is disk work
   // we shouldn't do on connect for a capability the user may never open.
   const gate = (): Grant => (cached ??= makeGrant(roots, deny));
+  // The grant, re-checked on the extractor's OPEN descriptor: the real path must resolve to itself.
+  const inGrant = (real: string): boolean => {
+    try {
+      return gate().resolve(real) === real;
+    } catch {
+      return false;
+    }
+  };
 
   return {
     async readDocument(path) {
       const real = gate().resolve(path);
-      const [extracted] = await extractPaths([real]);
+      const [extracted] = await extractPaths([real], undefined, undefined, undefined, inGrant);
       if (!extracted) throw new Error("ce document n'a pas pu être lu");
       if (extracted.error) throw new Error(extracted.error);
       const text = (extracted.text ?? "").trim();
@@ -85,7 +93,7 @@ export function makeMainFsOps(roots: string[], deny: string[]): MainFsOps {
 
     async extractDocument(path) {
       const real = gate().resolve(path);
-      const [x] = await extractPaths([real]);
+      const [x] = await extractPaths([real], undefined, undefined, undefined, inGrant);
       if (!x) throw new Error("ce document n'a pas pu être lu");
       // `path` is dropped HERE, not above: this is the only place that knows it, and
       // a field one forgets to strip further down is a field that leaks out.
@@ -95,7 +103,7 @@ export function makeMainFsOps(roots: string[], deny: string[]): MainFsOps {
 
     async trash(path) {
       const g = gate();
-      const real = g.resolve(path);
+      const real = g.resolveRelocatable(path);
       // A granted root IS inside the grant, so `resolve` allows it. Trashing the folder
       // the user authorised would revoke the connector's own capability as a side effect
       // of a click in a file list — refuse it and let them do that in their file manager.

@@ -60,6 +60,7 @@ async function extractTagged(
   onProgress?: OcrProgressFn,
   onStream?: ExtractStreamFn,
   signal?: AbortSignal,
+  allowed?: (realPath: string) => boolean,
 ): Promise<ExtractedFile> {
   const name = path.split(/[\\/]/).pop() || path;
   const extracted = await extractText(path, {
@@ -67,6 +68,7 @@ async function extractTagged(
     onWaiting: (ahead) => onProgress?.(name, 0, 0, { queued: ahead, path }),
     onStream: onStream ? (ev) => onStream(ev, { name, path }) : undefined,
     signal,
+    allowed,
   });
   return { ...extracted, path, mime: mimeFor(path) };
 }
@@ -100,8 +102,10 @@ export async function extractPaths(
   onStream?: ExtractStreamFn,
   /** The user removed the file (`ocr/extractCancel.ts`) — absent ⇒ uncancellable. */
   signal?: AbortSignal,
+  /** The caller's gate, re-checked when each file is OPENED (`ocr/extractJobs.ts`). */
+  allowed?: (realPath: string) => boolean,
 ): Promise<ExtractedFile[]> {
-  return Promise.all(paths.map((p) => extractTagged(p, onProgress, onStream, signal)));
+  return Promise.all(paths.map((p) => extractTagged(p, onProgress, onStream, signal, allowed)));
 }
 
 /** Just the native picker — returns the chosen paths (+ basenames) WITHOUT extracting.

@@ -4,7 +4,6 @@
 import { getMainWindow, withMainWindow } from "./mainWindowRef";
 // / helper-process branch points. See apps/desktop/CLAUDE.md for the process map.
 import { app, BrowserWindow } from "electron";
-import { join } from "path";
 import { registerDataIpc } from "./ipc/registerDataIpc";
 import { startBroker, stopBroker } from "./broker";
 import { registerProtocolClient } from "./protocolClient";
@@ -47,7 +46,7 @@ import { registerPdfIpc } from "./pdf";
 import { registerWebIpc } from "./net/webIpc";
 import { initSentryMain } from "../sentry/main";
 import { applyProfilePath } from "./profile";
-import { registerEnvIpc } from "./ipc/registerEnvIpc"; import { installCustomStackCspFor } from "./customStackCsp";  import { AUTH_SCHEME, installDeepLinkHandlers, deliverAuthUrl } from "./deepLinks";
+import { registerEnvIpc } from "./ipc/registerEnvIpc"; import { customStackIndexPatch } from "./customStackCsp"; import { installRendererFileScope } from "./rendererFileScope"; import { APP_INDEX_HTML } from "./appPage";  import { AUTH_SCHEME, installDeepLinkHandlers, deliverAuthUrl } from "./deepLinks";
 import { createWindow } from "./window";
 import { registerChatHandlers } from "./ipc/registerChatIpc";
 import { resolvedEnvPayload } from "./ipc/envSwitch";
@@ -157,7 +156,8 @@ app.whenReady().then(async () => {
   installMediaPermissions(); // Electron refuses getUserMedia with no handler
   registerNotifyIpc(getMainWindow);
   registerClaudeSkillsIpc();
-  if (PROFILE) installCustomStackCspFor(PROFILE, join(__dirname, "../renderer/index.html")); // CSP widened BEFORE loadFile
+  // BEFORE loadFile: `file:` serves only the renderer directory (+ the custom stack's CSP rewrite).
+  installRendererFileScope(APP_INDEX_HTML, PROFILE ? customStackIndexPatch(PROFILE) : null);
   createWindow();
   // Re-warm the NER engine when the user comes back: the worker is evicted after
   // inactivity, and the first redaction would otherwise repay the cold load.

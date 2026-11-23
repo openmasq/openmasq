@@ -1,7 +1,7 @@
 import type { ExtractStreamEvent } from "@openmasq/redact/documents";
 import { extractBytes, extractPaths, type ExtractStreamFn } from "../files";
 import { cancelExtractJob, registerExtractJob } from "../ocr/extractCancel";
-import { assertReadAllowed } from "./readGate";
+import { assertReadAllowed, isReadAllowed } from "./readGate";
 import { handle, arr, obj, optional, str } from "./handle";
 import { progressTo } from "./registerFilesIpc";
 
@@ -16,10 +16,12 @@ export function registerExtractIpc(): void {
   // 3rd: the caller's job id (its chip), what `files:extract-cancel` names — absent ⇒ uncancellable.
   handle("files:extract", [arr, optional(str), optional(str)], async (e, raw, req, job) => {
     const paths = raw as string[];
-    paths.forEach(assertReadAllowed); // gate before the (Node-only) extractor reads them
+    // Fail fast here; the DECISIVE check is re-run on each file's open descriptor (`allowed`):
+    // the queue may open a file long after this line, and a path can be swapped meanwhile.
+    paths.forEach(assertReadAllowed);
     const { signal, done } = registerExtractJob(e.sender.id, job);
     try {
-      return await extractPaths(paths, progressTo(e.sender), streamTo(e.sender, req), signal);
+      return await extractPaths(paths, progressTo(e.sender), streamTo(e.sender, req), signal, isReadAllowed);
     } finally {
       done();
     }
