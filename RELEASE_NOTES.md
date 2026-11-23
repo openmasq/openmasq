@@ -50,6 +50,18 @@ kept in the French they were sent in, for the reason given above.
 
 ---
 
+## 0.17.10 — 2026-11-23
+> Setup makes sure your subscription app is signed in before you start.
+
+### Improvements & fixes
+- Setup waits until your Claude or Codex app is signed in, so your first message gets an answer.
+- Access to your files and folders is more tightly controlled.
+- The built-in browser keeps its connection better protected.
+- The local proxy checks server names more strictly.
+- If you share usage statistics, they include update check results and your subscription plan type.
+
+---
+
 ## 0.17.9 — 2026-11-17
 > Your Claude, Codex and Antigravity subscriptions handle long conversations.
 
