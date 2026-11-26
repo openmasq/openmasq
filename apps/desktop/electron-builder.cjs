@@ -289,6 +289,9 @@ module.exports = {
     // Uninstalling destroys neither the conversations, nor the vault, nor the keys.
     deleteAppDataOnUninstall: false,
     shortcutName: brand.name,
+    // A setup run BY HAND refuses to install over a NEWER version; the updater's runs
+    // (`--updated`) are untouched. `build/installer.nsh`, pinned by `installerNsh.test.ts`.
+    include: "build/installer.nsh",
   },
 
   // Update feed. This `publish.url` is baked into app-update.yml as a FALLBACK only: the
