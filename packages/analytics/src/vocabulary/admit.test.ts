@@ -95,7 +95,7 @@ describe("admit — what the relay lets through", () => {
     }
   });
 
-  // The public sites post page views only: what a web-analytics view
+  // The public sites post page views and installer clicks only: what a web-analytics view
   // reads, never an address, a query string's other parameters or a desktop event.
   it("admits a site page view with its declared keys only", () => {
     const a = admit({
@@ -111,7 +111,23 @@ describe("admit — what the relay lets through", () => {
     });
     expect(admit({ source: "site", event: "send_message" })).toEqual({ ok: false, reason: "event" });
     expect(admit({ source: "desktop", event: "$pageview" })).toEqual({ ok: false, reason: "event" });
-    expect(Object.keys(SITE_EVENTS)).toEqual(["$pageview"]);
+    expect(Object.keys(SITE_EVENTS)).toEqual(["$pageview", "download"]);
+  });
+
+  // A download is a click on an installer link: the page-view keys plus the installer's.
+  it("admits a site download with the installer's os, arch and version", () => {
+    expect(
+      admit({
+        source: "site",
+        event: "download",
+        properties: { site: "landing", langue: "en", $pathname: "/download", os: "mac", arch: "arm64", version: "0.17.10", url: "https://dl.example/x.dmg" },
+      }),
+    ).toEqual({
+      ok: true,
+      source: "site",
+      event: "download",
+      properties: { site: "landing", langue: "en", $pathname: "/download", os: "mac", arch: "arm64", version: "0.17.10" },
+    });
   });
 
   it("never throws on a malformed properties field", () => {

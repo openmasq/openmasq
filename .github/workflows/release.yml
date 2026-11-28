@@ -917,5 +917,26 @@ jobs:
           echo "prune HTTP $code"; cat /tmp/desktop-prune.out || true; echo
           if [ "$code" != "200" ]; then echo "::warning::desktop prune failed (HTTP $code) - skipping"; fi
 
+      # The public site is a static export: its download page reads the updates feed when the
+      # site is BUILT, so a published release asks the site's repository for a rebuild
+      # (`repository_dispatch` "app-release"). The token lives on the `release` environment,
+      # like the admin token above, and can only dispatch to that one repository. Absent (a
+      # fork, a manual run), the step says so and the release goes on: the site rebuilds
+      # every morning anyway.
+      - name: Rebuild the public site
+        env:
+          SITES_DISPATCH_TOKEN: ${{ secrets.SITES_DISPATCH_TOKEN }}
+          SITES_REPO: ${{ vars.SITES_REPO || 'openmasq/openmasq-sites' }}
+        run: |
+          set -euo pipefail
+          if [ -z "${SITES_DISPATCH_TOKEN:-}" ]; then echo "::notice::no SITES_DISPATCH_TOKEN - site not rebuilt"; exit 0; fi
+          code=$(curl -sS -o /tmp/site-dispatch.out -w '%{http_code}' \
+            -X POST "https://api.github.com/repos/$SITES_REPO/dispatches" \
+            -H "Authorization: Bearer $SITES_DISPATCH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            -d '{"event_type":"app-release"}' || true)
+          echo "dispatch HTTP $code"
+          if [ "$code" != "204" ]; then cat /tmp/site-dispatch.out || true; echo "::warning::site rebuild not requested (HTTP $code)"; fi
+
       # Announcing the release (the release-notes e-mail) is the operator's step, outside this
       # repository. This repository publishes the BUILD.
