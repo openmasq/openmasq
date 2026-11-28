@@ -1,4 +1,5 @@
 import { DESKTOP_EVENTS } from "./desktop";
+import { SITE_EVENTS } from "./site";
 
 /**
  * The surfaces the relay ADMITS, each with its vocabulary — an allow-list, never a
@@ -10,10 +11,11 @@ import { DESKTOP_EVENTS } from "./desktop";
  */
 export const VOCABULARY = {
   desktop: DESKTOP_EVENTS,
+  site: SITE_EVENTS,
 } as const satisfies Record<string, Record<string, readonly string[]>>;
 
 export type Source = keyof typeof VOCABULARY;
 
 export const SOURCES = Object.keys(VOCABULARY) as readonly Source[];
 
-export { DESKTOP_EVENTS };
+export { DESKTOP_EVENTS, SITE_EVENTS };

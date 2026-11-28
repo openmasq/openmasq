@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { admit, CONTEXT_KEYS, EXCEPTION_KEYS, MAX_LIST_ITEMS, MAX_VALUE_CHARS } from "./admit";
-import { DESKTOP_EVENTS, SOURCES, VOCABULARY } from "./index";
+import { DESKTOP_EVENTS, SITE_EVENTS, SOURCES, VOCABULARY } from "./index";
 
 describe("admit — what the relay lets through", () => {
   it("refuses a source that is not a declared surface, whatever it claims", () => {
@@ -95,6 +95,25 @@ describe("admit — what the relay lets through", () => {
     }
   });
 
+  // The public sites post page views only: what a web-analytics view
+  // reads, never an address, a query string's other parameters or a desktop event.
+  it("admits a site page view with its declared keys only", () => {
+    const a = admit({
+      source: "site",
+      event: "$pageview",
+      properties: { site: "help", langue: "fr", $pathname: "/fr/masquage", $browser: "Firefox", utm_source: "news", $ip: "1.2.3.4", email: "a@b.c", $geoip_country_code: "FR" },
+    });
+    expect(a).toEqual({
+      ok: true,
+      source: "site",
+      event: "$pageview",
+      properties: { site: "help", langue: "fr", $pathname: "/fr/masquage", $browser: "Firefox", utm_source: "news" },
+    });
+    expect(admit({ source: "site", event: "send_message" })).toEqual({ ok: false, reason: "event" });
+    expect(admit({ source: "desktop", event: "$pageview" })).toEqual({ ok: false, reason: "event" });
+    expect(Object.keys(SITE_EVENTS)).toEqual(["$pageview"]);
+  });
+
   it("never throws on a malformed properties field", () => {
     for (const properties of [null, "x", 3, [1], undefined]) {
       const a = admit({ source: "desktop", event: "app_open", properties });
@@ -110,7 +129,7 @@ describe("admit — what the relay lets through", () => {
       }
     }
     expect(Object.keys(DESKTOP_EVENTS).length).toBeGreaterThan(30);
-    expect(SOURCES).toEqual(["desktop"]);
+    expect(SOURCES).toEqual(["desktop", "site"]);
     expect(new Set(EXCEPTION_KEYS).size).toBe(EXCEPTION_KEYS.length);
   });
 });
